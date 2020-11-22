@@ -7,9 +7,9 @@ assert sys.version_info.major == 3 and sys.version_info.minor >= 6, "python vers
 
 setup(
     name="pg-drive",
-    version="0.01",
-    description="None",
-    url="None",
+    version="0.1.0",
+    description="PG-Drive",
+    url="https://github.com/decisionforce/pg-drive",
     author="Quanyi Li, Zhenghao Peng",
     author_email="liquanyi@bupt.edu.cn, pengzh@ie.cuhk.edu.hk",
     packages=find_packages(),
