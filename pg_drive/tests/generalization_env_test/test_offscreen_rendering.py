@@ -34,3 +34,4 @@ if __name__ == "__main__":
         if d:
             env.reset()
     env.close()
+    print("Test passed!")

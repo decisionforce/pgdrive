@@ -3,7 +3,7 @@ import sys
 from typing import List
 
 import gltf
-import simplepbr
+# import simplepbr
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
 from pg_drive.backends import ShowBase
@@ -16,6 +16,7 @@ from pg_drive.world.light import Light
 from pg_drive.world.sky_box import SkyBox
 from pg_drive.world.terrain import Terrain
 from pg_drive.world.vehicle_panel import VehiclePanel
+from pg_drive.backends import simplepbr
 
 bullet_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
