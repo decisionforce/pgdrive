@@ -285,8 +285,8 @@ class ShowBase(DirectObject.DirectObject):
             props = WindowProperties.getDefault()
             if (self.config.GetBool('read-raw-mice', 0)):
                 props.setRawMice(1)
-            self.openDefaultWindow(startDirect=False, props=props,
-                                   requireWindow=False if self.windowType == "offscreen" else True)
+            self.openDefaultWindow(startDirect=False, props=props)
+                                   # requireWindow=False if self.windowType == "offscreen" else True)
 
         # The default is trackball mode, which is more convenient for
         # ad-hoc development in Python using ShowBase.  Applications
@@ -719,19 +719,23 @@ class ShowBase(DirectObject.DirectObject):
             self.makeAllPipes()
             try:
                 self.pipeList.remove(self.pipe)
+                print(-1)
             except ValueError:
                 pass
             while self.win == None and self.pipeList:
                 self.pipe = self.pipeList[0]
                 self.notify.info("Trying pipe type %s (%s)" % (
                     self.pipe.getType(), self.pipe.getInterfaceName()))
+                print(0)
                 win = func()
-
+                print(1)
                 self.graphicsEngine.openWindows()
+                print(2)
                 if win != None and not win.isValid():
                     self.notify.info("Window did not open, removing.")
                     self.closeWindow(win)
                     win = None
+                print(3)
                 if win == None:
                     self.pipeList.remove(self.pipe)
 
