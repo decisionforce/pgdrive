@@ -4,12 +4,9 @@ from typing import List
 
 import gltf
 import simplepbr
-from direct.showbase import ShowBase
-from panda3d.bullet import BulletDebugNode
-from panda3d.bullet import BulletWorld
-from panda3d.core import Vec3, AntialiasAttrib, NodePath
-from panda3d.core import loadPrcFileData, TextNode, LineSegs
-
+from panda3d.bullet import BulletDebugNode, BulletWorld
+from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
+from pg_drive.backends import ShowBase
 from pg_drive.pg_config.cam_mask import CamMask
 from pg_drive.pg_config.pg_config import PgConfig
 from pg_drive.utils.visualization_loader import VisLoader
@@ -23,7 +20,7 @@ from pg_drive.world.vehicle_panel import VehiclePanel
 bullet_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
-class BtWorld(ShowBase.ShowBase):
+class BtWorld(ShowBase):
     loadPrcFileData("", "win-size 1200 900")
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
