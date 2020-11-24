@@ -316,7 +316,6 @@ class GeneralizationRacing(gym.Env):
             self.vehicle.destroy(self.bullet_world.physics_world)
             self.traffic_manager.destroy(self.bullet_world.physics_world)
 
-
             del self.traffic_manager
             self.traffic_manager = None
 
