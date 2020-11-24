@@ -252,6 +252,7 @@ class BtWorld(ShowBase):
     def close_world(self):
         if self.bt_config["use_render"] or self.bt_config["use_rgb"]:
             self._clear_display_region_and_buffers()
+        self.destroy()
 
 
 if __name__ == "__main__":
