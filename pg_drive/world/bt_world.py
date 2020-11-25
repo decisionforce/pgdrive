@@ -190,7 +190,8 @@ class BtWorld(ShowBase.ShowBase):
         self.graphicsEngine.renderFrame()
         if self.bt_config["use_render"]:
             with self.force_fps:
-                self.sky_box.step()
+                pass
+                # self.sky_box.step()
 
     def clear_world(self):
         """
