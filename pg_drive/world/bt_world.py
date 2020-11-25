@@ -29,6 +29,7 @@ class BtWorld(ShowBase.ShowBase):
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
+    loadPrcFileData("", "load-display pandagles2")
     # loadPrcFileData("", "load-display p3tinydisplay")
     # loadPrcFileData("", "geom-cache-size 50000")
 
@@ -91,12 +92,12 @@ class BtWorld(ShowBase.ShowBase):
             self._init_collision_info_render()
 
             # reset pbr
-            self.pbrpipe = simplepbr.init()
-            self.pbrpipe.render_node = self.pbr_render
-            self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
-            self.pbrpipe._recompile_pbr()
-            self.pbrpipe._setup_tonemapping()
-            self.pbrpipe.manager.cleanup()
+            # self.pbrpipe = simplepbr.init()
+            # self.pbrpipe.render_node = self.pbr_render
+            # self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
+            # self.pbrpipe._recompile_pbr()
+            # # self.pbrpipe._setup_tonemapping()
+            # self.pbrpipe.manager.cleanup()
 
             # set main cam
             self.cam.node().setCameraMask(CamMask.MainCam)
@@ -106,9 +107,9 @@ class BtWorld(ShowBase.ShowBase):
             lens.setFov(70)
             lens.setAspectRatio(1.2)
 
-            self.sky_box = SkyBox()
-            if not sys.platform == "darwin":
-                self.sky_box.add_to_render_module(self.render)
+            # self.sky_box = SkyBox()
+            # if not sys.platform == "darwin":
+            #     self.sky_box.add_to_render_module(self.render)
 
             self.light = Light(self.bt_config)
             self.light.add_to_render_module(self.render)

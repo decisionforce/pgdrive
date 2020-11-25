@@ -12,7 +12,7 @@ class ResetEnv(GeneralizationRacing):
         super(ResetEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.2,
+                "traffic_density": 0.0,
                 "start_seed": 40,
                 "debug": False,
                 "bt_world_config": {
@@ -21,7 +21,7 @@ class ResetEnv(GeneralizationRacing):
                 },
                 "traffic_mode": TrafficMode.Reborn,
                 "manual_control": True,
-                "use_render": True,
+                "use_render": False,
                 "use_rgb": True,
                 "use_increment_steering": False,
                 "map_config": {
@@ -48,12 +48,10 @@ if __name__ == "__main__":
         # start = time.time()
         # print("Step: ", i)
         o, r, d, info = env.step([0.1, 0])
-        out = not env.vehicle.lane.on_lane(env.vehicle.position)
-        print(env.vehicle.lane_index)
         # print(time.time() - start)
         # print(len(o), "Vs.", env.observation_space.shape[0])
         # print(info)
-        env.render(text={"can you see me": i})
+        # env.render(text={"can you see me": i})
         # if d:
         #     print("Reset")
         #     env.reset()
