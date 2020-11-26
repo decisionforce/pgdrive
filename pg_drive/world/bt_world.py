@@ -110,7 +110,8 @@ class BtWorld(ShowBase.ShowBase):
             lens.setAspectRatio(1.2)
 
             self.sky_box = SkyBox(
-                (self.bt_config["rgb_headless"] or self.bt_config["use_rgb"]) or sys.platform == "darwin")
+                (self.bt_config["rgb_headless"] or self.bt_config["use_rgb"]) or sys.platform == "darwin"
+            )
             self.sky_box.add_to_render_module(self.render)
 
             self.light = Light(self.bt_config)

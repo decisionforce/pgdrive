@@ -4,7 +4,6 @@ import logging
 from pg_drive.scene_manager.traffic_manager import TrafficMode
 from pg_drive.utils import setup_logger
 
-
 # setup_logger(debug=True)
 
 

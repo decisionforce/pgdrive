@@ -62,7 +62,6 @@ class SkyBox(DynamicElement):
         skybox.setZ(-4400)
         skybox.setH(30)
 
-
     def step(self):
         if not self.render:
             return
