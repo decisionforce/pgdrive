@@ -111,7 +111,7 @@ class BaseVehicle(DynamicElement):
         if bt_world.bt_config["use_rgb"] or bt_world.bt_config["use_render"]:
             front_cam_config = self.vehicle_config["front_cam"]
             self.add_front_cam(SensorCamera(front_cam_config[0], front_cam_config[1], self.chassis_np, bt_world))
-            self.add_mini_map(MiniMap(self.vehicle_config["mini_map"], bt_world))
+            self.add_mini_map(MiniMap(self.vehicle_config["mini_map"], self.chassis_np, bt_world))
 
         # other info
         self.throttle_brake = 0.0
@@ -158,8 +158,6 @@ class BaseVehicle(DynamicElement):
             self.lidar.perceive(self.position, self.heading_theta, self.bt_world.physics_world)
         if self.routing_localization is not None:
             self.lane, self.lane_index = self.routing_localization.update_navigation_localization(self)
-        if self.mini_map is not None:
-            self.mini_map.renew_position(self.chassis_np.getPos(), self.system.get_forward_vector())
 
     def reset(self, map: Map, pos: np.ndarray, heading: float):
         """
@@ -308,8 +306,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1

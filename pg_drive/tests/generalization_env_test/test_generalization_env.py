@@ -18,6 +18,7 @@ class ResetEnv(GeneralizationRacing):
                     "debug": False,
                     "rgb_headless": True
                 },
+                "vehicle_config": {"mini_map":(512, 512, 200)},
                 "image_buffer_name": "mini_map",
                 "manual_control": True,
                 "use_render": True,
@@ -42,13 +43,13 @@ if __name__ == "__main__":
     import time
 
     env.reset()
-    env.bullet_world.accept("r", env.vehicle.front_cam.save_image)
+    env.bullet_world.accept("r", env.vehicle.mini_map.save_image)
     for i in range(1, 100000):
         # start = time.time()
         # print("Step: ", i)
         o, r, d, info = env.step([0, 1])
         # print(r)
-        print(o)
+        # print(o)
         # print(time.time() - start)
         # print(len(o), "Vs.", env.observation_space.shape[0])
         # print(info)
