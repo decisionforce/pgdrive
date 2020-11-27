@@ -22,7 +22,7 @@ class GeneralizationRacing(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_rgb"] \
             else ImageStateObservation(vehicle_config, self.config["image_buffer_name"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -128,6 +128,7 @@ class GeneralizationRacing(gym.Env):
             # ===== Others =====
             bt_world_config=dict(),
             use_increment_steering=False,
+            action_check=False,
         )
         return PgConfig(env_config)
 
@@ -143,6 +144,12 @@ class GeneralizationRacing(gym.Env):
         return
 
     def step(self, action: np.ndarray):
+
+        if self.config["action_check"]:
+            assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
+                action, self.action_space
+            )
+
         # prepare step
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
@@ -233,7 +240,7 @@ class GeneralizationRacing(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
