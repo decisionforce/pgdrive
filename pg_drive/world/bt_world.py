@@ -50,9 +50,6 @@ class BtWorld(ShowBase.ShowBase):
             loadPrcFileData("", "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
         else:
             mode = "offscreen" if self.bt_config["use_rgb"] else "none"
-        if self.bt_config["rgb_headless"]:
-            # for headless cluster rgb training.
-            loadPrcFileData("", "load-display pandagles2")
         super(BtWorld, self).__init__(windowType=mode)
         if not self.bt_config["debug_physics_world"] and (self.bt_config["use_render"] or self.bt_config["use_rgb"]):
             VisLoader.init_loader(self.loader, bullet_path)
@@ -90,14 +87,12 @@ class BtWorld(ShowBase.ShowBase):
             self.collision_info_np = NodePath(TextNode("collision_info"))
             self._init_collision_info_render()
 
-            # reset pbr
-            if not self.bt_config["rgb_headless"]:
-                self.pbrpipe = simplepbr.init()
-                self.pbrpipe.render_node = self.pbr_render
-                self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
-                self.pbrpipe._recompile_pbr()
-                self.pbrpipe._setup_tonemapping()
-                self.pbrpipe.manager.cleanup()
+            self.pbrpipe = simplepbr.init()
+            self.pbrpipe.render_node = self.pbr_render
+            self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
+            self.pbrpipe._recompile_pbr()
+            self.pbrpipe._setup_tonemapping()
+            self.pbrpipe.manager.cleanup()
 
             # set main cam
             self.cam.node().setCameraMask(CamMask.MainCam)
@@ -107,9 +102,7 @@ class BtWorld(ShowBase.ShowBase):
             lens.setFov(70)
             lens.setAspectRatio(1.2)
 
-            self.sky_box = SkyBox(
-                (self.bt_config["rgb_headless"] or self.bt_config["use_rgb"]) or sys.platform == "darwin"
-            )
+            self.sky_box = SkyBox(sys.platform == "darwin")
             self.sky_box.add_to_render_module(self.render)
 
             self.light = Light(self.bt_config)
@@ -229,9 +222,6 @@ class BtWorld(ShowBase.ShowBase):
                 mini_map=True,
                 force_fps=None,
                 debug_physics_world=False,  # only render physics world without model
-
-                # headless cluster can not open window or buffer, and thus a EGL env is required
-                rgb_headless=False
             )
         )
 
