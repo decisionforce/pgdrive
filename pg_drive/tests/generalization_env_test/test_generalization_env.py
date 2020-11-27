@@ -18,7 +18,7 @@ class ResetEnv(GeneralizationRacing):
                     "debug": False,
                     "rgb_headless": True
                 },
-                "image_buffer_name":"mini_map",
+                "image_buffer_name": "mini_map",
                 "manual_control": True,
                 "use_render": True,
                 "use_rgb": True,

@@ -112,7 +112,6 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
-
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -145,7 +144,7 @@ class ImageObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_buffer_name][0:2]) + (self.STACK_SIZE,)
+        shape = tuple(self.config[self.image_buffer_name][0:2]) + (self.STACK_SIZE, )
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
