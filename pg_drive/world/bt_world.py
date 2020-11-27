@@ -128,8 +128,9 @@ class BtWorld(ShowBase.ShowBase):
 
             # first window and display region -- a vehicle panel
             self.vehicle_panel = VehiclePanel(self.win.makeTextureBuffer, self.makeCamera)
-            self.vehicle_panel.add_to_display(self, [0.67, 1, self.vehicle_panel.display_bottom,
-                                                     self.vehicle_panel.display_top])
+            self.vehicle_panel.add_to_display(
+                self, [0.67, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
+            )
 
         # task manager
         self.taskMgr.remove('audioLoop')

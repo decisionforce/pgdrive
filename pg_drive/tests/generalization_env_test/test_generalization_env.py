@@ -18,7 +18,7 @@ class ResetEnv(GeneralizationRacing):
                     "debug": False,
                 },
                 "vehicle_config": {
-                #     "mini_map": (256, 256, 100),
+                    #     "mini_map": (256, 256, 100),
                     "front_cam": (256, 256),
                 },
                 "image_buffer_name": "mini_map",
