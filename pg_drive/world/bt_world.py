@@ -122,14 +122,14 @@ class BtWorld(ShowBase.ShowBase):
 
             # self added display regions and cameras attached to them
             self.my_display_regions = []
-            self._init_display_region()
+            if self.bt_config["use_default_layout"]:
+                self._init_display_region()
             self.my_buffers = []
 
             # first window and display region -- a vehicle panel
             self.vehicle_panel = VehiclePanel(self.win.makeTextureBuffer, self.makeCamera)
-            self.add_to_console(
-                self.vehicle_panel, [0.67, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
-            )
+            self.vehicle_panel.add_to_display(self, [0.67, 1, self.vehicle_panel.display_bottom,
+                                                     self.vehicle_panel.display_top])
 
         # task manager
         self.taskMgr.remove('audioLoop')
@@ -144,6 +144,7 @@ class BtWorld(ShowBase.ShowBase):
             self._debug_mode()
 
     def _init_display_region(self):
+        # TODO maybe decided by the user in the future
         line_seg = LineSegs("interface")
         line_seg.setColor(0.8, 0.8, 0.8, 0)
         line_seg.moveTo(-2, 0, 0.6)
@@ -169,14 +170,6 @@ class BtWorld(ShowBase.ShowBase):
         self.collision_info_np.setScale(0.05)
         self.collision_info_np.setPos(-1, -0.8, -0.8)
         self.collision_info_np.reparentTo(self.aspect2d)
-
-    def add_to_console(self, image_buffer: ImageBuffer, display_region: List[float]):
-        if self.bt_config["use_render"]:
-            # only show them when onscreen
-            region = self.win.makeDisplayRegion(*display_region)
-            region.setCamera(image_buffer.cam)
-            self.my_display_regions.append(region)
-            self.my_buffers.append(image_buffer)
 
     def render_frame(self, text: dict = None):
         self.onScreenDebug.clear()
@@ -222,6 +215,7 @@ class BtWorld(ShowBase.ShowBase):
                 mini_map=True,
                 force_fps=None,
                 debug_physics_world=False,  # only render physics world without model
+                use_default_layout=True  # decide the layout of white lines
             )
         )
 
