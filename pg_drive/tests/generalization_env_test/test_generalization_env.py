@@ -18,7 +18,9 @@ class ResetEnv(GeneralizationRacing):
                     "debug": False,
                     "rgb_headless": True
                 },
-                "vehicle_config": {"mini_map":(512, 512, 200)},
+                "vehicle_config": {
+                    "mini_map": (512, 512, 200)
+                },
                 "image_buffer_name": "mini_map",
                 "manual_control": True,
                 "use_render": True,
