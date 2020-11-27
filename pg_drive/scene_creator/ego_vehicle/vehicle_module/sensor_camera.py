@@ -22,5 +22,3 @@ class SensorCamera(ImageBuffer):
         self.cam.lookAt(0, 2.4, 1.2)
         lens = self.cam.node().getLens()
         lens.setFov(60)
-        lens.setAspectRatio(2.0)
-        # lens.setFar(300)
