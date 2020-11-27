@@ -60,8 +60,8 @@ class BaseVehicle(DynamicElement):
     default_vehicle_config = PgConfig(
         dict(
             lidar=(240, 50, 4),  # laser num, distance, other vehicle info num
-            mini_map=250,
-            front_cam=(84, 84),  # length, width
+            mini_map=(84, 84, 250),  # buffer length, width
+            front_cam=(84, 84),  # buffer length, width
             show_navi_point=False,
             increment_steering=False
         )
@@ -308,8 +308,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
