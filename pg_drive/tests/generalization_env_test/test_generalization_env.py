@@ -4,7 +4,6 @@ import logging
 from pg_drive.scene_manager.traffic_manager import TrafficMode
 from pg_drive.utils import setup_logger
 
-
 # setup_logger(debug=True)
 
 
@@ -17,9 +16,9 @@ class ResetEnv(GeneralizationRacing):
                 "start_seed": 4,
                 "bt_world_config": {
                     "debug": False,
-                    "rgb_headless":True
+                    "rgb_headless": True
                 },
-                "image_buffer_name":"mini_map",
+                "image_buffer_name": "mini_map",
                 "manual_control": True,
                 "use_render": True,
                 "use_rgb": True,
@@ -29,8 +28,8 @@ class ResetEnv(GeneralizationRacing):
                 "map_config": {
                     "type": BigGenerateMethod.BLOCK_SEQUENCE,
                     "config": "CCCCCC"
-
-                }}
+                }
+            }
         )
         # self.reset()
         # self.bullet_world.accept("r", self.reset)
