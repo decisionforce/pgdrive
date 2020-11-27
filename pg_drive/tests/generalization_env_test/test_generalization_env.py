@@ -19,8 +19,8 @@ class ResetEnv(GeneralizationRacing):
                     "rgb_headless": True
                 },
                 "vehicle_config": {
-                    "mini_map": (512, 512, 120),
-                    "front_cam": (256, 256)
+                #     "mini_map": (256, 256, 100),
+                    "front_cam": (256, 256),
                 },
                 "image_buffer_name": "mini_map",
                 "manual_control": True,
