@@ -112,6 +112,7 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -121,7 +122,8 @@ class StateObservation(ObservationType):
         from pg_drive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
         from pg_drive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
         shape = BaseVehicle.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         navi_info = vehicle.routing_localization.get_navi_info()
@@ -143,7 +145,7 @@ class ImageObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_buffer_name][0:2]) + (self.STACK_SIZE, )
+        shape = tuple(self.config[self.image_buffer_name][0:2]) + (self.STACK_SIZE,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
@@ -197,6 +199,7 @@ class ImageStateObservation(ObservationType):
                 self.STATE: self.state_obs.observation_space
             }
         )
+
 
     def observe(self, vehicle):
         if self.img_obs.image_buffer_name == "front_cam":
