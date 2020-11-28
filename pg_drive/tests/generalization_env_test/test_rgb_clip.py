@@ -10,10 +10,10 @@ class ResetEnv(GeneralizationRacing):
                 "start_seed": 4,
                 "image_buffer_name": "front_cam",
                 "manual_control": True,
-                "use_render": True,
+                "use_render": False,
                 "use_rgb": True,
                 "rgb_clip": True,
-                "vehicle_config":dict(mini_map=(512, 512, 250))
+                "vehicle_config":dict(front_cam=(512, 512, 250))
             }
         )
 
@@ -30,14 +30,14 @@ if __name__ == "__main__":
         # print("Step: ", i)
         o, r, d, info = env.step([0, 1])
         assert env.observation_space.contains(o)
-        for i in range(ImageObservation.STACK_SIZE):
-            ObservationType.show_gray_scale_array(o["image"][:,:,i])
-        # print(r)
-        # print(o)
-        # print(time.time() - start)
-        # print(len(o), "Vs.", env.observation_space.shape[0])
-        # print(info)
-        env.render(text={"can you see me": i})
+        # for i in range(ImageObservation.STACK_SIZE):
+        #     ObservationType.show_gray_scale_array(o["image"][:,:,i])
+        # # print(r)
+        # # print(o)
+        # # print(time.time() - start)
+        # # print(len(o), "Vs.", env.observation_space.shape[0])
+        # # print(info)
+        # env.render(text={"can you see me": i})
         if d:
             print("Reset")
             env.reset()

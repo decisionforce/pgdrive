@@ -89,12 +89,12 @@ class BtWorld(ShowBase.ShowBase):
             self.collision_info_np = NodePath(TextNode("collision_info"))
             self._init_collision_info_render()
 
-            self.pbrpipe = simplepbr.init()
-            self.pbrpipe.render_node = self.pbr_render
-            self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
-            self.pbrpipe._recompile_pbr()
-            self.pbrpipe._setup_tonemapping()
-            self.pbrpipe.manager.cleanup()
+            # self.pbrpipe = simplepbr.init()
+            # self.pbrpipe.render_node = self.pbr_render
+            # self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
+            # self.pbrpipe._recompile_pbr()
+            # self.pbrpipe._setup_tonemapping()
+            # self.pbrpipe.manager.cleanup()
 
             # set main cam
             self.cam.node().setCameraMask(CamMask.MainCam)
