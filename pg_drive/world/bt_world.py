@@ -30,7 +30,7 @@ class BtWorld(ShowBase.ShowBase):
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
 
-    # loadPrcFileData("", "load-display  p3tinydisplay")
+    loadPrcFileData("", "load-display  pandagles2")
 
     # loadPrcFileData("", "geom-cache-size 50000")
 
@@ -104,7 +104,7 @@ class BtWorld(ShowBase.ShowBase):
             lens.setFov(70)
             lens.setAspectRatio(1.2)
 
-            self.sky_box = SkyBox(sys.platform == "darwin")
+            self.sky_box = SkyBox(True or sys.platform == "darwin")
             self.sky_box.add_to_render_module(self.render)
 
             self.light = Light(self.bt_config)
