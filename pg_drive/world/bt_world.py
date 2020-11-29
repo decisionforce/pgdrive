@@ -30,7 +30,7 @@ class BtWorld(ShowBase.ShowBase):
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
 
-    loadPrcFileData("", "load-display  pandagles2")
+    # loadPrcFileData("", "load-display  pandagles2")
 
     # loadPrcFileData("", "geom-cache-size 50000")
 
