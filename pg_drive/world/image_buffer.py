@@ -14,9 +14,8 @@ class ImageBuffer:
     display_top = 1
 
     def __init__(
-            self, length: float, width: float, pos: Vec3, bkg_color: Union[Vec4, Vec3], make_buffer_func,
-            make_camera_func,
-            parent_node: NodePath
+        self, length: float, width: float, pos: Vec3, bkg_color: Union[Vec4, Vec3], make_buffer_func, make_camera_func,
+        parent_node: NodePath
     ):
         assert self.CAM_MASK is not None, "define a camera mask for every image buffer"
         # self.texture = Texture()
@@ -55,12 +54,12 @@ class ImageBuffer:
         img.makeGrayscale()
         if not clip:
             numpy_array = np.array(
-                [[int(img.getGray(i, j) * 255) for j in range(img.getYSize())]
-                 for i in range(img.getXSize())], dtype=np.uint8)
+                [[int(img.getGray(i, j) * 255) for j in range(img.getYSize())] for i in range(img.getXSize())],
+                dtype=np.uint8
+            )
             return np.clip(numpy_array, 0, 255)
         else:
-            numpy_array = np.array(
-                [[img.getGray(i, j) for j in range(img.getYSize())] for i in range(img.getXSize())])
+            numpy_array = np.array([[img.getGray(i, j) for j in range(img.getYSize())] for i in range(img.getXSize())])
             return np.clip(numpy_array, 0, 1)
 
     def add_to_display(self, bt_world, display_region: List[float]):

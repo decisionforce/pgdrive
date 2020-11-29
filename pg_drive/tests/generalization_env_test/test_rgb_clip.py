@@ -13,7 +13,7 @@ class ResetEnv(GeneralizationRacing):
                 "use_render": False,
                 "use_rgb": True,
                 "rgb_clip": True,
-                "vehicle_config":dict(front_cam=(200, 88))
+                "vehicle_config": dict(front_cam=(200, 88))
             }
         )
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step([0, 1])
         assert env.observation_space.contains(o)
         for i in range(ImageObservation.STACK_SIZE):
-            ObservationType.show_gray_scale_array(o["image"][:,:,i])
+            ObservationType.show_gray_scale_array(o["image"][:, :, i])
         # # print(r)
         # # print(o)
         # # print(time.time() - start)
