@@ -133,7 +133,7 @@ class ImageObservation(ObservationType):
     """
     Use only image info as input
     """
-    STACK_SIZE = 3  # use continuous 4 image as the input
+    STACK_SIZE = 4  # use continuous 4 image as the input
 
     def __init__(self, config, image_buffer_name: str, clip_rgb: bool):
         self.image_buffer_name = image_buffer_name
