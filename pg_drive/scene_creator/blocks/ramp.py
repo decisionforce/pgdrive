@@ -11,9 +11,6 @@ from pg_drive.scene_creator.road.road import Road
 from pg_drive.scene_creator.road.road_network import RoadNetwork
 
 
-# TODO, exchange
-
-
 class Ramp(Block):
     """
                     InRamp                                             OutRamp

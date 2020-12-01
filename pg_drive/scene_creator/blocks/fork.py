@@ -11,9 +11,6 @@ from pg_drive.scene_creator.lanes.straight_lane import StraightLane
 from pg_drive.scene_creator.road.road import Road
 
 
-# TODO WIP
-
-
 class Fork(Ramp):
     """
     Similar to Ramp
