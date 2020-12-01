@@ -4,6 +4,7 @@ from typing import Dict
 
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
+
 from pg_drive.pg_config.pg_config import PgConfig
 from pg_drive.pg_config.pg_space import PgSpace
 from pg_drive.utils.visualization_loader import VisLoader

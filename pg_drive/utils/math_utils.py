@@ -1,8 +1,10 @@
 import math
 import time
-import numpy as np
-from pg_drive.scene_creator.road.road_network import RoadNetwork
 from typing import Tuple
+
+import numpy as np
+
+from pg_drive.scene_creator.road.road_network import RoadNetwork
 
 
 def wrap_to_pi(x: float) -> float:
