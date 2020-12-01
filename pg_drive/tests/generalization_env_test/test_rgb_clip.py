@@ -14,7 +14,9 @@ class ResetEnv(GeneralizationRacing):
                 "use_rgb": True,
                 "rgb_clip": True,
                 "vehicle_config": dict(front_cam=(200, 88)),
-                "bt_world_config": {"headless_rgb": True}
+                "bt_world_config": {
+                    "headless_rgb": True
+                }
             }
         )
 

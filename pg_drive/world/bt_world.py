@@ -91,17 +91,19 @@ class BtWorld(ShowBase.ShowBase):
             self._init_collision_info_render()
 
             from pg_drive.world.our_pbr import OurPipeline
-            self.pbrpipe = OurPipeline(render_node=None,
-                                       window=None,
-                                       camera_node=None,
-                                       msaa_samples=4,
-                                       max_lights=8,
-                                       use_normal_maps=False,
-                                       use_emission_maps=True,
-                                       exposure=1.0,
-                                       enable_shadows=False,
-                                       enable_fog=False,
-                                       use_occlusion_maps=False)
+            self.pbrpipe = OurPipeline(
+                render_node=None,
+                window=None,
+                camera_node=None,
+                msaa_samples=4,
+                max_lights=8,
+                use_normal_maps=False,
+                use_emission_maps=True,
+                exposure=1.0,
+                enable_shadows=False,
+                enable_fog=False,
+                use_occlusion_maps=False
+            )
             self.pbrpipe.render_node = self.pbr_render
             self.pbrpipe.render_node.set_antialias(AntialiasAttrib.M_auto)
             self.pbrpipe._recompile_pbr()

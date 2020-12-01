@@ -135,7 +135,7 @@ class ImageObservation(ObservationType):
     """
     STACK_SIZE = 3  # use continuous 3 image as the input
 
-    def __init__(self, config, image_buffer_name: str, clip_rgb:bool):
+    def __init__(self, config, image_buffer_name: str, clip_rgb: bool):
         self.image_buffer_name = image_buffer_name
         super(ImageObservation, self).__init__(config)
         self.rgb_clip = clip_rgb
