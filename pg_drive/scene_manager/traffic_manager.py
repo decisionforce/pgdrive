@@ -111,9 +111,11 @@ class TrafficManager:
         for block in self.blocks[1:]:
             vehicles_on_block = []
             trigger_road = block._pre_block_socket.positive_road
-            lanes = set(block.block_network.get_positive_lanes())
-            lanes.update(block.get_reborn_lanes())
-            trigger_lanes = list(lanes)
+            trigger_lanes = block.block_network.get_positive_lanes()
+            reborn_lanes = block.get_reborn_lanes()
+            for lane in reborn_lanes:
+                if lane not in trigger_lanes:
+                    trigger_lanes.append(lane)
             self.np_random.shuffle(trigger_lanes)
             for lane in trigger_lanes:
                 vehicles_on_block += self._create_vehicles_on_lane(lane)

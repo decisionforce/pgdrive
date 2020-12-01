@@ -3,8 +3,9 @@ import os
 from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.scene_creator.map import Map, MapGenerateMethod
 
+from pg_drive.utils import setup_logger
 
-# setup_logger(debug=True)
+setup_logger(debug=True)
 
 
 class ResetEnv(GeneralizationRacing):
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step([0, 1])
 
         env.render(text={"can you see me": i})
-        if d:
-            print("Reset")
-            env.reset()
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()

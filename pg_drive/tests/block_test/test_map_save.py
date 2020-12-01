@@ -10,4 +10,4 @@ if __name__ == "__main__":
     VisLoader.init_loader(test.loader, test.asset_path)
     map = Map(test.render, test.physics_world,
               big_config={Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM, Map.GENERATE_PARA: 12})
-    map.save_map("test_save", os.path.dirname(__file__))
+    map.save_map("map_test", os.path.dirname(__file__))

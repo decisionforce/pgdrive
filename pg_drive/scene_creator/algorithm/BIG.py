@@ -91,10 +91,10 @@ class BIG:
         return block
 
     def destruct(self, block):
-        block.destruct_block_in_world(self._bullet_world)
+        block.destruct_block(self._bullet_world)
 
     def construct(self, block) -> bool:
-        return block.construct_block_in_world(self._render_node_path, self._bullet_world)
+        return block.construct_block_random(self._render_node_path, self._bullet_world)
 
     def _forward(self):
         logging.debug("forward")

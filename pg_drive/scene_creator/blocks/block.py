@@ -127,7 +127,7 @@ class Block(Element):
             self.side_normal = self.loader.loadTexture(os.path.join(VisLoader.path, "textures/side_walk/normal.png"))
             self.side_walk = self.loader.loadModel(os.path.join(VisLoader.path, "models/box.bam"))
 
-    def construct_block_in_world(self, root_render_np: NodePath, bullet_physics_world: BulletWorld) -> bool:
+    def construct_block_random(self, root_render_np: NodePath, bullet_physics_world: BulletWorld) -> bool:
         self.set_config(self.PARAMETER_SPACE.sample())
         success = self._sample_topology()
         self._create_in_bullet()
@@ -135,7 +135,7 @@ class Block(Element):
         self.add_to_render_module(root_render_np)
         return success
 
-    def destruct_block_in_world(self, bullet_physics_world: BulletWorld):
+    def destruct_block(self, bullet_physics_world: BulletWorld):
         self._clear_topology()
         if len(self.bullet_nodes) != 0:
             for node in self.bullet_nodes:

@@ -1,8 +1,8 @@
 from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.scene_creator.map import Map, MapGenerateMethod
+from pg_drive.utils import setup_logger
 
-
-# setup_logger(debug=True)
+setup_logger(debug=True)
 
 
 class ResetEnv(GeneralizationRacing):
@@ -14,10 +14,6 @@ class ResetEnv(GeneralizationRacing):
                 "start_seed": 0,
                 "bt_world_config": {
                     "debug": False,
-                },
-                "vehicle_config": {
-                    #     "mini_map": (256, 256, 100),
-                    # "front_cam": (256, 256),
                 },
                 "image_buffer_name": "mini_map",
                 "manual_control": True,

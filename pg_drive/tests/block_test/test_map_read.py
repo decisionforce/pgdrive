@@ -10,5 +10,5 @@ if __name__ == "__main__":
     VisLoader.init_loader(test.loader, test.asset_path)
     map = Map(test.render, test.physics_world,
               big_config={Map.GENERATE_METHOD: MapGenerateMethod.PG_MAP_FILE,
-                          Map.GENERATE_PARA: os.path.join(os.path.dirname(__file__), "test_save.pgm")})
+                          Map.GENERATE_PARA: os.path.join(os.path.dirname(__file__), "map_test.pgm")})
     test.run()
