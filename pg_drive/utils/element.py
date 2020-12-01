@@ -46,12 +46,6 @@ class Element:
     def add_to_render_module(self, parent_render_np: NodePath):
         """
         Call this to render bodies
-        TODO I find that it still works to attach rigidbody node to bulletworld without attaching it to render
-        TODO To do so will decrease the number of nodes in the scene graph, maybe increasing the simulation
-        TODO Thus I divide this part to TWO functions
-
-        TODO I find that whether loading model or not, doesn't change the efficiency a lot,
-        TODO maybe not divide these two func in the future !! (11. 9)
         """
         if self.render:
             # double check :-)
