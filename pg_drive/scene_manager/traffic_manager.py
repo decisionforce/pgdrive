@@ -42,17 +42,17 @@ class TrafficManager:
         self.random_seed = None
 
     def generate_traffic(
-        self,
-        bullet_world: BtWorld,
-        map: Map,
-        ego_vehicle,
-        random_seed: int,
-        traffic_density: float,
-        road_objects: List = None
+            self,
+            bullet_world: BtWorld,
+            map: Map,
+            ego_vehicle,
+            traffic_density: float,
+            road_objects: List = None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
+        random_seed = map.random_seed
         logging.debug("load scene {}".format(random_seed))
         self.clear_traffic(bullet_world.physics_world)
         self.ego_vehicle = ego_vehicle
@@ -144,7 +144,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

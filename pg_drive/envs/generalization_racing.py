@@ -197,9 +197,8 @@ class GeneralizationRacing(gym.Env):
         self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
 
         # generate new traffic according to the map
-        self.traffic_manager.generate_traffic(
-            self.bullet_world, self.current_map, self.vehicle, self.current_seed, self.config["traffic_density"]
-        )
+        self.traffic_manager.generate_traffic(self.bullet_world, self.current_map, self.vehicle,
+                                              self.config["traffic_density"])
         o, *_ = self.step(np.array([0.0, 0.0]))
         return o
 
@@ -211,8 +210,6 @@ class GeneralizationRacing(gym.Env):
 
         # create map
         self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
-        # self.current_seed = self.current_seed + 1 if self.current_seed < self.start_seed + \
-        # self.env_num - 1 else self.start_seed
         if self.maps.get(self.current_seed, None) is None:
             map_config = self.config["map_config"]
             map_config.update({"seed": self.current_seed})
@@ -304,7 +301,8 @@ class GeneralizationRacing(gym.Env):
         long, lat = self.vehicle.routing_localization.final_lane.local_coordinates(self.vehicle.position)
 
         if self.vehicle.routing_localization.final_lane.length - 5 < long < self.vehicle.routing_localization.final_lane.length + 5 \
-                and self.current_map.lane_width / 2 >= lat >= (0.5 - self.current_map.lane_num) * self.current_map.lane_width:
+                and self.current_map.lane_width / 2 >= lat >= (
+                0.5 - self.current_map.lane_num) * self.current_map.lane_width:
             self.done = True
             reward_ += self.config["success_reward"]
             print("arrive_dest")
