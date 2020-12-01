@@ -62,15 +62,20 @@ class Map:
 
     @staticmethod
     def default_config():
-        return PgConfig({Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                         Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
-                         Map.LANE_WIDTH: 3.5,
-                         Map.LANE_NUM: 3,
-                         Map.SEED: 10})
+        return PgConfig(
+            {
+                Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+                Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
+                Map.LANE_WIDTH: 3.5,
+                Map.LANE_NUM: 3,
+                Map.SEED: 10
+            }
+        )
 
     def _big_generate(self, parent_node_path: NodePath, physics_world: BulletWorld):
-        big_map = BIG(self.lane_num, self.lane_width, self.road_network, parent_node_path, physics_world,
-                      self.random_seed)
+        big_map = BIG(
+            self.lane_num, self.lane_width, self.road_network, parent_node_path, physics_world, self.random_seed
+        )
         big_map.generate(self.config[self.GENERATE_METHOD], self.config[self.GENERATE_PARA])
         self.blocks = big_map.blocks
 
@@ -82,8 +87,9 @@ class Map:
         for block_index, b in enumerate(blocks_config[1:], 1):
             block_type = PgBlock.get_block(b.pop(self.BLOCK_ID))
             pre_block_socket_inex = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
-            last_block = block_type(block_index, last_block.get_socket(pre_block_socket_inex), self.road_network,
-                                    self.random_seed)
+            last_block = block_type(
+                block_index, last_block.get_socket(pre_block_socket_inex), self.road_network, self.random_seed
+            )
             last_block.construct_from_config(b, parent_node_path, physics_world)
             self.blocks.append(last_block)
 
@@ -139,10 +145,14 @@ class Map:
             json_config[self.PRE_BLOCK_SOCKET_INDEX] = b.pre_block_socket_index
             map_config.append(json_config)
         with open(os.path.join(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
-            json.dump({self.SEED: self.random_seed,
-                       self.LANE_NUM: self.lane_num,
-                       self.LANE_WIDTH: self.lane_width,
-                       self.BLOCK_SEQUENCE: map_config}, outfile)
+            json.dump(
+                {
+                    self.SEED: self.random_seed,
+                    self.LANE_NUM: self.lane_num,
+                    self.LANE_WIDTH: self.lane_width,
+                    self.BLOCK_SEQUENCE: map_config
+                }, outfile
+            )
 
     def read_map(self, map_file_path: str):
         """
