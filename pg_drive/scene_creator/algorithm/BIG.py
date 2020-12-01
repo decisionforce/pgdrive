@@ -47,6 +47,9 @@ class BIG:
         self.next_step = NextStep.forward
 
     def generate(self, generate_method: BigGenerateMethod, parameter: Union[str, int]):
+        """
+        In order to embed it to the show_base loop, we implement BIG in a more complex way
+        """
         if generate_method == BigGenerateMethod.BLOCK_NUM:
             assert isinstance(parameter, int), "When generating map by assigning block num, the parameter should be int"
             self.block_num = parameter + 1
@@ -54,9 +57,6 @@ class BIG:
             assert isinstance(parameter, str), "When generating map from block sequence, the parameter should be a str"
             self.block_num = len(parameter) + 1
             self._block_sequence = FirstBlock.ID + parameter
-        """
-        In order to embed it to the show_base loop, we implement BIG in a more complex way
-        """
         while True:
             if self.big_helper_func():
                 break

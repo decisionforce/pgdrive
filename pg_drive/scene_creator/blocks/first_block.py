@@ -24,8 +24,8 @@ class FirstBlock(Block):
     SOCKET_NUM = 1
 
     def __init__(
-        self, global_network: RoadNetwork, lane_width: float, lane_num: int, render_root_np: NodePath,
-        bullet_physics_world: BulletWorld, random_seed
+            self, global_network: RoadNetwork, lane_width: float, lane_num: int, render_root_np: NodePath,
+            bullet_physics_world: BulletWorld, random_seed
     ):
         place_holder = BlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))
         super(FirstBlock, self).__init__(0, place_holder, global_network, random_seed)
@@ -44,6 +44,7 @@ class FirstBlock(Block):
         self._create_in_bullet()
         global_network += self.block_network
         socket = self.create_socket_from_positive_road(other_v_born_road)
+        socket.index = 0
         self.add_sockets(socket)
         self.add_to_render_module(render_root_np)
         self.add_to_physics_world(bullet_physics_world)
