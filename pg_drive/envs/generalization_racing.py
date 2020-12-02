@@ -10,6 +10,7 @@ from pg_drive.scene_manager.traffic_manager import TrafficManager, TrafficMode
 from pg_drive.world.pg_world import PgWorld
 from pg_drive.world.chase_camera import ChaseCamera
 from pg_drive.world.manual_controller import KeyboardController, JoystickController
+import copy
 
 
 class GeneralizationRacing(gym.Env):
@@ -23,7 +24,7 @@ class GeneralizationRacing(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_rgb"] \
             else ImageStateObservation(vehicle_config, self.config["image_buffer_name"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -108,6 +109,7 @@ class GeneralizationRacing(gym.Env):
                 Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
                 Map.GENERATE_PARA: 3
             },
+            _load_map_from_json=False,  # Whether to load maps from predefined maps.
 
             # ===== Generalization =====
             start_seed=0,
@@ -183,6 +185,7 @@ class GeneralizationRacing(gym.Env):
             "cost": float(0),
             "velocity": float(self.vehicle.speed),
             "steering": float(self.vehicle.steering),
+            "acceleration": float(self.vehicle.throttle_brake),
             "step_reward": float(reward)
         }
         info.update(done_info)
@@ -216,7 +219,7 @@ class GeneralizationRacing(gym.Env):
         # create map
         self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
         if self.maps.get(self.current_seed, None) is None:
-            map_config = self.config["map_config"]
+            map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": self.current_seed})
             new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
             self.maps[self.current_seed] = new_map
@@ -241,7 +244,7 @@ class GeneralizationRacing(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -301,3 +304,50 @@ class GeneralizationRacing(gym.Env):
             self.pg_world.close_world()
             del self.pg_world
             self.pg_world = None
+
+    def dump_all_maps(self):
+        assert self.pg_world is None, "We assume you generate map files in independent tasks (not in training). " \
+                                      "So you should run the generating script without calling reset of the " \
+                                      "environment."
+
+        self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
+        self.pg_world.clear_world()
+
+        for seed in range(self.start_seed, self.start_seed + self.env_num):
+            map_config = copy.deepcopy(self.config["map_config"])
+            map_config.update({"seed": seed})
+            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            self.maps[seed] = new_map
+
+        map_data = dict()
+        for seed, map in self.maps.items():
+            assert map is not None
+            map_data[seed] = map.save_map()
+
+        return_data = dict(
+            map_config=copy.deepcopy(self.config["map_config"]),
+            map_data=map_data
+        )
+        self.close()  # Close this environment
+        return return_data
+
+    def load_all_maps(self, data):
+        assert self.config["_load_map_from_json"]
+        assert isinstance(data, dict)
+        assert set(data.keys()) == set(["map_config", "map_data"])
+        assert set([int(v) for v in data["map_data"].keys()]) == set(self.maps.keys())
+
+        map_config = data["map_config"]
+        assert set(map_config.keys()) == set(self.config["map_config"].keys())
+        for k in map_config:
+            assert map_config[k] == self.config["map_config"][k]
+
+        self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
+        self.pg_world.clear_world()
+
+        for seed, map_dict in data["map_data"].items():
+            seed = int(seed)
+            assert self.maps[seed] is None
+            map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            map.read_map(map_dict)
+            self.maps[seed] = map

@@ -4,48 +4,43 @@ from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.scene_creator.map import Map, MapGenerateMethod
 
 from pg_drive.utils import setup_logger
+import json
 
 setup_logger(debug=True)
 
 
-class ResetEnv(GeneralizationRacing):
-    def __init__(self):
-        super(ResetEnv, self).__init__(
-            {
-                "environment_num": 1,
-                "traffic_density": 0.1,
-                "start_seed": 4,
-                "pg_world_config": {
-                    "debug": False,
-                },
-                "vehicle_config": {
-                    #     "mini_map": (256, 256, 100),
-                    # "front_cam": (256, 256),
-                },
-                "image_buffer_name": "mini_map",
-                "manual_control": True,
-                "use_render": True,
-                "use_rgb": False,
-                "steering_penalty": 0.0,
-                "decision_repeat": 5,
-                "rgb_clip": True,
-                "map_config": {
-                    Map.GENERATE_METHOD: MapGenerateMethod.PG_MAP_FILE,
-                    Map.GENERATE_PARA: os.path.join(os.path.dirname(__file__), "map_1.pgm"),
-                }
-            }
-        )
+def recursive_assert(data1, data2):
+    if isinstance(data1, dict):
+        assert isinstance(data2, dict)
+        assert set(data1.keys()) == set(data2.keys()), (data1.keys(), data2.keys())
+        for k in data1:
+            recursive_assert(data1[k], data2[k])
+
+    elif isinstance(data1, list):
+        assert len(data1) == len(data2)
+        for i in range(len(data1)):
+            recursive_assert(data1[i], data2[i])
+
+    else:
+        assert data1 == data2
 
 
 if __name__ == "__main__":
-    env = ResetEnv()
+    env = GeneralizationRacing({
+        "environment_num": 10,
+    })
+    data = env.dump_all_maps()
+    with open("test_10maps.json", "w") as f:
+        json.dump(data, f)
 
-    env.reset()
-    for i in range(1, 100000):
-        o, r, d, info = env.step([0, 1])
+    with open("test_10maps.json", "r") as f:
+        restored_data = json.load(f)
 
-        env.render(text={"can you see me": i})
-        # if d:
-        #     print("Reset")
-        #     env.reset()
-    env.close()
+    env = GeneralizationRacing({
+        "environment_num": 10,
+        "_load_map_from_json": True
+    })
+    env.load_all_maps(restored_data)
+
+    for i in range(10):
+        recursive_assert(env.maps[i].save_map(), data["map_data"][i])
