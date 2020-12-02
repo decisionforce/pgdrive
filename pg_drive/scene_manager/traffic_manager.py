@@ -93,7 +93,9 @@ class TrafficManager:
         vehicle_longs = [i * self.VEHICLE_GAP for i in range(total_num)]
         self.np_random.shuffle(vehicle_longs)
         for long in vehicle_longs:
-            if self.np_random.rand() > self.traffic_density and lane.length != InRampOnStraight.RAMP_LEN:
+            if self.np_random.rand() > self.traffic_density and abs(
+                    lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
+                # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
             random_v = vehicle_type.create_random_traffic_vehicle(

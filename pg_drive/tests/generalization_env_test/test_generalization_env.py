@@ -10,7 +10,7 @@ class ResetEnv(GeneralizationRacing):
     def __init__(self):
         super(ResetEnv, self).__init__(
             {
-                "environment_num": 1,
+                "environment_num": 4,
                 "traffic_density": 0.1,
                 "start_seed": 3,
                 "pg_world_config": {
