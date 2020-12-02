@@ -43,4 +43,5 @@ if __name__ == "__main__":
     env.load_all_maps(restored_data)
 
     for i in range(10):
-        recursive_assert(env.maps[i].save_map(), data["map_data"][i])
+        m = env.maps[i].save_map()
+        recursive_assert(m, data["map_data"][i])

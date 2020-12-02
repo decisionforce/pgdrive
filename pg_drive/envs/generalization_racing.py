@@ -5,7 +5,7 @@ from pg_drive.envs.observation_type import LidarStateObservation, ImageStateObse
 from pg_drive.pg_config.pg_config import PgConfig
 from pg_drive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pg_drive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
-from pg_drive.scene_creator.map import Map
+from pg_drive.scene_creator.map import Map, MapGenerateMethod
 from pg_drive.scene_manager.traffic_manager import TrafficManager, TrafficMode
 from pg_drive.world.pg_world import PgWorld
 from pg_drive.world.chase_camera import ChaseCamera
@@ -337,10 +337,10 @@ class GeneralizationRacing(gym.Env):
         assert set(data.keys()) == set(["map_config", "map_data"])
         assert set([int(v) for v in data["map_data"].keys()]) == set(self.maps.keys())
 
-        map_config = data["map_config"]
-        assert set(map_config.keys()) == set(self.config["map_config"].keys())
-        for k in map_config:
-            assert map_config[k] == self.config["map_config"][k]
+        maps_collection_config = data["map_config"]
+        assert set(maps_collection_config.keys()) == set(self.config["map_config"].keys())
+        for k in maps_collection_config:
+            assert maps_collection_config[k] == self.config["map_config"][k]
 
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pg_world.clear_world()
@@ -348,6 +348,8 @@ class GeneralizationRacing(gym.Env):
         for seed, map_dict in data["map_data"].items():
             seed = int(seed)
             assert self.maps[seed] is None
+            map_config = {}
+            map_config[Map.GENERATE_METHOD] = MapGenerateMethod.PG_MAP_FILE
+            map_config[Map.GENERATE_PARA] = map_dict
             map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
-            map.read_map(map_dict)
             self.maps[seed] = map

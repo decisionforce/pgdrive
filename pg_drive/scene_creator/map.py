@@ -158,14 +158,9 @@ class Map:
         })
         return saved_data
 
-    def save_map_to_json(self, map_name: str, save_dir: str = os.path.dirname(__file__)):
-        data = self.save_map()
-        with open(os.path.join(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
-            json.dump(data, outfile)
-
     def read_map(self, map_config: dict):
         """
-        Load the map from a dict
+        Create map from a .pgm file, read it to map config and update default properties
         """
         self.config[self.LANE_NUM] = map_config[self.LANE_NUM]
         self.config[self.LANE_WIDTH] = map_config[self.LANE_WIDTH]
@@ -177,15 +172,6 @@ class Map:
         self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
         return blocks_config
-
-    def read_map_from_json(self, map_file_path: str):
-        """
-        Create map from a .json file, read it to map config and update default properties
-        """
-        with open(map_file_path, "r") as map_file:
-            map_config = json.load(map_file)
-            ret = self.read_map(map_config)
-        return ret
 
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"
