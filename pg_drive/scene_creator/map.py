@@ -84,7 +84,9 @@ class Map:
     def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: BulletWorld):
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
         from pg_drive.scene_creator.blocks.first_block import FirstBlock
-        last_block = FirstBlock(self.road_network, self.lane_width, self.lane_num, parent_node_path, pg_physics_world, 1)
+        last_block = FirstBlock(
+            self.road_network, self.lane_width, self.lane_num, parent_node_path, pg_physics_world, 1
+        )
         self.blocks.append(last_block)
         for block_index, b in enumerate(blocks_config[1:], 1):
             block_type = PgBlock.get_block(b.pop(self.BLOCK_ID))

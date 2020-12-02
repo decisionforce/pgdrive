@@ -27,8 +27,8 @@ class BIG:
     MAX_TRIAL = 2
 
     def __init__(
-            self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-            pg_physics_world: BulletWorld, random_seed: int
+        self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
+        pg_physics_world: BulletWorld, random_seed: int
     ):
         self._block_sequence = None
         self._random_seed = random_seed
