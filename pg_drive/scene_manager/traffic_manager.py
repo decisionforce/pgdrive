@@ -43,7 +43,7 @@ class TrafficManager:
         self.random_seed = None
 
     def generate_traffic(
-            self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
+        self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -93,8 +93,7 @@ class TrafficManager:
         vehicle_longs = [i * self.VEHICLE_GAP for i in range(total_num)]
         self.np_random.shuffle(vehicle_longs)
         for long in vehicle_longs:
-            if self.np_random.rand() > self.traffic_density and abs(
-                    lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
+            if self.np_random.rand() > self.traffic_density and abs(lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
@@ -150,7 +149,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

@@ -308,8 +308,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-                (lateral_norm * forward_direction_norm)
+            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+            (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -363,8 +363,7 @@ class BaseVehicle(DynamicElement):
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
         chassis.setDeactivationEnabled(False)
         chassis.notifyCollisions(True)  # advance collision check
-        self.pg_world.physics_world.setContactAddedCallback(
-            PythonCallbackObject(self._collision_check))
+        self.pg_world.physics_world.setContactAddedCallback(PythonCallbackObject(self._collision_check))
         self.bullet_nodes.append(chassis)
 
         chassis_beneath = BulletGhostNode(BodyName.Ego_vehicle)
