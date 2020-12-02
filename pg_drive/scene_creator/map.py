@@ -160,7 +160,7 @@ class Map:
 
     def read_map(self, map_config: dict):
         """
-        Create map from a .pgm file, read it to map config and update default properties
+        Load the map from a dict
         """
         self.config[self.LANE_NUM] = map_config[self.LANE_NUM]
         self.config[self.LANE_WIDTH] = map_config[self.LANE_WIDTH]
