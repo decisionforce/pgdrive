@@ -9,6 +9,7 @@ import json
 setup_logger(debug=True)
 
 
+
 def recursive_assert(data1, data2):
     if isinstance(data1, dict):
         assert isinstance(data2, dict)
@@ -23,7 +24,6 @@ def recursive_assert(data1, data2):
 
     else:
         assert data1 == data2
-
 
 if __name__ == "__main__":
     env = GeneralizationRacing({
