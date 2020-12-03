@@ -34,17 +34,3 @@ class VisLoader:
     def get_loader(cls):
         assert VisLoader.loader, "Initialize VisLoader before getting it"
         return cls.loader
-
-    @staticmethod
-    def pre_load_lane_line_model():
-        raise ValueError("Useless for performance reason")
-        import pg_drive.scene_creator.blocks.block as block
-        import os
-        Block = block.Block
-        VisLoader.strip_lane_line = VisLoader.loader.loadModel(os.path.join(VisLoader.path, "models/box.egg"))
-        VisLoader.strip_lane_line.setScale(Block.STRIPE_LENGTH, Block.LANE_LINE_WIDTH, Block.LANE_LINE_THICKNESS)
-        VisLoader.circular_lane_line = VisLoader.loader.loadModel(os.path.join(VisLoader.path, "models/box.egg"))
-        VisLoader.circular_lane_line.setScale(
-            Block.CIRCULAR_SEGMENT_LENGTH, Block.LANE_LINE_WIDTH, Block.LANE_LINE_THICKNESS
-        )
-        VisLoader.side_walk = VisLoader.loader.loadModel(os.path.join(VisLoader.path, "models/box.egg"))
