@@ -44,6 +44,6 @@ class VisLoader:
     def file_path(*args):
         import os, sys
         path = os.path.join(*args)
-        if sys.path == "win32":
-            path.replace("\\", "/")
+        if sys.platform.startswith("win"):
+            path = path.replace("\\", "/")
         return path
