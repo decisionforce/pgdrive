@@ -21,8 +21,7 @@ class VisLoader:
         """
         Due to the feature of Panda3d, keep reference of loader in static variable
         """
-        import os
-        VisLoader.path = os.path.join(pg_path, "asset")
+        VisLoader.path = VisLoader.file_path(pg_path, "asset")
         if not show_base_loader:
             logging.debug("Offscreen mode")
             return
@@ -34,3 +33,17 @@ class VisLoader:
     def get_loader(cls):
         assert VisLoader.loader, "Initialize VisLoader before getting it"
         return cls.loader
+
+    @staticmethod
+    def windows_style2unix_style(path):
+        u_path = "/" + path[0].lower() + path[2:]
+        u_path.replace("\\", "/")
+        return u_path
+
+    @staticmethod
+    def file_path(*args):
+        import os, sys
+        path = os.path.join(*args)
+        if sys.path == "win32":
+            path.replace("\\", "/")
+        return path

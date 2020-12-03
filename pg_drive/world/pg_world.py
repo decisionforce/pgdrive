@@ -20,12 +20,6 @@ from pg_drive.world.vehicle_panel import VehiclePanel
 asset_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
-def windows_style2unix_style(path):
-    u_path = "/" + path[0].lower() + path[2:]
-    u_path.replace("\\", "/")
-    return u_path
-
-
 class PgWorld(ShowBase.ShowBase):
     loadPrcFileData("", "win-size 1200 900")
     loadPrcFileData("", "framebuffer-multisample 1")
@@ -59,7 +53,7 @@ class PgWorld(ShowBase.ShowBase):
             loadPrcFileData("", "load-display  pandagles2")
         super(PgWorld, self).__init__(windowType=mode)
         if not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_rgb"]):
-            path = windows_style2unix_style(asset_path) if sys.platform == "win32" else asset_path
+            path = VisLoader.windows_style2unix_style(asset_path) if sys.platform == "win32" else asset_path
             VisLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
         self.closed = False
