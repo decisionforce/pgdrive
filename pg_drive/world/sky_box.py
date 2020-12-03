@@ -19,7 +19,7 @@ class SkyBox(DynamicElement):
         if not self.render or pure_background:
             self.node_path = NodePath("pure_background")
             return
-        skybox = self.loader.loadModel(VisLoader.file_path(VisLoader.path, "models","skybox.bam"))
+        skybox = self.loader.loadModel(VisLoader.file_path(VisLoader.path, "models", "skybox.bam"))
         from pg_drive.pg_config.cam_mask import CamMask
         skybox.hide(CamMask.MiniMap | CamMask.FrontCam)
         # skybox.setScale(512)
