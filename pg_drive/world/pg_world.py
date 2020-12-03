@@ -21,8 +21,8 @@ asset_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
 def windows_style2unix_style(path):
-    u_path = "/" + path
-    u_path.replace(":\\", "/")
+    u_path = "/" + path[0].lower() + path[2:]
+    u_path.replace("\\", "/")
     return u_path
 
 
