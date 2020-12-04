@@ -14,7 +14,7 @@ from pg_drive.pg_config.pg_space import PgSpace
 from pg_drive.scene_creator.blocks.block import Block
 from pg_drive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
 from pg_drive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
-from pg_drive.scene_creator.ego_vehicle.vehicle_module.sensor_camera import SensorCamera
+from pg_drive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
 from pg_drive.scene_creator.lanes.circular_lane import CircularLane
 from pg_drive.scene_creator.lanes.lane import AbstractLane
 from pg_drive.scene_creator.lanes.straight_lane import StraightLane
@@ -111,7 +111,7 @@ class BaseVehicle(DynamicElement):
             self.add_lidar(self.vehicle_config["lidar"][0], self.vehicle_config["lidar"][1])
         if pg_world.pg_config["use_rgb"] or pg_world.pg_config["use_render"]:
             front_cam_config = self.vehicle_config["front_cam"]
-            self.add_front_cam(SensorCamera(front_cam_config[0], front_cam_config[1], self.chassis_np, pg_world))
+            self.add_front_cam(RgbCamera(front_cam_config[0], front_cam_config[1], self.chassis_np, pg_world))
             self.add_mini_map(MiniMap(self.vehicle_config["mini_map"], self.chassis_np, pg_world))
 
         # other info
@@ -424,7 +424,7 @@ class BaseVehicle(DynamicElement):
     def add_mini_map(self, mini_map: MiniMap):
         self.mini_map = mini_map
 
-    def add_front_cam(self, sensor_camera: SensorCamera):
+    def add_front_cam(self, sensor_camera: RgbCamera):
         self.front_cam = sensor_camera
 
     def add_lidar(self, laser_num=240, distance=50):
