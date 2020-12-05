@@ -8,9 +8,9 @@ from pg_drive.utils import setup_logger
 setup_logger(debug=True)
 
 
-class ResetEnv(GeneralizationRacing):
+class TestEnv(GeneralizationRacing):
     def __init__(self):
-        super(ResetEnv, self).__init__(
+        super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
                 "traffic_density": 0.1,
@@ -38,7 +38,7 @@ class ResetEnv(GeneralizationRacing):
 
 
 if __name__ == "__main__":
-    env = ResetEnv()
+    env = TestEnv()
 
     env.reset()
     for i in range(1, 100000):

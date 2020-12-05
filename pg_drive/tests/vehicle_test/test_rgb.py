@@ -1,9 +1,9 @@
 from pg_drive.envs.generalization_racing import GeneralizationRacing
 
 
-class ResetEnv(GeneralizationRacing):
+class TestEnv(GeneralizationRacing):
     def __init__(self):
-        super(ResetEnv, self).__init__(
+        super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
                 "traffic_density": 0.1,
@@ -22,7 +22,7 @@ class ResetEnv(GeneralizationRacing):
 
 
 if __name__ == "__main__":
-    env = ResetEnv()
+    env = TestEnv()
     env.reset()
     env.pg_world.accept("m", env.vehicle.image_sensors[env.config["image_source"]].save_image)
     from pg_drive.envs.observation_type import ObservationType, ImageObservation
