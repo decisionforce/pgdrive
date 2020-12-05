@@ -11,6 +11,7 @@ from pg_drive.world.pg_world import PgWorld
 from pg_drive.world.chase_camera import ChaseCamera
 from pg_drive.world.manual_controller import KeyboardController, JoystickController
 import copy
+import json
 
 
 class GeneralizationRacing(gym.Env):
@@ -109,7 +110,7 @@ class GeneralizationRacing(gym.Env):
                 Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
                 Map.GENERATE_PARA: 3
             },
-            _load_map_from_json=False,  # Whether to load maps from predefined maps.
+            _load_map_from_json="",  # Empty to represent not using it.
 
             # ===== Generalization =====
             start_seed=0,
@@ -210,6 +211,9 @@ class GeneralizationRacing(gym.Env):
         return o
 
     def select_map(self):
+        if self.config["_load_map_from_json"]:
+            self.load_all_maps_from_json(self.config["_load_map_from_json"])
+
         # remove map from world before adding
         if self.current_map is not None:
             self.current_map.remove_from_physics_world(self.pg_world.physics_world)
@@ -336,7 +340,6 @@ class GeneralizationRacing(gym.Env):
         return return_data
 
     def load_all_maps(self, data):
-        assert self.config["_load_map_from_json"]
         assert isinstance(data, dict)
         assert set(data.keys()) == set(["map_config", "map_data"])
         assert set([int(v) for v in data["map_data"].keys()]) == set(self.maps.keys())
@@ -346,9 +349,6 @@ class GeneralizationRacing(gym.Env):
         for k in maps_collection_config:
             assert maps_collection_config[k] == self.config["map_config"][k]
 
-        self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
-        self.pg_world.clear_world()
-
         for seed, map_dict in data["map_data"].items():
             seed = int(seed)
             assert self.maps[seed] is None
@@ -357,3 +357,9 @@ class GeneralizationRacing(gym.Env):
             map_config[Map.GENERATE_PARA] = map_dict
             map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
             self.maps[seed] = map
+
+    def load_all_maps_from_json(self, path):
+        assert path.endswith(".json")
+        with open(path, "r") as f:
+            restored_data = json.load(f)
+        self.load_all_maps(restored_data)

@@ -56,6 +56,8 @@ class Map:
             # other config such as lane width, num and seed will be valid, since they will be read from file
             blocks_config = self.read_map(self.config[self.GENERATE_PARA])
             self._config_generate(blocks_config, parent_node_path, pg_physics_world)
+            print("Loading map from json file!")
+
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
 

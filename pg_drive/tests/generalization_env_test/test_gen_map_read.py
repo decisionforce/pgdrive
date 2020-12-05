@@ -22,7 +22,7 @@ def recursive_assert(data1, data2):
             recursive_assert(data1[i], data2[i])
 
     else:
-        assert data1 == data2
+        assert data1 == data2, (type(data1), type(data2), data1, data2)
 
 
 if __name__ == "__main__":
