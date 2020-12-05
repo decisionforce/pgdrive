@@ -3,6 +3,7 @@ from panda3d.core import Vec3, NodePath
 from pg_drive.pg_config.cam_mask import CamMask
 from pg_drive.world.pg_world import PgWorld
 from pg_drive.world.image_buffer import ImageBuffer
+from direct.filter.CommonFilters import CommonFilters
 
 
 class RgbCamera(ImageBuffer):
@@ -24,3 +25,6 @@ class RgbCamera(ImageBuffer):
         self.lens = self.cam.node().getLens()
         self.lens.setFov(60)
         # lens.setAspectRatio(2.0)
+        filters = CommonFilters(self.buffer, self.cam)
+        filters.setBloom(size="large")
+
