@@ -15,6 +15,60 @@ from pg_drive.world.manual_controller import KeyboardController, JoystickControl
 
 
 class GeneralizationRacing(gym.Env):
+    @staticmethod
+    def default_config() -> PgConfig:
+        env_config = dict(
+
+            # ===== Rendering =====
+            use_render=False,  # pop a window to render or not
+            force_fps=None,
+            debug=False,
+            manual_control=False,
+            controller="keyboard",  # "joystick" or "keyboard"
+            use_chase_camera=True,
+            camera_height=1.8,
+
+            # ===== Traffic =====
+            traffic_density=0.1,
+            traffic_mode=TrafficMode.Add_once,
+
+            # ===== Observation =====
+            use_image=False,
+            rgb_clip=True,
+            vehicle_config=dict(),  # use default vehicle modules see more in BaseVehicle
+            image_source="rgb_cam",  # mini_map or rgb_cam or depth cam
+
+            # ===== Map Config =====
+            map_config={
+                Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
+                Map.GENERATE_PARA: 3
+            },
+
+            # ===== Generalization =====
+            start_seed=0,
+            environment_num=1,
+
+            # ===== Action =====
+            decision_repeat=5,
+
+            # ===== Reward Scheme =====
+            success_reward=20,
+            out_of_road_penalty=5,
+            crash_penalty=10,
+            acceleration_penalty=0.0,
+            steering_penalty=0.1,
+            low_speed_penalty=0.0,
+            driving_reward=1.0,
+            general_penalty=0.0,
+            speed_reward=0.1,
+
+            # ===== Others =====
+            pg_world_config=dict(),
+            use_increment_steering=False,
+            action_check=False,
+        )
+        return PgConfig(env_config)
+
     def __init__(self, config: dict = None):
         self.config = self.default_config()
         if config:
@@ -79,104 +133,11 @@ class GeneralizationRacing(gym.Env):
         v_config = self.config["vehicle_config"]
         self.vehicle = BaseVehicle(self.pg_world, v_config)
 
-        # add vehicle module for training according to config
-        vehicle_config = self.vehicle.vehicle_config
-        self.vehicle.add_routing_localization(vehicle_config["show_navi_point"])  # default added
-        if not self.config["use_image"]:
-            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
-        if self.config["use_image"]:
-            # 3 types image observation
-            if self.config["image_source"] == "rgb_cam":
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
-            elif self.config["image_source"] == "mini_map":
-                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("mini_map", mini_map)
-            elif self.config["image_source"] == "depth_cam":
-                cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(cam_config[0], cam_config[1], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("mini_map", depth_cam)
-            else:
-                raise ValueError("No module named {}".format(self.config["image_source"]))
-
-        # load more sensors for visualization when render, only for beauty...
-        if self.config["use_render"]:
-            if self.config["image_source"] == "mini_map":
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
-            else:
-                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("mini_map", mini_map)
+        # add sensors
+        self.add_sensor_for_vehicle()
 
         if self.use_render or self.config["use_image"]:
             self.control_camera.reset(self.vehicle.position)
-
-    @staticmethod
-    def default_config() -> PgConfig:
-        env_config = dict(
-
-            # ===== Rendering =====
-            use_render=False,  # pop a window to render or not
-            force_fps=None,
-            debug=False,
-            manual_control=False,
-            controller="keyboard",  # "joystick" or "keyboard"
-            use_chase_camera=True,
-            camera_height=1.8,
-
-            # ===== Traffic =====
-            traffic_density=0.1,
-            traffic_mode=TrafficMode.Add_once,
-
-            # ===== Observation =====
-            use_image=False,
-            rgb_clip=True,
-            vehicle_config=dict(),  # use default vehicle modules see more in BaseVehicle
-            image_source="rgb_cam",  # mini_map or rgb_cam or depth cam
-
-            # ===== Map Config =====
-            map_config={
-                Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
-                Map.GENERATE_PARA: 3
-            },
-
-            # ===== Generalization =====
-            start_seed=0,
-            environment_num=1,
-
-            # ===== Action =====
-            decision_repeat=5,
-
-            # ===== Reward Scheme =====
-            success_reward=20,
-            out_of_road_penalty=5,
-            crash_penalty=10,
-            acceleration_penalty=0.0,
-            steering_penalty=0.1,
-            low_speed_penalty=0.0,
-            driving_reward=1.0,
-            general_penalty=0.0,
-            speed_reward=0.1,
-
-            # ===== Others =====
-            pg_world_config=dict(),
-            use_increment_steering=False,
-            action_check=False,
-        )
-        return PgConfig(env_config)
-
-    def render(self, mode='human', text: dict = None):
-        assert self.use_render or self.config["use_image"], "render is off now, can not render"
-        if self.control_camera is not None:
-            self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
-        self.pg_world.render_frame(text)
-        if self.pg_world.vehicle_panel is not None:
-            self.pg_world.vehicle_panel.renew_2d_car_para_visualization(
-                self.vehicle.steering, self.vehicle.throttle_brake, self.vehicle.speed
-            )
-        return
 
     def step(self, action: np.ndarray):
 
@@ -221,6 +182,17 @@ class GeneralizationRacing(gym.Env):
         info.update(done_info)
         return obs, reward + done_reward, self.done, info
 
+    def render(self, mode='human', text: dict = None):
+        assert self.use_render or self.config["use_image"], "render is off now, can not render"
+        if self.control_camera is not None:
+            self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
+        self.pg_world.render_frame(text)
+        if self.pg_world.vehicle_panel is not None:
+            self.pg_world.vehicle_panel.renew_2d_car_para_visualization(
+                self.vehicle.steering, self.vehicle.throttle_brake, self.vehicle.speed
+            )
+        return
+
     def reset(self):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.done = False
@@ -239,25 +211,6 @@ class GeneralizationRacing(gym.Env):
         )
         o, *_ = self.step(np.array([0.0, 0.0]))
         return o
-
-    def select_map(self):
-        # remove map from world before adding
-        if self.current_map is not None:
-            self.current_map.remove_from_physics_world(self.pg_world.physics_world)
-            self.current_map.remove_from_render_module()
-
-        # create map
-        self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
-        if self.maps.get(self.current_seed, None) is None:
-            map_config = self.config["map_config"]
-            map_config.update({"seed": self.current_seed})
-            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
-            self.maps[self.current_seed] = new_map
-            self.current_map = self.maps[self.current_seed]
-        else:
-            self.current_map = self.maps[self.current_seed]
-            assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
-            self.current_map.re_generate(self.pg_world.worldNP, self.pg_world.physics_world)
 
     def reward(self, action):
         # Reward for moving forward in current lane
@@ -334,3 +287,54 @@ class GeneralizationRacing(gym.Env):
             self.pg_world.close_world()
             del self.pg_world
             self.pg_world = None
+
+    def select_map(self):
+        # remove map from world before adding
+        if self.current_map is not None:
+            self.current_map.remove_from_physics_world(self.pg_world.physics_world)
+            self.current_map.remove_from_render_module()
+
+        # create map
+        self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
+        if self.maps.get(self.current_seed, None) is None:
+            map_config = self.config["map_config"]
+            map_config.update({"seed": self.current_seed})
+            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            self.maps[self.current_seed] = new_map
+            self.current_map = self.maps[self.current_seed]
+        else:
+            self.current_map = self.maps[self.current_seed]
+            assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
+            self.current_map.re_generate(self.pg_world.worldNP, self.pg_world.physics_world)
+
+    def add_sensor_for_vehicle(self):
+        # add vehicle module for training according to config
+        vehicle_config = self.vehicle.vehicle_config
+        self.vehicle.add_routing_localization(vehicle_config["show_navi_point"])  # default added
+        if not self.config["use_image"]:
+            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
+        if self.config["use_image"]:
+            # 3 types image observation
+            if self.config["image_source"] == "rgb_cam":
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+            elif self.config["image_source"] == "mini_map":
+                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("mini_map", mini_map)
+            elif self.config["image_source"] == "depth_cam":
+                cam_config = vehicle_config["depth_cam"]
+                depth_cam = DepthCamera(cam_config[0], cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("mini_map", depth_cam)
+            else:
+                raise ValueError("No module named {}".format(self.config["image_source"]))
+
+        # load more sensors for visualization when render, only for beauty...
+        if self.config["use_render"]:
+            if self.config["image_source"] == "mini_map":
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+            else:
+                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("mini_map", mini_map)
