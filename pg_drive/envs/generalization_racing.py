@@ -300,9 +300,15 @@ class GeneralizationRacing(gym.Env):
             del self.vehicle
             self.vehicle = None
 
+            self.pg_world.clear_world()
             self.pg_world.close_world()
             del self.pg_world
             self.pg_world = None
+
+        del self.maps
+        self.maps = None
+        del self.current_map
+        self.current_map = None
 
     def dump_all_maps(self):
         assert self.pg_world is None, "We assume you generate map files in independent tasks (not in training). " \
@@ -325,9 +331,8 @@ class GeneralizationRacing(gym.Env):
 
         return_data = dict(
             map_config=copy.deepcopy(self.config["map_config"]),
-            map_data=map_data
+            map_data=copy.deepcopy(map_data)
         )
-        self.close()  # Close this environment
         return return_data
 
     def load_all_maps(self, data):

@@ -274,6 +274,11 @@ class PgWorld(ShowBase.ShowBase):
         if self.pg_config["use_render"] or self.pg_config["use_rgb"]:
             self._clear_display_region_and_buffers()
         self.destroy()
+        self.physics_world.clearDebugNode()
+        self.physics_world.clearContactAddedCallback()
+        self.physics_world.clearFilterCallback()
+        del self.physics_world
+        self.physics_world = None
 
 
 if __name__ == "__main__":

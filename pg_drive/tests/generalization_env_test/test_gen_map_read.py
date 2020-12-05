@@ -9,7 +9,6 @@ import json
 setup_logger(debug=True)
 
 
-
 def recursive_assert(data1, data2):
     if isinstance(data1, dict):
         assert isinstance(data2, dict)
@@ -25,23 +24,31 @@ def recursive_assert(data1, data2):
     else:
         assert data1 == data2
 
+
 if __name__ == "__main__":
     env = GeneralizationRacing({
         "environment_num": 10,
     })
     data = env.dump_all_maps()
+    env.close()
     with open("test_10maps.json", "w") as f:
         json.dump(data, f)
 
     with open("test_10maps.json", "r") as f:
         restored_data = json.load(f)
 
+
     env = GeneralizationRacing({
         "environment_num": 10,
         "_load_map_from_json": True
     })
+    print("Start loading.")
     env.load_all_maps(restored_data)
+    print("Stop loading.")
 
     for i in range(10):
+        print("i: ", i)
         m = env.maps[i].save_map()
-        recursive_assert(m, data["map_data"][i])
+        # recursive_assert(m, data["map_data"][i])
+    print("Finish!")
+    env.close()
