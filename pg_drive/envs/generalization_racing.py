@@ -79,7 +79,7 @@ class GeneralizationRacing(gym.Env):
         v_config = self.config["vehicle_config"]
         self.vehicle = BaseVehicle(self.pg_world, v_config)
 
-        # add vehicle module according to config
+        # add vehicle module for training according to config
         vehicle_config = self.vehicle.vehicle_config
         self.vehicle.add_routing_localization(vehicle_config["show_navi_point"])  # default added
         if not self.config["use_image"]:
@@ -99,6 +99,16 @@ class GeneralizationRacing(gym.Env):
                 self.vehicle.add_image_sensor("mini_map", depth_cam)
             else:
                 raise ValueError("No module named {}".format(self.config["image_source"]))
+
+        # load more sensors for visualization when render, only for beauty...
+        if self.config["use_render"]:
+            if self.config["image_source"] == "mini_map":
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+            else:
+                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("mini_map", mini_map)
 
         if self.use_render or self.config["use_image"]:
             self.control_camera.reset(self.vehicle.position)
