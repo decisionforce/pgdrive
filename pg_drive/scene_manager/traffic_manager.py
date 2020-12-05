@@ -43,7 +43,7 @@ class TrafficManager:
         self.random_seed = None
 
     def generate_traffic(
-        self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
+            self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -74,6 +74,8 @@ class TrafficManager:
                     v.destroy(pg_physics_world)
 
     def add_vehicles(self, pg_world):
+        if abs(self.traffic_density - 0.0) < 1e-2:
+            return
         if self.traffic_mode == TrafficMode.Reborn:
             # add reborn vehicle
             for lane in self.reborn_lanes:
@@ -149,7 +151,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
