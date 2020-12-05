@@ -14,13 +14,17 @@ class ImageBuffer:
     display_top = 1
 
     def __init__(
-        self, length: float, width: float, pos: Vec3, bkg_color: Union[Vec4, Vec3], make_buffer_func, make_camera_func,
-        parent_node: NodePath
+            self, length: float, width: float, pos: Vec3, bkg_color: Union[Vec4, Vec3], make_buffer_func,
+            make_camera_func,
+            parent_node: NodePath, frame_buffer_property=None
     ):
         assert self.CAM_MASK is not None, "define a camera mask for every image buffer"
         # self.texture = Texture()
-        self.buffer = make_buffer_func("camera", length, width)
-        # now we have to setup a new scene graph to make this scene
+        if frame_buffer_property is None:
+            self.buffer = make_buffer_func("camera", length, width)
+        else:
+            self.buffer = make_buffer_func("camera", length, width, fbp=frame_buffer_property)
+            # now we have to setup a new scene graph to make this scene
 
         self.node_path = NodePath("new render")
 
@@ -50,8 +54,19 @@ class ImageBuffer:
         img.write("debug.jpg")
 
     def get_gray_pixels_array(self, clip) -> np.ndarray:
+        """
+        For gray scale image
+        """
         img = self.get_image()
         img.makeGrayscale()
+        return self.transfer_to_numpy_array(img, clip)
+
+    @staticmethod
+    def transfer_to_numpy_array(img, clip) -> np.ndarray:
+        """
+        Only get one channel now
+        """
+        # TODO support more channel in the future
         if not clip:
             numpy_array = np.array(
                 [[int(img.getGray(i, j) * 255) for j in range(img.getYSize())] for i in range(img.getXSize())],

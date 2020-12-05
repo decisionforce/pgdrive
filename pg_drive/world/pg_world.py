@@ -62,7 +62,7 @@ class PgWorld(ShowBase.ShowBase):
         # add element to render and pbr render, if is exists all the time
         self.pbr_render = self.render.attachNewNode("pbrNP")
 
-        # add element should be cleared these node path, after reset()
+        # add element should be cleared these node asset_path, after reset()
         self.worldNP = self.render.attachNewNode("world_np")
         self.pbr_worldNP = self.pbr_render.attachNewNode("pbrNP")  # This node is only used for render gltf model
 
@@ -201,7 +201,7 @@ class PgWorld(ShowBase.ShowBase):
         """
         Call me to setup the whole world after _init_
         """
-        # attach all node to this node path
+        # attach all node to this node asset_path
         self.worldNP.node().removeAllChildren()
         self.pbr_worldNP.node().removeAllChildren()
         if self.pg_config["debug_physics_world"]:

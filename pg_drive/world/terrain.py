@@ -27,10 +27,10 @@ class Terrain(Element):
         if self.render:
             self.node_path.hide(CamMask.MiniMap)
             self.terrain_normal = self.loader.loadTexture(
-                VisLoader.file_path(VisLoader.path, "textures", "grass2", "normal.jpg")
+                VisLoader.file_path(VisLoader.asset_path, "textures", "grass2", "normal.jpg")
             )
             self.terrain_texture = self.loader.loadTexture(
-                VisLoader.file_path(VisLoader.path, "textures", "grass2", "color.jpg")
+                VisLoader.file_path(VisLoader.asset_path, "textures", "grass2", "color.jpg")
             )
             self.terrain_texture.setWrapU(Texture.WM_repeat)
             self.terrain_texture.setWrapV(Texture.WM_repeat)

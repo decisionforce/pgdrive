@@ -21,6 +21,6 @@ class RgbCamera(ImageBuffer):
         )
         self.add_to_display(pg_world, [0.33, 0.67, self.display_bottom, self.display_top])
         self.cam.lookAt(0, 2.4, 1.3)
-        lens = self.cam.node().getLens()
-        lens.setFov(60)
+        self.lens = self.cam.node().getLens()
+        self.lens.setFov(60)
         # lens.setAspectRatio(2.0)

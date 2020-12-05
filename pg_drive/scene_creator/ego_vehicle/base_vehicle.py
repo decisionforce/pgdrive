@@ -380,7 +380,7 @@ class BaseVehicle(DynamicElement):
 
         if self.render:
             model_path = 'models/ferra/scene.gltf'
-            self.chassis_vis = self.loader.loadModel(path.join(VisLoader.path, model_path))
+            self.chassis_vis = self.loader.loadModel(path.join(VisLoader.asset_path, model_path))
             self.chassis_vis.setZ(para[Parameter.vehicle_vis_z])
             self.chassis_vis.setY(para[Parameter.vehicle_vis_y])
             self.chassis_vis.setH(para[Parameter.vehicle_vis_h])
@@ -402,7 +402,7 @@ class BaseVehicle(DynamicElement):
         wheel_np = self.node_path.attachNewNode("wheel")
         if self.render:
             model_path = 'models/yugo/yugotireR.egg' if left else 'models/yugo/yugotireL.egg'
-            wheel_model = self.loader.loadModel(path.join(VisLoader.path, model_path))
+            wheel_model = self.loader.loadModel(path.join(VisLoader.asset_path, model_path))
             wheel_model.reparentTo(wheel_np)
             wheel_model.set_scale(1.4, radius / 0.25, radius / 0.25)
         wheel = self.system.create_wheel()
