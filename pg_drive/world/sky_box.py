@@ -56,8 +56,8 @@ class SkyBox(DynamicElement):
         skybox.set_texture(skybox_texture)
 
         skybox_shader = Shader.load(
-            Shader.SL_GLSL, VisLoader.file_path(VisLoader.path, "models", "skybox.vert.glsl"),
-            VisLoader.file_path(VisLoader.path, "models", "skybox.frag.glsl")
+            Shader.SL_GLSL, VisLoader.file_path(VisLoader.path, "shaders", "skybox.vert.glsl"),
+            VisLoader.file_path(VisLoader.path, "shaders", "skybox.frag.glsl")
         )
         skybox.set_shader(skybox_shader)
         self.node_path = skybox
