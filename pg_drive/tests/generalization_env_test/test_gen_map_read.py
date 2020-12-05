@@ -37,18 +37,15 @@ if __name__ == "__main__":
     with open("test_10maps.json", "r") as f:
         restored_data = json.load(f)
 
-
     env = GeneralizationRacing({
         "environment_num": 10,
         "_load_map_from_json": True
     })
     print("Start loading.")
     env.load_all_maps(restored_data)
-    print("Stop loading.")
 
     for i in range(10):
-        print("i: ", i)
         m = env.maps[i].save_map()
-        # recursive_assert(m, data["map_data"][i])
+        recursive_assert(m, data["map_data"][i])
     print("Finish!")
     env.close()
