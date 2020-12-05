@@ -13,8 +13,7 @@ from pg_drive.pg_config.pg_config import PgConfig
 from pg_drive.pg_config.pg_space import PgSpace
 from pg_drive.scene_creator.blocks.block import Block
 from pg_drive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
-from pg_drive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
-from pg_drive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
+from pg_drive.world.image_buffer import ImageBuffer
 from pg_drive.scene_creator.lanes.circular_lane import CircularLane
 from pg_drive.scene_creator.lanes.lane import AbstractLane
 from pg_drive.scene_creator.lanes.straight_lane import StraightLane
@@ -62,7 +61,8 @@ class BaseVehicle(DynamicElement):
         dict(
             lidar=(240, 50, 4),  # laser num, distance, other vehicle info num
             mini_map=(84, 84, 250),  # buffer length, width
-            front_cam=(84, 84),  # buffer length, width
+            rgb_cam=(84, 84),  # buffer length, width
+            depth_cam=(84, 84),  # buffer length, width
             show_navi_point=False,
             increment_steering=False
         )
@@ -98,21 +98,11 @@ class BaseVehicle(DynamicElement):
         self._create_wheel()
 
         # modules
-        self.mini_map = None
-        self.front_cam = None
+        self.image_sensors = {}
         self.lidar = None
         self.routing_localization = None
         self.lane = None
         self.lane_index = None
-
-        # add vehicle module according to config
-        self.add_routing_localization(self.vehicle_config["show_navi_point"])  # default added
-        if not pg_world.pg_config["use_rgb"]:
-            self.add_lidar(self.vehicle_config["lidar"][0], self.vehicle_config["lidar"][1])
-        if pg_world.pg_config["use_rgb"] or pg_world.pg_config["use_render"]:
-            front_cam_config = self.vehicle_config["front_cam"]
-            self.add_front_cam(RgbCamera(front_cam_config[0], front_cam_config[1], self.chassis_np, pg_world))
-            self.add_mini_map(MiniMap(self.vehicle_config["mini_map"], self.chassis_np, pg_world))
 
         # other info
         self.throttle_brake = 0.0
@@ -308,8 +298,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -421,11 +411,8 @@ class BaseVehicle(DynamicElement):
         wheel.setFrictionSlip(0.6)
         wheel.setRollInfluence(1.5)
 
-    def add_mini_map(self, mini_map: MiniMap):
-        self.mini_map = mini_map
-
-    def add_front_cam(self, sensor_camera: RgbCamera):
-        self.front_cam = sensor_camera
+    def add_image_sensor(self, name: str, sensor: ImageBuffer):
+        self.image_sensors[name] = sensor
 
     def add_lidar(self, laser_num=240, distance=50):
         self.lidar = Lidar(self.pg_world.worldNP, laser_num, distance)
@@ -484,8 +471,6 @@ class BaseVehicle(DynamicElement):
 
     def destroy(self, pg_world: BulletWorld):
         self.lidar = None
-        self.front_cam = None
-        self.mini_map = None
         self.routing_localization = None
         super(BaseVehicle, self).destroy(pg_world)
 
@@ -493,5 +478,5 @@ class BaseVehicle(DynamicElement):
         super(BaseVehicle, self).__del__()
         self.lidar = None
         self.mini_map = None
-        self.front_cam = None
+        self.rgb_cam = None
         self.routing_localization = None

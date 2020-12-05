@@ -1,6 +1,8 @@
 import gym
 import numpy as np
-
+from pg_drive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
+from pg_drive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
+from pg_drive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
 from pg_drive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pg_drive.pg_config.pg_config import PgConfig
 from pg_drive.scene_creator.algorithm.BIG import BigGenerateMethod
@@ -20,10 +22,10 @@ class GeneralizationRacing(gym.Env):
 
         # set their value after vehicle created
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
-        self.observation = LidarStateObservation(vehicle_config) if not self.config["use_rgb"] \
-            else ImageStateObservation(vehicle_config, self.config["image_buffer_name"], self.config["rgb_clip"])
+        self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
+            else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -33,7 +35,7 @@ class GeneralizationRacing(gym.Env):
         pg_world_config.update(
             {
                 "use_render": self.use_render,
-                "use_rgb": self.config["use_rgb"],
+                "use_image": self.config["use_image"],
                 "debug": self.config["debug"],
             }
         )
@@ -62,7 +64,7 @@ class GeneralizationRacing(gym.Env):
         # init traffic manager
         self.traffic_manager = TrafficManager(self.config["traffic_mode"])
 
-        # for manual_control and camera type
+        # for manual_control and main camera type
         if self.config["use_chase_camera"]:
             self.control_camera = ChaseCamera(self.config["camera_height"], 7, self.pg_world)
         if self.config["manual_control"]:
@@ -77,7 +79,28 @@ class GeneralizationRacing(gym.Env):
         v_config = self.config["vehicle_config"]
         self.vehicle = BaseVehicle(self.pg_world, v_config)
 
-        if self.use_render or self.config["use_rgb"]:
+        # add vehicle module according to config
+        vehicle_config = self.vehicle.vehicle_config
+        self.vehicle.add_routing_localization(vehicle_config["show_navi_point"])  # default added
+        if not self.config["use_image"]:
+            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
+        if self.config["use_image"]:
+            # 3 types image observation
+            if self.config["image_source"] == "rgb_cam":
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+            elif self.config["image_source"] == "mini_map":
+                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("mini_map", mini_map)
+            elif self.config["image_source"] == "depth_cam":
+                cam_config = vehicle_config["depth_cam"]
+                depth_cam = DepthCamera(cam_config[0], cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                self.vehicle.add_image_sensor("mini_map", depth_cam)
+            else:
+                raise ValueError("No module named {}".format(self.config["image_source"]))
+
+        if self.use_render or self.config["use_image"]:
             self.control_camera.reset(self.vehicle.position)
 
     @staticmethod
@@ -98,10 +121,10 @@ class GeneralizationRacing(gym.Env):
             traffic_mode=TrafficMode.Add_once,
 
             # ===== Observation =====
-            use_rgb=False,
+            use_image=False,
             rgb_clip=True,
             vehicle_config=dict(),  # use default vehicle modules see more in BaseVehicle
-            image_buffer_name="front_cam",  # mini_map or front_cam, the name must be as same as the module name
+            image_source="rgb_cam",  # mini_map or rgb_cam or depth cam
 
             # ===== Map Config =====
             map_config={
@@ -135,7 +158,7 @@ class GeneralizationRacing(gym.Env):
         return PgConfig(env_config)
 
     def render(self, mode='human', text: dict = None):
-        assert self.use_render or self.config["use_rgb"], "render is off now, can not render"
+        assert self.use_render or self.config["use_image"], "render is off now, can not render"
         if self.control_camera is not None:
             self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
         self.pg_world.render_frame(text)
@@ -172,7 +195,7 @@ class GeneralizationRacing(gym.Env):
         self.pg_world.taskMgr.step()
 
         # render before obtaining rgb observation
-        if self.config["use_rgb"]:
+        if self.config["use_image"]:
             # when use rgb observation, the scene has to be drawn before using the camera data
             self.render()
         obs = self.observation.observe(self.vehicle)
@@ -241,7 +264,7 @@ class GeneralizationRacing(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting

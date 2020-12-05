@@ -1,5 +1,5 @@
 from abc import ABC
-
+from pg_drive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 import gym
 import numpy as np
 
@@ -112,6 +112,7 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -122,7 +123,7 @@ class StateObservation(ObservationType):
         from pg_drive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
         shape = BaseVehicle.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim
 
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         navi_info = vehicle.routing_localization.get_navi_info()
@@ -136,15 +137,15 @@ class ImageObservation(ObservationType):
     """
     STACK_SIZE = 3  # use continuous 3 image as the input
 
-    def __init__(self, config, image_buffer_name: str, clip_rgb: bool):
-        self.image_buffer_name = image_buffer_name
+    def __init__(self, config, image_source: str, clip_rgb: bool):
+        self.image_source = image_source
         super(ImageObservation, self).__init__(config)
         self.rgb_clip = clip_rgb
         self.state = np.zeros(self.observation_space.shape)
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_buffer_name][0:2]) + (self.STACK_SIZE, )
+        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
@@ -184,9 +185,9 @@ class ImageStateObservation(ObservationType):
     IMAGE = "image"
     STATE = "state"
 
-    def __init__(self, config, image_buffer_name: str, clip_rgb: bool):
+    def __init__(self, config, image_source: str, clip_rgb: bool):
         super(ImageStateObservation, self).__init__(config)
-        self.img_obs = ImageObservation(config, image_buffer_name, clip_rgb)
+        self.img_obs = ImageObservation(config, image_source, clip_rgb)
         self.state_obs = StateObservation(config)
 
     @property
@@ -198,11 +199,6 @@ class ImageStateObservation(ObservationType):
             }
         )
 
-    def observe(self, vehicle):
-        if self.img_obs.image_buffer_name == "front_cam":
-            image_buffer = vehicle.front_cam
-        elif self.img_obs.image_buffer_name == "mini_map":
-            image_buffer = vehicle.mini_map
-        else:
-            raise ValueError("No such as module named {} in vehicle".format(self.img_obs.image_buffer_name))
+    def observe(self, vehicle: BaseVehicle):
+        image_buffer = vehicle.image_sensors[self.img_obs.image_source]
         return {self.IMAGE: self.img_obs.observe(image_buffer), self.STATE: self.state_obs.observe(vehicle)}
