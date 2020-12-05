@@ -1,8 +1,9 @@
-from panda3d.core import Vec3, NodePath, FrameBufferProperties, Shader
-from pg_drive.utils.visualization_loader import VisLoader
+from direct.filter.FilterManager import FilterManager, FrameBufferProperties
+from panda3d.core import Vec3, NodePath, Shader, Texture
 from pg_drive.pg_config.cam_mask import CamMask
-from pg_drive.world.pg_world import PgWorld
+from pg_drive.utils.visualization_loader import VisLoader
 from pg_drive.world.image_buffer import ImageBuffer
+from pg_drive.world.pg_world import PgWorld
 
 
 class DepthCamera(ImageBuffer):
@@ -32,4 +33,17 @@ class DepthCamera(ImageBuffer):
         vert_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.vert.glsl")
         frag_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.frag.glsl")
         custom_shader = Shader.load(Shader.SL_GLSL, vertex=vert_path, fragment=frag_path)
-        self.cam.set_shader(custom_shader)
+        # self.cam.set_shader(custom_shader)
+
+        # # use a filter to do this
+        # self.manager=FilterManager(self.buffer, self.cam)
+        # self.tex_to_render = Texture()
+        # quad = self.manager.renderSceneInto(colortex=self.tex_to_render)
+        # quad.setShader(custom_shader)
+        # quad.setShaderInput("tex", self.tex_to_render)
+
+    def get_image(self):
+        from panda3d.core import PNMImage
+        img = PNMImage()
+        self.tex_to_render.store(img)
+        return img

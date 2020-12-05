@@ -6,14 +6,14 @@ class TestEnv(GeneralizationRacing):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.1,
+                "traffic_density": 0.0,
                 "start_seed": 4,
                 "image_source": "depth_cam",
                 "manual_control": True,
                 "use_render": True,
                 "use_image": True,
                 "rgb_clip": True,
-                "vehicle_config": dict(rgb_cam=(200, 88)),
+                "vehicle_config": dict(depth_cam=(200, 88)),
                 "pg_world_config": {
                     "headless_rgb": False
                 }

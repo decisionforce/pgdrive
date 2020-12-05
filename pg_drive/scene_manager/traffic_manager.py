@@ -81,7 +81,7 @@ class TrafficManager:
             for lane in self.reborn_lanes:
                 self.traffic_vehicles += self._create_vehicles_on_lane(lane, True)
             for vehicle in self.traffic_vehicles:
-                vehicle.add_to_render_module(pg_world.pbr_worldNP)
+                vehicle.add_to_render_module(pg_world.worldNP)
                 vehicle.add_to_physics_world(pg_world.physics_world)
             logging.debug("Init {} Traffic Vehicles".format(len(self.traffic_vehicles)))
         else:
@@ -125,7 +125,7 @@ class TrafficManager:
                 for l in lanes:
                     vehicles_on_block += self._create_vehicles_on_lane(l)
             for vehicle in vehicles_on_block:
-                vehicle.add_to_render_module(pg_world.pbr_worldNP)
+                vehicle.add_to_render_module(pg_world.worldNP)
                 vehicle.add_to_physics_world(pg_world.physics_world)
             block_vehicles = BlockVehicles(trigger_road=trigger_road, vehicles=vehicles_on_block)
             self.block_triggered_vehicles.append(block_vehicles)
