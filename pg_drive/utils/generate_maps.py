@@ -7,7 +7,7 @@ root = osp.dirname(osp.dirname(osp.dirname(osp.abspath(__file__))))
 assert_path = osp.join(root, "asset", "maps")
 
 environment_set_dict = {
-    "PGDrive-test-v0": {"start_seed": 0, "environment_num": 200},
+    "PGDrive-test-v0": {"start_seed": 0, "environment_num": 50},
     "PGDrive-validation-v0": {"start_seed": 200, "environment_num": 800},
     "PGDrive-v0": {"start_seed": 1000, "environment_num": 100},
     "PGDrive-10envs-v0": {"start_seed": 1000, "environment_num": 10},

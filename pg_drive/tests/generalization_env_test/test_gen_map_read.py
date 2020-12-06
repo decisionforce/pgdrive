@@ -39,8 +39,9 @@ if __name__ == "__main__":
 
     env = GeneralizationRacing({
         "environment_num": 10,
-        "_load_map_from_json": True
     })
+    env.lazy_init()
+    env.pg_world.clear_world()
     print("Start loading.")
     env.load_all_maps(restored_data)
 

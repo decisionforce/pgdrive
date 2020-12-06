@@ -306,11 +306,11 @@ class GeneralizationRacing(gym.Env):
 
             self.pg_world.clear_world()
             self.pg_world.close_world()
-            del self.pg_world
+            # del self.pg_world
             self.pg_world = None
 
         del self.maps
-        self.maps = None
+        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         del self.current_map
         self.current_map = None
 
@@ -327,6 +327,7 @@ class GeneralizationRacing(gym.Env):
             map_config.update({"seed": seed})
             new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
             self.maps[seed] = new_map
+            print("Finish generating map with seed: ", seed)
 
         map_data = dict()
         for seed, map in self.maps.items():
