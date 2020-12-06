@@ -3,7 +3,7 @@ import os.path as osp
 
 from pg_drive import GeneralizationRacing
 
-root = osp.abspath(osp.dirname(osp.dirname(osp.dirname(__file__))))
+root = osp.dirname(osp.dirname(osp.dirname(osp.abspath(__file__))))
 assert_path = osp.join(root, "asset", "maps")
 
 environment_set_dict = {
@@ -17,6 +17,7 @@ environment_set_dict = {
 }
 
 if __name__ == '__main__':
+    print("Root path is {}. Asset path is {}.".format(root, assert_path))
     # Generate the first round
     for env_name, env_config in environment_set_dict.items():
         env = GeneralizationRacing(env_config)
