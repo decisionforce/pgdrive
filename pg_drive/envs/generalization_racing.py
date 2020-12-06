@@ -289,26 +289,39 @@ class GeneralizationRacing(gym.Env):
 
     def close(self):
         if self.pg_world is not None:
+            print(1)
             self.vehicle.destroy(self.pg_world.physics_world)
+
+            print(2)
             self.traffic_manager.destroy(self.pg_world.physics_world)
 
+            print(3)
             del self.traffic_manager
             self.traffic_manager = None
 
+            print(4)
             del self.control_camera
             self.control_camera = None
 
+            print(5)
             del self.controller
             self.controller = None
 
+            print(6)
             del self.vehicle
             self.vehicle = None
 
+            print(7)
             self.pg_world.clear_world()
+
+            print(8)
             self.pg_world.close_world()
             # del self.pg_world
             self.pg_world = None
 
+            print(8.7)
+
+        print(8)
         del self.maps
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         del self.current_map
