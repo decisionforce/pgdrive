@@ -121,10 +121,7 @@ class BaseVehicle(DynamicElement):
         self.crash = False
         self.out_of_road = False
 
-        # add to world, permanently
-        self.add_to_physics_world(self.pg_world.physics_world)
-        if self.render:
-            self.add_to_render_module(self.pg_world.pbr_render)
+        self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
     @classmethod
     def get_vehicle_config(cls, new_config):
@@ -298,8 +295,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1

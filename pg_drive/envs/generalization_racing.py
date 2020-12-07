@@ -305,7 +305,7 @@ class GeneralizationRacing(gym.Env):
         else:
             self.current_map = self.maps[self.current_seed]
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
-            self.current_map.re_generate(self.pg_world.worldNP, self.pg_world.physics_world)
+            self.current_map.load_to_pg_world(self.pg_world.worldNP, self.pg_world.physics_world)
 
     def add_modules_for_vehicle(self):
         # add vehicle module for training according to config
