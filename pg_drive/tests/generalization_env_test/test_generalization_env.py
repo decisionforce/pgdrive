@@ -16,7 +16,7 @@ class ResetEnv(GeneralizationRacing):
                 "pg_world_config": {
                     "debug": False,
                 },
-                "traffic_mode":TrafficMode.Reborn,
+                "traffic_mode": TrafficMode.Reborn,
                 "image_buffer_name": "mini_map",
                 "manual_control": True,
                 "use_render": True,
