@@ -377,6 +377,10 @@ class GeneralizationRacing(gym.Env):
             map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
             self.maps[seed] = map
 
+            # Map will be added to world automatically, so remove them after creating
+            map.remove_from_physics_world(self.pg_world.physics_world)
+            map.remove_from_render_module()
+
     def load_all_maps_from_json(self, path):
         assert path.endswith(".json")
         assert osp.isfile(path)
