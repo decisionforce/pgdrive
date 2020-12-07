@@ -271,23 +271,15 @@ class PgWorld(ShowBase.ShowBase):
         return task.done
 
     def close_world(self):
-
-        print(100)
         if self.pg_config["use_render"] or self.pg_config["use_rgb"]:
             self._clear_display_region_and_buffers()
-        print(101)
         self.destroy()
-        print(102)
         self.physics_world.clearDebugNode()
-        print(103)
         self.physics_world.clearContactAddedCallback()
-        print(104)
         self.physics_world.clearFilterCallback()
-        print(105)
-        # del self.physics_world
-        self.physics_world = None
 
-        print(106)
+        # del self.physics_world  # Will cause error if del it.
+        self.physics_world = None
 
 
 if __name__ == "__main__":

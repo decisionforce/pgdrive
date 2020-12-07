@@ -65,6 +65,7 @@ class Element:
         """
         for node in self.bullet_nodes:
             pg_physics_world.remove(node)
+        print("Current self.bullet_nodes numbers: ", len(self.bullet_nodes))
 
     def remove_from_render_module(self):
         """
@@ -77,7 +78,7 @@ class Element:
         Fully delete this element and release the memory
         """
         self.node_path.removeNode()
-        self.remove_from_physics_world(pg_physics_world)
+        # self.remove_from_physics_world(pg_physics_world)  # This is called in map.
         self.bullet_nodes.clear()
         self._config.clear()
 

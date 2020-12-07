@@ -56,7 +56,7 @@ class Map:
             # other config such as lane width, num and seed will be valid, since they will be read from file
             blocks_config = self.read_map(self.config[self.GENERATE_PARA])
             self._config_generate(blocks_config, parent_node_path, pg_physics_world)
-            print("Loading map from json file!")
+            # print("Loading map from json file!")
 
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
@@ -126,6 +126,7 @@ class Map:
     def remove_from_physics_world(self, pg_physics_world: BulletWorld):
         for block in self.blocks:
             block.remove_from_physics_world(pg_physics_world)
+        print("Current map has blocks: ", len(self.blocks))
 
     def remove_from_render_module(self):
         for block in self.blocks:

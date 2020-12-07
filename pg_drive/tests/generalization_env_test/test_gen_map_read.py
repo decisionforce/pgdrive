@@ -1,29 +1,9 @@
-import os
-
-from pg_drive.envs.generalization_racing import GeneralizationRacing
-from pg_drive.scene_creator.map import Map, MapGenerateMethod
-
-from pg_drive.utils import setup_logger
 import json
 
+from pg_drive.envs.generalization_racing import GeneralizationRacing
+from pg_drive.utils import recursive_equal, setup_logger
+
 setup_logger(debug=True)
-
-
-def recursive_assert(data1, data2):
-    if isinstance(data1, dict):
-        assert isinstance(data2, dict)
-        assert set(data1.keys()) == set(data2.keys()), (data1.keys(), data2.keys())
-        for k in data1:
-            recursive_assert(data1[k], data2[k])
-
-    elif isinstance(data1, list):
-        assert len(data1) == len(data2)
-        for i in range(len(data1)):
-            recursive_assert(data1[i], data2[i])
-
-    else:
-        assert data1 == data2, (type(data1), type(data2), data1, data2)
-
 
 if __name__ == "__main__":
     env = GeneralizationRacing({
@@ -47,6 +27,6 @@ if __name__ == "__main__":
 
     for i in range(10):
         m = env.maps[i].save_map()
-        recursive_assert(m, data["map_data"][i])
+        recursive_equal(m, data["map_data"][i], need_assert=True)
     print("Finish!")
     env.close()
