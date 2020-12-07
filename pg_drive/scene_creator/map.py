@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from typing import List
-
+from pg_drive.utils.visualization_loader import VisLoader
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
 
@@ -56,8 +56,6 @@ class Map:
             # other config such as lane width, num and seed will be valid, since they will be read from file
             blocks_config = self.read_map(self.config[self.GENERATE_PARA])
             self._config_generate(blocks_config, parent_node_path, pg_physics_world)
-            # print("Loading map from json file!")
-
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
 
@@ -100,37 +98,13 @@ class Map:
             last_block.construct_from_config(b, parent_node_path, pg_physics_world)
             self.blocks.append(last_block)
 
-    def re_generate(self, parent_node_path: NodePath, pg_physics_world: BulletWorld):
-        """
-        For convenience
-        """
-        self.add_to_physics_world(pg_physics_world)
-        from pg_drive.utils.visualization_loader import VisLoader
-        if VisLoader.loader is not None:
-            self.add_to_render_module(parent_node_path)
-
-    def add_to_render_module(self, parent_node_path: NodePath):
-        """
-        If original node path is removed, this can re attach blocks to render module
-        """
+    def load_to_pg_world(self, parent_node_path: NodePath, pg_physics_world: BulletWorld):
         for block in self.blocks:
-            block.add_to_render_module(parent_node_path)
+            block.attach_to_pg_world(parent_node_path, pg_physics_world)
 
-    def add_to_physics_world(self, pg_physics_world: BulletWorld):
-        """
-        If the original bullet physics world is deleted, call this to re-add road network
-        """
+    def unload_from_pg_world(self, pg_physics_world: BulletWorld):
         for block in self.blocks:
-            block.add_to_physics_world(pg_physics_world)
-
-    def remove_from_physics_world(self, pg_physics_world: BulletWorld):
-        for block in self.blocks:
-            block.remove_from_physics_world(pg_physics_world)
-        # print("Current map has blocks: ", len(self.blocks))
-
-    def remove_from_render_module(self):
-        for block in self.blocks:
-            block.remove_from_render_module()
+            block.detach_from_pg_world(pg_physics_world)
 
     def destroy_map(self, pg_physics_world: BulletWorld):
         for block in self.blocks:
@@ -165,7 +139,7 @@ class Map:
 
     def save_map_to_json(self, map_name: str, save_dir: str = os.path.dirname(__file__)):
         data = self.save_map()
-        with open(os.path.join(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
+        with open(VisLoader.file_path(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
             json.dump(data, outfile)
 
     def read_map(self, map_config: dict):
