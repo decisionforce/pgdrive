@@ -79,7 +79,7 @@ class GeneralizationRacing(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -227,7 +227,7 @@ class GeneralizationRacing(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -291,8 +291,7 @@ class GeneralizationRacing(gym.Env):
     def select_map(self):
         # remove map from world before adding
         if self.current_map is not None:
-            self.current_map.remove_from_physics_world(self.pg_world.physics_world)
-            self.current_map.remove_from_render_module()
+            self.current_map.unload_from_pg_world(self.pg_world.physics_world)
 
         # create map
         self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
