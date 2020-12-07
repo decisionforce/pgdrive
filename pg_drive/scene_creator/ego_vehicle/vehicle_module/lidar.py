@@ -24,8 +24,9 @@ class Lidar:
         self.radian_unit = 2 * np.pi / laser_num
         self.detection_results = None
         self.node_path = parent_node_np.attachNewNode("cloudPoints")
-        self.node_path.hide(CamMask.FrontCam | CamMask.Shadow | CamMask.Shadow | CamMask.MainCam)
+        self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.MainCam)
         self.cloud_points = [] if show else None
+        logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
         if show:
             for laser_debug in range(self.laser_num):
                 ball = VisLoader.loader.loadModel(VisLoader.file_path(VisLoader.asset_path, "models", "box.egg"))

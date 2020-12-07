@@ -134,7 +134,7 @@ class GeneralizationRacing(gym.Env):
         self.vehicle = BaseVehicle(self.pg_world, v_config)
 
         # add sensors
-        self.add_sensor_for_vehicle()
+        self.add_modules_for_vehicle()
 
         if self.use_render or self.config["use_image"]:
             self.control_camera.reset(self.vehicle.position)
@@ -307,12 +307,22 @@ class GeneralizationRacing(gym.Env):
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
             self.current_map.re_generate(self.pg_world.worldNP, self.pg_world.physics_world)
 
-    def add_sensor_for_vehicle(self):
+    def add_modules_for_vehicle(self):
         # add vehicle module for training according to config
         vehicle_config = self.vehicle.vehicle_config
         self.vehicle.add_routing_localization(vehicle_config["show_navi_point"])  # default added
         if not self.config["use_image"]:
+            # TODO visualize lidar
             self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
+
+            rgb_cam_config = vehicle_config["rgb_cam"]
+            rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+            self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+
+            mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
+            self.vehicle.add_image_sensor("mini_map", mini_map)
+            return
+
         if self.config["use_image"]:
             # 3 types image observation
             if self.config["image_source"] == "rgb_cam":

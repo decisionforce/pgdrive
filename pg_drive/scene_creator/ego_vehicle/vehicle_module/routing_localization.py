@@ -9,6 +9,7 @@ from pg_drive.scene_creator.lanes.circular_lane import CircularLane
 from pg_drive.scene_creator.map import Map
 from pg_drive.utils.math_utils import clip, norm
 from pg_drive.utils.visualization_loader import VisLoader
+import logging
 
 
 class RoutingLocalizationModule:
@@ -32,6 +33,7 @@ class RoutingLocalizationModule:
         self.navi_info = None
         self.current_ref_lanes = None
         self.show_navi_point = show_navi_point
+        logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
     def update(self, map: Map, parent_node_path):
         self.map = map

@@ -486,13 +486,8 @@ class Block(Element):
                 numpy.sin(theta / 2) * numpy.cos(-numpy.pi / 4)
             )
         )
-        card.setTransparency(TransparencyAttrib.MAlpha)
-        # if self.use_texture:
+        card.setTransparency(TransparencyAttrib.MMultisample)
         card.setTexture(self.ts_color, self.road_texture)
-        # card.setTexture(self.ts_normal, self.road_normal)
-        # card.setTexture(self.ts_height, self.road_height)
-        # else:
-        # card.setColor(color)
 
     @staticmethod
     def create_socket_from_positive_road(road: Road) -> BlockSocket:

@@ -6,7 +6,7 @@ class TestEnv(GeneralizationRacing):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.0,
+                "traffic_density": 0.,
                 "start_seed": 4,
                 "image_source": "depth_cam",
                 "manual_control": True,

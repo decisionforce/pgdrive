@@ -3,6 +3,7 @@
 // Uniform inputs
 uniform mat4 p3d_ProjectionMatrix;
 uniform mat4 p3d_ModelViewMatrix;
+uniform vec4 p3d_Color;
 
 // Vertex inputs
 in vec4 p3d_Vertex;

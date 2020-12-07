@@ -1,9 +1,11 @@
 #version 150
 
 in float distanceToCamera;
-in vec4 p3d_Color;
 out vec4 fragColor;
 
 void main() {
-  fragColor = vec4(distanceToCamera/512, 0, 0, 1);
+  float base=16;
+  float b = 32;
+  float c = log(distanceToCamera/base)/log(b);
+  fragColor = vec4(c, c , c, c);
 }

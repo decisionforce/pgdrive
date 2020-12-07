@@ -10,7 +10,7 @@ class RgbCamera(ImageBuffer):
     # shape(dim_1, dim_2)
     BUFFER_X = 84  # dim 1
     BUFFER_Y = 84  # dim 2
-    CAM_MASK = CamMask.FrontCam
+    CAM_MASK = CamMask.RgbCam
     display_top = 1.0
 
     def __init__(self, length: int, width: int, chassis_np: NodePath, pg_world: PgWorld):
@@ -25,6 +25,3 @@ class RgbCamera(ImageBuffer):
         self.lens = self.cam.node().getLens()
         self.lens.setFov(60)
         # lens.setAspectRatio(2.0)
-        filters = CommonFilters(self.buffer, self.cam)
-        filters.setBloom(size="large")
-

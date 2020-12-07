@@ -152,7 +152,7 @@ class ImageObservation(ObservationType):
             return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
 
     def observe(self, image_buffer: ImageBuffer):
-        new_obs = image_buffer.get_gray_pixels_array(self.rgb_clip)
+        new_obs = image_buffer.get_pixels_array(self.rgb_clip)
         self.state = np.roll(self.state, -1, axis=-1)
         self.state[:, :, -1] = new_obs
         return self.state
