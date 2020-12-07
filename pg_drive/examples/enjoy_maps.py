@@ -5,10 +5,16 @@ from pg_drive.utils import setup_logger
 setup_logger(debug=True)
 
 if __name__ == "__main__":
-    env = GeneralizationRacing(dict(use_render=True, manual_control=True, map_config={
-        "type": BigGenerateMethod.BLOCK_NUM,
-        "config": 7,
-    }, ))
+    env = GeneralizationRacing(
+        dict(
+            use_render=True,
+            manual_control=True,
+            map_config={
+                "type": BigGenerateMethod.BLOCK_NUM,
+                "config": 7,
+            },
+        )
+    )
     env.reset()
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 0])
