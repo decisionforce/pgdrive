@@ -1,4 +1,5 @@
 from pg_drive.envs.generalization_racing import GeneralizationRacing
+from pg_drive.scene_creator.map import Map, MapGenerateMethod
 
 
 class TestEnv(GeneralizationRacing):
@@ -6,7 +7,7 @@ class TestEnv(GeneralizationRacing):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.,
+                "traffic_density": 0.1,
                 "start_seed": 4,
                 "image_source": "depth_cam",
                 "manual_control": True,
@@ -16,6 +17,12 @@ class TestEnv(GeneralizationRacing):
                 "vehicle_config": dict(depth_cam=(200, 88)),
                 "pg_world_config": {
                     "headless_rgb": False
+                },
+                "map_config": {
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+                    Map.GENERATE_PARA: 12,
+                    Map.LANE_WIDTH: 3.5,
+                    Map.LANE_NUM: 3,
                 }
             }
         )
@@ -39,10 +46,10 @@ if __name__ == "__main__":
         # # print(len(o), "Vs.", env.observation_space.shape[0])
         # # print(info)
         if env.config["use_render"]:
-            for i in range(ImageObservation.STACK_SIZE):
-                ObservationType.show_gray_scale_array(o["image"][:, :, i])
+            # for i in range(ImageObservation.STACK_SIZE):
+            #     ObservationType.show_gray_scale_array(o["image"][:, :, i])
             env.render(text={"can you see me": i})
-        if d:
-            print("Reset")
-            env.reset()
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()

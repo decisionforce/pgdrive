@@ -16,9 +16,6 @@ class DepthCamera(ImageBuffer):
     def __init__(self, length: int, width: int, chassis_np: NodePath, pg_world: PgWorld):
         self.BUFFER_X = length
         self.BUFFER_Y = width
-        # frame_buffer_props = FrameBufferProperties()
-        # frame_buffer_props.setFloatColor(True)
-        # frame_buffer_props.setRgbaBits(32, 0, 0, 0)
         super(DepthCamera, self).__init__(
             self.BUFFER_X, self.BUFFER_Y, Vec3(0.0, 0.8, 1.5), self.BKG_COLOR, pg_world.win.makeTextureBuffer,
             pg_world.makeCamera, chassis_np

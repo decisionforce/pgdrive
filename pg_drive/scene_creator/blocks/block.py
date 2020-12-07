@@ -267,7 +267,8 @@ class Block(Element):
         """
         Create NodePath and Geom node to perform both collision detection and render
         """
-        self.node_path = NodePath(RigidBodyCombiner(self._block_name))
+        self.model_node_path = NodePath(RigidBodyCombiner(self._block_name+"_model"))
+        self.card_node_path = NodePath(RigidBodyCombiner(self._block_name+"_card"))
         graph = self.block_network.graph
         for _from, to_dict in graph.items():
             for _to, lanes in to_dict.items():
@@ -276,12 +277,20 @@ class Block(Element):
                 for _id, l in enumerate(lanes):
                     line_color = l.line_color
                     self._add_lane(l, _id, line_color)
-        self.node_path.flattenStrong()
-        self.node_path.node().collect()
+        self.model_node_path.flattenStrong()
+        self.model_node_path.node().collect()
+
+        self.card_node_path.flattenStrong()
+        self.card_node_path.node().collect()
+        self.card_node_path.hide(CamMask.DepthCam)
+
+        self.node_path = NodePath(self._block_name)
         self.node_path.hide(CamMask.Shadow)
+        self.model_node_path.reparentTo(self.node_path)
+        self.card_node_path.reparentTo(self.node_path)
 
     def _add_lane(self, lane: AbstractLane, lane_id: int, colors: List[Vec4]):
-        parent_np = self.node_path
+        parent_np = self.model_node_path
         lane_width = lane.width_at(0)
         for k, i in enumerate([-1, 1]):
             line_color = colors[k]
@@ -423,7 +432,7 @@ class Block(Element):
         body_node.setActive(False)
         body_node.setKinematic(False)
         body_node.setStatic(True)
-        side_np = self.node_path.attachNewNode(body_node)
+        side_np = self.model_node_path.attachNewNode(body_node)
         shape = BulletBoxShape(Vec3(1 / 2, 1 / 2, 1 / 2))
         body_node.addShape(shape)
         body_node.setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
@@ -476,7 +485,7 @@ class Block(Element):
         cm.setFrame(-length / 2, length / 2, -width / 2, width / 2)
         cm.setHasNormals(True)
         cm.setUvRange((0, 0), (length / 20, width / 10))
-        card = self.node_path.attachNewNode(cm.generate())
+        card = self.card_node_path.attachNewNode(cm.generate())
         card.setPos(middle[0], -middle[1], numpy.random.rand() * 0.01 - 0.01)
 
         card.setQuat(

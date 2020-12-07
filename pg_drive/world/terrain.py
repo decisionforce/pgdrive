@@ -25,7 +25,7 @@ class Terrain(Element):
 
         self.node_path = NodePath(node)
         if self.render:
-            self.node_path.hide(CamMask.MiniMap)
+            self.node_path.hide(CamMask.MiniMap | CamMask.Shadow | CamMask.DepthCam)
             self.terrain_normal = self.loader.loadTexture(
                 VisLoader.file_path(VisLoader.asset_path, "textures", "grass2", "normal.jpg")
             )
