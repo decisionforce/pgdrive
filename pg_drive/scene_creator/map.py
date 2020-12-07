@@ -126,7 +126,7 @@ class Map:
     def remove_from_physics_world(self, pg_physics_world: BulletWorld):
         for block in self.blocks:
             block.remove_from_physics_world(pg_physics_world)
-        print("Current map has blocks: ", len(self.blocks))
+        # print("Current map has blocks: ", len(self.blocks))
 
     def remove_from_render_module(self):
         for block in self.blocks:

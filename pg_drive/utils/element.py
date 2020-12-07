@@ -65,7 +65,7 @@ class Element:
         """
         for node in self.bullet_nodes:
             pg_physics_world.remove(node)
-        print("Current self.bullet_nodes numbers: ", len(self.bullet_nodes))
+        # print("Current self.bullet_nodes numbers: ", len(self.bullet_nodes))
 
     def remove_from_render_module(self):
         """
