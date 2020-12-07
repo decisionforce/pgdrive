@@ -340,6 +340,8 @@ class GeneralizationRacing(gym.Env):
             map_config.update({"seed": seed})
             new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
             self.maps[seed] = new_map
+            new_map.remove_from_render_module()
+            new_map.remove_from_physics_world(self.pg_world.physics_world)
             print("Finish generating map with seed: ", seed)
 
         map_data = dict()
