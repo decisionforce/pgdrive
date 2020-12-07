@@ -16,7 +16,6 @@ class ResetEnv(GeneralizationRacing):
                     "force_fps": None,
                     "debug_physics_world": True
                 },
-                # "traffic_mode": TrafficMode.Reborn,
                 "manual_control": True,
                 "use_render": True,
                 "use_rgb": False,
@@ -27,10 +26,6 @@ class ResetEnv(GeneralizationRacing):
                 # }
             }
         )
-        # self.reset()
-        # self.pg_world.accept("r", self.reset)
-        # self.pg_world.cam.setPos(0, 0, 1500)
-        # self.pg_world.cam.lookAt(0, 0, 0)
 
 
 if __name__ == "__main__":
@@ -38,6 +33,7 @@ if __name__ == "__main__":
     import time
 
     env.reset()
+    env.pg_world.accept("r", env.reset)
     t = 0.0
     for i in range(1, 200000):
         start = time.time()

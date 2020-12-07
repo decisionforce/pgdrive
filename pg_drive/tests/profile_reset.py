@@ -18,7 +18,7 @@ if __name__ == '__main__':
         env.render()
         if d:
             env.reset()
-        # print("Finish")
+    #     print("Finish")
     #     if (s + 1) % 1 == 0:
     #         print(f"{s + 1}/{total} Time Elapse: {time.time() - start}")
     # print(f"Total Time Elapse: {time.time() - start}")

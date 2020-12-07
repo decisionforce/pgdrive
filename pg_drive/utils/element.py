@@ -78,7 +78,7 @@ class Element:
         Fully delete this element and release the memory
         """
         self.node_path.removeNode()
-        # self.remove_from_physics_world(pg_physics_world)  # This is called in map.
+        self.remove_from_physics_world(pg_physics_world)
         self.bullet_nodes.clear()
         self._config.clear()
 
