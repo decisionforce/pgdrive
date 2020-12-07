@@ -25,5 +25,5 @@ setup(
         "panda3d-gltf",
         "panda3d-simplepbr"
     ],
-    package_data={"pg_drive": ["assets/*"]}
+    include_package_data=True
 )
