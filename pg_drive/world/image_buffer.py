@@ -14,9 +14,15 @@ class ImageBuffer:
     display_region = None
 
     def __init__(
-            self, length: float, width: float, pos: Vec3, bkg_color: Union[Vec4, Vec3], make_buffer_func,
-            make_camera_func,
-            parent_node: NodePath, frame_buffer_property=None
+        self,
+        length: float,
+        width: float,
+        pos: Vec3,
+        bkg_color: Union[Vec4, Vec3],
+        make_buffer_func,
+        make_camera_func,
+        parent_node: NodePath,
+        frame_buffer_property=None
     ):
         assert self.CAM_MASK is not None, "define a camera mask for every image buffer"
         # self.texture = Texture()

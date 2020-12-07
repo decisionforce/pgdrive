@@ -267,8 +267,8 @@ class Block(Element):
         """
         Create NodePath and Geom node to perform both collision detection and render
         """
-        self.model_node_path = NodePath(RigidBodyCombiner(self._block_name+"_model"))
-        self.card_node_path = NodePath(RigidBodyCombiner(self._block_name+"_card"))
+        self.model_node_path = NodePath(RigidBodyCombiner(self._block_name + "_model"))
+        self.card_node_path = NodePath(RigidBodyCombiner(self._block_name + "_card"))
         graph = self.block_network.graph
         for _from, to_dict in graph.items():
             for _to, lanes in to_dict.items():
