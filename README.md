@@ -1,4 +1,5 @@
-![](pg_drive/assets/PG-Drive.png)
+
+<img align=right width=400px  src="./pg_drive/assets/PG-Drive.png" />
 
 # PG-Drive: An high flexible open-ended driving simulator
 
