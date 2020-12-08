@@ -36,9 +36,11 @@ class ActionRepeat(GeneralizationRacing):
         assert action_repeat > 0
 
         ret = []
+        real_ret = 0.0
         for repeat in range(action_repeat):
             o, r, d, i = super(ActionRepeat, self).step(action)
             ret.append(r)
+            real_ret += r
             if d:
                 break
 
@@ -47,6 +49,7 @@ class ActionRepeat(GeneralizationRacing):
             discounted = self.config["gamma"] * discounted + r
 
         i["action_repeat"] = repeat + 1
+        i["real_return"] = real_ret
 
         return o, discounted, d, i
 
