@@ -4,7 +4,7 @@ from pg_drive import GeneralizationRacing
 from pg_drive.pg_config.pg_config import PgConfig
 
 
-class ActionRepeatWrapper(GeneralizationRacing):
+class ActionRepeat(GeneralizationRacing):
     @staticmethod
     def default_config() -> PgConfig:
         config = GeneralizationRacing.default_config()
@@ -14,7 +14,7 @@ class ActionRepeatWrapper(GeneralizationRacing):
         return config
 
     def __init__(self, config: dict = None):
-        super(ActionRepeatWrapper, self).__init__(config)
+        super(ActionRepeat, self).__init__(config)
         self.action_space = Box(
             shape=(self.action_space.shape[0] + 1, ),
             high=self.action_space.high[0],
@@ -37,7 +37,7 @@ class ActionRepeatWrapper(GeneralizationRacing):
 
         ret = []
         for repeat in range(action_repeat):
-            o, r, d, i = super(ActionRepeatWrapper, self).step(action)
+            o, r, d, i = super(ActionRepeat, self).step(action)
             ret.append(r)
 
         discounted = 0.0
@@ -50,7 +50,7 @@ class ActionRepeatWrapper(GeneralizationRacing):
 
 
 if __name__ == '__main__':
-    env = ActionRepeatWrapper()
+    env = ActionRepeat()
     env.reset()
     env.step(env.action_space.sample())
     env.close()
