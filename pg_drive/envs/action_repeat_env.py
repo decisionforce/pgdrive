@@ -44,6 +44,8 @@ class ActionRepeatWrapper(GeneralizationRacing):
         for r in reversed(ret):
             discounted += self.config["gamma"] * discounted + r
 
+        i["action_repeat"] = action_repeat
+
         return o, discounted, d, i
 
 
