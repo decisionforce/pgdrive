@@ -6,11 +6,20 @@ from pg_drive.scene_creator.map import Map
 
 if __name__ == "__main__":
     headless = False
-    env = GeneralizationRacing(dict(use_render=False, map_config={
-        Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
-        Map.GENERATE_PARA: 7
-    }, traffic_density=0.5, manual_control=True, traffic_mode=0, use_image=True,
-                                    pg_world_config=dict(headless_rgb=headless)))
+    env = GeneralizationRacing(
+        dict(
+            use_render=False,
+            map_config={
+                Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
+                Map.GENERATE_PARA: 7
+            },
+            traffic_density=0.5,
+            manual_control=True,
+            traffic_mode=0,
+            use_image=True,
+            pg_world_config=dict(headless_rgb=headless)
+        )
+    )
 
     start = time.time()
     env.reset()

@@ -5,10 +5,18 @@ from pg_drive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pg_drive.scene_creator.map import Map
 
 if __name__ == "__main__":
-    env = GeneralizationRacing(dict(use_render=True, map_config={
-        Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
-        Map.GENERATE_PARA: 7
-    }, traffic_density=0.5, manual_control=True, traffic_mode=0))
+    env = GeneralizationRacing(
+        dict(
+            use_render=True,
+            map_config={
+                Map.GENERATE_METHOD: BigGenerateMethod.BLOCK_NUM,
+                Map.GENERATE_PARA: 7
+            },
+            traffic_density=0.5,
+            manual_control=True,
+            traffic_mode=0
+        )
+    )
 
     start = time.time()
     env.reset()
