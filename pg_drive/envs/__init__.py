@@ -1,2 +1,2 @@
-from .action_repeat_env import ActionRepeatWrapper
+from .action_repeat_env import ActionRepeat
 from .generalization_racing import GeneralizationRacing
