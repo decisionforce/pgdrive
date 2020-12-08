@@ -1,6 +1,6 @@
 from gym.spaces import Box
 
-from pg_drive import GeneralizationRacing
+from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.pg_config.pg_config import PgConfig
 
 
