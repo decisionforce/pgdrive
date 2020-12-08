@@ -174,6 +174,7 @@ class TrafficManager:
 
         :param dt: timestep [s]
         """
+        return
         dt /= 3.6  # 1m/s = 3.6km/h
         for v in self.traffic_vehicles:
             v.step(dt)
