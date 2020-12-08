@@ -39,12 +39,14 @@ class ActionRepeat(GeneralizationRacing):
         for repeat in range(action_repeat):
             o, r, d, i = super(ActionRepeat, self).step(action)
             ret.append(r)
+            if d:
+                break
 
         discounted = 0.0
         for r in reversed(ret):
-            discounted += self.config["gamma"] * discounted + r
+            discounted = self.config["gamma"] * discounted + r
 
-        i["action_repeat"] = action_repeat
+        i["action_repeat"] = repeat + 1
 
         return o, discounted, d, i
 
