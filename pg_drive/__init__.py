@@ -1,2 +1,2 @@
-from pg_drive.envs import GeneralizationRacing
 import pg_drive.register
+from pg_drive.envs import GeneralizationRacing, ActionRepeatWrapper
