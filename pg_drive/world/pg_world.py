@@ -190,7 +190,8 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np.reparentTo(self.aspect2d)
 
     def render_frame(self, text: dict = None):
-        self.on_screen_message.update_data(text)
+        if isinstance(text, dict):
+            self.on_screen_message.update_data(text)
         self.on_screen_message.render()
         self.graphicsEngine.renderFrame()
         if self.pg_config["use_render"]:
