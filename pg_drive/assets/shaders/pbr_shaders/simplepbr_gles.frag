@@ -5,7 +5,7 @@
 precision mediump float;
 
 #ifndef MAX_LIGHTS
-    #define MAX_LIGHTS 8
+#define MAX_LIGHTS 8
 #endif
 
 uniform struct p3d_MaterialParameters {
@@ -24,10 +24,10 @@ uniform struct p3d_LightSourceParameters {
     vec3 spotDirection;
     float spotCosCutoff;
     float spotExponent;
-#ifdef ENABLE_SHADOWS
+    #ifdef ENABLE_SHADOWS
     sampler2DShadow shadowMap;
     mat4 shadowViewMatrix;
-#endif
+    #endif
 } p3d_LightSource[MAX_LIGHTS];
 
 uniform struct p3d_LightModelParameters {
@@ -80,6 +80,8 @@ in mat3 v_tbn;
 in vec4 v_shadow_pos[MAX_LIGHTS];
 #endif
 
+out vec4 FragColor;
+
 // Schlick's Fresnel approximation with Spherical Gaussian approximation to replace the power
 vec3 specular_reflection(FunctionParamters func_params) {
     vec3 f0 = func_params.reflection0;
@@ -93,13 +95,13 @@ float visibility_occlusion(FunctionParamters func_params) {
     float r2 = r * r;
     float n_dot_l = func_params.n_dot_l;
     float n_dot_v = func_params.n_dot_v;
-#ifdef SMITH_SQRT_APPROX
+    #ifdef SMITH_SQRT_APPROX
     float ggxv = n_dot_l * (n_dot_v * (1.0 - r) + r);
     float ggxl = n_dot_v * (n_dot_l * (1.0 - r) + r);
-#else
+    #else
     float ggxv = n_dot_l * sqrt(n_dot_v * n_dot_v * (1.0 - r2) + r2);
     float ggxl = n_dot_v * sqrt(n_dot_l * n_dot_l * (1.0 - r2) + r2);
-#endif
+    #endif
 
     return max(0.0, 0.5 / (ggxv + ggxl));
 }
@@ -157,11 +159,11 @@ void main() {
         float spotcos = dot(normalize(p3d_LightSource[i].spotDirection), -l);
         float spotcutoff = p3d_LightSource[i].spotCosCutoff;
         float shadowSpot = smoothstep(spotcutoff-SPOTSMOOTH, spotcutoff+SPOTSMOOTH, spotcos);
-#ifdef ENABLE_SHADOWS
+        #ifdef ENABLE_SHADOWS
         float shadowCaster = shadow2DProj(p3d_LightSource[i].shadowMap, v_shadow_pos[i]).r;
-#else
+        #else
         float shadowCaster = 1.0;
-#endif
+        #endif
         float shadow = shadowSpot * shadowCaster;
 
         FunctionParamters func_params;
@@ -177,7 +179,7 @@ void main() {
         func_params.specular_color = spec_color;
 
         vec3 F = specular_reflection(func_params);
-        float V = visibility_occlusion(func_params); // V = G / (4 * n_dot_l * n_dot_v)
+        float V = visibility_occlusion(func_params);// V = G / (4 * n_dot_l * n_dot_v)
         float D = microfacet_distribution(func_params);
 
         vec3 diffuse_contrib = diffuse_color * diffuse_function(func_params);
@@ -188,12 +190,12 @@ void main() {
     color.rgb += diffuse_color * p3d_LightModel.ambient.rgb * ambient_occlusion;
     color.rgb += emission;
 
-#ifdef ENABLE_FOG
+    #ifdef ENABLE_FOG
     // Exponential fog
     float fog_distance = length(v_position);
     float fog_factor = clamp(1.0 / exp(fog_distance * p3d_Fog.density), 0.0, 1.0);
     color = mix(p3d_Fog.color, color, fog_factor);
-#endif
+    #endif
 
-    gl_FragColor = color;
+    FragColor = color;
 }
