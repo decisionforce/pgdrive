@@ -1,3 +1,7 @@
+"""
+Please install ray before running this script:
+    pip install ray==1.0.0
+"""
 import os.path as osp
 
 import ray
@@ -13,11 +17,13 @@ expert.restore(path)
 env = GeneralizationRacing(dict(use_render=True, environment_num=100))
 
 obs = env.reset()
-for i in range(1000):
-    action = expert.compute_action(obs)
-    obs, reward, done, info = env.step(action)
-    frame = env.render("rgb_array")
-    if done:
-        obs = env.reset()
-
-env.close()
+try:
+    while True:
+        action = expert.compute_action(obs)
+        obs, reward, done, info = env.step(action)
+        frame = env.render("rgb_array")
+        if done:
+            obs = env.reset()
+finally:
+    print("Closing the environment!")
+    env.close()
