@@ -8,7 +8,15 @@ class ActionRepeat(GeneralizationRacing):
     @staticmethod
     def default_config() -> PgConfig:
         config = GeneralizationRacing.default_config()
-        config.add("max_action_repeat", 100)
+
+        # Set the internal environment run in 0.02s interval.
+        config["decision_repeat"] = 1
+
+        # Speed reward is given for current state, so its maginitude need to be reduced
+        config["speed_reward"] = config["speed_reward"] / 5
+
+        # Set the interval from 0.02s to 1s
+        config.add("max_action_repeat", 50)
         config.add("min_action_repeat", 1)
         config.add("gamma", 1.0)
         return config
@@ -16,7 +24,7 @@ class ActionRepeat(GeneralizationRacing):
     def __init__(self, config: dict = None):
         super(ActionRepeat, self).__init__(config)
         self.action_space = Box(
-            shape=(self.action_space.shape[0] + 1, ),
+            shape=(self.action_space.shape[0] + 1,),
             high=self.action_space.high[0],
             low=self.action_space.low[0],
             dtype=self.action_space.dtype
@@ -25,6 +33,9 @@ class ActionRepeat(GeneralizationRacing):
         self.high = self.action_space.high[0]
         self.action_repeat_low = self.config["min_action_repeat"]
         self.action_repeat_high = self.config["max_action_repeat"]
+
+        self.interval = 2e-2  # This is determined by the default config of pg_world.
+
         assert self.action_repeat_low > 0
 
     def step(self, action, render=False, **render_kwargs):
@@ -51,7 +62,7 @@ class ActionRepeat(GeneralizationRacing):
         for r in reversed(ret):
             discounted = self.config["gamma"] * discounted + r
 
-        i["action_repeat"] = repeat + 1
+        i["simulation_time"] = (repeat + 1) * self.interval
         i["real_return"] = real_ret
         i["render"] = render_list
 
