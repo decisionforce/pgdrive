@@ -47,7 +47,9 @@ class SkyBox(DynamicElement):
         # skybox = self.loader.loadModel(AssetLoader.file_path(self.bullet_path, "models/skybox.bam"))
         skybox.set_scale(20000)
 
-        skybox_texture = self.loader.loadTexture(AssetLoader.file_path(AssetLoader.asset_path, "textures", "skybox.jpg"))
+        skybox_texture = self.loader.loadTexture(
+            AssetLoader.file_path(AssetLoader.asset_path, "textures", "skybox.jpg")
+        )
         skybox_texture.set_minfilter(SamplerState.FT_linear)
         skybox_texture.set_magfilter(SamplerState.FT_linear)
         skybox_texture.set_wrap_u(SamplerState.WM_repeat)
