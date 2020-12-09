@@ -1,7 +1,7 @@
 from direct.filter.FilterManager import FilterManager, FrameBufferProperties
 from panda3d.core import Vec3, NodePath, Shader, Texture, RenderState, ShaderAttrib
 from pg_drive.pg_config.cam_mask import CamMask
-from pg_drive.utils.visualization_loader import VisLoader
+from pg_drive.utils.asset_loader import AssetLoader
 from pg_drive.world.image_buffer import ImageBuffer
 from pg_drive.world.pg_world import PgWorld
 
@@ -27,11 +27,11 @@ class DepthCamera(ImageBuffer):
         # lens.setAspectRatio(2.0)
 
         # add shader for it
-        if pg_world.pg_config["headless_rgb"]:
-            vert_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam_gles.vert.glsl")
-            frag_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam_gles.frag.glsl")
+        if pg_world.pg_config["headless_image"]:
+            vert_path = AssetLoader.file_path(AssetLoader.asset_path, "shaders", "depth_cam_gles.vert.glsl")
+            frag_path = AssetLoader.file_path(AssetLoader.asset_path, "shaders", "depth_cam_gles.frag.glsl")
         else:
-            vert_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.vert.glsl")
-            frag_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.frag.glsl")
+            vert_path = AssetLoader.file_path(AssetLoader.asset_path, "shaders", "depth_cam.vert.glsl")
+            frag_path = AssetLoader.file_path(AssetLoader.asset_path, "shaders", "depth_cam.frag.glsl")
         custom_shader = Shader.load(Shader.SL_GLSL, vertex=vert_path, fragment=frag_path)
         self.cam.node().setInitialState(RenderState.make(ShaderAttrib.make(custom_shader, 1)))

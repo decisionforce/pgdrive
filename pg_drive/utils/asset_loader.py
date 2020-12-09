@@ -4,7 +4,7 @@ from typing import Union
 from direct.showbase.Loader import Loader
 
 
-class VisLoader:
+class AssetLoader:
     """
     Load model for each element when render is needed.
     """
@@ -16,16 +16,16 @@ class VisLoader:
         """
         Due to the feature of Panda3d, keep reference of loader in static variable
         """
-        VisLoader.asset_path = VisLoader.file_path(pg_path, "assets")
+        AssetLoader.asset_path = AssetLoader.file_path(pg_path, "assets")
         if not show_base_loader:
             logging.debug("Offscreen mode")
             return
         logging.debug("Onscreen mode, Render Elements")
-        VisLoader.loader = show_base_loader
+        AssetLoader.loader = show_base_loader
 
     @classmethod
     def get_loader(cls):
-        assert VisLoader.loader, "Initialize VisLoader before getting it"
+        assert AssetLoader.loader, "Initialize AssetLoader before getting it"
         return cls.loader
 
     @staticmethod
