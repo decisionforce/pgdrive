@@ -27,7 +27,7 @@ class ActionRepeat(GeneralizationRacing):
         self.action_repeat_high = self.config["max_action_repeat"]
         assert self.action_repeat_low > 0
 
-    def step(self, action):
+    def step(self, action, render=False, **render_kwargs):
         action_repeat = action[-1]
         action_repeat = round(
             (action_repeat - self.low) / (self.high - self.low) * (self.action_repeat_high - self.action_repeat_low) +
@@ -36,9 +36,12 @@ class ActionRepeat(GeneralizationRacing):
         assert action_repeat > 0
 
         ret = []
+        render_list = []
         real_ret = 0.0
         for repeat in range(action_repeat):
             o, r, d, i = super(ActionRepeat, self).step(action)
+            if render:
+                render_list.append(self.render(**render_kwargs))
             ret.append(r)
             real_ret += r
             if d:
@@ -50,6 +53,7 @@ class ActionRepeat(GeneralizationRacing):
 
         i["action_repeat"] = repeat + 1
         i["real_return"] = real_ret
+        i["render"] = render_list
 
         return o, discounted, d, i
 
