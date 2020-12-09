@@ -1,6 +1,8 @@
 from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.scene_creator.map import Map, MapGenerateMethod
+from panda3d.core import loadPrcFileData
 
+loadPrcFileData("", "load-display  pandagles2")
 
 class TestEnv(GeneralizationRacing):
     def __init__(self):

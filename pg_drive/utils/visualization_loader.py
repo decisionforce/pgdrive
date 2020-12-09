@@ -11,11 +11,6 @@ class VisLoader:
     loader = None
     asset_path = None
 
-    # pre load lane line model to save memory
-    strip_lane_line = None
-    circular_lane_line = None
-    side_walk = None
-
     @staticmethod
     def init_loader(show_base_loader: Union[Loader, bool], pg_path: str):
         """
@@ -27,7 +22,6 @@ class VisLoader:
             return
         logging.debug("Onscreen mode, Render Elements")
         VisLoader.loader = show_base_loader
-        # VisLoader.pre_load_lane_line_model()
 
     @classmethod
     def get_loader(cls):

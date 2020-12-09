@@ -27,7 +27,11 @@ class DepthCamera(ImageBuffer):
         # lens.setAspectRatio(2.0)
 
         # add shader for it
-        vert_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.vert.glsl")
-        frag_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.frag.glsl")
+        if pg_world.pg_config["headless_rgb"]:
+            vert_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam_gles.vert.glsl")
+            frag_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam_gles.frag.glsl")
+        else:
+            vert_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.vert.glsl")
+            frag_path = VisLoader.file_path(VisLoader.asset_path, "shaders", "depth_cam.frag.glsl")
         custom_shader = Shader.load(Shader.SL_GLSL, vertex=vert_path, fragment=frag_path)
         self.cam.node().setInitialState(RenderState.make(ShaderAttrib.make(custom_shader, 1)))
