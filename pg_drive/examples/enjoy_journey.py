@@ -14,7 +14,7 @@ ray.init(ignore_reinit_error=True)
 expert = PPOTrainer(dict(env="PGDrive-v0", num_workers=0))
 expert.restore(path)
 
-env = GeneralizationRacing(dict(use_render=True, environment_num=100))
+env = GeneralizationRacing(dict(use_render=True, environment_num=10000))
 
 obs = env.reset()
 try:
