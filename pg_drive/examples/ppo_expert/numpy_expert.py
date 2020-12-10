@@ -1,7 +1,6 @@
 import os.path as osp
 
 import numpy as np
-
 """
 The existing layer names and shapes in numpy file:
 (note that the terms with "value" in it are removed to save space).
@@ -45,5 +44,5 @@ def expert(obs):
 if __name__ == '__main__':
     for i in range(100):
         print("Weights? ", type(weights))
-        ret = expert(np.clip(np.random.normal(0.5, 1, size=(275,)), 0.0, 1.0))
+        ret = expert(np.clip(np.random.normal(0.5, 1, size=(275, )), 0.0, 1.0))
         print("Return: ", ret)
