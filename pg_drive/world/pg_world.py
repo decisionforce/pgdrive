@@ -22,6 +22,7 @@ root_path = os.path.dirname(os.path.dirname(__file__))
 
 class PgWorld(ShowBase.ShowBase):
     loadPrcFileData("", "win-size 1200 900")
+    loadPrcFileData("", "window-title PG-Drive")
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
