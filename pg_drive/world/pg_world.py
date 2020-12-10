@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import os
 import sys
 from pg_drive.world.onscreen_message import PgOnScreenMessage
@@ -6,7 +7,7 @@ import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
-
+from pg_drive.world.highway_render import HighwayRender
 from pg_drive.pg_config.cam_mask import CamMask
 from pg_drive.pg_config.pg_config import PgConfig
 from pg_drive.utils.asset_loader import AssetLoader
@@ -15,6 +16,7 @@ from pg_drive.world.image_buffer import ImageBuffer
 from pg_drive.world.light import Light
 from pg_drive.world.sky_box import SkyBox
 from pg_drive.world.terrain import Terrain
+from typing import Optional
 from pg_drive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
 
 root_path = os.path.dirname(os.path.dirname(__file__))
@@ -64,6 +66,7 @@ class PgWorld(ShowBase.ShowBase):
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
         self.closed = False
+        self.highway_render = HighwayRender() if self.pg_config["highway_render"] else None
 
         # add element to render and pbr render, if is exists all the time.
         # these element will not be removed when clear_world() is called
@@ -194,13 +197,13 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np.setPos(-1, -0.8, -0.8)
         self.collision_info_np.reparentTo(self.aspect2d)
 
-    def render_frame(self, text: dict = None) -> None:
+    def render_frame(self, text: dict = None) -> Optional[np.ndarray]:
         """
         Render the 3-D world drawn by panda3d. if use_render and use_image are all set to False, this api will
         degenerate to use PyGame to draw a 2D-world and return a display region for self-defined drawing
         """
         if not self.pg_config["highway_render"]:
-            # window type is not "none"
+            # padna3d draw
             if self.on_screen_message is not None:
                 self.on_screen_message.update_data(text)
                 self.on_screen_message.render()
@@ -208,6 +211,8 @@ class PgWorld(ShowBase.ShowBase):
             if self.pg_config["use_render"]:
                 with self.force_fps:
                     self.sky_box.step()
+        else:
+            return self.highway_render.draw_scene()
 
     def clear_world(self):
         """
