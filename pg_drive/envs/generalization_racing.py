@@ -125,6 +125,7 @@ class GeneralizationRacing(gym.Env):
 
         # init world
         self.pg_world = PgWorld(self.pg_world_config)
+        self.pg_world.accept("r", self.reset)
 
         # init traffic manager
         self.traffic_manager = TrafficManager(self.config["traffic_mode"])
