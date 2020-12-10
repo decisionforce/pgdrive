@@ -15,10 +15,11 @@ class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
 
     def update_data(self, data: dict):
         self.onScreenText.cleanup()
-        if not isinstance(data, dict) or data is None:
-            return
-        for k, v in data.items():
-            self.add(k, v)
+        if isinstance(data, str):
+            self.add("", data)
+        elif isinstance(data, dict):
+            for k, v in data.items():
+                self.add(k, v)
 
     def load(self):
         super(PgOnScreenMessage, self).load()
@@ -46,10 +47,13 @@ class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
                 isNew = "~"
             value = v[1]
             if type(value) == float:
-                value = "% 10.4f" % (value, )
+                value = "% 10.4f" % (value,)
             # else: other types will be converted to str by the "%s"
             if type(value) == str:
                 value = value.strip()
-            v_text = "%-100s\n" % (k.strip() + isNew + str(value))
+            if k:
+                v_text = "%-100s\n" % (k.strip() + isNew + str(value))
+            else:
+                v_text = "{}\n".format(str(value))
             self.onScreenText.appendText(v_text)
         self.frame += 1

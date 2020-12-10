@@ -3,9 +3,14 @@ import os.path as osp
 path = osp.join(osp.abspath(osp.dirname(__file__)), "ppo_expert", "checkpoint-compressed")
 
 
-def get_expert():
-    import ray
-    from ray.rllib.agents.ppo import PPOTrainer
+def get_expert(env):
+    try:
+        import ray
+        from ray.rllib.agents.ppo import PPOTrainer
+    except ModuleNotFoundError:
+        print("Please install ray so that we can load the expert! Please run: pip install ray==1.0.0"
+              "\nFailed to load expert, we are now using a random policy.")
+        return lambda obs: env.action_space.sample(), False
 
     ray.init(ignore_reinit_error=True)
     expert = PPOTrainer(dict(env="PGDrive-v0", num_workers=0))
@@ -14,4 +19,4 @@ def get_expert():
     def func(obs):
         return expert.compute_action(obs)
 
-    return func
+    return func, True
