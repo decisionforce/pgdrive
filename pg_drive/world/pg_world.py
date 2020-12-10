@@ -27,8 +27,8 @@ help_message = "Keyboard Shortcuts:\n" \
                "  r: Reset the Environment\n" \
                "  h: Helping Message\n" \
                "  1: Box Debug Mode\n" \
-               "  2: XXX Debug Mode\n" \
-               "  3: YYY Debug Mode\n" \
+               "  2: WireFrame Debug Mode\n" \
+               "  3: Texture Debug Mode\n" \
                "  4: Print Debug Message\n" \
                "  Esc: Quit\n"
 
