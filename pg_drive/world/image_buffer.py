@@ -5,6 +5,8 @@ import logging
 
 
 class ImageBuffer:
+    enable = True
+
     CAM_MASK = None
     BUFFER_X = 800  # left to right
     BUFFER_Y = 800  # bottom to top
@@ -14,17 +16,18 @@ class ImageBuffer:
     display_region = None
 
     def __init__(
-        self,
-        length: float,
-        width: float,
-        pos: Vec3,
-        bkg_color: Union[Vec4, Vec3],
-        make_buffer_func,
-        make_camera_func,
-        parent_node: NodePath,
-        frame_buffer_property=None
+            self,
+            length: float,
+            width: float,
+            pos: Vec3,
+            bkg_color: Union[Vec4, Vec3],
+            make_buffer_func,
+            make_camera_func,
+            parent_node: NodePath,
+            frame_buffer_property=None
     ):
-        assert self.CAM_MASK is not None, "define a camera mask for every image buffer"
+        assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
+        assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"
         # self.texture = Texture()
         if frame_buffer_property is None:
             self.buffer = make_buffer_func("camera", length, width)

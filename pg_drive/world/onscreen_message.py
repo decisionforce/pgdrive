@@ -4,7 +4,7 @@ from panda3d.core import Vec4, TextNode
 
 class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
     """
-    Simply inherit from the original debug class of panda3d
+    Simply inherit from the original debug class of panda3d to show debug message on screen
     """
     POS = (0.1, -0.2)
 
