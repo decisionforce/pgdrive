@@ -16,6 +16,7 @@ class ActionRepeat(GeneralizationRacing):
         config["speed_reward"] = config["speed_reward"] / 5
 
         # Set the interval from 0.02s to 1s
+        config.add("fixed_action_repeat", 0)  # 0 stands for using varying action repeat.
         config.add("max_action_repeat", 50)
         config.add("min_action_repeat", 1)
         config.add("gamma", 1.0)
@@ -23,12 +24,18 @@ class ActionRepeat(GeneralizationRacing):
 
     def __init__(self, config: dict = None):
         super(ActionRepeat, self).__init__(config)
-        self.action_space = Box(
-            shape=(self.action_space.shape[0] + 1,),
-            high=self.action_space.high[0],
-            low=self.action_space.low[0],
-            dtype=self.action_space.dtype
-        )
+
+        if self.config["fixed_action_repeat"] > 0:
+            self.fixed_action_repeat = self.config["fixed_action_repeat"]
+        else:
+            self.fixed_action_repeat = None
+            self.action_space = Box(
+                shape=(self.action_space.shape[0] + 1,),
+                high=self.action_space.high[0],
+                low=self.action_space.low[0],
+                dtype=self.action_space.dtype
+            )
+
         self.low = self.action_space.low[0]
         self.high = self.action_space.high[0]
         self.action_repeat_low = self.config["min_action_repeat"]
@@ -39,12 +46,15 @@ class ActionRepeat(GeneralizationRacing):
         assert self.action_repeat_low > 0
 
     def step(self, action, render=False, **render_kwargs):
-        action_repeat = action[-1]
-        action_repeat = round(
-            (action_repeat - self.low) / (self.high - self.low) * (self.action_repeat_high - self.action_repeat_low) +
-            self.action_repeat_low
-        )
-        assert action_repeat > 0
+        if self.fixed_action_repeat is None:
+            action_repeat = action[-1]
+            action_repeat = round(
+                (action_repeat - self.low) / (self.high - self.low) *
+                (self.action_repeat_high - self.action_repeat_low) + self.action_repeat_low
+            )
+            assert action_repeat > 0
+        else:
+            action_repeat = self.fixed_action_repeat
 
         ret = []
         render_list = []
@@ -70,7 +80,7 @@ class ActionRepeat(GeneralizationRacing):
 
 
 if __name__ == '__main__':
-    env = ActionRepeat()
+    env = ActionRepeat(dict(fixed_action_repeat=5))
     env.reset()
     env.step(env.action_space.sample())
     env.close()
