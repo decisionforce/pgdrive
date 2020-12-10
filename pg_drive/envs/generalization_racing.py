@@ -101,6 +101,7 @@ class GeneralizationRacing(gym.Env):
                 "use_render": self.use_render,
                 "use_image": self.config["use_image"],
                 "debug": self.config["debug"],
+                "force_fps": self.config["force_fps"],
             }
         )
         self.pg_world_config = pg_world_config
