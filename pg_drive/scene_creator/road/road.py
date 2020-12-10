@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from .road_network import RoadNetwork
+from pg_drive.scene_creator.road.road_network import RoadNetwork
 
 LaneIndex = Tuple[str, str, int]
 Route = List[LaneIndex]

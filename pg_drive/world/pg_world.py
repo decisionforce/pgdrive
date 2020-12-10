@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-from pg_drive.world.onscreen_message import PgOnScreenMessage
+
 import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
@@ -13,6 +13,7 @@ from pg_drive.utils.asset_loader import AssetLoader
 from pg_drive.world.force_fps import ForceFPS
 from pg_drive.world.image_buffer import ImageBuffer
 from pg_drive.world.light import Light
+from pg_drive.world.onscreen_message import PgOnScreenMessage
 from pg_drive.world.sky_box import SkyBox
 from pg_drive.world.terrain import Terrain
 from pg_drive.world.vehicle_panel import VehiclePanel
