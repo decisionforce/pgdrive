@@ -19,7 +19,7 @@ class ActionRepeat(GeneralizationRacing):
         config.add("fixed_action_repeat", 0)  # 0 stands for using varying action repeat.
         config.add("max_action_repeat", 50)
         config.add("min_action_repeat", 1)
-        config.add("gamma", 1.0)
+        config.add("gamma", 0.99)  # common config default gamma
         return config
 
     def __init__(self, config: dict = None):
