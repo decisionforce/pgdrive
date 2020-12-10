@@ -1,1 +1,1 @@
-from .notebook_utils import get_expert
+from .ppo_expert.numpy_expert import expert
