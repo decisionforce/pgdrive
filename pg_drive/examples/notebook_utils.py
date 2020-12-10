@@ -16,6 +16,8 @@ def get_expert(env):
 
         return func, True
     except Exception:
-        print("Please install ray so that we can load the expert! Please run: pip install ray==1.0.0"
-              "\nFailed to load expert, we are now using a random policy.")
+        print(
+            "Please install ray so that we can load the expert! Please run: pip install ray==1.0.0"
+            "\nFailed to load expert, we are now using a random policy."
+        )
         return lambda obs: env.action_space.sample(), False
