@@ -6,7 +6,7 @@ import numpy as np
 
 from pg_drive.scene_creator.lanes.lane import LineType, AbstractLane
 from pg_drive.scene_creator.lanes.straight_lane import StraightLane
-from pg_drive.scene_creator.road import Road
+from pg_drive.scene_creator.road.road import Road
 
 logger = logging.getLogger(__name__)
 
@@ -168,11 +168,11 @@ class RoadNetwork:
         pass
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        np_random: np.random.RandomState = np.random
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            np_random: np.random.RandomState = np.random
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -275,12 +275,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?
