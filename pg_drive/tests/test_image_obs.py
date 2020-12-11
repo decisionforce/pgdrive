@@ -1,31 +1,15 @@
-"""
-*2020-2021 Term 1, IERG 5350: Reinforcement Learning. Department of Information Engineering, The Chinese University of
-Hong Kong. Course Instructor: Professor ZHOU Bolei. Assignment author: PENG Zhenghao, SUN Hao, ZHAN Xiaohang.*
-"""
-import base64
 import distutils
-import io
 import os
 import subprocess
 import time
 
 import numpy as np
-from IPython import display as ipythondisplay
-from IPython.display import HTML
 from gym import logger, error
-from gym.wrappers import Monitor
 from panda3d.core import PNMImage
 
 from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pg_drive.scene_creator.map import Map
-
-assert_almost_equal = np.testing.assert_almost_equal
-
-
-def wrap_env(env, path="/content/video"):
-    env = Monitor(env, path, force=True)
-    return env
 
 
 class ImageEncoder(object):
