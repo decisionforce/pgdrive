@@ -8,12 +8,10 @@ setup_logger(debug=True)
 
 class TestEnv(GeneralizationRacing):
     def __init__(self):
-        super(TestEnv, self).__init__(
-            {
-                "use_render": False,
-                "use_image": False,
-            }
-        )
+        super(TestEnv, self).__init__({
+            "use_render": False,
+            "use_image": False,
+        })
 
 
 if __name__ == "__main__":
