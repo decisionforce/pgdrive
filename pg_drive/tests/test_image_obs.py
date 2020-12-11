@@ -152,7 +152,7 @@ def gen_video(frames, file="tmp"):
 
 
 if __name__ == '__main__':
-    headless = False
+    headless = True
     env = GeneralizationRacing(
         dict(
             use_render=False,
