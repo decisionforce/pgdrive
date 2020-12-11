@@ -1,4 +1,5 @@
-import distutils
+import distutils.spawn
+import distutils.version
 import os
 import subprocess
 import time
@@ -151,7 +152,7 @@ def gen_video(frames, file="tmp"):
 
 
 if __name__ == '__main__':
-    headless = True
+    headless = False
     env = GeneralizationRacing(
         dict(
             use_render=False,
@@ -167,7 +168,7 @@ if __name__ == '__main__':
     start = time.time()
     env.reset()
     frames = []
-    for i in range(20):
+    for num_frames in range(30):
         o, r, d, info = env.step([0, 1])
         img = PNMImage()
         env.pg_world.win.getScreenshot(img)
@@ -177,6 +178,6 @@ if __name__ == '__main__':
                 frame[i, j] = img.get_pixel(i, j)
         frame = frame.swapaxes(0, 1)[..., :3]
         frames.append(frame)
-        print(f"Finish {i + 1} frames")
+        print(f"Finish {num_frames + 1} frames")
     env.close()
     gen_video(frames)
