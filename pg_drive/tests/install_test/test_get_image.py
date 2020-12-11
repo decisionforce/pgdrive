@@ -4,8 +4,8 @@ from pg_drive.envs.generalization_racing import GeneralizationRacing
 from pg_drive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pg_drive.scene_creator.map import Map
 
-if __name__ == "__main__":
-    headless = False
+
+def capture_image(headless):
     env = GeneralizationRacing(
         dict(
             use_render=False,
@@ -29,4 +29,9 @@ if __name__ == "__main__":
         env.pg_world.win.getScreenshot(img)
         img.write("{}_{}.png".format("headless" if headless else "local", i))
     env.close()
-    print("Offscreen render successfully run! Images is saved, Please check thm.")
+
+
+if __name__ == "__main__":
+    headless = False
+    capture_image(False)
+    print("Offscreen render launched successfully! Images are saved, Please check them.")

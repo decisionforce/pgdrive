@@ -152,8 +152,9 @@ class BaseVehicle(DynamicElement):
         """
         pos is a 2-d array, and heading is a float (unit degree)
         """
+        heading = np.deg2rad(heading - 90)
         self.chassis_np.setPos(Vec3(*pos, 1))
-        self.chassis_np.setH(heading - 90)
+        self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
         self.update_map_info(map)
         self.chassis_np.node().clearForces()
         self.chassis_np.node().setLinearVelocity(Vec3(0, 0, 0))
@@ -295,8 +296,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
