@@ -49,11 +49,7 @@ class ImageEncoder(object):
     def version_info(self):
         return {
             'backend': self.backend,
-            'version': str(
-                subprocess.check_output(
-                    [self.backend, '-version'], stderr=subprocess.STDOUT
-                )
-            ),
+            'version': str(subprocess.check_output([self.backend, '-version'], stderr=subprocess.STDOUT)),
             'cmdline': self.cmdline
         }
 
@@ -95,24 +91,19 @@ class ImageEncoder(object):
 
         logger.debug('Starting ffmpeg with "%s"', ' '.join(self.cmdline))
         if hasattr(os, 'setsid'):  # setsid not present on Windows
-            self.proc = subprocess.Popen(
-                self.cmdline, stdin=subprocess.PIPE, preexec_fn=os.setsid
-            )
+            self.proc = subprocess.Popen(self.cmdline, stdin=subprocess.PIPE, preexec_fn=os.setsid)
         else:
             self.proc = subprocess.Popen(self.cmdline, stdin=subprocess.PIPE)
 
     def capture_frame(self, frame):
         if not isinstance(frame, (np.ndarray, np.generic)):
             raise error.InvalidFrame(
-                'Wrong type {} for {} (must be np.ndarray or np.generic)'.
-                    format(type(frame), frame)
+                'Wrong type {} for {} (must be np.ndarray or np.generic)'.format(type(frame), frame)
             )
         if frame.shape != self.frame_shape:
             raise error.InvalidFrame(
                 "Your frame has shape {}, but the VideoRecorder is "
-                "configured for shape {}.".format(
-                    frame.shape, self.frame_shape
-                )
+                "configured for shape {}.".format(frame.shape, self.frame_shape)
             )
         if frame.dtype != np.uint8:
             raise error.InvalidFrame(
@@ -120,8 +111,7 @@ class ImageEncoder(object):
                 "values from 0-255).".format(frame.dtype)
             )
 
-        if distutils.version.LooseVersion(
-                np.__version__) >= distutils.version.LooseVersion('1.9.0'):
+        if distutils.version.LooseVersion(np.__version__) >= distutils.version.LooseVersion('1.9.0'):
             self.proc.stdin.write(frame.tobytes())
         else:
             self.proc.stdin.write(frame.tostring())
@@ -130,9 +120,7 @@ class ImageEncoder(object):
         self.proc.stdin.close()
         ret = self.proc.wait()
         if ret != 0:
-            logger.error(
-                "VideoRecorder encoder exited with status {}".format(ret)
-            )
+            logger.error("VideoRecorder encoder exited with status {}".format(ret))
 
 
 def gen_video(frames, file="tmp"):
