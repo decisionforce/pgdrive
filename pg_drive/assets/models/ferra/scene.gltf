@@ -1501,9 +1501,9 @@
     ],
     "images" : [
         {
-            "mimeType" : "image/png",
+            "mimeType" : "image/jpeg",
             "name" : "cuhk",
-            "uri" : "textures/cuhk.png"
+            "uri" : "textures/cuhk.jpg"
         },
         {
             "mimeType" : "image/jpeg",
