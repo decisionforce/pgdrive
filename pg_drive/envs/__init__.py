@@ -1,2 +1,2 @@
-from .action_repeat_env import ActionRepeat
-from .generalization_racing import GeneralizationRacing
+from pg_drive.envs.generalization_racing import GeneralizationRacing
+from pg_drive.envs.action_repeat_env import ActionRepeat
