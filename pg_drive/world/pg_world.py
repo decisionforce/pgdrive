@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import os
 import sys
-from pg_drive.world.onscreen_message import PgOnScreenMessage
+
 import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
@@ -14,12 +14,26 @@ from pg_drive.utils.asset_loader import AssetLoader
 from pg_drive.world.force_fps import ForceFPS
 from pg_drive.world.image_buffer import ImageBuffer
 from pg_drive.world.light import Light
+from pg_drive.world.onscreen_message import PgOnScreenMessage
 from pg_drive.world.sky_box import SkyBox
 from pg_drive.world.terrain import Terrain
 from typing import Optional
 from pg_drive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
 
 root_path = os.path.dirname(os.path.dirname(__file__))
+
+help_message = "Keyboard Shortcuts:\n" \
+               "  w: Acceleration\n" \
+               "  s: Braking\n" \
+               "  a: Moving Left\n" \
+               "  d: Moving Right\n" \
+               "  r: Reset the Environment\n" \
+               "  h: Helping Message\n" \
+               "  1: Box Debug Mode\n" \
+               "  2: WireFrame Debug Mode\n" \
+               "  3: Texture Debug Mode\n" \
+               "  4: Print Debug Message\n" \
+               "  Esc: Quit\n"
 
 
 class PgWorld(ShowBase.ShowBase):
@@ -51,16 +65,13 @@ class PgWorld(ShowBase.ShowBase):
             # and the scene will be drawn by PyGame
             self.mode = "none"
         else:
-            if self.pg_config["use_render"]:
-                self.mode = "onscreen"
-                loadPrcFileData("", "threading-model Cull/Draw")  # turn on multi-thread render
-            else:
-                self.mode = "offscreen" if self.pg_config["use_image"] else "none"
-            if self.pg_config["headless_image"]:
-                loadPrcFileData("", "load-display  pandagles2")
-        ImageBuffer.enable = False if self.mode == "none" else True
-        super(PgWorld, self).__init__(windowType=self.mode)
-        if not self.pg_config["only_physics_world"] and self.mode != "none":
+            mode = "offscreen" if self.pg_config["use_image"] else "none"
+        if sys.platform == "darwin" and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
+            mode = "onscreen"
+        if self.pg_config["headless_image"]:
+            loadPrcFileData("", "load-display  pandagles2")
+        super(PgWorld, self).__init__(windowType=mode)
+        if not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"]):
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
@@ -76,6 +87,7 @@ class PgWorld(ShowBase.ShowBase):
 
         # same as worldNP, but this node is only used for render gltf model with pbr material
         self.pbr_worldNP = self.pbr_render.attachNewNode("pbrNP")
+        self.debug_node = None
 
         # some render attr
         self.light = None
@@ -124,7 +136,7 @@ class PgWorld(ShowBase.ShowBase):
             lens.setFov(70)
             lens.setAspectRatio(1.2)
 
-            self.sky_box = SkyBox(sys.platform == "darwin")  # openGl shader didn't work for mac...
+            self.sky_box = SkyBox()
             self.sky_box.attach_to_pg_world(self.render, self.physics_world)
 
             self.light = Light(self.pg_config)
@@ -158,15 +170,15 @@ class PgWorld(ShowBase.ShowBase):
 
         # onscreen message
         self.on_screen_message = PgOnScreenMessage() \
-            if self.mode == "onscreen" and (self.pg_config["debug"] or self.pg_config["show_message"]) else None
+            if self.pg_config["use_render"] and self.pg_config["onscreen_message"] else None
+        self._show_help_message = False
 
         # debug setting
-        if self.pg_config["debug"] or self.pg_config["only_physics_world"]:
-            self.accept('f1', self.toggleWireframe)
-            self.accept('f2', self.toggleTexture)
-            self.accept('f3', self.toggleDebug)
-            self.accept('f4', self.toggleAnalyze)
-            self._debug_mode()
+        self.accept('1', self.toggleDebug)
+        self.accept('2', self.toggleWireframe)
+        self.accept('3', self.toggleTexture)
+        self.accept('4', self.toggleAnalyze)
+        self.accept("h", self.toggle_help_message)
 
     def _init_display_region(self):
         # TODO maybe decided by the user in the future
@@ -244,7 +256,7 @@ class PgWorld(ShowBase.ShowBase):
                 show_fps=True,
 
                 # show message when render is called
-                show_message=False,
+                onscreen_message=True,
 
                 # limit the render fps
                 force_fps=None,
@@ -274,19 +286,20 @@ class PgWorld(ShowBase.ShowBase):
         debugNode.showBoundingBoxes(False)
         debugNode.showNormals(True)
         debugNP = self.render.attachNewNode(debugNode)
-        debugNP.show()
         self.physics_world.setDebugNode(debugNP.node())
-        self.debugnode = debugNP
+        self.debug_node = debugNP
 
     def toggleAnalyze(self):
         self.worldNP.analyze()
         # self.worldNP.ls()
 
     def toggleDebug(self):
-        if self.debugnode.isHidden():
-            self.debugnode.show()
+        if self.debug_node is None:
+            self._debug_mode()
+        if self.debug_node.isHidden():
+            self.debug_node.show()
         else:
-            self.debugnode.hide()
+            self.debug_node.hide()
 
     def report_body_nums(self, task):
         logging.debug(
@@ -307,6 +320,14 @@ class PgWorld(ShowBase.ShowBase):
 
         # del self.physics_world  # Will cause error if del it.
         self.physics_world = None
+
+    def toggle_help_message(self):
+        if self._show_help_message:
+            self.on_screen_message.clear_plain_text(help_message)
+            self._show_help_message = False
+        else:
+            self.on_screen_message.update_data(help_message)
+            self._show_help_message = True
 
 
 if __name__ == "__main__":

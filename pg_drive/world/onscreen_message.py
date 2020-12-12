@@ -1,5 +1,7 @@
+from typing import Optional, Union
+
 from direct.showbase import OnScreenDebug
-from panda3d.core import Vec4, TextNode
+from panda3d.core import Vec4
 
 
 class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
@@ -12,13 +14,15 @@ class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
         super(PgOnScreenMessage, self).__init__()
         self.enabled = True
         self.load()
+        self.plain_text = set()
 
-    def update_data(self, data: dict):
+    def update_data(self, data: Optional[Union[dict, str]]):
         self.onScreenText.cleanup()
-        if not isinstance(data, dict) or data is None:
-            return
-        for k, v in data.items():
-            self.add(k, v)
+        if isinstance(data, str):
+            self.plain_text.add(data)
+        elif isinstance(data, dict):
+            for k, v in data.items():
+                self.add(k, v)
 
     def load(self):
         super(PgOnScreenMessage, self).load()
@@ -32,6 +36,12 @@ class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
         if not self.onScreenText:
             self.load()
         self.onScreenText.clearText()
+
+        # Render plain text first
+        for v in self.plain_text:
+            self.onScreenText.appendText(v)
+
+        # Render numerical values
         entries = list(self.data.items())
         entries.sort()
         for k, v in entries:
@@ -50,6 +60,13 @@ class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
             # else: other types will be converted to str by the "%s"
             if type(value) == str:
                 value = value.strip()
-            v_text = "%-100s\n" % (k.strip() + isNew + str(value))
+            if k:
+                v_text = "%-100s\n" % (k.strip() + isNew + str(value))
+            else:
+                v_text = "{}\n".format(str(value))
             self.onScreenText.appendText(v_text)
+
         self.frame += 1
+
+    def clear_plain_text(self, string):
+        self.plain_text.remove(string)
