@@ -16,7 +16,7 @@ class ResetEnv(GeneralizationRacing):
                 "debug": True,
                 "pg_world_config": {
                     "force_fps": None,
-                    "only_physics_world": True
+                    "debug_physics_world": True
                 },
                 "manual_control": True,
                 "use_render": True,

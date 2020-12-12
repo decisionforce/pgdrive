@@ -65,12 +65,17 @@ class PgWorld(ShowBase.ShowBase):
             # and the scene will be drawn by PyGame
             self.mode = "none"
         else:
-            mode = "offscreen" if self.pg_config["use_image"] else "none"
-        if sys.platform == "darwin" and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
-            mode = "onscreen"
-        if self.pg_config["headless_image"]:
-            loadPrcFileData("", "load-display  pandagles2")
-        super(PgWorld, self).__init__(windowType=mode)
+            if self.pg_config["use_render"]:
+                self.mode = "onscreen"
+                loadPrcFileData("",
+                                "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
+            else:
+                self.mode = "offscreen" if self.pg_config["use_image"] else "none"
+            if sys.platform == "darwin" and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
+                self.mode = "onscreen"
+            if self.pg_config["headless_image"]:
+                loadPrcFileData("", "load-display  pandagles2")
+        super(PgWorld, self).__init__(windowType=self.mode)
         if not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"]):
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
@@ -232,7 +237,7 @@ class PgWorld(ShowBase.ShowBase):
         # attach all node to this node asset_path
         self.worldNP.node().removeAllChildren()
         self.pbr_worldNP.node().removeAllChildren()
-        if self.pg_config["only_physics_world"]:
+        if self.pg_config["debug_physics_world"]:
             self.addTask(self.report_body_nums, "report_num")
 
     def _clear_display_region_and_buffers(self):
@@ -262,7 +267,7 @@ class PgWorld(ShowBase.ShowBase):
                 force_fps=None,
 
                 # only render physics world without model
-                only_physics_world=False,
+                debug_physics_world=False,
 
                 # decide the layout of white lines
                 use_default_layout=True,
