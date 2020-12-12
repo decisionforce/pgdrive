@@ -38,3 +38,21 @@ Install the wheel file by pip install panda3d-1.10.xxx.whl, and utilize the powe
 
 .. note:: The boolean in "pg_world_config" named "headless_rgb" must be set to True, when training the agent of image input.
 
+Verify Installation
+#########################
+Run commands below to verify the installation::
+
+    python -m pg_drive.tests.install_test.tset_no_image
+
+or::
+
+    python -m pg_drive.tests.install_test.tset_get_image
+
+Successfully running the first script meas the pg-drive physics world works well.
+And the second script will generate *three* images under offscreen mode, by which you can check the if the scene is drawn correctly.
+
+To verify the installation on cluster, run following command instead::
+
+    python -m pg_drive.tests.install_test.tset_get_image_headless
+
+Please, fetch the images on cluster and check the images generated on the headless machine.

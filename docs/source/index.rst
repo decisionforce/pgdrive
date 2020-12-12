@@ -35,11 +35,11 @@ Content
 #############
 .. toctree::
    :maxdepth: 2
-   :glob:
 
    self
-   *
-
+   install
+   getting_start
+   generalization-env-config
 
 
 
