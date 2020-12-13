@@ -17,9 +17,7 @@ import json
 import os.path as osp
 from pgdrive.utils import recursive_equal
 
-pregenerated_map_file = osp.join(
-    osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json"
-)
+pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
 
 class GeneralizationRacing(gym.Env):
