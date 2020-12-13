@@ -26,7 +26,7 @@ class ChangeDensityEnv(PGDriveEnv):
     def reset(self):
         if self.config["change_density"]:
             self.update_density()
-        super(ChangeDensityEnv, self).reset()
+        return super(ChangeDensityEnv, self).reset()
 
     def update_density(self):
         assert self.config["change_density"]
