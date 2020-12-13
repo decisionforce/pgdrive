@@ -1,4 +1,4 @@
-.. pg-drive documentation master file, created by
+.. PGDrive documentation master file, created by
    sphinx-quickstart on Tue Dec  8 13:36:14 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.

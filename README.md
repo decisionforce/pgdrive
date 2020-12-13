@@ -6,14 +6,14 @@
 Please install PGDrive via:
 
 ```bash
-pip install git+https://github.com/decisionforce/pg-drive.git
+pip install git+https://github.com/decisionforce/PGDrive.git
 ```
 
 or you can install via:
 
 ```bash
-git clone https://github.com/decisionforce/pg-drive.git
-cd pg-drive
+git clone https://github.com/decisionforce/PGDrive.git
+cd PGDrive
 pip install -e .
 ```
 

@@ -14,13 +14,13 @@ Install PGDrive on MacOs, Windows and Linux
 
 The installation procedure on these different platforms is same and easy, we recommend to use the command following to install::
 
-    pip install git+https://github.com/decisionforce/pg-drive.git
+    pip install git+https://github.com/decisionforce/PGDrive.git
 
 or you can install via::
 
-    git clone https://github.com/decisionforce/pg-drive.git
+    git clone https://github.com/decisionforce/PGDrive.git
 
-    cd pg-drive
+    cd PGDrive
 
     pip install -e .
 
@@ -48,7 +48,7 @@ or::
 
     python -m pgdrive.tests.install_test.test_get_image
 
-Successfully running the first script meas the pg-drive physics world works well.
+Successfully running the first script means the PGDrive physics world works well.
 And the second script will generate *three* images under offscreen mode, by which you can check the if the scene is drawn correctly.
 
 To verify the installation on cluster, run following command instead::
