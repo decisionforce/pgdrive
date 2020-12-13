@@ -1,9 +1,9 @@
 
-<img align=right width=300px  src="pgdrive/assets/PG-Drive.png" />
+<img align=right width=300px  src="pgdrive/assets/PGDrive.png" />
 
-# PG-Drive: A highly flexible open-ended driving simulator
+# PGDrive: A highly flexible open-ended driving simulator
 
-Please install PG-Drive via:
+Please install PGDrive via:
 
 ```bash
 pip install git+https://github.com/decisionforce/pg-drive.git

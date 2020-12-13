@@ -7,7 +7,7 @@ root = osp.dirname(osp.dirname(osp.abspath(__file__)))
 assert_path = osp.join(root, "assets", "maps")
 
 predefined_maps = {
-    "PG-Drive-maps": {
+    "PGDrive-maps": {
         "start_seed": 0,
         "environment_num": 10000
     },

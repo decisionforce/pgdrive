@@ -1,15 +1,15 @@
 .. _install:
 
 ######################
-Installing PG-Drive
+Installing PGDrive
 ######################
 
-By leveraging the power of panda3d, PG-Drive can be run on personal laptop, cluster, headless server with different OS.
+By leveraging the power of panda3d, PGDrive can be run on personal laptop, cluster, headless server with different OS.
 
 .. note:: There are still some problem with the visualization models, causing slight difference on different platforms.
     We still work in progress to solve this.
 
-Install PG-Drive on MacOs, Windows and Linux
+Install PGDrive on MacOs, Windows and Linux
 ###############################################
 
 The installation procedure on these different platforms is same and easy, we recommend to use the command following to install::
@@ -24,9 +24,9 @@ or you can install via::
 
     pip install -e .
 
-Install PG-Drive on headless machine or cluster
+Install PGDrive on headless machine or cluster
 #################################################
-If lidar information is enough for your agent, you can also install PG-Drive on your headless machine as same as we mentioned above.
+If lidar information is enough for your agent, you can also install PGDrive on your headless machine as same as we mentioned above.
 However, if you want to use image to train your agent on headless machine, you have to compile from the source code of panda3d.
 Follow the instructions on the main page of `panda3d <https://github.com/panda3d/panda3d>`_, and then use the command following to compile panda3d::
 
