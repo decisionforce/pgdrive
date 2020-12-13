@@ -1,21 +1,22 @@
+import copy
+import json
+import os.path as osp
+
 import gym
 import numpy as np
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config.pg_config import PgConfig
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
-from pgdrive.world.pg_world import PgWorld
+from pgdrive.utils import recursive_equal
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
-import copy
-import json
-import os.path as osp
-from pgdrive.utils import recursive_equal
+from pgdrive.world.pg_world import PgWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -87,7 +88,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -238,7 +239,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -450,6 +451,5 @@ class PGDriveEnv(gym.Env):
         self.close()
         raise KeyboardInterrupt()
 
-    def seed(self, seed=None):
-        if seed:
-            self.current_seed = seed
+    def set_current_seed(self, seed):
+        self.current_seed = seed
