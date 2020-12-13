@@ -6,10 +6,7 @@ from pgdrive.utils import recursive_equal, setup_logger
 setup_logger(debug=True)
 
 if __name__ == "__main__":
-    env = PGDriveEnv({
-        "environment_num": 10,
-        "load_map_from_json": False
-    })
+    env = PGDriveEnv({"environment_num": 10, "load_map_from_json": False})
     data = env.dump_all_maps()
     env.close()
     with open("test_10maps.json", "w") as f:
