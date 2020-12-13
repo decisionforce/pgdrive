@@ -1,5 +1,5 @@
 
-<img align=right width=300px  src="./pg_drive/assets/PG-Drive.png" />
+<img align=right width=300px  src="pgdrive/assets/PG-Drive.png" />
 
 # PG-Drive: A highly flexible open-ended driving simulator
 
@@ -19,12 +19,12 @@ pip install -e .
 
 ## Quick Start
 
-Please run `python -m pg_drive.examples.test_generalization_env` to play with the environment with keyboard!
+Please run `python -m pgdrive.examples.test_generalization_env` to play with the environment with keyboard!
 
 To build the environment, you can simply run:
 
 ```python
-import pg_drive  # Import this package to register the environment!
+import pgdrive  # Import this package to register the environment!
 import gym
 
 env = gym.make("GeneralizationRacing-v0", config=dict(use_render=True))
@@ -42,7 +42,7 @@ with almost 90% likelihood to achieve the destination.
 
 Note that this script requires your system to have the capacity of rendering. Please refer to the installation guideline for more information.
 ```bash
-python -m pg_drive.examples.enjoy_journey
+python -m pgdrive.examples.enjoy_journey
 ```
 
 
@@ -52,7 +52,7 @@ We also define several Gym environment names, so user can start training in the 
 
 ```python
 import gym
-import pg_drive  # Register the environment
+import pgdrive  # Register the environment
 env = gym.make("PGDrive-v0")
 ```
 
