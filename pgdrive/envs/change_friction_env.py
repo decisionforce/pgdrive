@@ -26,7 +26,7 @@ class ChangeFrictionEnv(PGDriveEnv):
         if self.parameter_list is None:
             # Sometimes the seed is given later than initialization.
             self.parameter_list = self.get_parameter_list()
-        index = np.random.randint(0, len(self.parameter_list))
+        index = np.random.choice(list(self.parameter_list.keys()))
         parameter = self.parameter_list[index]
         if self.vehicle is None or (not self.config["change_friction"]):
             pass
@@ -37,7 +37,8 @@ class ChangeFrictionEnv(PGDriveEnv):
 
 
 if __name__ == '__main__':
-    env = ChangeFrictionEnv(config={"environment_num": 100})
+    env = ChangeFrictionEnv(config={"environment_num": 100, "start_seed": 1000})
+    env.seed(100000)
     obs = env.reset()
     for s in range(10000):
         action = np.array([1.0, 1.0])
