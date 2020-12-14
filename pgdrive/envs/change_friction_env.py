@@ -1,5 +1,5 @@
 import numpy as np
-from pgdrive import PGDriveEnv
+from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.pg_config.pg_config import PgConfig
 
 
