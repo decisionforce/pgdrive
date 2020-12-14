@@ -1,7 +1,7 @@
 import typing as tp
 from collections import namedtuple
 
-from gym.spaces import Dict, Box, Discrete
+from pgdrive.pg_config.space import Dict, Box, Discrete
 
 PgBoxSpace = namedtuple("PgBoxSpace", "max min")
 PgDiscreteSpace = namedtuple("PgDiscreteSpace", "number")
@@ -14,6 +14,7 @@ class PgSpace(Dict):
     Usage:
     PgSpace({"lane_length":length})
     """
+
     def __init__(self, our_config: tp.Dict[str, tp.Union[PgBoxSpace, PgDiscreteSpace, PgConstantSpace]]):
         super(PgSpace, self).__init__(PgSpace.wrap2gym_space(our_config))
         self.parameters = set(our_config.keys())
@@ -23,11 +24,11 @@ class PgSpace(Dict):
         ret = dict()
         for key, value in our_config.items():
             if isinstance(value, PgBoxSpace):
-                ret[key] = Box(low=value.min, high=value.max, shape=(1, ))
+                ret[key] = Box(low=value.min, high=value.max, shape=(1,))
             elif isinstance(value, PgDiscreteSpace):
                 ret[key] = Discrete(value.number)
             elif isinstance(value, PgConstantSpace):
-                ret[key] = Box(low=value.value, high=value.value, shape=(1, ))
+                ret[key] = Box(low=value.value, high=value.value, shape=(1,))
             else:
                 raise ValueError("{} can not be wrapped in gym space".format(key))
         return ret
