@@ -245,7 +245,7 @@ class PgWorld(ShowBase.ShowBase):
     def default_config():
         return PgConfig(
             dict(
-                window_size=(1600, 900),  # width, height
+                window_size=(1200, 900),  # width, height
                 debug=False,
                 use_render=False,
                 use_image=False,
