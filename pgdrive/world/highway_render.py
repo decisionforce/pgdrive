@@ -1,4 +1,6 @@
 import numpy as np
+from pgdrive.scene_creator.map import Map
+from pgdrive.scene_manager.traffic_manager import TrafficManager
 import pygame
 from typing import List, Tuple
 from pgdrive.scene_creator.lanes.lane import LineType
@@ -11,10 +13,26 @@ class HighwayRender:
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
 
-    def __init__(self):
+    def __init__(self, onscreen: bool):
         self.map_sufface = None
+        self.vehicle_surface = None
+        self.onscreen = onscreen
 
-    def draw_scene(self) -> np.ndarray:
+        pygame.init()
+        pygame.display.set_caption("Highway-env")
+
+    def draw_scene(self, map: Map, traffic_mgr: TrafficManager) -> np.ndarray:
+        if self.map_sufface is None:
+            self.draw_map()
+        self.draw_traffic()
+
+    def render(self):
+        pass
+
+    def draw_traffic(self):
+        pass
+
+    def draw_map(self):
         pass
 
 
@@ -117,7 +135,6 @@ class VehicleGraphics(object):
         # draw rectangle around the image
         if show_rect:
             pygame.draw.rect(surf, (255, 0, 0), (*origin, *rotated_image.get_size()), 2)
-
 
     @classmethod
     def get_color(cls, vehicle) -> Tuple[int]:

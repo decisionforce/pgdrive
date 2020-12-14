@@ -80,7 +80,7 @@ class PgWorld(ShowBase.ShowBase):
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
         self.closed = False
-        self.highway_render = HighwayRender() if self.pg_config["highway_render"] else None
+        self.highway_render = HighwayRender(self.pg_config["use_render"]) if self.pg_config["highway_render"] else None
         ImageBuffer.enable = False if self.pg_config["highway_render"] else True
 
         # add element to render and pbr render, if is exists all the time.

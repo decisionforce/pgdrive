@@ -196,8 +196,8 @@ class PGDriveEnv(gym.Env):
 
     def render(self, mode='human', text: dict = None):
         assert self.use_render or self.config["use_image"], "render is off now, can not render"
-        if self.control_camera is not None:
-            self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
+        # if self.control_camera is not None:
+        #     self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
         self.pg_world.render_frame(text)
         if self.pg_world.vehicle_panel is not None:
             self.pg_world.vehicle_panel.renew_2d_car_para_visualization(
