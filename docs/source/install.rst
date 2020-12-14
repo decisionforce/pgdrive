@@ -20,7 +20,7 @@ or you can install via::
 
     git clone https://github.com/decisionforce/pgdrive.git
 
-    cd PGDrive
+    cd pgdrive
 
     pip install -e .
 
