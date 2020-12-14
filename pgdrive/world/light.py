@@ -28,7 +28,7 @@ class Light(DynamicElement):
             self.direction_np.node().setCameraMask(CamMask.Shadow)
 
             dlens = self.direction_np.node().getLens()
-            dlens.setFilmSize(32, 32)
+            dlens.setFilmSize(8, 8)
             dlens.setFocalLength(1)
             dlens.setNear(30)
 
