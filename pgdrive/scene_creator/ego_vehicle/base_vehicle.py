@@ -103,6 +103,8 @@ class BaseVehicle(DynamicElement):
         self.routing_localization = None
         self.lane = None
         self.lane_index = None
+        from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
+        self.vehicle_panel = VehiclePanel(self, self.pg_world)
 
         # other info
         self.throttle_brake = 0.0
@@ -296,8 +298,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1

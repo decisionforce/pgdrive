@@ -1,4 +1,5 @@
 import gym
+from typing import Optional
 import numpy as np
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
@@ -87,7 +88,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -129,9 +130,6 @@ class PGDriveEnv(gym.Env):
         # init traffic manager
         self.traffic_manager = TrafficManager(self.config["traffic_mode"])
 
-        # for manual_control and main camera type
-        if self.config["use_chase_camera"]:
-            self.control_camera = ChaseCamera(self.config["camera_height"], 7, self.pg_world)
         if self.config["manual_control"]:
             if self.config["controller"] == "keyboard":
                 self.controller = KeyboardController()
@@ -144,6 +142,10 @@ class PGDriveEnv(gym.Env):
         v_config = self.config["vehicle_config"]
         self.vehicle = BaseVehicle(self.pg_world, v_config)
 
+        # for manual_control and main camera type
+        if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
+            self.control_camera = ChaseCamera(self.pg_world.cam, self.vehicle, self.config["camera_height"], 7,
+                                              self.pg_world)
         # add sensors
         self.add_modules_for_vehicle()
 
@@ -189,16 +191,14 @@ class PGDriveEnv(gym.Env):
         info.update(done_info)
         return obs, reward + done_reward, self.done, info
 
-    def render(self, mode='human', text: dict = None):
+    def render(self, mode='human', text: dict = None) -> Optional[np.adarray]:
         assert self.use_render or self.config["use_image"], "render is off now, can not render"
-        if self.control_camera is not None:
-            self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
         self.pg_world.render_frame(text)
-        if self.pg_world.vehicle_panel is not None:
-            self.pg_world.vehicle_panel.renew_2d_car_para_visualization(
-                self.vehicle.steering, self.vehicle.throttle_brake, self.vehicle.speed
-            )
-        return
+        if mode != "human" and (self.config["use_render"] or self.config["use_rgb"]):
+            # fetch img from img stack to be make this func compatible with other render func in RL setting
+            return self.observation_space.img_obs.state[:, :, -1]
+        else:
+            return None
 
     def reset(self):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
@@ -234,7 +234,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
