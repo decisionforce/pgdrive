@@ -10,7 +10,7 @@ class DepthCamera(ImageBuffer):
     # shape(dim_1, dim_2)
     BUFFER_X = 84  # dim 1
     BUFFER_Y = 84  # dim 2
-    CAM_MASK = CamMask.Deptham
+    CAM_MASK = CamMask.DepthCam
     display_top = 1.0
 
     def __init__(self, length: int, width: int, chassis_np: NodePath, pg_world: PgWorld):
