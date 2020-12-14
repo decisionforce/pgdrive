@@ -3,7 +3,7 @@ from pgdrive import PGDriveEnv
 from pgdrive.pg_config.pg_config import PgConfig
 
 
-class FrictionRacing(PGDriveEnv):
+class ChangeFrictionEnv(PGDriveEnv):
     @staticmethod
     def default_config() -> PgConfig:
         config = PGDriveEnv.default_config()
@@ -13,7 +13,7 @@ class FrictionRacing(PGDriveEnv):
         return config
 
     def __init__(self, config=None):
-        super(FrictionRacing, self).__init__(config)
+        super(ChangeFrictionEnv, self).__init__(config)
         self.parameter_list = None
 
     def get_parameter_list(self):
@@ -32,12 +32,12 @@ class FrictionRacing(PGDriveEnv):
             pass
         else:
             self.vehicle.vehicle_config["wheel_friction"] = parameter["wheel_friction"]
-        ret = super(FrictionRacing, self).reset()
+        ret = super(ChangeFrictionEnv, self).reset()
         return ret
 
 
 if __name__ == '__main__':
-    env = FrictionRacing(config={"environment_num": 100})
+    env = ChangeFrictionEnv(config={"environment_num": 100})
     obs = env.reset()
     for s in range(10000):
         action = np.array([1.0, 1.0])
