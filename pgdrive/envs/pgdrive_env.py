@@ -176,10 +176,6 @@ class PGDriveEnv(gym.Env):
         #  panda3d loop
         self.pg_world.taskMgr.step()
 
-        # render before obtaining rgb observation
-        if self.config["use_image"]:
-            # when use rgb observation, the scene has to be drawn before using the camera data
-            self.render()
         obs = self.observation.observe(self.vehicle)
         reward = self.reward(action)
         done_reward, done_info = self._done_episode()

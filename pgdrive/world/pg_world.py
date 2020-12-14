@@ -75,6 +75,7 @@ class PgWorld(ShowBase.ShowBase):
             gltf.patch_loader(self.loader)
         self.closed = False
         self.exitFunc = self.exitFunc
+        ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
 
         # add element to render and pbr render, if is exists all the time
         self.pbr_render = self.render.attachNewNode("pbrNP")
@@ -163,7 +164,6 @@ class PgWorld(ShowBase.ShowBase):
 
         # task manager
         self.taskMgr.remove('audioLoop')
-        self.taskMgr.remove("igLoop")
 
         # onscreen message
         self.on_screen_message = PgOnScreenMessage() \
@@ -206,10 +206,15 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np.reparentTo(self.aspect2d)
 
     def render_frame(self, text: dict = None):
+        """
+        The real render is a task named igLoop maintained by panda3d, therefore, render here is a pseudo render.
+        Frame will be drawn and refresh, when taskMgr.step() is called.
+        :param text: Show text on screen for debug or other purposes
+        :return: None
+        """
         if self.on_screen_message is not None:
             self.on_screen_message.update_data(text)
             self.on_screen_message.render()
-        self.graphicsEngine.renderFrame()
         if self.pg_config["use_render"]:
             with self.force_fps:
                 self.sky_box.step()
