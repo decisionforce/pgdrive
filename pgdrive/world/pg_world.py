@@ -81,6 +81,7 @@ class PgWorld(ShowBase.ShowBase):
             gltf.patch_loader(self.loader)
         self.closed = False
         self.highway_render = HighwayRender() if self.pg_config["highway_render"] else None
+        ImageBuffer.enable = False if self.pg_config["highway_render"] else True
 
         # add element to render and pbr render, if is exists all the time.
         # these element will not be removed when clear_world() is called
@@ -96,6 +97,7 @@ class PgWorld(ShowBase.ShowBase):
         # some render attr
         self.light = None
         self.vehicle_panel = None
+        self.collision_info_np = None
 
         # physics world
         self.physics_world = BulletWorld()
@@ -163,7 +165,7 @@ class PgWorld(ShowBase.ShowBase):
             self.my_buffers = []
 
             # first default display region -- a vehicle panel
-            self.vehicle_panel = VehiclePanel(self.win.makeTextureBuffer, self.makeCamera)
+            self.vehicle_panel = VehiclePanel(self.win, self.makeCamera)
             self.vehicle_panel.add_to_display(
                 self, [0.67, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
             )

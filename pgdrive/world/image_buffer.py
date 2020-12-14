@@ -1,7 +1,8 @@
-from typing import Union, List
-import numpy as np
-from panda3d.core import NodePath, Vec3, Vec4, Texture
 import logging
+from typing import Union, List
+
+import numpy as np
+from panda3d.core import NodePath, Vec3, Vec4, Camera
 
 
 class ImageBuffer:
@@ -21,13 +22,23 @@ class ImageBuffer:
             width: float,
             pos: Vec3,
             bkg_color: Union[Vec4, Vec3],
-            make_buffer_func,
+            pg_world_win,
             make_camera_func,
             parent_node: NodePath,
             frame_buffer_property=None
     ):
-        assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
-        assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"
+        try:
+            assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
+            assert pg_world_win is not None, "{} cannot be made without use_render or use_image".format(
+                self.__class__.__name__)
+            assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"
+        except AssertionError:
+            logging.debug("Cannot create {}, maybe the render pipe is highway render".format(self.__class__.__name__))
+            self.buffer = None
+            self.cam = NodePath(Camera("non-sense camera"))
+            self.lens = self.cam.node().getLens()
+            return
+        make_buffer_func = pg_world_win.makeTextureBuffer
         # self.texture = Texture()
         if frame_buffer_property is None:
             self.buffer = make_buffer_func("camera", length, width)
@@ -41,6 +52,7 @@ class ImageBuffer:
         self.cam = make_camera_func(self.buffer, clearColor=bkg_color)
         self.cam.reparentTo(self.node_path)
         self.cam.setPos(pos)
+        self.lens = self.cam.node().getLens()
         self.cam.node().setCameraMask(self.CAM_MASK)
         self.node_path.reparentTo(parent_node)
         logging.debug("Load Image Buffer: {}".format(self.__class__.__name__))
@@ -78,6 +90,8 @@ class ImageBuffer:
             return np.clip(numpy_array, 0, 1)
 
     def add_to_display(self, pg_world, display_region: List[float]):
+        if not self.enable:
+            return
         if pg_world.pg_config["use_render"]:
             # only show them when onscreen
             self.display_region = pg_world.win.makeDisplayRegion(*display_region)

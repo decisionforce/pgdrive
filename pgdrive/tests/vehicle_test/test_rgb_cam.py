@@ -39,8 +39,8 @@ if __name__ == "__main__":
         # # print(len(o), "Vs.", env.observation_space.shape[0])
         # # print(info)
         if env.config["use_render"]:
-            for i in range(ImageObservation.STACK_SIZE):
-                ObservationType.show_gray_scale_array(o["image"][:, :, i])
+            # for i in range(ImageObservation.STACK_SIZE):
+            #     ObservationType.show_gray_scale_array(o["image"][:, :, i])
             env.render(text={"can you see me": i})
         if d:
             print("Reset")

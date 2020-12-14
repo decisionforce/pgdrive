@@ -12,7 +12,7 @@ class VehiclePanel(ImageBuffer):
     CAM_MASK = CamMask.PARA_VIS
     GAP = 4.1
 
-    def __init__(self, make_buffer_func, make_camera_func):
+    def __init__(self, pg_world_win, make_camera_func):
         self.aspect2d_np = NodePath(PGTop("aspect2d"))
         self.aspect2d_np.show(self.CAM_MASK)
         self.para_vis_np = []
@@ -35,7 +35,7 @@ class VehiclePanel(ImageBuffer):
             textNodePath.setPos(-1.125111, 0, 0.9 - i * 0.08)
             self.para_vis_np.append(textNodePath)
         super(VehiclePanel, self).__init__(
-            self.BUFFER_X, self.BUFFER_Y, Vec3(-0.9, -1.01, 0.78), self.BKG_COLOR, make_buffer_func, make_camera_func,
+            self.BUFFER_X, self.BUFFER_Y, Vec3(-0.9, -1.01, 0.78), self.BKG_COLOR, pg_world_win, make_camera_func,
             self.aspect2d_np
         )
 
