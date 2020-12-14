@@ -9,7 +9,7 @@ from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
 from pgdrive.world.highway_render import HighwayRender
 from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.pg_config.pg_config import PgConfig
+from pgdrive.pg_config import PgConfig
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.world.force_fps import ForceFPS
 from pgdrive.world.image_buffer import ImageBuffer

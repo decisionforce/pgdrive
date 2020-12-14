@@ -9,7 +9,7 @@ from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32
 
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
-from pgdrive.pg_config.pg_config import PgConfig
+from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_space import PgSpace
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
