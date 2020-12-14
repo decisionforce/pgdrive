@@ -64,7 +64,7 @@ def create_seed(a=None, max_bytes=8):
         a += hashlib.sha512(a).digest()
         a = _bigint_from_bytes(a[:max_bytes])
     elif isinstance(a, int):
-        a = a % 2 ** (8 * max_bytes)
+        a = a % 2**(8 * max_bytes)
     else:
         raise logging.error('Invalid type for seed: {} ({})'.format(type(a), a))
 
@@ -79,7 +79,7 @@ def _bigint_from_bytes(bytes):
     unpacked = struct.unpack("{}I".format(int_count), bytes)
     accum = 0
     for i, val in enumerate(unpacked):
-        accum += 2 ** (sizeof_int * 8 * i) * val
+        accum += 2**(sizeof_int * 8 * i) * val
     return accum
 
 
@@ -92,7 +92,7 @@ def _int_list_from_bigint(bigint):
 
     ints = []
     while bigint > 0:
-        bigint, mod = divmod(bigint, 2 ** 32)
+        bigint, mod = divmod(bigint, 2**32)
         ints.append(mod)
     return ints
 
@@ -105,7 +105,6 @@ class Space(object):
     code that applies to any Env. For example, you can choose a random
     action.
     """
-
     def __init__(self, shape=None, dtype=None):
         import numpy as np  # takes about 300-400ms to import, so we load lazily
         self.shape = None if shape is None else tuple(shape)
@@ -155,7 +154,6 @@ class Discrete(Space):
         >>> Discrete(2)
 
     """
-
     def __init__(self, n):
         assert n >= 0
         self.n = n
@@ -199,7 +197,6 @@ class Box(Space):
         Box(2,)
 
     """
-
     def __init__(self, low, high, shape=None, dtype=np.float32):
         assert dtype is not None, 'dtype must be explicitly provided. '
         self.dtype = np.dtype(dtype)
@@ -284,18 +281,13 @@ class Box(Space):
         bounded = self.bounded_below & self.bounded_above
 
         # Vectorized sampling by interval type
-        sample[unbounded] = self.np_random.normal(
-            size=unbounded[unbounded].shape)
+        sample[unbounded] = self.np_random.normal(size=unbounded[unbounded].shape)
 
-        sample[low_bounded] = self.np_random.exponential(
-            size=low_bounded[low_bounded].shape) + self.low[low_bounded]
+        sample[low_bounded] = self.np_random.exponential(size=low_bounded[low_bounded].shape) + self.low[low_bounded]
 
-        sample[upp_bounded] = -self.np_random.exponential(
-            size=upp_bounded[upp_bounded].shape) + self.high[upp_bounded]
+        sample[upp_bounded] = -self.np_random.exponential(size=upp_bounded[upp_bounded].shape) + self.high[upp_bounded]
 
-        sample[bounded] = self.np_random.uniform(low=self.low[bounded],
-                                                 high=high[bounded],
-                                                 size=bounded[bounded].shape)
+        sample[bounded] = self.np_random.uniform(low=self.low[bounded], high=high[bounded], size=bounded[bounded].shape)
         if self.dtype.kind == 'i':
             sample = np.floor(sample)
 
@@ -316,9 +308,10 @@ class Box(Space):
         return "Box" + str(self.shape)
 
     def __eq__(self, other):
-        return isinstance(other, Box) and (self.shape == other.shape) and np.allclose(self.low,
-                                                                                      other.low) and np.allclose(
-            self.high, other.high)
+        return isinstance(other,
+                          Box) and (self.shape
+                                    == other.shape) and np.allclose(self.low,
+                                                                    other.low) and np.allclose(self.high, other.high)
 
 
 class Dict(Space):
@@ -352,7 +345,6 @@ class Dict(Space):
         })
     })
     """
-
     def __init__(self, spaces=None, **spaces_kwargs):
         assert (spaces is None) or (not spaces_kwargs), 'Use either Dict(spaces=dict(...)) or Dict(foo=x, bar=z)'
         if spaces is None:
