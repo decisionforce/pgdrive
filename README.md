@@ -6,20 +6,20 @@
 Please install PGDrive via:
 
 ```bash
-pip install git+https://github.com/decisionforce/PGDrive.git
+pip install git+https://github.com/decisionforce/pgdrive.git
 ```
 
 or you can install via:
 
 ```bash
-git clone https://github.com/decisionforce/PGDrive.git
-cd PGDrive
+git clone https://github.com/decisionforce/pgdrive.git
+cd pgdrive
 pip install -e .
 ```
 
 ## Quick Start
 
-Please run `python -m pg_drive.examples.enjoy` to play with the environment with keyboard!
+Please run `python -m pgdrive.examples.enjoy` to play with the environment with keyboard!
 
 To build the environment, you can simply run:
 

@@ -1,12 +1,12 @@
 import logging
 import os
 import sys
+from typing import Optional, Union
 
 import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
-
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.pg_config import PgConfig
 from pgdrive.utils.asset_loader import AssetLoader
@@ -35,11 +35,12 @@ help_message = "Keyboard Shortcuts:\n" \
 
 
 class PgWorld(ShowBase.ShowBase):
-    loadPrcFileData("", "win-size 1200 900")
+    loadPrcFileData("", "window-title PGDrive v0.1.0")
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
+    loadPrcFileData("", "compressed-textures 1")
 
     # loadPrcFileData("", " framebuffer-srgb truein")
 
@@ -58,6 +59,7 @@ class PgWorld(ShowBase.ShowBase):
         self.pg_config = self.default_config()
         if config is not None:
             self.pg_config.update(config)
+        loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
         if self.pg_config["use_render"]:
             mode = "onscreen"
             loadPrcFileData("", "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
@@ -74,6 +76,7 @@ class PgWorld(ShowBase.ShowBase):
             gltf.patch_loader(self.loader)
         self.closed = False
         self.exitFunc = self.exitFunc
+        ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
 
         # add element to render and pbr render, if is exists all the time
         self.pbr_render = self.render.attachNewNode("pbrNP")
@@ -157,12 +160,11 @@ class PgWorld(ShowBase.ShowBase):
             # first window and display region -- a vehicle panel
             self.vehicle_panel = VehiclePanel(self.win.makeTextureBuffer, self.makeCamera)
             self.vehicle_panel.add_to_display(
-                self, [0.67, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
+                self, [2 / 3, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
             )
 
         # task manager
         self.taskMgr.remove('audioLoop')
-        self.taskMgr.remove("igLoop")
 
         # onscreen message
         self.on_screen_message = PgOnScreenMessage() \
@@ -177,21 +179,21 @@ class PgWorld(ShowBase.ShowBase):
         self.accept("h", self.toggle_help_message)
 
     def _init_display_region(self):
-        # TODO maybe decided by the user in the future
+        scale = self.pg_config["window_size"][0] / self.pg_config["window_size"][1]
         line_seg = LineSegs("interface")
         line_seg.setColor(0.8, 0.8, 0.8, 0)
-        line_seg.moveTo(-2, 0, 0.6)
-        line_seg.drawTo(2, 0, 0.6)
+        line_seg.moveTo(-scale, 0, 0.6)
+        line_seg.drawTo(scale, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
-        line_seg.moveTo(-0.455, 0, 1)
-        line_seg.drawTo(-0.455, 0, 0.6)
+        line_seg.moveTo(-scale / 3, 0, 1)
+        line_seg.drawTo(-scale / 3, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
-        line_seg.moveTo(0.455, 0, 1)
-        line_seg.drawTo(0.455, 0, 0.6)
+        line_seg.moveTo(scale / 3, 0, 1)
+        line_seg.drawTo(scale / 3, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
@@ -204,12 +206,18 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np.setPos(-1, -0.8, -0.8)
         self.collision_info_np.reparentTo(self.aspect2d)
 
-    def render_frame(self, text: dict = None):
+    def render_frame(self, text: Optional[Union[dict, str]] = None):
+        """
+        The real rendering is conducted by the igLoop task maintained by panda3d.
+        Frame will be drawn and refresh, when taskMgr.step() is called.
+        This function is only used to pass the message that needed to be printed in the screen to underlying renderer.
+        :param text: A dict containing key and values or a string.
+        :return: None
+        """
         if self.on_screen_message is not None:
             self.on_screen_message.update_data(text)
-            self.on_screen_message.render()
-        self.graphicsEngine.renderFrame()
         if self.pg_config["use_render"]:
+            self.on_screen_message.render()
             with self.force_fps:
                 self.sky_box.step()
 
@@ -237,6 +245,7 @@ class PgWorld(ShowBase.ShowBase):
     def default_config():
         return PgConfig(
             dict(
+                window_size=(1200, 900),  # width, height
                 debug=False,
                 use_render=False,
                 use_image=False,
