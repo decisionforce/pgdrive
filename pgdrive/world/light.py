@@ -17,9 +17,10 @@ class Light(DynamicElement):
             self.direction_np = NodePath(DirectionalLight("direction light"))
             # self.light.node().setScene(self.render)
 
+            # Too large will cause the graphics card out of memory.
             # self.direction_np.node().setShadowCaster(True, 8192, 8192)
             # self.direction_np.node().setShadowCaster(True, 4096, 4096)
-            self.direction_np.node().setShadowCaster(True, 512, 512)
+            self.direction_np.node().setShadowCaster(True, 128, 128)
 
             # self.direction_np.node().showFrustum()
             # self.light.node().getLens().setNearFar(10, 100)
@@ -29,8 +30,8 @@ class Light(DynamicElement):
 
             dlens = self.direction_np.node().getLens()
             dlens.setFilmSize(8, 8)
-            dlens.setFocalLength(1)
-            dlens.setNear(30)
+            # dlens.setFocalLength(1)
+            # dlens.setNear(3)
 
             self.direction_np.node().setColorTemperature(4000)
             self.direction_np.reparentTo(self.node_path)
