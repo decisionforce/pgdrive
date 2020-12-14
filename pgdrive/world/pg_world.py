@@ -160,7 +160,7 @@ class PgWorld(ShowBase.ShowBase):
             # first window and display region -- a vehicle panel
             self.vehicle_panel = VehiclePanel(self.win.makeTextureBuffer, self.makeCamera)
             self.vehicle_panel.add_to_display(
-                self, [2/3, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
+                self, [2 / 3, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
             )
 
         # task manager
@@ -179,7 +179,7 @@ class PgWorld(ShowBase.ShowBase):
         self.accept("h", self.toggle_help_message)
 
     def _init_display_region(self):
-        scale = self.pg_config["window_size"][0]/self.pg_config["window_size"][1]
+        scale = self.pg_config["window_size"][0] / self.pg_config["window_size"][1]
         line_seg = LineSegs("interface")
         line_seg.setColor(0.8, 0.8, 0.8, 0)
         line_seg.moveTo(-scale, 0, 0.6)
@@ -187,13 +187,13 @@ class PgWorld(ShowBase.ShowBase):
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
-        line_seg.moveTo(-scale/3, 0, 1)
-        line_seg.drawTo(-scale/3, 0, 0.6)
+        line_seg.moveTo(-scale / 3, 0, 1)
+        line_seg.drawTo(-scale / 3, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
-        line_seg.moveTo(scale/3, 0, 1)
-        line_seg.drawTo(scale/3, 0, 0.6)
+        line_seg.moveTo(scale / 3, 0, 1)
+        line_seg.drawTo(scale / 3, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
