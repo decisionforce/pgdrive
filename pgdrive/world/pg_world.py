@@ -35,6 +35,7 @@ help_message = "Keyboard Shortcuts:\n" \
 
 
 class PgWorld(ShowBase.ShowBase):
+    loadPrcFileData("", "window-title PGDrive v0.1.0")
     loadPrcFileData("", "win-size 1200 900")
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
