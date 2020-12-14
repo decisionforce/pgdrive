@@ -15,7 +15,10 @@ class Light(DynamicElement):
         if config["direction_light"]:
             self.direction_np = NodePath(DirectionalLight("direction light"))
             # self.light.node().setScene(self.render)
-            self.direction_np.node().setShadowCaster(True, 8192, 8192)
+
+            # self.direction_np.node().setShadowCaster(True, 8192, 8192)
+            self.direction_np.node().setShadowCaster(False)
+
             # self.direction_np.node().showFrustum()
             # self.light.node().getLens().setNearFar(10, 100)
 
