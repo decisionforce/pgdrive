@@ -17,6 +17,12 @@ cd PGDrive
 pip install -e .
 ```
 
+## Colab Examples
+
+[WIP]
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](WAITING)
+
 ## Quick Start
 
 Please run `python -m pgdrive.examples.enjoy` to play with the environment with keyboard!
