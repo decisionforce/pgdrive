@@ -9,7 +9,6 @@ class Light(DynamicElement):
     """
     It is dynamica element since it will follow the camera
     """
-
     def __init__(self, config: PgConfig):
         super(Light, self).__init__()
         self.node_path = NodePath("Light")
