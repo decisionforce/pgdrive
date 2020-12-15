@@ -3,6 +3,8 @@ import pygame
 from typing import List, Tuple
 from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
+from pgdrive.scene_creator.lanes.circular_lane import CircularLane
+from .world_surface import WorldSurface
 
 
 class HighwayRender:
@@ -10,13 +12,17 @@ class HighwayRender:
     Most of the source code is from Highway-Env, we only optimize and integrate it in PG-Drive
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
+    SCALING = 5.5
+    i = 0.1
+    Map_Region = (10000, 10000)
 
     def __init__(self, resolution: Tuple, onscreen: bool):
+        self.resolution = resolution
         self.map_sufface = None
-        self.vehicle_surface = None
+        self.traffic_surface = None
         self.onscreen = onscreen
-        self.traffic_mgr = None
         self.map = None
+        self.traffic_mgr = None
         from pgdrive.world.pg_world import pg_edition
         pygame.init()
         pygame.display.set_caption(pg_edition)
@@ -24,16 +30,33 @@ class HighwayRender:
             self.screen = pygame.display.set_mode(resolution)
 
     def draw_scene(self) -> np.ndarray:
-        pass
+        self.i += 0.1
+        self.draw_map()
+
+        self.screen.blit(self.map_surface, (0, 0))
+        pygame.display.flip()
 
     def render(self):
         pass
 
-    def reset_traffic(self, traffic_mgr):
+    def set_traffic_mgr(self, traffic_mgr):
         self.traffic_mgr = traffic_mgr
 
-    def reset_map(self, map):
+    def set_map(self, map):
         self.map = map
+        self.draw_map()
+
+    def draw_map(self):
+        self.map_surface = WorldSurface(self.resolution, 0, pygame.Surface(self.resolution))
+        self.map_surface.scaling = self.SCALING
+        self.map_surface.centering_position = [0.5, 0.5]
+        self.map_surface.fill(self.map_surface.GREY)
+        self.map_surface.move_display_window_to([self.i, 10])
+        roadnetwork = self.map.road_network
+        for _from in roadnetwork.graph.keys():
+            for _to in roadnetwork.graph[_from].keys():
+                for l in roadnetwork.graph[_from][_to]:
+                    LaneGraphics.display(l, self.map_surface)
 
 
 class VehicleGraphics(object):
@@ -172,10 +195,21 @@ class LaneGraphics(object):
         for side in range(2):
             if lane.line_types[side] == LineType.STRIPED:
                 cls.striped_line(lane, surface, stripes_count, s0, side)
-            elif lane.line_types[side] == LineType.CONTINUOUS:
+            # circular side or continuous, it is same now
+            elif lane.line_types[side] == LineType.CONTINUOUS and isinstance(lane, CircularLane):
                 cls.continuous_curve(lane, surface, stripes_count, s0, side)
-            elif lane.line_types[side] == LineType.CONTINUOUS and isinstance(lane, StraightLane):
+            elif lane.line_types[side] == LineType.SIDE and isinstance(lane, CircularLane):
+                cls.continuous_curve(lane, surface, stripes_count, s0, side)
+            # the line of continuous straight and side straight is same now
+            elif (lane.line_types[side] == LineType.CONTINUOUS) and isinstance(lane, StraightLane):
                 cls.continuous_line(lane, surface, stripes_count, s0, side)
+            elif (lane.line_types[side] == LineType.SIDE) and isinstance(lane, StraightLane):
+                cls.continuous_line(lane, surface, stripes_count, s0, side)
+            # special case
+            elif lane.line_types[side] == LineType.NONE:
+                continue
+            else:
+                raise ValueError("I don't know how to draw this line type: {}".format(lane.line_types[side]))
 
     @classmethod
     def striped_line(cls, lane, surface, stripes_count: int, longitudinal: float,

@@ -37,10 +37,11 @@ class Map:
     GENERATE_PARA = "config"
     GENERATE_METHOD = "type"
 
-    def __init__(self, parent_node_path: NodePath, pg_physics_world: BulletWorld, big_config: dict = None):
+    def __init__(self, pg_world: PgWorld, big_config: dict = None):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
+        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         self.config = self.default_config()
         if big_config:
             self.config.update(big_config)
@@ -63,6 +64,7 @@ class Map:
         #  a trick to optimize performance
         self.road_network.update_indices()
         self.road_network.build_helper()
+        self._load_to_highway_render(pg_world)
 
     @staticmethod
     def default_config():
@@ -103,6 +105,11 @@ class Map:
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         for block in self.blocks:
             block.attach_to_pg_world(parent_node_path, pg_physics_world)
+        self._load_to_highway_render(pg_world)
+
+    def _load_to_highway_render(self, pg_world: PgWorld):
+        if pg_world.pg_config["highway_render"]:
+            pg_world.highway_render.set_map(self)
 
     def unload_from_pg_world(self, pg_world: PgWorld):
         for block in self.blocks:

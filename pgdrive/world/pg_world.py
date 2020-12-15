@@ -3,7 +3,7 @@ import numpy as np
 import os
 import sys
 from typing import Optional, Union
-from pgdrive.world.highway_render import HighwayRender
+from pgdrive.world.highway_render.highway_render import HighwayRender
 import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
@@ -65,6 +65,7 @@ class PgWorld(ShowBase.ShowBase):
             # when use highway render, panda3d core will degenerate to a simple physics world
             # and the scene will be drawn by PyGame
             self.mode = "none"
+            self.pg_config["use_image"] = False
         else:
             loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
             if self.pg_config["use_render"]:
@@ -78,15 +79,16 @@ class PgWorld(ShowBase.ShowBase):
             if self.pg_config["headless_image"]:
                 loadPrcFileData("", "load-display  pandagles2")
         super(PgWorld, self).__init__(windowType=self.mode)
-        if not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"]):
+        if (not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"])) \
+                and not self.pg_config["highway_render"]:
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
         self.closed = False
         self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
-        self.pg_config["highway_render"] else None
-        ImageBuffer.enable = False if self.pg_config["highway_render"] else True
+            self.pg_config["highway_render"] else None
         ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
+        ImageBuffer.enable = False if self.pg_config["highway_render"] else True
 
         # add element to render and pbr render, if is exists all the time.
         # these element will not be removed when clear_world() is called

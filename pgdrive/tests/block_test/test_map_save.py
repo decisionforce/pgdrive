@@ -9,8 +9,7 @@ if __name__ == "__main__":
     test = TestBlock()
     AssetLoader.init_loader(test.loader, test.asset_path)
     map = Map(
-        test.render,
-        test.physics_world,
+        test,
         big_config={
             Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
             Map.GENERATE_PARA: 12

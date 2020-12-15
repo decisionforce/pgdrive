@@ -84,7 +84,7 @@ class TestBlock(ShowBase.ShowBase):
         """
         For reset test and map storing
         """
-        self.map = Map(self.worldNP, self.world, {"type": big_type, "config": para})
+        self.map = Map(self, {"type": big_type, "config": para})
         self.accept("c", self.clear)
         self.accept("a", self.re_add)
 
