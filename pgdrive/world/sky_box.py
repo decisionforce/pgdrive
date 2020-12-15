@@ -1,11 +1,7 @@
-import os
-
 from panda3d.core import SamplerState, Shader, NodePath, ConfigVariableString
-
-from pgdrive.utils.element import DynamicElement
+from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
-
-import sys
+from pgdrive.utils.element import DynamicElement
 
 
 class SkyBox(DynamicElement):
@@ -23,7 +19,7 @@ class SkyBox(DynamicElement):
             return
         skybox = self.loader.loadModel(AssetLoader.file_path(AssetLoader.asset_path, "models", "skybox.bam"))
         from pgdrive.pg_config.cam_mask import CamMask
-        skybox.hide(CamMask.MiniMap | CamMask.RgbCam)
+        skybox.hide(CamMask.MiniMap | CamMask.RgbCam | CamMask.Shadow)
         # skybox.setScale(512)
         # skybox_texture = self.loader.loadTexture(AssetLoader.file_path(AssetLoader.asset_path, 'textures/skybox.jpg'))
         # # skybox.setBin(
@@ -66,7 +62,7 @@ class SkyBox(DynamicElement):
                 AssetLoader.file_path(AssetLoader.asset_path, "shaders", "skybox_gles.frag.glsl")
             )
         else:
-            if sys.platform == "darwin":
+            if is_mac():
                 vert_file = "skybox_mac.vert.glsl"
                 frag_file = "skybox_mac.frag.glsl"
             else:

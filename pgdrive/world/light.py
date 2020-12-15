@@ -12,24 +12,28 @@ class Light(DynamicElement):
     def __init__(self, config: PgConfig):
         super(Light, self).__init__()
         self.node_path = NodePath("Light")
-
-        # directional light
         self.direction_np = NodePath(DirectionalLight("direction light"))
         # self.light.node().setScene(self.render)
-        self.direction_np.node().setShadowCaster(True, 8192, 8192)
+
+        # Too large will cause the graphics card out of memory.
+        # self.direction_np.node().setShadowCaster(True, 8192, 8192)
+        # self.direction_np.node().setShadowCaster(True, 4096, 4096)
+        self.direction_np.node().setShadowCaster(True, 128, 128)
+
         # self.direction_np.node().showFrustum()
         # self.light.node().getLens().setNearFar(10, 100)
 
         self.direction_np.node().setColor(LVector4(1, 1, 0.8, 1))
         self.direction_np.node().setCameraMask(CamMask.Shadow)
+
         dlens = self.direction_np.node().getLens()
-        dlens.setFilmSize(512, 512)
-        dlens.setFocalLength(1)
-        dlens.setNear(30)
+        dlens.setFilmSize(8, 8)
+        # dlens.setFocalLength(1)
+        # dlens.setNear(3)
+
         self.direction_np.node().setColorTemperature(4000)
         self.direction_np.reparentTo(self.node_path)
 
-        # ambient light
         self.ambient_np = NodePath(AmbientLight("Ambient"))
         self.ambient_np.node().setColor(LVector4(0.8, 0.8, 0.8, 1))
         self.ambient_np.reparentTo(self.node_path)

@@ -2,14 +2,15 @@ import logging
 import numpy as np
 import os
 import sys
-from typing import Optional
+from typing import Optional, Union
+from pgdrive.world.highway_render import HighwayRender
 import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
-from pgdrive.world.highway_render import HighwayRender
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config import PgConfig
+from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.world.force_fps import ForceFPS
 from pgdrive.world.image_buffer import ImageBuffer
@@ -17,7 +18,6 @@ from pgdrive.world.light import Light
 from pgdrive.world.onscreen_message import PgOnScreenMessage
 from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
-from pgdrive.world.vehicle_panel import VehiclePanel
 
 root_path = os.path.dirname(os.path.dirname(__file__))
 
@@ -36,11 +36,12 @@ help_message = "Keyboard Shortcuts:\n" \
 
 
 class PgWorld(ShowBase.ShowBase):
-    loadPrcFileData("", "win-size 1200 900")
+    loadPrcFileData("", "window-title PGDrive v0.1.0")
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
+    loadPrcFileData("", "compressed-textures 1")
 
     # loadPrcFileData("", " framebuffer-srgb truein")
 
@@ -64,13 +65,14 @@ class PgWorld(ShowBase.ShowBase):
             # and the scene will be drawn by PyGame
             self.mode = "none"
         else:
+            loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
             if self.pg_config["use_render"]:
                 self.mode = "onscreen"
                 loadPrcFileData("",
                                 "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
             else:
                 self.mode = "offscreen" if self.pg_config["use_image"] else "none"
-            if sys.platform == "darwin" and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
+            if is_mac() and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
                 self.mode = "onscreen"
             if self.pg_config["headless_image"]:
                 loadPrcFileData("", "load-display  pandagles2")
@@ -82,6 +84,7 @@ class PgWorld(ShowBase.ShowBase):
         self.closed = False
         self.highway_render = HighwayRender(self.pg_config["use_render"]) if self.pg_config["highway_render"] else None
         ImageBuffer.enable = False if self.pg_config["highway_render"] else True
+        ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
 
         # add element to render and pbr render, if is exists all the time.
         # these element will not be removed when clear_world() is called
@@ -96,8 +99,6 @@ class PgWorld(ShowBase.ShowBase):
 
         # some render attr
         self.light = None
-        self.vehicle_panel = None
-        self.collision_info_np = None
 
         # physics world
         self.physics_world = BulletWorld()
@@ -164,15 +165,8 @@ class PgWorld(ShowBase.ShowBase):
                 self._init_display_region()
             self.my_buffers = []
 
-            # first default display region -- a vehicle panel
-            self.vehicle_panel = VehiclePanel(self.win, self.makeCamera)
-            self.vehicle_panel.add_to_display(
-                self, [0.67, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
-            )
-
         # task manager
         self.taskMgr.remove('audioLoop')
-        self.taskMgr.remove("igLoop")
 
         # onscreen message
         self.on_screen_message = PgOnScreenMessage() \
@@ -187,21 +181,21 @@ class PgWorld(ShowBase.ShowBase):
         self.accept("h", self.toggle_help_message)
 
     def _init_display_region(self):
-        # TODO maybe decided by the user in the future
+        scale = self.pg_config["window_size"][0] / self.pg_config["window_size"][1]
         line_seg = LineSegs("interface")
         line_seg.setColor(0.8, 0.8, 0.8, 0)
-        line_seg.moveTo(-2, 0, 0.6)
-        line_seg.drawTo(2, 0, 0.6)
+        line_seg.moveTo(-scale, 0, 0.6)
+        line_seg.drawTo(scale, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
-        line_seg.moveTo(-0.455, 0, 1)
-        line_seg.drawTo(-0.455, 0, 0.6)
+        line_seg.moveTo(-scale / 3, 0, 1)
+        line_seg.drawTo(-scale / 3, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
-        line_seg.moveTo(0.455, 0, 1)
-        line_seg.drawTo(0.455, 0, 0.6)
+        line_seg.moveTo(scale / 3, 0, 1)
+        line_seg.drawTo(scale / 3, 0, 0.6)
         line_seg.setThickness(1.5)
         NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
 
@@ -214,18 +208,19 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np.setPos(-1, -0.8, -0.8)
         self.collision_info_np.reparentTo(self.aspect2d)
 
-    def render_frame(self, text: dict = None) -> Optional[np.ndarray]:
+    def render_frame(self, text: Optional[Union[dict, str]] = None):
         """
-        Render the 3-D world drawn by panda3d. if use_render and use_image are all set to False, this api will
-        degenerate to use PyGame to draw a 2D-world and return a display region for self-defined drawing
+        The real rendering is conducted by the igLoop task maintained by panda3d.
+        Frame will be drawn and refresh, when taskMgr.step() is called.
+        This function is only used to pass the message that needed to be printed in the screen to underlying renderer.
+        :param text: A dict containing key and values or a string.
+        :return: None
         """
         if not self.pg_config["highway_render"]:
-            # padna3d draw
             if self.on_screen_message is not None:
                 self.on_screen_message.update_data(text)
-                self.on_screen_message.render()
-            self.graphicsEngine.renderFrame()
             if self.pg_config["use_render"]:
+                self.on_screen_message.render()
                 with self.force_fps:
                     self.sky_box.step()
         else:
@@ -255,6 +250,7 @@ class PgWorld(ShowBase.ShowBase):
     def default_config():
         return PgConfig(
             dict(
+                window_size=(1200, 900),  # width, height
                 debug=False,
                 use_render=False,
                 use_image=False,
