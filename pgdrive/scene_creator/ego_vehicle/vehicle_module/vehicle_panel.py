@@ -14,6 +14,8 @@ class VehiclePanel(ImageBuffer):
     GAP = 4.1
 
     def __init__(self, vehicle: BaseVehicle, pg_world: PgWorld):
+        if not(pg_world.pg_config["use_image"] or pg_world.pg_config["use_render"]):
+            return
         self.aspect2d_np = NodePath(PGTop("aspect2d"))
         self.aspect2d_np.show(self.CAM_MASK)
         self.para_vis_np = []
