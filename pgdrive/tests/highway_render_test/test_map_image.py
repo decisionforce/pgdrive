@@ -38,16 +38,16 @@ if __name__ == "__main__":
     env = TestEnv()
 
     env.reset()
-    data = env.current_map.draw_map()
+    env.current_map.save_map_image()
 
     """
     simply show, the image can be saved
     """
-    import matplotlib.pyplot as plt
-
-    plt.plot()
-    plt.imshow(data)
-    plt.show()
+    # import matplotlib.pyplot as plt
+    #
+    # plt.plot()
+    # plt.imshow(data)
+    # plt.show()
     for i in range(1, 100000):
         # start = time.time()
         # print("Step: ", i)

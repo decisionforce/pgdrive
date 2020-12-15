@@ -181,7 +181,7 @@ class Map:
             ret = self.read_map(map_config)
         return ret
 
-    def draw_map(self) -> np.ndarray:
+    def draw_map_image_on_surface(self) -> pygame.Surface:
         from pgdrive.world.highway_render.highway_render import LaneGraphics
         from pgdrive.world.highway_render.world_surface import WorldSurface
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
@@ -190,11 +190,16 @@ class Map:
         for _from in self.road_network.graph.keys():
             for _to in self.road_network.graph[_from].keys():
                 for l in self.road_network.graph[_from][_to]:
-                    LaneGraphics.display(l, surface)
-        data = pygame.surfarray.array3d(surface)
-        # save to check
-        # pygame.image.save(surface, "map.png")
-        return data
+                    LaneGraphics.simple_draw(l, surface)
+        return surface
+
+    def get_map_image_array(self) -> np.ndarray:
+        surface = self.draw_map_image_on_surface()
+        return pygame.surfarray.array3d(surface)
+
+    def save_map_image(self):
+        surface = self.draw_map_image_on_surface()
+        pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
     @staticmethod
     def find_map_center(road_network) -> np.ndarray:

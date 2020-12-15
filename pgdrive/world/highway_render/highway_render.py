@@ -283,6 +283,16 @@ class LaneGraphics(object):
                                  max(surface.pix(cls.STRIPE_WIDTH), 1))
 
     @classmethod
+    def simple_draw(cls, lane, surface):
+        vehicle_surface = pygame.Surface((surface.pix(length), surface.pix(length)),
+                                         flags=pygame.SRCALPHA)  # per-pixel alpha
+        rect = (surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
+                surface.pix(v.WIDTH))
+        pygame.draw.rect(vehicle_surface, cls.get_color(v, transparent), rect, 0)
+        pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
+
+
+    @classmethod
     def draw_ground(cls, lane, surface, color: Tuple[float], width: float,
                     draw_surface: pygame.Surface = None) -> None:
         draw_surface = draw_surface or surface
