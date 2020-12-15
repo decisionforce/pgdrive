@@ -15,7 +15,6 @@ class ChaseCamera:
     def __init__(
         self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PgWorld
     ):
-        return
         self.camera = camera
         self.camera_queue = None
         self.camera_height = camera_height

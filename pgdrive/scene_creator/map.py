@@ -1,4 +1,6 @@
 import json
+import pygame
+import numpy as np
 from pgdrive.world.pg_world import PgWorld
 import logging
 import os
@@ -36,6 +38,10 @@ class Map:
     # generate_method
     GENERATE_PARA = "config"
     GENERATE_METHOD = "type"
+
+    # draw with pygame, film size
+    film_size = (1024, 1024)
+    scaling = 1
 
     def __init__(self, pg_world: PgWorld, big_config: dict = None):
         """
@@ -174,6 +180,55 @@ class Map:
             map_config = json.load(map_file)
             ret = self.read_map(map_config)
         return ret
+
+    def draw_map(self) -> np.ndarray:
+        from pgdrive.world.highway_render.highway_render import LaneGraphics
+        from pgdrive.world.highway_render.world_surface import WorldSurface
+        surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
+        surface.scaling = self.scaling
+        surface.move_display_window_to(self.find_map_center(self.road_network))
+        for _from in self.road_network.graph.keys():
+            for _to in self.road_network.graph[_from].keys():
+                for l in self.road_network.graph[_from][_to]:
+                    LaneGraphics.display(l, surface)
+        data = pygame.surfarray.array3d(surface)
+        # save to check
+        # pygame.image.save(surface, "map.png")
+        return data
+
+    @staticmethod
+    def find_map_center(road_network) -> np.ndarray:
+        from pgdrive.scene_creator.lanes.straight_lane import StraightLane
+        from pgdrive.scene_creator.lanes.circular_lane import CircularLane
+        from pgdrive.scene_creator.road import Road
+        middle_points = np.array([0.0, 0.0])
+        p_num = 0
+
+        for _from in road_network.graph.keys():
+            for _to in road_network.graph[_from].keys():
+                road = Road(_from, _to)
+                if road.is_negative_road():
+                    continue
+                lane = road_network.graph[_from][_to][0]
+                lat = lane.width
+                if isinstance(lane, StraightLane):
+                    middle = lane.position(lane.length / 2, lat)
+                    middle_points = (middle_points * p_num + middle) / (p_num + 1)
+                    p_num += 1
+                elif isinstance(lane, CircularLane):
+                    segment_num = int(lane.length / Block.CIRCULAR_SEGMENT_LENGTH)
+                    for segment in range(segment_num):
+                        lane_start = lane.position(segment * Block.CIRCULAR_SEGMENT_LENGTH, lat)
+                        lane_end = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, lat)
+                        middle = (lane_start + lane_end) / 2
+                        middle_points = (middle_points * p_num + middle) / (p_num + 1)
+                        p_num += 1
+                    lane_start = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, lat)
+                    lane_end = lane.position(lane.length, lat)
+                    middle = (lane_start + lane_end) / 2
+                    middle_points = (middle_points * p_num + middle) / (p_num + 1)
+                    p_num += 1
+        return middle_points
 
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"
