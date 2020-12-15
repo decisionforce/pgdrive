@@ -65,8 +65,10 @@ class PgWorld(ShowBase.ShowBase):
             mode = "offscreen" if self.pg_config["use_image"] else "none"
         if sys.platform == "darwin" and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
             mode = "onscreen"
-        if self.pg_config["headless_image"]:
+        if self.pg_config["headless_image"] and not self.pg_config["_use_tiny"]:
             loadPrcFileData("", "load-display  pandagles2")
+        if self.pg_config["_use_tiny"]:
+            loadPrcFileData("", "load-display  p3tinydisplay")
         super(PgWorld, self).__init__(windowType=mode)
         if not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"]):
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
@@ -251,7 +253,8 @@ class PgWorld(ShowBase.ShowBase):
                 debug_physics_world=False,  # only render physics world without model
                 use_default_layout=True,  # decide the layout of white lines
                 headless_image=False,  # set to true only when on headless machine and use rgb image!!!!!!
-                onscreen_message=True
+                onscreen_message=True,
+                _use_tiny=False  # Whether to use tinydisplay renderer, for debug usage.
             )
         )
 
