@@ -65,7 +65,7 @@ class ActionRepeat(PGDriveEnv):
         render_list = []
         real_ret = 0.0
         for repeat in range(action_repeat):
-            o, r, d, i = super(ActionRepeat, self).step(action)
+            o, r, d, i = super(ActionRepeat, self).step(action[:2])
             if render:
                 render_list.append(self.render(**render_kwargs))
             r_list.append(r)
