@@ -91,7 +91,7 @@ class ActionRepeat(PGDriveEnv):
                 reward=r_list[idx],
                 discounted_reward=discounted_r_list[idx],
                 obs=o_list[idx],
-                action=action[idx],
+                action=action,
             ) for idx in range(len(r_list))
         ]
 
