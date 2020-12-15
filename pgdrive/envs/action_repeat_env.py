@@ -1,5 +1,5 @@
+import numpy as np
 from gym.spaces import Box
-
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.pg_config.pg_config import PgConfig
 
@@ -56,6 +56,8 @@ class ActionRepeat(PGDriveEnv):
         else:
             action_repeat = self.fixed_action_repeat
 
+        action_repeat = min(1, int(action_repeat))
+
         o_list = []
         r_list = []
         d_list = []
@@ -95,8 +97,11 @@ class ActionRepeat(PGDriveEnv):
                 action=action,
             ) for idx in range(len(r_list))
         ]
-
         return o, discounted, d, i
+
+    def _get_reset_return(self):
+        o, *_ = self.step(np.array([0.0, 0.0, 0.0]))
+        return o
 
 
 if __name__ == '__main__':
