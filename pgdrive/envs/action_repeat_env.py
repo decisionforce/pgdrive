@@ -30,7 +30,7 @@ class ActionRepeat(PGDriveEnv):
         else:
             self.fixed_action_repeat = None
             self.action_space = Box(
-                shape=(self.action_space.shape[0] + 1, ),
+                shape=(self.action_space.shape[0] + 1,),
                 high=self.action_space.high[0],
                 low=self.action_space.low[0],
                 dtype=self.action_space.dtype
@@ -56,25 +56,44 @@ class ActionRepeat(PGDriveEnv):
         else:
             action_repeat = self.fixed_action_repeat
 
-        ret = []
+        o_list = []
+        r_list = []
+        d_list = []
+        i_list = []
+        discounted_r_list = []
+
         render_list = []
         real_ret = 0.0
         for repeat in range(action_repeat):
             o, r, d, i = super(ActionRepeat, self).step(action)
             if render:
                 render_list.append(self.render(**render_kwargs))
-            ret.append(r)
+            r_list.append(r)
+            o_list.append(o)
+            d_list.append(d)
+            i_list.append(i)
+            discounted_r_list.append(0.0)
             real_ret += r
             if d:
                 break
 
         discounted = 0.0
-        for r in reversed(ret):
-            discounted = self.config["gamma"] * discounted + r
+        for idx in reversed(range(len(r_list))):
+            reward = r_list[idx]
+            discounted = self.config["gamma"] * discounted + reward
+            discounted_r_list[idx] = discounted
 
         i["simulation_time"] = (repeat + 1) * self.interval
         i["real_return"] = real_ret
         i["render"] = render_list
+        i["trajectory"] = [
+            dict(
+                reward=r_list[idx],
+                discounted_reward=discounted_r_list[idx],
+                obs=o_list[idx],
+                action=action[idx],
+            ) for idx in range(len(r_list))
+        ]
 
         return o, discounted, d, i
 
