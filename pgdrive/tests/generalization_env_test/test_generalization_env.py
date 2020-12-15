@@ -1,7 +1,6 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
-from pgdrive.scene_manager.traffic_manager import TrafficMode
 
 setup_logger(debug=True)
 
@@ -46,7 +45,7 @@ if __name__ == "__main__":
         # print(time.time() - start)
         # print(len(o), "Vs.", env.observation_space.shape[0])
         # print(info)
-        # env.render()
+        env.render("Test: {}".format(i))
         # if d:
         #     print("Reset")
         #     env.reset()

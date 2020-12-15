@@ -1,22 +1,24 @@
+import copy
+import json
+import os.path as osp
+from typing import Optional, Union
+
 import gym
 from typing import Optional
 import numpy as np
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config.pg_config import PgConfig
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
-from pgdrive.world.pg_world import PgWorld
+from pgdrive.utils import recursive_equal
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
-import copy
-import json
-import os.path as osp
-from pgdrive.utils import recursive_equal
+from pgdrive.world.pg_world import PgWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -114,7 +116,7 @@ class PGDriveEnv(gym.Env):
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         self.current_seed = self.start_seed
         self.current_map = None
-        self.vehicle = None
+        self.vehicle = None  # Ego vehicle
         self.done = False
 
     def lazy_init(self):
@@ -191,7 +193,7 @@ class PGDriveEnv(gym.Env):
         info.update(done_info)
         return obs, reward + done_reward, self.done, info
 
-    def render(self, mode='human', text: dict = None) -> Optional[np.adarray]:
+    def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.adarray]:
         assert self.use_render or self.config["use_image"], "render is off now, can not render"
         self.pg_world.render_frame(text)
         if mode != "human" and (self.config["use_render"] or self.config["use_rgb"]):
@@ -446,6 +448,5 @@ class PGDriveEnv(gym.Env):
         self.close()
         raise KeyboardInterrupt()
 
-    def seed(self, seed=None):
-        if seed:
-            self.current_seed = seed
+    def set_current_seed(self, seed):
+        self.current_seed = seed
