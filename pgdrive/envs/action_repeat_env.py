@@ -85,6 +85,7 @@ class ActionRepeat(PGDriveEnv):
 
         i["simulation_time"] = (repeat + 1) * self.interval
         i["real_return"] = real_ret
+        i["action_repeat"] = action_repeat
         i["render"] = render_list
         i["trajectory"] = [
             dict(
