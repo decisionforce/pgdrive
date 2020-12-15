@@ -89,7 +89,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -192,7 +192,10 @@ class PGDriveEnv(gym.Env):
         return obs, reward + done_reward, self.done, info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None):
-        assert self.use_render or self.config["use_image"], "render is off now, can not render"
+        assert self.use_render or self.config["use_image"], (
+            "Onsceen rendering is disable now. Please use environmental config['use_render'] = True or "
+            "config['use_image'] = True to allow onscreen rendering."
+        )
         if self.control_camera is not None:
             self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
         self.pg_world.render_frame(text)
@@ -236,7 +239,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
