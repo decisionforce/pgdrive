@@ -21,7 +21,7 @@ class TestEnv(PGDriveEnv):
                 },
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                    Map.GENERATE_PARA: 1,
+                    Map.GENERATE_PARA: 12,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }

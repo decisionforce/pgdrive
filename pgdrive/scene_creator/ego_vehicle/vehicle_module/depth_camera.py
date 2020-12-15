@@ -12,6 +12,7 @@ class DepthCamera(ImageBuffer):
     BUFFER_X = 84  # dim 1
     BUFFER_Y = 84  # dim 2
     CAM_MASK = CamMask.DepthCam
+    GROUND = -1.5
     display_top = 1.0
 
     def __init__(self, length: int, width: int, view_ground: bool, chassis_np: NodePath, pg_world: PgWorld):
@@ -58,7 +59,7 @@ class DepthCamera(ImageBuffer):
             # # model to enable the depth information of terrain
             self.ground_model = self.ground.getRoot()
             self.ground_model.reparentTo(chassis_np)
-            self.ground_model.setPos(-128, 0, -1.0)
+            self.ground_model.setPos(-128, 0, self.GROUND)
             self.ground_model.hide(BitMask32.allOn())
             self.ground_model.show(CamMask.DepthCam)
             self.ground.generate()
@@ -67,6 +68,6 @@ class DepthCamera(ImageBuffer):
 
     def renew_pos_of_ground_mode(self, chassis_np: Vec3, task):
         pos = chassis_np.getPos()
-        self.ground_model.setPos(pos[0] - 128, pos[1], -1.0)
+        self.ground_model.setPos(- 128, 0, self.GROUND)
         self.ground_model.setP(-chassis_np.getP())
         return task.cont
