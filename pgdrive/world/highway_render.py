@@ -1,5 +1,4 @@
 import numpy as np
-from pgdrive.scene_creator.map import Map
 import pygame
 from typing import List, Tuple
 from pgdrive.scene_creator.lanes.lane import LineType
@@ -12,15 +11,17 @@ class HighwayRender:
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
 
-    def __init__(self, onscreen: bool):
+    def __init__(self, resolution: Tuple, onscreen: bool):
         self.map_sufface = None
         self.vehicle_surface = None
         self.onscreen = onscreen
         self.traffic_mgr = None
         self.map = None
-
+        from pgdrive.world.pg_world import pg_edition
         pygame.init()
-        pygame.display.set_caption("Highway-env")
+        pygame.display.set_caption(pg_edition)
+        if onscreen:
+            self.screen = pygame.display.set_mode(resolution)
 
     def draw_scene(self) -> np.ndarray:
         pass
@@ -31,7 +32,7 @@ class HighwayRender:
     def reset_traffic(self, traffic_mgr):
         self.traffic_mgr = traffic_mgr
 
-    def reset_map(self, map: Map):
+    def reset_map(self, map):
         self.map = map
 
 

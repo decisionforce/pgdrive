@@ -89,10 +89,10 @@ class TestBlock(ShowBase.ShowBase):
         self.accept("a", self.re_add)
 
     def clear(self):
-        self.map.unload_from_pg_world(self.world)
+        self.map.unload_from_pg_world(self)
 
     def re_add(self):
-        self.map.load_to_pg_world(self.worldNP, self.world)
+        self.map.load_to_pg_world(self)
 
     def add_vehicle(self, vehicle):
         self.vehicle = vehicle

@@ -314,7 +314,7 @@ class PGDriveEnv(gym.Env):
 
         # remove map from world before adding
         if self.current_map is not None:
-            self.current_map.unload_from_pg_world(self.pg_world.physics_world)
+            self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
         self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
@@ -333,7 +333,7 @@ class PGDriveEnv(gym.Env):
         else:
             self.current_map = self.maps[self.current_seed]
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
-            self.current_map.load_to_pg_world(self.pg_world.worldNP, self.pg_world.physics_world)
+            self.current_map.load_to_pg_world(self.pg_world)
 
     def add_modules_for_vehicle(self):
         # add vehicle module for training according to config
@@ -391,7 +391,7 @@ class PGDriveEnv(gym.Env):
             map_config.update({"seed": seed})
             new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
             self.maps[seed] = new_map
-            new_map.unload_from_pg_world(self.pg_world.physics_world)
+            new_map.unload_from_pg_world(self.pg_world)
             print("Finish generating map with seed: ", seed)
 
         map_data = dict()

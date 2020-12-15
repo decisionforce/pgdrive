@@ -1,4 +1,5 @@
 import json
+from pgdrive.world.pg_world import PgWorld
 import logging
 import os
 from typing import List
@@ -98,13 +99,14 @@ class Map:
             last_block.construct_from_config(b, parent_node_path, pg_physics_world)
             self.blocks.append(last_block)
 
-    def load_to_pg_world(self, parent_node_path: NodePath, pg_physics_world: BulletWorld):
+    def load_to_pg_world(self, pg_world: PgWorld):
+        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         for block in self.blocks:
             block.attach_to_pg_world(parent_node_path, pg_physics_world)
 
-    def unload_from_pg_world(self, pg_physics_world: BulletWorld):
+    def unload_from_pg_world(self, pg_world: PgWorld):
         for block in self.blocks:
-            block.detach_from_pg_world(pg_physics_world)
+            block.detach_from_pg_world(pg_world.physics_world)
 
     def destroy_map(self, pg_physics_world: BulletWorld):
         for block in self.blocks:

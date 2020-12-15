@@ -20,6 +20,7 @@ from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
 
 root_path = os.path.dirname(os.path.dirname(__file__))
+pg_edition = "PGDrive v0.1.0"
 
 help_message = "Keyboard Shortcuts:\n" \
                "  w: Acceleration\n" \
@@ -36,7 +37,7 @@ help_message = "Keyboard Shortcuts:\n" \
 
 
 class PgWorld(ShowBase.ShowBase):
-    loadPrcFileData("", "window-title PGDrive v0.1.0")
+    loadPrcFileData("", "window-title {}".format(pg_edition))
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
@@ -82,7 +83,8 @@ class PgWorld(ShowBase.ShowBase):
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
         self.closed = False
-        self.highway_render = HighwayRender(self.pg_config["use_render"]) if self.pg_config["highway_render"] else None
+        self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
+        self.pg_config["highway_render"] else None
         ImageBuffer.enable = False if self.pg_config["highway_render"] else True
         ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
 
