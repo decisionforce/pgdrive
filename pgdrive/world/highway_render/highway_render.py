@@ -18,7 +18,7 @@ class HighwayRender:
 
     def __init__(self, resolution: Tuple, onscreen: bool):
         self.resolution = resolution
-        self.map_sufface = None
+        self.map_surface = None
         self.traffic_surface = None
         self.onscreen = onscreen
         self.map = None
@@ -31,7 +31,12 @@ class HighwayRender:
 
     def draw_scene(self) -> np.ndarray:
         self.i += 0.1
-        self.draw_map()
+        self.map_surface = WorldSurface(self.resolution, 0, pygame.Surface(self.resolution))
+        self.map_surface.scaling = self.SCALING
+        self.map_surface.centering_position = [0.5, 0.5]
+        self.map_surface.fill(self.map_surface.GREY)
+        self.map_surface.move_display_window_to([self.i, 10])
+        self.draw_map(self.map.road_network, self.map_surface)
 
         self.screen.blit(self.map_surface, (0, 0))
         pygame.display.flip()
@@ -44,19 +49,13 @@ class HighwayRender:
 
     def set_map(self, map):
         self.map = map
-        self.draw_map()
 
-    def draw_map(self):
-        self.map_surface = WorldSurface(self.resolution, 0, pygame.Surface(self.resolution))
-        self.map_surface.scaling = self.SCALING
-        self.map_surface.centering_position = [0.5, 0.5]
-        self.map_surface.fill(self.map_surface.GREY)
-        self.map_surface.move_display_window_to([self.i, 10])
-        roadnetwork = self.map.road_network
+    @staticmethod
+    def draw_map(roadnetwork, surface):
         for _from in roadnetwork.graph.keys():
             for _to in roadnetwork.graph[_from].keys():
                 for l in roadnetwork.graph[_from][_to]:
-                    LaneGraphics.display(l, self.map_surface)
+                    LaneGraphics.display(l, surface)
 
 
 class VehicleGraphics(object):
