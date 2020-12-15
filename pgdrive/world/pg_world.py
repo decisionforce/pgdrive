@@ -99,6 +99,7 @@ class PgWorld(ShowBase.ShowBase):
 
         # some render attr
         self.light = None
+        self.collision_info_np = None
 
         # physics world
         self.physics_world = BulletWorld()

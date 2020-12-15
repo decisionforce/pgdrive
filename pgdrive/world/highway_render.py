@@ -1,6 +1,5 @@
 import numpy as np
 from pgdrive.scene_creator.map import Map
-from pgdrive.scene_manager.traffic_manager import TrafficManager
 import pygame
 from typing import List, Tuple
 from pgdrive.scene_creator.lanes.lane import LineType
@@ -17,23 +16,23 @@ class HighwayRender:
         self.map_sufface = None
         self.vehicle_surface = None
         self.onscreen = onscreen
+        self.traffic_mgr = None
+        self.map = None
 
         pygame.init()
         pygame.display.set_caption("Highway-env")
 
-    def draw_scene(self, map: Map, traffic_mgr: TrafficManager) -> np.ndarray:
-        if self.map_sufface is None:
-            self.draw_map()
-        self.draw_traffic()
+    def draw_scene(self) -> np.ndarray:
+        pass
 
     def render(self):
         pass
 
-    def draw_traffic(self):
-        pass
+    def reset_traffic(self, traffic_mgr):
+        self.traffic_mgr = traffic_mgr
 
-    def draw_map(self):
-        pass
+    def reset_map(self, map: Map):
+        self.map = map
 
 
 class VehicleGraphics(object):
