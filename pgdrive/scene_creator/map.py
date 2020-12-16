@@ -190,7 +190,7 @@ class Map:
         for _from in self.road_network.graph.keys():
             for _to in self.road_network.graph[_from].keys():
                 for l in self.road_network.graph[_from][_to]:
-                    LaneGraphics.simple_draw(l, surface)
+                    LaneGraphics.display(l, surface)
         return surface
 
     def get_map_image_array(self) -> np.ndarray:
