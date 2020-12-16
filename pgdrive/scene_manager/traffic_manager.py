@@ -5,7 +5,6 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 from panda3d.bullet import BulletWorld
-
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road_object.object import RoadObject
 from pgdrive.utils.math_utils import norm
@@ -43,7 +42,7 @@ class TrafficManager:
         self.random_seed = None
 
     def generate_traffic(
-        self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
+            self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -149,7 +148,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -255,3 +254,8 @@ class TrafficManager:
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
+
+    def get_vehicle_num(self):
+        if self.traffic_mode == TrafficMode.Reborn:
+            return len(self.traffic_vehicles)
+        return len(self.block_triggered_vehicles)
