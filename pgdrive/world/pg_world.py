@@ -195,8 +195,6 @@ class PgWorld(ShowBase.ShowBase):
         # task manager
         self.taskMgr.remove('audioLoop')
 
-
-
     def _init_display_region(self):
         scale = self.pg_config["window_size"][0] / self.pg_config["window_size"][1]
         line_seg = LineSegs("interface")
