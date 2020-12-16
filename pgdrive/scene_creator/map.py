@@ -198,6 +198,7 @@ class Map:
             for _to in self.road_network.graph[_from].keys():
                 for l in self.road_network.graph[_from][_to]:
                     LaneGraphics.simple_draw(l, surface)
+        surface = self.fill_hole(surface)
         return surface
 
     @staticmethod
@@ -223,6 +224,30 @@ class Map:
     def save_map_image(self):
         surface = self.draw_map_image_on_surface()
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
+
+    @staticmethod
+    def fill_hole(surface: pygame.Surface):
+        res_surface = surface.copy()
+        for i in range(surface.get_height()):
+            for j in range(surface.get_width()):
+                pix = surface.get_at((i, j))
+                if pix == (255, 255, 255, 255):
+                    continue
+                count = 0
+                for k_1 in [-1, 0, 1]:
+                    for k_2 in [-1, 0, 1]:
+                        if k_1 == 0 and k_2 == 0:
+                            continue
+                        if 0 < i + k_1 < surface.get_height() and 0 < j + k_2 < surface.get_width():
+                            pix = surface.get_at((i + k_1, j + k_2))
+                            if pix == (255, 255, 255, 255):
+                                count += 1
+                        else:
+                            count += 1
+                    if count >= 3:
+                        res_surface.set_at((i, j), (255, 255, 255, 255))
+                        break
+        return res_surface
 
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"

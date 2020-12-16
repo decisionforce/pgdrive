@@ -15,7 +15,7 @@ class TestEnv(PGDriveEnv):
                 "start_seed": 3,
                 "pg_world_config": {
                     "debug": False,
-                    "highway_render":False
+                    "highway_render": False
                 },
                 "image_source": "mini_map",
                 "manual_control": True,
@@ -36,29 +36,5 @@ class TestEnv(PGDriveEnv):
 
 if __name__ == "__main__":
     env = TestEnv()
-
     env.reset()
     env.current_map.save_map_image()
-
-    """
-    simply show, the image can be saved
-    """
-    # import matplotlib.pyplot as plt
-    #
-    # plt.plot()
-    # plt.imshow(data)
-    # plt.show()
-    for i in range(1, 100000):
-        # start = time.time()
-        # print("Step: ", i)
-        o, r, d, info = env.step([0, 1])
-        # print(r)
-        # print(o)
-        # print(time.time() - start)
-        # print(len(o), "Vs.", env.observation_space.shape[0])
-        # print(info)
-        env.render()
-        # if d:
-        #     print("Reset")
-        #     env.reset()
-    env.close()
