@@ -198,7 +198,6 @@ class Map:
             for _to in self.road_network.graph[_from].keys():
                 for l in self.road_network.graph[_from][_to]:
                     LaneGraphics.simple_draw(l, surface)
-        surface = self.fill_hole(surface)
         return surface
 
     @staticmethod
@@ -217,12 +216,18 @@ class Map:
                 res_y_min = min(res_y_min, y_min)
         return res_x_min, res_x_max, res_y_min, res_y_max
 
-    def get_map_image_array(self) -> np.ndarray:
+    def get_map_image_array(self, fill_hole=True, only_black_white=True) -> np.ndarray:
         surface = self.draw_map_image_on_surface()
+        if fill_hole:
+            surface = self.fill_hole(surface)
+        if only_black_white:
+            return np.clip(pygame.surfarray.pixels_red(surface), 0.0, 1.0)
         return pygame.surfarray.array3d(surface)
 
-    def save_map_image(self):
+    def save_map_image(self, fill_hole=True):
         surface = self.draw_map_image_on_surface()
+        if fill_hole:
+            surface = self.fill_hole(surface)
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
     @staticmethod
