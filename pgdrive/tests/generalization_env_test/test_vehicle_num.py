@@ -4,7 +4,8 @@ from pgdrive.scene_creator.map import Map, MapGenerateMethod
 if __name__ == "__main__":
     env = PGDriveEnv({
         "environment_num": 10000,
-        "traffic_density": 0.5,
+        "traffic_density": 0.1,
+        # "traffic_mode": 0,  # 0 for Reborn mode.
         "map_config": {
             Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
             Map.GENERATE_PARA: 7,

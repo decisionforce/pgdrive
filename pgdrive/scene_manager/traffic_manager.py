@@ -258,4 +258,4 @@ class TrafficManager:
     def get_vehicle_num(self):
         if self.traffic_mode == TrafficMode.Reborn:
             return len(self.traffic_vehicles)
-        return len(self.block_triggered_vehicles)
+        return sum(len(block_vehicle_set.vehicles) for block_vehicle_set in self.block_triggered_vehicles)
