@@ -40,13 +40,13 @@ class Map:
     GENERATE_METHOD = "type"
 
     # draw with pygame, film size
-    film_size = (1024, 1024)
-    scaling = 1
+    DRAW_LEN = 1024  # pix
 
     def __init__(self, pg_world: PgWorld, big_config: dict = None):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
+        self.film_size = (self.DRAW_LEN, self.DRAW_LEN)
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         self.config = self.default_config()
         if big_config:
@@ -185,13 +185,36 @@ class Map:
         from pgdrive.world.highway_render.highway_render import LaneGraphics
         from pgdrive.world.highway_render.world_surface import WorldSurface
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        surface.scaling = self.scaling
-        surface.move_display_window_to(self.find_map_center(self.road_network))
+        b_box = self.get_map_bound_box(self.road_network)
+        x_len = b_box[1] - b_box[0]
+        y_len = b_box[3] - b_box[2]
+        max_len = max(x_len, y_len)
+        # scaling and center can be easily found by bounding box
+        scaling = self.film_size[1] / max_len - 0.1
+        surface.scaling = scaling
+        centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
+        surface.move_display_window_to(centering_pos)
         for _from in self.road_network.graph.keys():
             for _to in self.road_network.graph[_from].keys():
                 for l in self.road_network.graph[_from][_to]:
-                    LaneGraphics.display(l, surface)
+                    LaneGraphics.simple_draw(l, surface)
         return surface
+
+    @staticmethod
+    def get_map_bound_box(road_network):
+        from pgdrive.utils.math_utils import get_road_bound_box
+        res_x_max = -np.inf
+        res_x_min = np.inf
+        res_y_min = np.inf
+        res_y_max = -np.inf
+        for _from, to_dict in road_network.graph.items():
+            for _to, lanes in to_dict.items():
+                x_max, x_min, y_max, y_min = get_road_bound_box(lanes)
+                res_x_max = max(res_x_max, x_max)
+                res_x_min = min(res_x_min, x_min)
+                res_y_max = max(res_y_max, y_max)
+                res_y_min = min(res_y_min, y_min)
+        return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(self) -> np.ndarray:
         surface = self.draw_map_image_on_surface()
@@ -200,40 +223,6 @@ class Map:
     def save_map_image(self):
         surface = self.draw_map_image_on_surface()
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
-
-    @staticmethod
-    def find_map_center(road_network) -> np.ndarray:
-        from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-        from pgdrive.scene_creator.lanes.circular_lane import CircularLane
-        from pgdrive.scene_creator.road import Road
-        middle_points = np.array([0.0, 0.0])
-        p_num = 0
-
-        for _from in road_network.graph.keys():
-            for _to in road_network.graph[_from].keys():
-                road = Road(_from, _to)
-                if road.is_negative_road():
-                    continue
-                lane = road_network.graph[_from][_to][0]
-                lat = lane.width
-                if isinstance(lane, StraightLane):
-                    middle = lane.position(lane.length / 2, lat)
-                    middle_points = (middle_points * p_num + middle) / (p_num + 1)
-                    p_num += 1
-                elif isinstance(lane, CircularLane):
-                    segment_num = int(lane.length / Block.CIRCULAR_SEGMENT_LENGTH)
-                    for segment in range(segment_num):
-                        lane_start = lane.position(segment * Block.CIRCULAR_SEGMENT_LENGTH, lat)
-                        lane_end = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, lat)
-                        middle = (lane_start + lane_end) / 2
-                        middle_points = (middle_points * p_num + middle) / (p_num + 1)
-                        p_num += 1
-                    lane_start = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, lat)
-                    lane_end = lane.position(lane.length, lat)
-                    middle = (lane_start + lane_end) / 2
-                    middle_points = (middle_points * p_num + middle) / (p_num + 1)
-                    p_num += 1
-        return middle_points
 
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"

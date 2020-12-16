@@ -284,13 +284,29 @@ class LaneGraphics(object):
 
     @classmethod
     def simple_draw(cls, lane, surface):
-        vehicle_surface = pygame.Surface((surface.pix(length), surface.pix(length)),
-                                         flags=pygame.SRCALPHA)  # per-pixel alpha
-        rect = (surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
-                surface.pix(v.WIDTH))
-        pygame.draw.rect(vehicle_surface, cls.get_color(v, transparent), rect, 0)
-        pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
+        from pgdrive.scene_creator.blocks.block import Block
+        segment_num = int(lane.length / Block.CIRCULAR_SEGMENT_LENGTH)
+        len = Block.CIRCULAR_SEGMENT_LENGTH * 1.2
+        width = lane.width * 1.2
+        for segment in range(segment_num):
+            ground_unit = pygame.Surface((surface.pix(len), surface.pix(width)))  # per-pixel alpha
+            ground_unit.fill(surface.WHITE)
+            # Centered rotation
+            middle = lane.position((segment + 0.5) * Block.CIRCULAR_SEGMENT_LENGTH, 0)
+            h = lane.heading_at((segment + 0.5) * Block.CIRCULAR_SEGMENT_LENGTH)
+            position = [*middle]
+            VehicleGraphics.blit_rotate(surface, ground_unit, surface.vec2pix(position), np.rad2deg(-h))
 
+        # # for last part
+        ground_unit = pygame.Surface((surface.pix(len), surface.pix(width)))  # per-pixel alpha
+        ground_unit.fill(surface.WHITE)
+        start = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, 0)
+        end = lane.position(lane.length, 0)
+        middle = (start + end) / 2
+        long, _ = lane.local_coordinates(middle)
+        h = lane.heading_at(long)
+        position = [*middle]
+        VehicleGraphics.blit_rotate(surface, ground_unit, surface.vec2pix(position), np.rad2deg(-h))
 
     @classmethod
     def draw_ground(cls, lane, surface, color: Tuple[float], width: float,

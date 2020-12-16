@@ -26,7 +26,7 @@ class TestEnv(PGDriveEnv):
                 "rgb_clip": True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_PARA: "rRrrRRrr",
+                    Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }
