@@ -2,7 +2,7 @@ import copy
 import json
 import logging
 import os
-from typing import List
+from typing import List, Optional, Union
 
 import numpy as np
 import pygame
@@ -217,18 +217,21 @@ class Map:
                 res_y_min = min(res_y_min, y_min)
         return res_x_min, res_x_max, res_y_min, res_y_max
 
-    def get_map_image_array(self, fill_hole=True, only_black_white=True) -> np.ndarray:
+    def get_map_image_array(self,
+                            fill_hole=True,
+                            only_black_white=True,
+                            return_surface=False) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_map_image_on_surface()
         if fill_hole:
             surface = self.fill_hole(surface)
         if only_black_white:
             return np.clip(pygame.surfarray.pixels_red(surface), 0.0, 1.0)
+        if return_surface:
+            return surface
         return pygame.surfarray.array3d(surface)
 
-    def save_map_image(self, fill_hole=True):
-        surface = self.draw_map_image_on_surface()
-        if fill_hole:
-            surface = self.fill_hole(surface)
+    def save_map_image(self, fill_hole=True, only_black_white=False):
+        surface = self.get_map_image_array(fill_hole, only_black_white, return_surface=True)
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
     @staticmethod
