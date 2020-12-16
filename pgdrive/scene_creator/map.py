@@ -243,6 +243,8 @@ class Map:
                         count_a[x + x_1][y + y_1] += 1
 
         threshold = 3
+        return surface
+
         res_surface = surface.copy()
         height = surface.get_height()
         width = surface.get_width()
