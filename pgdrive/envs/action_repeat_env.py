@@ -52,11 +52,13 @@ class ActionRepeat(PGDriveEnv):
                 (action_repeat - self.low) / (self.high - self.low) *
                 (self.action_repeat_high - self.action_repeat_low) + self.action_repeat_low
             )
+            # print("[DEBUG] raw action: {}, input action: {}, action repeat: {}".format(
+            # action, action[-1], action_repeat))
             assert action_repeat > 0
         else:
             action_repeat = self.fixed_action_repeat
 
-        action_repeat = min(1, int(action_repeat))
+        action_repeat = min(max(self.action_repeat_low, int(action_repeat)), self.action_repeat_high)
 
         o_list = []
         r_list = []
