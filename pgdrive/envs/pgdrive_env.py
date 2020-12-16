@@ -90,7 +90,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -248,7 +248,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -443,7 +443,8 @@ class PGDriveEnv(gym.Env):
         assert osp.isfile(path)
         with open(path, "r") as f:
             restored_data = json.load(f)
-        if recursive_equal(self.config["map_config"], restored_data["map_config"]):
+        if recursive_equal(self.config["map_config"], restored_data["map_config"]) and \
+                self.start_seed + self.env_num < len(restored_data["map_data"]):
             self.load_all_maps(restored_data)
             return True
         else:
