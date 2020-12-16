@@ -18,8 +18,8 @@ class TestEnv(PGDriveEnv):
                     "highway_render": False
                 },
                 "image_source": "mini_map",
-                "manual_control": True,
-                "use_render": True,
+                "manual_control": False,
+                "use_render": False,
                 "use_image": False,
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
