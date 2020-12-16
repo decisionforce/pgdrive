@@ -8,7 +8,6 @@ class PhysicSetting:
     """
     Work in progress
     """
-
     def __init__(self, size, hpr, offset, model_path):
         # doffset is used for 4 wheels.
         self.size = size
@@ -91,9 +90,8 @@ class OpponentModelPredictiveControl(ModelPredictiveControl):
                 )
                 x, y = state[0], state[1]
                 dist = (
-                               (x - self.landmarks[self.target_index][0]) ** 2 + (
-                                   y - self.landmarks[self.target_index][1]) ** 2
-                       ) ** .5
+                    (x - self.landmarks[self.target_index][0])**2 + (y - self.landmarks[self.target_index][1])**2
+                )**.5
                 cost += dist
                 for vehicle in vehicles:
 
@@ -103,14 +101,13 @@ class OpponentModelPredictiveControl(ModelPredictiveControl):
                             y + vehicle.position[1]
                         ]
                     )
-                    d = (p[0] - x) ** 2 + (p[1] + y) ** 2
+                    d = (p[0] - x)**2 + (p[1] + y)**2
                     alpha = -vehicle.heading
                     c, s = np.cos(alpha), np.sin(alpha)
                     ratio = 4
                     # print(alpha)
                     d = p @ np.array(
-                        [[c ** 2 + ratio * s ** 2, -(ratio - 1) * c * s],
-                         [-(ratio - 1) * c * s, c ** 2 + ratio * s ** 2]]
+                        [[c**2 + ratio * s**2, -(ratio - 1) * c * s], [-(ratio - 1) * c * s, c**2 + ratio * s**2]]
                     ) @ p.T
                     if d > 50:
                         cost += 20
@@ -155,7 +152,7 @@ class OpponentModelPredictiveControl(ModelPredictiveControl):
         return new_state
 
     def update_target(self, pos):
-        dist = lambda pos, lm, i: ((pos[0] - lm[i][0]) ** 2 + (pos[1] - lm[i][1]) ** 2) ** 0.5
+        dist = lambda pos, lm, i: ((pos[0] - lm[i][0])**2 + (pos[1] - lm[i][1])**2)**0.5
 
         if self.target_index == 0:
             while dist(pos, self.landmarks, self.target_index) > dist(pos, self.landmarks, self.target_index + 1):

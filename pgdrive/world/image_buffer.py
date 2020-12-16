@@ -18,20 +18,21 @@ class ImageBuffer:
     refresh_frame = None
 
     def __init__(
-            self,
-            length: float,
-            width: float,
-            pos: Vec3,
-            bkg_color: Union[Vec4, Vec3],
-            pg_world_win,
-            make_camera_func,
-            parent_node: NodePath,
-            frame_buffer_property=None
+        self,
+        length: float,
+        width: float,
+        pos: Vec3,
+        bkg_color: Union[Vec4, Vec3],
+        pg_world_win,
+        make_camera_func,
+        parent_node: NodePath,
+        frame_buffer_property=None
     ):
         try:
             assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
             assert pg_world_win is not None, "{} cannot be made without use_render or use_image".format(
-                self.__class__.__name__)
+                self.__class__.__name__
+            )
             assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"
         except AssertionError:
             logging.debug("Cannot create {}, maybe the render pipe is highway render".format(self.__class__.__name__))

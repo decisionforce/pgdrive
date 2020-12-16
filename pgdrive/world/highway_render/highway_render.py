@@ -69,9 +69,7 @@ class VehicleGraphics(object):
     EGO_COLOR = GREEN
 
     @classmethod
-    def display(cls, vehicle, surface, transparent: bool = False,
-                offscreen: bool = False,
-                label: bool = False) -> None:
+    def display(cls, vehicle, surface, transparent: bool = False, offscreen: bool = False, label: bool = False) -> None:
         """
         Display a vehicle on a pygame surface.
 
@@ -91,10 +89,13 @@ class VehicleGraphics(object):
 
         # Vehicle rectangle
         length = v.LENGTH + 2 * tire_length
-        vehicle_surface = pygame.Surface((surface.pix(length), surface.pix(length)),
-                                         flags=pygame.SRCALPHA)  # per-pixel alpha
-        rect = (surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
-                surface.pix(v.WIDTH))
+        vehicle_surface = pygame.Surface(
+            (surface.pix(length), surface.pix(length)), flags=pygame.SRCALPHA
+        )  # per-pixel alpha
+        rect = (
+            surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
+            surface.pix(v.WIDTH)
+        )
         pygame.draw.rect(vehicle_surface, cls.get_color(v, transparent), rect, 0)
         pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
@@ -130,8 +131,14 @@ class VehicleGraphics(object):
             surface.blit(text, position)
 
     @staticmethod
-    def blit_rotate(surf: pygame.SurfaceType, image: pygame.SurfaceType, pos, angle: float,
-                    origin_pos=None, show_rect: bool = False) -> None:
+    def blit_rotate(
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+        origin_pos=None,
+        show_rect: bool = False
+    ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
         w, h = image.get_size()
@@ -148,8 +155,9 @@ class VehicleGraphics(object):
         pivot_move = pivot_rotate - pivot
 
         # calculate the upper left origin of the rotated image
-        origin = (pos[0] - origin_pos[0] + min_box[0] - pivot_move[0],
-                  pos[1] - origin_pos[1] - max_box[1] + pivot_move[1])
+        origin = (
+            pos[0] - origin_pos[0] + min_box[0] - pivot_move[0], pos[1] - origin_pos[1] - max_box[1] + pivot_move[1]
+        )
         # get a rotated image
         rotated_image = pygame.transform.rotate(image, angle)
         # rotate and blit the image
@@ -178,7 +186,6 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
-
     @classmethod
     def display(cls, lane, surface) -> None:
         """
@@ -187,8 +194,7 @@ class LaneGraphics(object):
         :param lane: the lane to be displayed
         :param surface: the pygame surface
         """
-        stripes_count = int(
-            2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
+        stripes_count = int(2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
         s_origin, _ = lane.local_coordinates(surface.origin)
         s0 = (int(s_origin) // cls.STRIPE_SPACING - stripes_count // 2) * cls.STRIPE_SPACING
         for side in range(2):
@@ -211,8 +217,7 @@ class LaneGraphics(object):
                 raise ValueError("I don't know how to draw this line type: {}".format(lane.line_types[side]))
 
     @classmethod
-    def striped_line(cls, lane, surface, stripes_count: int, longitudinal: float,
-                     side: int) -> None:
+    def striped_line(cls, lane, surface, stripes_count: int, longitudinal: float, side: int) -> None:
         """
         Draw a striped line on one side of a lane, on a surface.
 
@@ -228,8 +233,7 @@ class LaneGraphics(object):
         cls.draw_stripes(lane, surface, starts, ends, lats)
 
     @classmethod
-    def continuous_curve(cls, lane, surface, stripes_count: int,
-                         longitudinal: float, side: int) -> None:
+    def continuous_curve(cls, lane, surface, stripes_count: int, longitudinal: float, side: int) -> None:
         """
         Draw a striped line on one side of a lane, on a surface.
 
@@ -245,8 +249,7 @@ class LaneGraphics(object):
         cls.draw_stripes(lane, surface, starts, ends, lats)
 
     @classmethod
-    def continuous_line(cls, lane, surface, stripes_count: int, longitudinal: float,
-                        side: int) -> None:
+    def continuous_line(cls, lane, surface, stripes_count: int, longitudinal: float, side: int) -> None:
         """
         Draw a continuous line on one side of a lane, on a surface.
 
@@ -262,8 +265,7 @@ class LaneGraphics(object):
         cls.draw_stripes(lane, surface, starts, ends, lats)
 
     @classmethod
-    def draw_stripes(cls, lane, surface,
-                     starts: List[float], ends: List[float], lats: List[float]) -> None:
+    def draw_stripes(cls, lane, surface, starts: List[float], ends: List[float], lats: List[float]) -> None:
         """
         Draw a set of stripes along a lane.
 
@@ -277,10 +279,10 @@ class LaneGraphics(object):
         ends = np.clip(ends, 0, lane.length)
         for k, _ in enumerate(starts):
             if abs(starts[k] - ends[k]) > 0.5 * cls.STRIPE_LENGTH:
-                pygame.draw.line(surface, surface.WHITE,
-                                 (surface.vec2pix(lane.position(starts[k], lats[k]))),
-                                 (surface.vec2pix(lane.position(ends[k], lats[k]))),
-                                 max(surface.pix(cls.STRIPE_WIDTH), 1))
+                pygame.draw.line(
+                    surface, surface.WHITE, (surface.vec2pix(lane.position(starts[k], lats[k]))),
+                    (surface.vec2pix(lane.position(ends[k], lats[k]))), max(surface.pix(cls.STRIPE_WIDTH), 1)
+                )
 
     @classmethod
     def simple_draw(cls, lane, surface):
@@ -309,11 +311,9 @@ class LaneGraphics(object):
         VehicleGraphics.blit_rotate(surface, ground_unit, surface.vec2pix(position), np.rad2deg(-h))
 
     @classmethod
-    def draw_ground(cls, lane, surface, color: Tuple[float], width: float,
-                    draw_surface: pygame.Surface = None) -> None:
+    def draw_ground(cls, lane, surface, color: Tuple[float], width: float, draw_surface: pygame.Surface = None) -> None:
         draw_surface = draw_surface or surface
-        stripes_count = int(
-            2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
+        stripes_count = int(2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
         s_origin, _ = lane.local_coordinates(surface.origin)
         s0 = (int(s_origin) // cls.STRIPE_SPACING - stripes_count // 2) * cls.STRIPE_SPACING
         dots = []
@@ -328,7 +328,6 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
-
     @staticmethod
     def display(road, surface):
         """
@@ -357,7 +356,6 @@ class RoadGraphics(object):
         """
         if road.record_history:
             for v in road.vehicles:
-                VehicleGraphics.display_history(v, surface, simulation=simulation_frequency,
-                                                offscreen=offscreen)
+                VehicleGraphics.display_history(v, surface, simulation=simulation_frequency, offscreen=offscreen)
         for v in road.vehicles:
             VehicleGraphics.display(v, surface, offscreen=offscreen)

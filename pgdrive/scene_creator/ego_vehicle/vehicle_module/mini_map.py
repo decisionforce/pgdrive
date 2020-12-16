@@ -18,8 +18,8 @@ class MiniMap(ImageBuffer):
         self.BUFFER_Y = para[1]
         height = para[2]
         super(MiniMap, self).__init__(
-            self.BUFFER_X, self.BUFFER_Y, Vec3(0, 20, height), self.BKG_COLOR, pg_world.win,
-            pg_world.makeCamera, chassis_np
+            self.BUFFER_X, self.BUFFER_Y, Vec3(0, 20, height), self.BKG_COLOR, pg_world.win, pg_world.makeCamera,
+            chassis_np
         )
         self.cam.lookAt(Vec3(0, 20, 0))
         # lens = self.cam.node().getLens()
