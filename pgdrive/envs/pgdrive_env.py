@@ -1,11 +1,11 @@
 import copy
 import json
 import os.path as osp
-from typing import Optional, Union
+from typing import Union, Optional
 
 import gym
-from typing import Optional
 import numpy as np
+
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config import PgConfig
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
@@ -30,7 +30,7 @@ class PGDriveEnv(gym.Env):
 
             # ===== Rendering =====
             use_render=False,  # pop a window to render or not
-            force_fps=None,
+            # force_fps=None,
             debug=False,
             manual_control=False,
             controller="keyboard",  # "joystick" or "keyboard"
@@ -102,7 +102,8 @@ class PGDriveEnv(gym.Env):
                 "use_render": self.use_render,
                 "use_image": self.config["use_image"],
                 "debug": self.config["debug"],
-                "force_fps": self.config["force_fps"],
+                # "force_fps": self.config["force_fps"],
+                "decision_repeat": self.config["decision_repeat"],
             }
         )
         self.pg_world_config = pg_world_config
