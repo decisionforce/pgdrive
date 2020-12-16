@@ -1,12 +1,13 @@
 import copy
 import json
 import os.path as osp
-from typing import Optional, Union
+from typing import Union, Optional
 
 import gym
 import numpy as np
+
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
-from pgdrive.pg_config.pg_config import PgConfig
+from pgdrive.pg_config import PgConfig
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
@@ -29,7 +30,7 @@ class PGDriveEnv(gym.Env):
 
             # ===== Rendering =====
             use_render=False,  # pop a window to render or not
-            force_fps=None,
+            # force_fps=None,
             debug=False,
             manual_control=False,
             controller="keyboard",  # "joystick" or "keyboard"
@@ -89,7 +90,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -101,6 +102,8 @@ class PGDriveEnv(gym.Env):
                 "use_render": self.use_render,
                 "use_image": self.config["use_image"],
                 "debug": self.config["debug"],
+                # "force_fps": self.config["force_fps"],
+                "decision_repeat": self.config["decision_repeat"],
             }
         )
         self.pg_world_config = pg_world_config
@@ -131,9 +134,6 @@ class PGDriveEnv(gym.Env):
         # init traffic manager
         self.traffic_manager = TrafficManager(self.config["traffic_mode"])
 
-        # for manual_control and main camera type
-        if self.config["use_chase_camera"]:
-            self.control_camera = ChaseCamera(self.config["camera_height"], 7, self.pg_world)
         if self.config["manual_control"]:
             if self.config["controller"] == "keyboard":
                 self.controller = KeyboardController()
@@ -146,6 +146,11 @@ class PGDriveEnv(gym.Env):
         v_config = self.config["vehicle_config"]
         self.vehicle = BaseVehicle(self.pg_world, v_config)
 
+        # for manual_control and main camera type
+        if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
+            self.control_camera = ChaseCamera(
+                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
+            )
         # add sensors
         self.add_modules_for_vehicle()
 
@@ -191,19 +196,14 @@ class PGDriveEnv(gym.Env):
         info.update(done_info)
         return obs, reward + done_reward, self.done, info
 
-    def render(self, mode='human', text: Optional[Union[dict, str]] = None):
-        assert self.use_render or self.config["use_image"], (
-            "Onsceen rendering is disable now. Please use environmental config['use_render'] = True or "
-            "config['use_image'] = True to allow onscreen rendering."
-        )
-        if self.control_camera is not None:
-            self.control_camera.renew_camera_place(self.pg_world.cam, self.vehicle)
+    def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
+        assert self.use_render or self.config["use_image"], "render is off now, can not render"
         self.pg_world.render_frame(text)
-        if self.pg_world.vehicle_panel is not None:
-            self.pg_world.vehicle_panel.renew_2d_car_para_visualization(
-                self.vehicle.steering, self.vehicle.throttle_brake, self.vehicle.speed
-            )
-        return
+        if mode != "human" and self.config["use_image"]:
+            # fetch img from img stack to be make this func compatible with other render func in RL setting
+            return self.observation.img_obs.state[:, :, -1]
+        else:
+            return None
 
     def reset(self):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
@@ -239,7 +239,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -315,7 +315,7 @@ class PGDriveEnv(gym.Env):
 
         # remove map from world before adding
         if self.current_map is not None:
-            self.current_map.unload_from_pg_world(self.pg_world.physics_world)
+            self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
         self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
@@ -328,13 +328,13 @@ class PGDriveEnv(gym.Env):
                 map_config = self.config["map_config"]
                 map_config.update({"seed": self.current_seed})
 
-            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            new_map = Map(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
         else:
             self.current_map = self.maps[self.current_seed]
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
-            self.current_map.load_to_pg_world(self.pg_world.worldNP, self.pg_world.physics_world)
+            self.current_map.load_to_pg_world(self.pg_world)
 
     def add_modules_for_vehicle(self):
         # add vehicle module for training according to config
@@ -364,7 +364,7 @@ class PGDriveEnv(gym.Env):
                 self.vehicle.add_image_sensor("mini_map", mini_map)
             elif self.config["image_source"] == "depth_cam":
                 cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(cam_config[0], cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                depth_cam = DepthCamera(*cam_config, self.vehicle.chassis_np, self.pg_world)
                 self.vehicle.add_image_sensor("depth_cam", depth_cam)
             else:
                 raise ValueError("No module named {}".format(self.config["image_source"]))
@@ -390,9 +390,9 @@ class PGDriveEnv(gym.Env):
         for seed in range(self.start_seed, self.start_seed + self.env_num):
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
-            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            new_map = Map(self.pg_world, map_config)
             self.maps[seed] = new_map
-            new_map.unload_from_pg_world(self.pg_world.physics_world)
+            new_map.unload_from_pg_world(self.pg_world)
             print("Finish generating map with seed: ", seed)
 
         map_data = dict()

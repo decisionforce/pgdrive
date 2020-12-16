@@ -7,19 +7,21 @@ import gltf
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, TextNode, LineSegs
+
+from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.pg_config.pg_config import PgConfig
 from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.world.force_fps import ForceFPS
+from pgdrive.world.highway_render.highway_render import HighwayRender
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.light import Light
 from pgdrive.world.onscreen_message import PgOnScreenMessage
 from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
-from pgdrive.world.vehicle_panel import VehiclePanel
 
 root_path = os.path.dirname(os.path.dirname(__file__))
+pg_edition = "PGDrive v0.1.0"
 
 help_message = "Keyboard Shortcuts:\n" \
                "  w: Acceleration\n" \
@@ -32,11 +34,13 @@ help_message = "Keyboard Shortcuts:\n" \
                "  2: WireFrame Debug Mode\n" \
                "  3: Texture Debug Mode\n" \
                "  4: Print Debug Message\n" \
+               "  f: Switch FPS between unlimited, 60 Hz and \n" \
+               "     real simulation frequency\n" \
                "  Esc: Quit\n"
 
 
 class PgWorld(ShowBase.ShowBase):
-    loadPrcFileData("", "window-title PGDrive v0.1.0")
+    loadPrcFileData("", "window-title {}".format(pg_edition))
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
@@ -60,38 +64,50 @@ class PgWorld(ShowBase.ShowBase):
         self.pg_config = self.default_config()
         if config is not None:
             self.pg_config.update(config)
-        loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
-        if self.pg_config["use_render"]:
-            mode = "onscreen"
-            loadPrcFileData("", "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
+        if self.pg_config["highway_render"]:
+            # when use highway render, panda3d core will degenerate to a simple physics world
+            # and the scene will be drawn by PyGame
+            self.mode = "none"
+            self.pg_config["use_image"] = False
         else:
-            mode = "offscreen" if self.pg_config["use_image"] else "none"
-        if is_mac() and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
-            mode = "onscreen"
-        if self.pg_config["headless_image"] and not self.pg_config["_use_tiny"]:
-            loadPrcFileData("", "load-display  pandagles2")
-        if self.pg_config["_use_tiny"]:
-            loadPrcFileData("", "load-display  p3tinydisplay")
-        super(PgWorld, self).__init__(windowType=mode)
-        if not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"]):
+            loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
+            if self.pg_config["use_render"]:
+                self.mode = "onscreen"
+                loadPrcFileData(
+                    "", "threading-model Cull/Draw"
+                )  # multi-thread render, accelerate simulation when evaluate
+            else:
+                self.mode = "offscreen" if self.pg_config["use_image"] else "none"
+            if is_mac() and self.pg_config["use_image"]:  # Mac don't support offscreen rendering
+                self.mode = "onscreen"
+            if self.pg_config["headless_image"]:
+                loadPrcFileData("", "load-display  pandagles2")
+        super(PgWorld, self).__init__(windowType=self.mode)
+        if (not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"])) \
+                and not self.pg_config["highway_render"]:
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
         self.closed = False
-        self.exitFunc = self.exitFunc
+        self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
+            self.pg_config["highway_render"] else None
         ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
+        ImageBuffer.enable = False if self.pg_config["highway_render"] else True
 
-        # add element to render and pbr render, if is exists all the time
+        # add element to render and pbr render, if is exists all the time.
+        # these element will not be removed when clear_world() is called
         self.pbr_render = self.render.attachNewNode("pbrNP")
 
-        # add element should be cleared these node asset_path, after reset()
+        # attach node to this root root whose children nodes will be clear after calling clear_world()
         self.worldNP = self.render.attachNewNode("world_np")
-        self.pbr_worldNP = self.pbr_render.attachNewNode("pbrNP")  # This node is only used for render gltf model
+
+        # same as worldNP, but this node is only used for render gltf model with pbr material
+        self.pbr_worldNP = self.pbr_render.attachNewNode("pbrNP")
         self.debug_node = None
 
         # some render attr
         self.light = None
-        self.vehicle_panel = None
+        self.collision_info_np = None
 
         # physics world
         self.physics_world = BulletWorld()
@@ -103,7 +119,7 @@ class PgWorld(ShowBase.ShowBase):
         self.terrain.attach_to_pg_world(self.render, self.physics_world)
 
         # init other world elements
-        if self.pg_config["use_image"] or self.pg_config["use_render"]:
+        if self.mode != "none":
 
             # collision info render
             self.collision_info_np = NodePath(TextNode("collision_info"))
@@ -148,23 +164,17 @@ class PgWorld(ShowBase.ShowBase):
             self.render.setAntialias(AntialiasAttrib.MAuto)
 
             # ui and render property
-            if self.pg_config["show_message"]:
-                self.onScreenDebug.enabled = True  # only show in onscreen mode
             if self.pg_config["show_fps"]:
                 self.setFrameRateMeter(True)
-            self.force_fps = ForceFPS(self.pg_config["force_fps"])
+            self.force_fps = ForceFPS(
+                1 / (self.pg_config["physics_world_step_size"] * self.pg_config["decision_repeat"]), start=False
+            )
 
             # self added display regions and cameras attached to them
             self.my_display_regions = []
             if self.pg_config["use_default_layout"]:
                 self._init_display_region()
             self.my_buffers = []
-
-            # first window and display region -- a vehicle panel
-            self.vehicle_panel = VehiclePanel(self.win.makeTextureBuffer, self.makeCamera)
-            self.vehicle_panel.add_to_display(
-                self, [2 / 3, 1, self.vehicle_panel.display_bottom, self.vehicle_panel.display_top]
-            )
 
         # task manager
         self.taskMgr.remove('audioLoop')
@@ -180,6 +190,7 @@ class PgWorld(ShowBase.ShowBase):
         self.accept('3', self.toggleTexture)
         self.accept('4', self.toggleAnalyze)
         self.accept("h", self.toggle_help_message)
+        self.accept("f", self.force_fps.toggle)
 
     def _init_display_region(self):
         scale = self.pg_config["window_size"][0] / self.pg_config["window_size"][1]
@@ -217,12 +228,15 @@ class PgWorld(ShowBase.ShowBase):
         :param text: A dict containing key and values or a string.
         :return: None
         """
-        if self.on_screen_message is not None:
-            self.on_screen_message.update_data(text)
-        if self.pg_config["use_render"]:
-            self.on_screen_message.render()
-            with self.force_fps:
-                self.sky_box.step()
+        if not self.pg_config["highway_render"]:
+            if self.on_screen_message is not None:
+                self.on_screen_message.update_data(text)
+            if self.pg_config["use_render"]:
+                self.on_screen_message.render()
+                with self.force_fps:
+                    self.sky_box.step()
+        else:
+            return self.highway_render.draw_scene()
 
     def clear_world(self):
         """
@@ -253,18 +267,27 @@ class PgWorld(ShowBase.ShowBase):
                 use_render=False,
                 use_image=False,
                 physics_world_step_size=2e-2,
-                chase_camera=True,
-                direction_light=True,
-                ambient_light=True,
                 show_fps=True,
-                show_message=True,  # show message when render is called
-                mini_map=True,
-                force_fps=None,
-                debug_physics_world=False,  # only render physics world without model
-                use_default_layout=True,  # decide the layout of white lines
-                headless_image=False,  # set to true only when on headless machine and use rgb image!!!!!!
+
+                # show message when render is called
                 onscreen_message=True,
-                _use_tiny=False  # Whether to use tinydisplay renderer, for debug usage.
+
+                # limit the render fps
+                # Press "f" to switch FPS, this config is deprecated!
+                # force_fps=None,
+                decision_repeat=5,  # This will be written by PGDriveEnv
+
+                # only render physics world without model
+                debug_physics_world=False,
+
+                # decide the layout of white lines
+                use_default_layout=True,
+
+                # set to true only when on headless machine and use rgb image!!!!!!
+                headless_image=False,
+
+                # to shout-out to highway-env, we call the 2D-bird-view-render highway_render
+                highway_render=False
             )
         )
 
@@ -304,7 +327,7 @@ class PgWorld(ShowBase.ShowBase):
         return task.done
 
     def close_world(self):
-        if self.pg_config["use_render"] or self.pg_config["use_image"]:
+        if self.mode != "none":
             self._clear_display_region_and_buffers()
         self.destroy()
         self.physics_world.clearDebugNode()

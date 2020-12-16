@@ -6,9 +6,11 @@ from os import path
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, Vec4, PythonCallbackObject
+
+from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
+from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
-from pgdrive.pg_config.pg_config import PgConfig
 from pgdrive.pg_config.pg_space import PgSpace
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
@@ -61,7 +63,7 @@ class BaseVehicle(DynamicElement):
             lidar=(240, 50, 4),  # laser num, distance, other vehicle info num
             mini_map=(84, 84, 250),  # buffer length, width
             rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84),  # buffer length, width
+            depth_cam=(84, 84, True),  # buffer length, width, view_ground
             show_navi_point=False,
             increment_steering=False,
             wheel_friction=0.6,
@@ -103,6 +105,8 @@ class BaseVehicle(DynamicElement):
         self.routing_localization = None
         self.lane = None
         self.lane_index = None
+        from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
+        self.vehicle_panel = VehiclePanel(self, self.pg_world)
 
         # other info
         self.throttle_brake = 0.0
@@ -171,6 +175,10 @@ class BaseVehicle(DynamicElement):
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
+
+        if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
+            for block in map.blocks:
+                block.node_path.hide(CamMask.DepthCam)
 
         # if self.vehicle_config["wheel_friction"] != self.default_vehicle_config["wheel_friction"]:
         #     for wheel in self.wheels:
@@ -325,7 +333,7 @@ class BaseVehicle(DynamicElement):
         return project_on_heading, project_on_side
 
     def lane_distance_to(self, vehicle, lane: AbstractLane = None) -> float:
-        assert self.routing_localization is not None, "a routing and localization module shoud be added " \
+        assert self.routing_localization is not None, "a routing and localization module should be added " \
                                                       "to interact with other vehicles"
         if not vehicle:
             return np.nan

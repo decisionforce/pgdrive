@@ -15,6 +15,7 @@ class TestEnv(PGDriveEnv):
                 "pg_world_config": {
                     "debug": False,
                 },
+                "camera_height": 800.0,
                 "image_source": "mini_map",
                 "manual_control": True,
                 "use_render": True,
@@ -45,8 +46,8 @@ if __name__ == "__main__":
         # print(time.time() - start)
         # print(len(o), "Vs.", env.observation_space.shape[0])
         # print(info)
-        env.render("Test: {}".format(i))
+        # env.render("Test: {}".format(i))
         # if d:
         #     print("Reset")
-        #     env.reset()
+        env.reset()
     env.close()

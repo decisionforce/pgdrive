@@ -1,7 +1,7 @@
 from gym.spaces import Box
 
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config.pg_config import PgConfig
+from pgdrive.pg_config import PgConfig
 
 
 class ActionRepeat(PGDriveEnv):
@@ -12,7 +12,7 @@ class ActionRepeat(PGDriveEnv):
         # Set the internal environment run in 0.02s interval.
         config["decision_repeat"] = 1
 
-        # Speed reward is given for current state, so its maginitude need to be reduced
+        # Speed reward is given for current state, so its magnitude need to be reduced
         config["speed_reward"] = config["speed_reward"] / 5
 
         # Set the interval from 0.02s to 1s
