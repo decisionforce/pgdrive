@@ -37,5 +37,5 @@ class TestEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = TestEnv()
     env.reset()
-    # env.current_map.save_map_image()
-    print(env.current_map.get_map_image_array())
+    env.current_map.save_map_image()
+    # print(env.current_map.get_map_image_array())
