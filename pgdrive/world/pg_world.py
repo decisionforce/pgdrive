@@ -321,6 +321,7 @@ class PgWorld(ShowBase.ShowBase):
     def close_world(self):
         if self.mode != "none":
             self._clear_display_region_and_buffers()
+        self.taskMgr.stop()
         self.taskMgr.destroy()
         while self.taskMgr.getAllTasks():
             time.sleep(0.1)
