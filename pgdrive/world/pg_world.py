@@ -12,6 +12,7 @@ from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.world.constants import pg_edition, help_message, COLOR, COLLISION_INFO_COLOR
 from pgdrive.world.force_fps import ForceFPS
 from pgdrive.world.highway_render.highway_render import HighwayRender
 from pgdrive.world.image_buffer import ImageBuffer
@@ -21,22 +22,6 @@ from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
 
 root_path = os.path.dirname(os.path.dirname(__file__))
-pg_edition = "PGDrive v0.1.0"
-
-help_message = "Keyboard Shortcuts:\n" \
-               "  w: Acceleration\n" \
-               "  s: Braking\n" \
-               "  a: Moving Left\n" \
-               "  d: Moving Right\n" \
-               "  r: Reset the Environment\n" \
-               "  h: Helping Message\n" \
-               "  1: Box Debug Mode\n" \
-               "  2: WireFrame Debug Mode\n" \
-               "  3: Texture Debug Mode\n" \
-               "  4: Print Debug Message\n" \
-               "  f: Switch FPS between unlimited, 60 Hz and \n" \
-               "     real simulation frequency\n" \
-               "  Esc: Quit\n"
 
 
 class PgWorld(ShowBase.ShowBase):
@@ -347,6 +332,24 @@ class PgWorld(ShowBase.ShowBase):
         else:
             self.on_screen_message.update_data(help_message)
             self._show_help_message = True
+
+    def render_collision_info(self, contacts):
+        contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
+        text = contacts[0] if len(contacts) != 0 else None
+        if text is None:
+            self.render_banner("Normal", COLLISION_INFO_COLOR["green"][1])
+        else:
+            self.render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
+
+    def render_banner(self, text, color=COLLISION_INFO_COLOR["green"]):
+        """
+        Render the banner in the left bottom corner.
+        """
+        if self.collision_info_np is None:
+            return
+        text_node = self.collision_info_np.node()
+        text_node.setCardColor(color)
+        text_node.setText(text)
 
 
 if __name__ == "__main__":

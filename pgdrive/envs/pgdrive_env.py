@@ -1,11 +1,11 @@
 import copy
 import json
-import logging
 import os.path as osp
 from typing import Union, Optional
 
 import gym
 import numpy as np
+
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config import PgConfig
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
@@ -90,7 +90,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -203,7 +203,7 @@ class PGDriveEnv(gym.Env):
             # fetch img from img stack to be make this func compatible with other render func in RL setting
             return self.observation.img_obs.get_image()
 
-        if mode != "human" and self.config["use_render"]:
+        if mode == "rgb_array" and self.config["use_render"]:
             if not hasattr(self, "_temporary_img_obs"):
                 from pgdrive.envs.observation_type import ImageObservation
                 image_source = "rgb_cam"
@@ -211,7 +211,7 @@ class PGDriveEnv(gym.Env):
             self.temporary_img_obs.observe(self.vehicle.image_sensors[image_source])
             return self.temporary_img_obs.get_image()
 
-        logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
+        # logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
         return None
 
     def reset(self):
@@ -248,7 +248,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -459,7 +459,7 @@ class PGDriveEnv(gym.Env):
 
     def force_close(self):
         self.close()
-        raise KeyboardInterrupt()
+        raise KeyboardInterrupt("'Esc' is pressed. PGDrive exits now.")
 
     def set_current_seed(self, seed):
         self.current_seed = seed
