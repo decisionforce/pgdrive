@@ -112,7 +112,7 @@ class PgWorld(ShowBase.ShowBase):
                     scale=(self.w_scale, 1, self.h_scale)
                 )
                 self.logo.setTransparency(True)
-                for i in range(4):
+                for i in range(10):
                     self.graphicsEngine.renderFrame()
                 self.taskMgr.add(self.remove_logo, "remove logo in first frame")
 
