@@ -461,6 +461,8 @@ class PGDriveEnv(gym.Env):
 
     def force_close(self):
         self.close()
+        import time
+        time.sleep(2)  # Sleep two seconds
         raise KeyboardInterrupt("'Esc' is pressed. PGDrive exits now.")
 
     def set_current_seed(self, seed):
