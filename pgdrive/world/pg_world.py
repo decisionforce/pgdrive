@@ -32,7 +32,6 @@ class PgWorld(ShowBase.ShowBase):
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
-
     # loadPrcFileData("", " framebuffer-srgb truein")
 
     # loadPrcFileData("", "geom-cache-size 50000")
@@ -56,6 +55,7 @@ class PgWorld(ShowBase.ShowBase):
             # and the scene will be drawn by PyGame
             self.mode = "none"
             self.pg_config["use_image"] = False
+            ImageBuffer.disable()
         else:
             loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
             if self.pg_config["use_render"]:
@@ -85,8 +85,6 @@ class PgWorld(ShowBase.ShowBase):
         self.closed = False
         self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
             self.pg_config["highway_render"] else None
-
-        ImageBuffer.disable()
 
         # add element to render and pbr render, if is exists all the time.
         # these element will not be removed when clear_world() is called
