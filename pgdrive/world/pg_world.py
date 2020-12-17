@@ -76,6 +76,17 @@ class PgWorld(ShowBase.ShowBase):
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
+            if self.pg_config["use_render"]:
+                # show logo
+                self.logo = OnscreenImage(
+                    image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive.png"),
+                    pos=(0, 0, 0),
+                    scale=(self.w_scale, 1, self.h_scale)
+                )
+                self.logo.setTransparency(True)
+                for i in range(4):
+                    self.graphicsEngine.renderFrame()
+                self.taskMgr.add(self.remove_logo, "remove logo in first frame")
 
         self.closed = False
         self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
@@ -102,17 +113,6 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np = None
         self.w_scale = max(self.pg_config["window_size"][0] / self.pg_config["window_size"][1], 1)
         self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
-        if self.pg_config["use_render"]:
-            # show logo
-            self.logo = OnscreenImage(
-                image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive.png"),
-                pos=(0, 0, 0),
-                scale=(self.w_scale, 1, self.h_scale)
-            )
-            self.logo.setTransparency(True)
-            for i in range(4):
-                self.graphicsEngine.renderFrame()
-            self.taskMgr.add(self.remove_logo, "remove logo in first frame")
 
         # physics world
         self.physics_world = BulletWorld()
