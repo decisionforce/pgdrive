@@ -322,6 +322,8 @@ class PgWorld(ShowBase.ShowBase):
         if self.mode != "none":
             self._clear_display_region_and_buffers()
         self.taskMgr.destroy()
+        while self.taskMgr.getAllTasks():
+            time.sleep(0.1)
         self.destroy()
         self.physics_world.clearDebugNode()
         self.physics_world.clearContactAddedCallback()
