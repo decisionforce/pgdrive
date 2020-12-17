@@ -1,6 +1,7 @@
 import copy
 import json
 import os.path as osp
+import time
 from typing import Union, Optional
 
 import gym
@@ -462,7 +463,6 @@ class PGDriveEnv(gym.Env):
     def force_close(self):
         print("Closing environment ... Please wait")
         self.close()
-        import time
         time.sleep(2)  # Sleep two seconds
         raise KeyboardInterrupt("'Esc' is pressed. PGDrive exits now.")
 
