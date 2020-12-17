@@ -11,8 +11,8 @@ class TestEnv(PGDriveEnv):
                 "environment_num": 4,
                 "traffic_density": 0.1,
                 "manual_control": True,
-                "vehicle_config":{
-                  "lidar":(240, 50, 4)
+                "vehicle_config": {
+                    "lidar": (240, 50, 4)
                 },
                 "use_render": True,
             }
