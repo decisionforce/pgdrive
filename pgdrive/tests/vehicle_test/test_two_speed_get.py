@@ -34,4 +34,4 @@ if __name__ == "__main__":
                                                env.vehicle.system.get_current_speed_km_hour(),
                                                env.vehicle.speed - env.vehicle.system.get_current_speed_km_hour()))
         env.render("Test: {}".format(i))
-        env.close()
+    env.close()
