@@ -320,8 +320,8 @@ class PgWorld(ShowBase.ShowBase):
 
     def close_world(self):
         if self.mode != "none":
-            self.taskMgr.remove('simplepbr update')
             self._clear_display_region_and_buffers()
+        self.taskMgr.destroy()
         self.destroy()
         self.physics_world.clearDebugNode()
         self.physics_world.clearContactAddedCallback()
