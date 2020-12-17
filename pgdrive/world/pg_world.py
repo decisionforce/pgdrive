@@ -105,7 +105,7 @@ class PgWorld(ShowBase.ShowBase):
         if self.pg_config["use_render"]:
             # show logo
             self.logo = OnscreenImage(
-                image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive.png"),
+                image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive-large.png"),
                 pos=(0, 0, 0),
                 scale=(self.w_scale, 1, self.h_scale)
             )
@@ -379,8 +379,8 @@ class PgWorld(ShowBase.ShowBase):
             self.logo.destroy()
             return task.done
         else:
-            new_alpha = alpha - 0.04
-            print(new_alpha)
+            new_alpha = alpha - 0.1
+            # print(new_alpha)
             self.logo.setColor((1, 1, 1, new_alpha))
             return task.cont
 
