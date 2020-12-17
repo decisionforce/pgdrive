@@ -1,8 +1,8 @@
 import logging
 from typing import Union, List
-from pgdrive.world.pg_world import PgWorld
+
 import numpy as np
-from panda3d.core import NodePath, Vec3, Vec4, Camera
+from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
 
 
 class ImageBuffer:
@@ -15,7 +15,10 @@ class ImageBuffer:
     display_bottom = 0.8
     display_top = 1
     display_region = None
-    refresh_frame = None
+
+    @classmethod
+    def disable(cls):
+        cls.enable = False
 
     def __init__(
         self,
@@ -23,14 +26,14 @@ class ImageBuffer:
         width: float,
         pos: Vec3,
         bkg_color: Union[Vec4, Vec3],
-        pg_world_win,
+        pg_world,
         make_camera_func,
         parent_node: NodePath,
-        frame_buffer_property=None
+        frame_buffer_property=None,
     ):
         try:
             assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
-            assert pg_world_win is not None, "{} cannot be made without use_render or use_image".format(
+            assert pg_world.win is not None, "{} cannot be made without use_render or use_image".format(
                 self.__class__.__name__
             )
             assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"
@@ -40,7 +43,8 @@ class ImageBuffer:
             self.cam = NodePath(Camera("non-sense camera"))
             self.lens = self.cam.node().getLens()
             return
-        make_buffer_func = pg_world_win.makeTextureBuffer
+        self.pg_world = pg_world
+        make_buffer_func = pg_world.win.makeTextureBuffer
         # self.texture = Texture()
         if frame_buffer_property is None:
             self.buffer = make_buffer_func("camera", length, width)
@@ -63,8 +67,7 @@ class ImageBuffer:
         """
         Bugs here! when use offscreen mode, thus the front cam obs is not from front cam now
         """
-        self.refresh_frame()
-        from panda3d.core import PNMImage
+        self.pg_world.render_frame()
         img = PNMImage()
         self.buffer.getScreenshot(img)
         return img
@@ -103,7 +106,7 @@ class ImageBuffer:
             pg_world.my_buffers.append(self)
             self.draw_border(pg_world, display_region)
 
-    def draw_border(self, pg_world: PgWorld, display_region):
+    def draw_border(self, pg_world, display_region):
         # add white frame for display region, convert to [-1, 1]
         left = display_region[0] * 2 - 1
         right = display_region[1] * 2 - 1

@@ -17,6 +17,7 @@ from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.world.constants import pg_edition, help_message, COLOR, COLLISION_INFO_COLOR
 from pgdrive.world.force_fps import ForceFPS
 from pgdrive.world.highway_render.highway_render import HighwayRender
+from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.light import Light
 from pgdrive.world.onscreen_message import PgOnScreenMessage
 from pgdrive.world.sky_box import SkyBox
@@ -72,8 +73,7 @@ class PgWorld(ShowBase.ShowBase):
         if self.mode == "onscreen":
             self.disableMouse()
 
-        if (not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"])) \
-                and not self.pg_config["highway_render"]:
+        if (self.pg_config["use_render"] or self.pg_config["use_image"]) and not self.pg_config["highway_render"]:
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
@@ -82,9 +82,9 @@ class PgWorld(ShowBase.ShowBase):
         self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
             self.pg_config["highway_render"] else None
 
-        from pgdrive.world.image_buffer import ImageBuffer
-        ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
-        ImageBuffer.enable = False if self.pg_config["highway_render"] else True
+        # ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
+        # ImageBuffer.enable = False if self.pg_config["highway_render"] else True
+        ImageBuffer.disable()
 
         # add element to render and pbr render, if is exists all the time.
         # these element will not be removed when clear_world() is called

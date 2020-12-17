@@ -40,7 +40,7 @@ class VehiclePanel(ImageBuffer):
             textNodePath.setPos(-1.125111, 0, 0.9 - i * 0.08)
             self.para_vis_np.append(textNodePath)
         super(VehiclePanel, self).__init__(
-            self.BUFFER_W, self.BUFFER_H, Vec3(-0.9, -1.01, 0.78), self.BKG_COLOR, pg_world.win, make_camera_func,
+            self.BUFFER_W, self.BUFFER_H, Vec3(-0.9, -1.01, 0.78), self.BKG_COLOR, pg_world, make_camera_func,
             self.aspect2d_np
         )
         self.add_to_display(pg_world, [2 / 3, 1, self.display_bottom, self.display_top])
