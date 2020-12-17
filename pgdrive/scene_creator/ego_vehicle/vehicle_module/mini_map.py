@@ -21,5 +21,6 @@ class MiniMap(ImageBuffer):
         self.cam.lookAt(Vec3(0, 20, 0))
         # lens = self.cam.node().getLens()
         # self.lens.setFilmOffset(1.0, 2.0)
+        self.lens.setAspectRatio(2.0)
         self.add_to_display(pg_world, [0., 1 / 3, self.display_bottom, self.display_top])
         # self.buffer.setSort(0)
