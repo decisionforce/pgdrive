@@ -35,5 +35,10 @@ if __name__ == "__main__":
         else:
             a = [-1, -1]
         o, r, d, info = env.step(a)
-        env.render("Test: {}".format(i))
+        env.render(
+        text="Old speed: {:.3f}, new speed: {:.3f}, diff: {:.3f}".format(
+            env.vehicle.system.get_current_speed_km_hour(),
+            env.vehicle.speed, env.vehicle.system.get_current_speed_km_hour() - env.vehicle.speed
+        )
+        )
     env.close()
