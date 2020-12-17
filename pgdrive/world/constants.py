@@ -5,17 +5,17 @@ from pgdrive.pg_config.body_name import BodyName
 pg_edition = "PGDrive v0.1.0"
 
 help_message = "Keyboard Shortcuts:\n" \
-               "  w: Acceleration\n" \
-               "  s: Braking\n" \
-               "  a: Moving Left\n" \
-               "  d: Moving Right\n" \
-               "  r: Reset the Environment\n" \
-               "  h: Helping Message\n" \
+               "  W: Acceleration\n" \
+               "  S: Braking\n" \
+               "  A: Moving Left\n" \
+               "  D: Moving Right\n" \
+               "  R: Reset the Environment\n" \
+               "  H: Help Message\n" \
                "  1: Box Debug Mode\n" \
                "  2: WireFrame Debug Mode\n" \
                "  3: Texture Debug Mode\n" \
                "  4: Print Debug Message\n" \
-               "  f: Switch FPS between unlimited, 60 Hz and \n" \
+               "  F: Switch FPS between unlimited, 60 Hz and \n" \
                "     real simulation frequency\n" \
                "  Esc: Quit\n"
 

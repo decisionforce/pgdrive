@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import time
 from typing import Optional, Union
 
 import gltf
@@ -165,6 +166,7 @@ class PgWorld(ShowBase.ShowBase):
             self.on_screen_message = PgOnScreenMessage() \
                 if self.pg_config["use_render"] and self.pg_config["onscreen_message"] else None
             self._show_help_message = False
+            self._episode_start_time = time.time()
 
             # debug setting
             self.accept('1', self.toggleDebug)
@@ -325,6 +327,8 @@ class PgWorld(ShowBase.ShowBase):
         # del self.physics_world  # Will cause error if del it.
         self.physics_world = None
 
+        self._episode_start_time = time.time()
+
     def toggle_help_message(self):
         if self._show_help_message:
             self.on_screen_message.clear_plain_text(help_message)
@@ -337,11 +341,12 @@ class PgWorld(ShowBase.ShowBase):
         contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
         text = contacts[0] if len(contacts) != 0 else None
         if text is None:
-            self.render_banner("Normal", COLLISION_INFO_COLOR["green"][1])
+            text = "Normal" if time.time() - self._episode_start_time > 10 else "Press H to see help message"
+            self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
         else:
             self.render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
-    def render_banner(self, text, color=COLLISION_INFO_COLOR["green"]):
+    def render_banner(self, text, color=COLLISION_INFO_COLOR["green"][1]):
         """
         Render the banner in the left bottom corner.
         """
