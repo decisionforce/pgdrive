@@ -1,5 +1,5 @@
 import queue
-
+from direct.controls.InputState import InputState
 from panda3d.core import Vec3, Camera
 
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
@@ -13,7 +13,7 @@ class ChaseCamera:
     queue_length = 3
 
     def __init__(
-        self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PgWorld
+            self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PgWorld
     ):
         self.camera = camera
         self.camera_queue = None
@@ -21,9 +21,16 @@ class ChaseCamera:
         self.camera_dist = camera_dist
         self.light = pg_world.light  # light position is updated with the chase camera when control vehicle
         pg_world.taskMgr.add(self.renew_camera_place, "renew_cam", extraArgs=[vehicle], appendTask=True)
+        self.inputs = InputState()
+        self.inputs.watchWithModifiers('up', 'k')
+        self.inputs.watchWithModifiers('down', 'j')
         self.reset()
 
     def renew_camera_place(self, vehicle, task):
+        if self.inputs.isSet("up"):
+            self.camera_height += 0.5
+        if self.inputs.isSet("down"):
+            self.camera_height -= 0.5
         self.camera_queue.put(vehicle.chassis_np.get_pos())
         camera_pos = list(self.camera_queue.get())
         camera_pos[2] += self.camera_height
