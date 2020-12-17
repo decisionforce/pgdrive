@@ -31,7 +31,6 @@ class PgWorld(ShowBase.ShowBase):
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
-    loadPrcFileData("", "compressed-textures 1")
 
     # loadPrcFileData("", " framebuffer-srgb truein")
 
@@ -68,6 +67,9 @@ class PgWorld(ShowBase.ShowBase):
                 self.mode = "onscreen"
             if self.pg_config["headless_image"]:
                 loadPrcFileData("", "load-display  pandagles2")
+        if self.pg_config["use_image"]:
+            # Compress the texture when using image to train, this can save lots of memory.
+            loadPrcFileData("", "compressed-textures 1")
         super(PgWorld, self).__init__(windowType=self.mode)
         if self.mode == "onscreen":
             self.disableMouse()
