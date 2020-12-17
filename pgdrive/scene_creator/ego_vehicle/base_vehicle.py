@@ -220,6 +220,10 @@ class BaseVehicle(DynamicElement):
         km/h
         """
         speed = self.chassis_np.node().get_linear_velocity().length() * 3.6
+        print("Old speed: {:.3f}, new speed: {:.3f}, diff: {:.3f}".format(
+            self.system.get_current_speed_km_hour(),
+            speed, self.system.get_current_speed_km_hour() - speed
+        ))
         return speed
 
     @property
@@ -290,8 +294,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
