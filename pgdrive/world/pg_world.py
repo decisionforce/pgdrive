@@ -119,8 +119,11 @@ class PgWorld(ShowBase.ShowBase):
         self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
         if self.pg_config["use_render"]:
             # show logo
-            self.logo = OnscreenImage(image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive.png"), pos=(0, 0, 0),
-                                      scale=(self.w_scale, 1, self.h_scale))
+            self.logo = OnscreenImage(
+                image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive.png"),
+                pos=(0, 0, 0),
+                scale=(self.w_scale, 1, self.h_scale)
+            )
             self.logo.setTransparency(True)
             for i in range(4):
                 self.graphicsEngine.renderFrame()

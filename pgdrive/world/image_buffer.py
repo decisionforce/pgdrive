@@ -18,15 +18,15 @@ class ImageBuffer:
     refresh_frame = None
 
     def __init__(
-            self,
-            length: float,
-            width: float,
-            pos: Vec3,
-            bkg_color: Union[Vec4, Vec3],
-            pg_world_win,
-            make_camera_func,
-            parent_node: NodePath,
-            frame_buffer_property=None
+        self,
+        length: float,
+        width: float,
+        pos: Vec3,
+        bkg_color: Union[Vec4, Vec3],
+        pg_world_win,
+        make_camera_func,
+        parent_node: NodePath,
+        frame_buffer_property=None
     ):
         try:
             assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
