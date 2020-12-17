@@ -56,7 +56,6 @@ class PgWorld(ShowBase.ShowBase):
             # and the scene will be drawn by PyGame
             self.mode = "none"
             self.pg_config["use_image"] = False
-            ImageBuffer.disable()
         else:
             loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
             if self.pg_config["use_render"]:

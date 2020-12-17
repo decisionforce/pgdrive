@@ -1,7 +1,6 @@
 from panda3d.core import NodePath, PGTop, TextNode, Vec3
 
 from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_world import PgWorld
 
@@ -14,7 +13,7 @@ class VehiclePanel(ImageBuffer):
     CAM_MASK = CamMask.PARA_VIS
     GAP = 4.1
 
-    def __init__(self, vehicle: BaseVehicle, pg_world: PgWorld):
+    def __init__(self, vehicle, pg_world: PgWorld):
         if pg_world.win is None:
             return
         self.aspect2d_np = NodePath(PGTop("aspect2d"))
@@ -50,7 +49,7 @@ class VehiclePanel(ImageBuffer):
         self.add_to_display(pg_world, [2 / 3, 1, self.display_bottom, self.display_top])
         pg_world.taskMgr.add(self.renew_2d_car_para_visualization, "update panel", extraArgs=[vehicle], appendTask=True)
 
-    def renew_2d_car_para_visualization(self, vehicle: BaseVehicle, task):
+    def renew_2d_car_para_visualization(self, vehicle, task):
         steering, throttle_brake, speed = vehicle.steering, vehicle.throttle_brake, vehicle.speed
         if throttle_brake < 0:
             self.para_vis_np[2].node().setCardAsMargin(-self.GAP, self.PARA_VIS_LENGTH * abs(throttle_brake), 0, 0)

@@ -6,7 +6,6 @@ from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
 
 
 class ImageBuffer:
-    enable = True
     LINE_FRAME_COLOR = (0.8, 0.8, 0.8, 0)
     CAM_MASK = None
     BUFFER_W = 800  # left to right
@@ -15,10 +14,6 @@ class ImageBuffer:
     display_bottom = 0.8
     display_top = 1
     display_region = None
-
-    @classmethod
-    def disable(cls):
-        cls.enable = False
 
     def __init__(
         self,
@@ -31,7 +26,6 @@ class ImageBuffer:
         frame_buffer_property=None,
     ):
         try:
-            assert ImageBuffer.enable, "Image buffer cannot be created, since the panda3d render pipeline is not loaded"
             assert pg_world.win is not None, "{} cannot be made without use_render or use_image".format(
                 self.__class__.__name__
             )
@@ -94,8 +88,6 @@ class ImageBuffer:
             return np.clip(numpy_array, 0, 1)
 
     def add_to_display(self, pg_world, display_region: List[float]):
-        if not self.enable:
-            return
         if pg_world.pg_config["use_render"]:
             # only show them when onscreen
             self.display_region = pg_world.win.makeDisplayRegion(*display_region)

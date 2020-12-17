@@ -15,6 +15,7 @@ from pgdrive.pg_config.pg_space import PgSpace
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
@@ -91,8 +92,11 @@ class BaseVehicle(DynamicElement):
         self.routing_localization = None
         self.lane = None
         self.lane_index = None
-        from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
-        self.vehicle_panel = VehiclePanel(self, self.pg_world)
+
+        if (not self.pg_world.pg_config["highway_render"]) and (self.pg_world.mode != "none"):
+            self.vehicle_panel = VehiclePanel(self, self.pg_world)
+        else:
+            self.vehicle_panel = None
 
         # other info
         self.throttle_brake = 0.0
@@ -290,8 +294,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
