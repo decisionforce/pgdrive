@@ -27,7 +27,6 @@ class ImageBuffer:
         pos: Vec3,
         bkg_color: Union[Vec4, Vec3],
         pg_world,
-        make_camera_func,
         parent_node: NodePath,
         frame_buffer_property=None,
     ):
@@ -44,18 +43,17 @@ class ImageBuffer:
             self.lens = self.cam.node().getLens()
             return
         self.pg_world = pg_world
-        make_buffer_func = pg_world.win.makeTextureBuffer
         # self.texture = Texture()
         if frame_buffer_property is None:
-            self.buffer = make_buffer_func("camera", length, width)
+            self.buffer = self.pg_world.win.makeTextureBuffer("camera", length, width)
         else:
-            self.buffer = make_buffer_func("camera", length, width, fbp=frame_buffer_property)
+            self.buffer = self.pg_world.win.makeTextureBuffer("camera", length, width, fbp=frame_buffer_property)
             # now we have to setup a new scene graph to make this scene
 
         self.node_path = NodePath("new render")
 
         # this takes care of setting up their camera properly
-        self.cam = make_camera_func(self.buffer, clearColor=bkg_color)
+        self.cam = self.pg_world.makeCamera(self.buffer, clearColor=bkg_color)
         self.cam.reparentTo(self.node_path)
         self.cam.setPos(pos)
         self.lens = self.cam.node().getLens()

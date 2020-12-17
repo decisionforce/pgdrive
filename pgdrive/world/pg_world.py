@@ -384,7 +384,7 @@ class PgWorld(ShowBase.ShowBase):
             self.logo.destroy()
             return task.done
         else:
-            new_alpha = alpha - 0.04
+            new_alpha = alpha - 0.08
             self.logo.setColor((1, 1, 1, new_alpha))
             return task.cont
 
