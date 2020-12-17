@@ -14,7 +14,7 @@ from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
-from pgdrive.world.constants import pg_edition, help_message, COLOR, COLLISION_INFO_COLOR
+from pgdrive.world.constants import PG_EDITION, COLOR, COLLISION_INFO_COLOR
 from pgdrive.world.force_fps import ForceFPS
 from pgdrive.world.highway_render.highway_render import HighwayRender
 from pgdrive.world.image_buffer import ImageBuffer
@@ -27,7 +27,7 @@ root_path = os.path.dirname(os.path.dirname(__file__))
 
 
 class PgWorld(ShowBase.ShowBase):
-    loadPrcFileData("", "window-title {}".format(pg_edition))
+    loadPrcFileData("", "window-title {}".format(PG_EDITION))
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
@@ -333,12 +333,8 @@ class PgWorld(ShowBase.ShowBase):
         self.physics_world = None
 
     def toggle_help_message(self):
-        if self._show_help_message:
-            self.on_screen_message.clear_plain_text(help_message)
-            self._show_help_message = False
-        else:
-            self.on_screen_message.update_data(help_message)
-            self._show_help_message = True
+        if self.on_screen_message:
+            self.on_screen_message.toggle_help_message()
 
     def render_collision_info(self, contacts):
         contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
