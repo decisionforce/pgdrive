@@ -32,7 +32,6 @@ class PgWorld(ShowBase.ShowBase):
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
-    loadPrcFileData("", "compressed-textures 1")
 
     # loadPrcFileData("", " framebuffer-srgb truein")
 
@@ -48,6 +47,7 @@ class PgWorld(ShowBase.ShowBase):
     # loadPrcFileData("", "gl-version 3 2")
 
     def __init__(self, config: dict = None):
+        # Setup config and Panda3d
         self.pg_config = self.default_config()
         if config is not None:
             self.pg_config.update(config)
@@ -69,6 +69,10 @@ class PgWorld(ShowBase.ShowBase):
                 self.mode = "onscreen"
             if self.pg_config["headless_image"]:
                 loadPrcFileData("", "load-display  pandagles2")
+            if self.mode != "onscreen":
+                # Compress the texture to save memory
+                loadPrcFileData("", "compressed-textures 1")
+
         super(PgWorld, self).__init__(windowType=self.mode)
         if self.mode == "onscreen":
             self.disableMouse()
@@ -82,8 +86,6 @@ class PgWorld(ShowBase.ShowBase):
         self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
             self.pg_config["highway_render"] else None
 
-        # ImageBuffer.refresh_frame = self.graphicsEngine.renderFrame
-        # ImageBuffer.enable = False if self.pg_config["highway_render"] else True
         ImageBuffer.disable()
 
         # add element to render and pbr render, if is exists all the time.
