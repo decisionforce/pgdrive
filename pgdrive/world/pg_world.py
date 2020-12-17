@@ -32,6 +32,7 @@ class PgWorld(ShowBase.ShowBase):
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
     loadPrcFileData("", "audio-library-name null")
+
     # loadPrcFileData("", " framebuffer-srgb truein")
 
     # loadPrcFileData("", "geom-cache-size 50000")
