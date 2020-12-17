@@ -112,6 +112,7 @@ class PgWorld(ShowBase.ShowBase):
         self.debug_node = None
 
         # some render attr
+        self.pbrpipe = None
         self.light = None
         self.collision_info_np = None
         self.w_scale = max(self.pg_config["window_size"][0] / self.pg_config["window_size"][1], 1)
@@ -326,6 +327,7 @@ class PgWorld(ShowBase.ShowBase):
 
     def close_world(self):
         if self.mode != "none":
+            self.taskMgr.remove('simplepbr update')
             self._clear_display_region_and_buffers()
         self.destroy()
         self.physics_world.clearDebugNode()
