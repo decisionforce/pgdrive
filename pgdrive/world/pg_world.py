@@ -71,6 +71,8 @@ class PgWorld(ShowBase.ShowBase):
             # Compress the texture when using image to train, this can save lots of memory.
             loadPrcFileData("", "compressed-textures 1")
         super(PgWorld, self).__init__(windowType=self.mode)
+        self.w_scale = max(self.pg_config["window_size"][0] / self.pg_config["window_size"][1], 1)
+        self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
         if self.mode == "onscreen":
             self.disableMouse()
         if (not self.pg_config["debug_physics_world"] and (self.pg_config["use_render"] or self.pg_config["use_image"])) \
@@ -113,8 +115,6 @@ class PgWorld(ShowBase.ShowBase):
         self.pbrpipe = None
         self.light = None
         self.collision_info_np = None
-        self.w_scale = max(self.pg_config["window_size"][0] / self.pg_config["window_size"][1], 1)
-        self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
 
         # physics world
         self.physics_world = BulletWorld()
