@@ -8,8 +8,8 @@ from pgdrive.world.pg_world import PgWorld
 class VehiclePanel(ImageBuffer):
     PARA_VIS_LENGTH = 12
     MAX_SPEED = 120
-    BUFFER_W = 800
-    BUFFER_H = 400
+    BUFFER_W = 2
+    BUFFER_H = 1
     CAM_MASK = CamMask.PARA_VIS
     GAP = 4.1
     TASK_NAME = "update panel"
