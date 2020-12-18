@@ -16,14 +16,14 @@ class ImageBuffer:
     display_region = None
 
     def __init__(
-        self,
-        length: float,
-        width: float,
-        pos: Vec3,
-        bkg_color: Union[Vec4, Vec3],
-        pg_world,
-        parent_node: NodePath,
-        frame_buffer_property=None,
+            self,
+            length: float,
+            width: float,
+            pos: Vec3,
+            bkg_color: Union[Vec4, Vec3],
+            pg_world,
+            parent_node: NodePath,
+            frame_buffer_property=None,
     ):
         try:
             assert pg_world.win is not None, "{} cannot be made without use_render or use_image".format(
@@ -113,8 +113,9 @@ class ImageBuffer:
 
     def destroy(self, pg_world):
         if pg_world is not None:
+            if pg_world.mode == "onscreen":
+                pg_world.win.removeDisplayRegion(self.display_region)
             pg_world.graphicsEngine.removeWindow(self.buffer)
-            pg_world.win.removeDisplayRegion(self.display_region)
             self.display_region = None
             self.buffer = None
             if self.cam in pg_world.camList:

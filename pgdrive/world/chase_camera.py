@@ -59,3 +59,7 @@ class ChaseCamera:
         self.camera_queue = queue.Queue(self.queue_length)
         for i in range(self.queue_length - 1):
             self.camera_queue.put(Vec3(pos[0], -pos[1], 0))
+
+    def destroy(self, pg_world):
+        if pg_world.taskMgr.hasTaskNamed(self.TASK_NAME):
+            pg_world.taskMgr.remove(self.TASK_NAME)

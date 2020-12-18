@@ -98,11 +98,9 @@ class PgWorld(ShowBase.ShowBase):
         self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
         if self.mode == "onscreen":
             self.disableMouse()
-        if (self.pg_config["use_render"] or self.pg_config["use_image"]) \
-                and not self.pg_config["highway_render"] \
-                and not self.pg_config["debug_physics_world"]:
+        if not self.pg_config["highway_render"] and not self.pg_config["debug_physics_world"]:
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
-            AssetLoader.init_loader(self.loader, path)
+            AssetLoader.init_loader(self, path)
             gltf.patch_loader(self.loader)
             if self.pg_config["use_render"]:
                 # show logo
@@ -325,12 +323,19 @@ class PgWorld(ShowBase.ShowBase):
         return task.done
 
     def close_world(self):
-        if self.mode != "none":
-            self._clear_display_region_and_buffers()
         self.taskMgr.stop()
+
+        # It will report a warning said AsynTaskChain is created when taskMgr.destroy() is called but a new showbase is
+        # created.
+        logging.debug(
+            "Before del taskMgr: task_chain_num={}, {}".format(self.taskMgr.mgr.getNumTaskChains(),
+                                                               self.taskMgr.getAllTasks()))
         self.taskMgr.destroy()
-        while self.taskMgr.getAllTasks():
-            time.sleep(0.1)
+        logging.debug(
+            "After del taskMgr: task_chain_num={}, {}".format(self.taskMgr.mgr.getNumTaskChains(),
+                                                              self.taskMgr.getAllTasks()))
+        # while self.taskMgr.getAllTasks():
+        #     time.sleep(0.1)
         self.destroy()
         self.physics_world.clearDebugNode()
         self.physics_world.clearContactAddedCallback()

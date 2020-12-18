@@ -21,7 +21,7 @@ class TestEnv(PGDriveEnv):
             self.vehicle.destroy()
             self.vehicle = BaseVehicle(env.pg_world, env.config["vehicle_config"])
             self.add_modules_for_vehicle()
-            self.control_camera.reset(self.vehicle, env.pg_world)
+            self.main_camera.reset(self.vehicle, env.pg_world)
         super(TestEnv, self).reset()
 
 

@@ -295,22 +295,23 @@ class PGDriveEnv(gym.Env):
 
     def close(self):
         if self.pg_world is not None:
-            self.vehicle.destroy(self.pg_world.physics_world)
-            self.traffic_manager.destroy(self.pg_world.physics_world)
+            if self.main_camera is not None:
+                self.main_camera.destroy(self.pg_world)
+                del self.main_camera
+                self.main_camera = None
+            self.pg_world.clear_world()
 
+            self.vehicle.destroy(self.pg_world.physics_world)
+            del self.vehicle
+            self.vehicle = None
+
+            self.traffic_manager.destroy(self.pg_world.physics_world)
             del self.traffic_manager
             self.traffic_manager = None
-
-            del self.main_camera
-            self.main_camera = None
 
             del self.controller
             self.controller = None
 
-            del self.vehicle
-            self.vehicle = None
-
-            self.pg_world.clear_world()
             self.pg_world.close_world()
             del self.pg_world
             self.pg_world = None

@@ -94,7 +94,7 @@ class BaseVehicle(DynamicElement):
         self.lane = None
         self.lane_index = None
 
-        if (not self.pg_world.pg_config["highway_render"]) and (self.pg_world.mode != "none"):
+        if (not self.pg_world.pg_config["highway_render"]) and (self.pg_world.mode == "onscreen"):
             self.vehicle_panel = VehiclePanel(self, self.pg_world)
         else:
             self.vehicle_panel = None
@@ -441,8 +441,9 @@ class BaseVehicle(DynamicElement):
             logging.debug("Crash with {}".format(name[0]))
 
     def destroy(self, _=None):
-        self.pg_world.physics_world.clearContactAddedCallback()
+        self.bullet_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world.physics_world)
+        self.pg_world.physics_world.clearContactAddedCallback()
         self.routing_localization = None
         if self.lidar is not None:
             self.lidar.destroy()
