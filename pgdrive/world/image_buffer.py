@@ -37,7 +37,7 @@ class ImageBuffer:
             self.lens = self.cam.node().getLens()
             return
 
-        if length > 10:
+        if length > 100 or width > 100:
             # Too large width or length will cause corruption in Mac.
             logging.warning("You may using too large buffer! The width is {}, and length is {}.".format(width, length))
 
