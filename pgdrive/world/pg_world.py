@@ -70,14 +70,12 @@ class PgWorld(ShowBase.ShowBase):
                 self.mode = "onscreen"
             if self.pg_config["headless_image"]:
                 loadPrcFileData("", "load-display  pandagles2")
-            if self.mode != "onscreen":
-                # Compress the texture to save memory
-                loadPrcFileData("", "compressed-textures 1")
 
         super(PgWorld, self).__init__(windowType=self.mode)
 
         # Change window size at runtime if screen too small
         if self.mode != "none":
+            loadPrcFileData("", "compressed-textures 1")  # Default to compress
             h = self.pipe.getDisplayHeight()
             w = self.pipe.getDisplayWidth()
             if (self.pg_config["window_size"][0] > 0.9 * w
