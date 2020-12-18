@@ -78,8 +78,7 @@ class PgWorld(ShowBase.ShowBase):
             loadPrcFileData("", "compressed-textures 1")  # Default to compress
             h = self.pipe.getDisplayHeight()
             w = self.pipe.getDisplayWidth()
-            if (self.pg_config["window_size"][0] > 0.9 * w
-                    or self.pg_config["window_size"][1] > 0.9 * h):
+            if (self.pg_config["window_size"][0] > 0.9 * w or self.pg_config["window_size"][1] > 0.9 * h):
                 old_scale = self.pg_config["window_size"][0] / self.pg_config["window_size"][1]
                 new_w = int(min(0.9 * w, 0.9 * h * old_scale))
                 new_h = int(min(0.9 * h, 0.9 * w / old_scale))
