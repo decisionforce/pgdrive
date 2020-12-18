@@ -1,8 +1,9 @@
 from abc import ABC
-from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+
 import gym
 import numpy as np
 
+from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.image_buffer import ImageBuffer
 
 PERCEIVE_DIST = 50
@@ -155,6 +156,9 @@ class ImageObservation(ObservationType):
         self.state = np.roll(self.state, -1, axis=-1)
         self.state[:, :, -1] = new_obs
         return self.state
+
+    def get_image(self):
+        return self.state.copy()[:, :, -1]
 
 
 class LidarStateObservation(ObservationType):

@@ -1,21 +1,23 @@
 import copy
 import json
 import os.path as osp
-from typing import Optional, Union
+import sys
+import time
+from typing import Union, Optional
 
 import gym
-from typing import Optional
 import numpy as np
+
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
-from pgdrive.pg_config.pg_config import PgConfig
+from pgdrive.pg_config import PgConfig
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RgbCamera
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
-from pgdrive.utils import recursive_equal
+from pgdrive.utils import recursive_equal, safe_clip
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PgWorld
@@ -30,7 +32,7 @@ class PGDriveEnv(gym.Env):
 
             # ===== Rendering =====
             use_render=False,  # pop a window to render or not
-            force_fps=None,
+            # force_fps=None,
             debug=False,
             manual_control=False,
             controller="keyboard",  # "joystick" or "keyboard"
@@ -102,6 +104,8 @@ class PGDriveEnv(gym.Env):
                 "use_render": self.use_render,
                 "use_image": self.config["use_image"],
                 "debug": self.config["debug"],
+                # "force_fps": self.config["force_fps"],
+                "decision_repeat": self.config["decision_repeat"],
             }
         )
         self.pg_world_config = pg_world_config
@@ -127,7 +131,8 @@ class PGDriveEnv(gym.Env):
         # init world
         self.pg_world = PgWorld(self.pg_world_config)
         self.pg_world.accept("r", self.reset)
-        self.pg_world.accept("escape", self.force_close)
+        self.pg_world.accept("escape", sys.exit)
+        # self.pg_world.accept("escape", self.force_close)
 
         # init traffic manager
         self.traffic_manager = TrafficManager(self.config["traffic_mode"])
@@ -156,7 +161,6 @@ class PGDriveEnv(gym.Env):
             self.control_camera.reset(self.vehicle.position)
 
     def step(self, action: np.ndarray):
-
         if self.config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
                 action, self.action_space
@@ -165,6 +169,9 @@ class PGDriveEnv(gym.Env):
         # prepare step
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
+
+        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
+
         self.vehicle.prepare_step(action)
         self.traffic_manager.prepare_step()
 
@@ -178,7 +185,7 @@ class PGDriveEnv(gym.Env):
         self.vehicle.update_state()
         self.traffic_manager.update_state(self.pg_world.physics_world)
 
-        #  panda3d loop
+        #  panda3d render and garbage collecting loop
         self.pg_world.taskMgr.step()
 
         obs = self.observation.observe(self.vehicle)
@@ -199,9 +206,18 @@ class PGDriveEnv(gym.Env):
         self.pg_world.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting
-            return self.observation.img_obs.state[:, :, -1]
-        else:
-            return None
+            return self.observation.img_obs.get_image()
+
+        if mode == "rgb_array" and self.config["use_render"]:
+            if not hasattr(self, "_temporary_img_obs"):
+                from pgdrive.envs.observation_type import ImageObservation
+                image_source = "rgb_cam"
+                self.temporary_img_obs = ImageObservation(self.vehicle.vehicle_config, image_source, False)
+            self.temporary_img_obs.observe(self.vehicle.image_sensors[image_source])
+            return self.temporary_img_obs.get_image()
+
+        # logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
+        return None
 
     def reset(self):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
@@ -316,7 +332,7 @@ class PGDriveEnv(gym.Env):
 
         # remove map from world before adding
         if self.current_map is not None:
-            self.current_map.unload_from_pg_world(self.pg_world.physics_world)
+            self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
         self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
@@ -329,13 +345,13 @@ class PGDriveEnv(gym.Env):
                 map_config = self.config["map_config"]
                 map_config.update({"seed": self.current_seed})
 
-            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            new_map = Map(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
         else:
             self.current_map = self.maps[self.current_seed]
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
-            self.current_map.load_to_pg_world(self.pg_world.worldNP, self.pg_world.physics_world)
+            self.current_map.load_to_pg_world(self.pg_world)
 
     def add_modules_for_vehicle(self):
         # add vehicle module for training according to config
@@ -347,7 +363,7 @@ class PGDriveEnv(gym.Env):
 
             if self.config["use_render"]:
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
                 self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
 
                 mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
@@ -358,14 +374,14 @@ class PGDriveEnv(gym.Env):
             # 3 types image observation
             if self.config["image_source"] == "rgb_cam":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
                 self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
             elif self.config["image_source"] == "mini_map":
                 mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
                 self.vehicle.add_image_sensor("mini_map", mini_map)
             elif self.config["image_source"] == "depth_cam":
                 cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(cam_config[0], cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                depth_cam = DepthCamera(*cam_config, self.vehicle.chassis_np, self.pg_world)
                 self.vehicle.add_image_sensor("depth_cam", depth_cam)
             else:
                 raise ValueError("No module named {}".format(self.config["image_source"]))
@@ -374,7 +390,7 @@ class PGDriveEnv(gym.Env):
         if self.config["use_render"]:
             if self.config["image_source"] == "mini_map":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RgbCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
                 self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
             else:
                 mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
@@ -391,9 +407,9 @@ class PGDriveEnv(gym.Env):
         for seed in range(self.start_seed, self.start_seed + self.env_num):
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
-            new_map = Map(self.pg_world.worldNP, self.pg_world.physics_world, map_config)
+            new_map = Map(self.pg_world, map_config)
             self.maps[seed] = new_map
-            new_map.unload_from_pg_world(self.pg_world.physics_world)
+            new_map.unload_from_pg_world(self.pg_world)
             print("Finish generating map with seed: ", seed)
 
         map_data = dict()
@@ -435,7 +451,8 @@ class PGDriveEnv(gym.Env):
         assert osp.isfile(path)
         with open(path, "r") as f:
             restored_data = json.load(f)
-        if recursive_equal(self.config["map_config"], restored_data["map_config"]):
+        if recursive_equal(self.config["map_config"], restored_data["map_config"]) and \
+                self.start_seed + self.env_num < len(restored_data["map_data"]):
             self.load_all_maps(restored_data)
             return True
         else:
@@ -449,8 +466,18 @@ class PGDriveEnv(gym.Env):
             return False
 
     def force_close(self):
+        print("Closing environment ... Please wait")
         self.close()
-        raise KeyboardInterrupt()
+        time.sleep(2)  # Sleep two seconds
+        raise KeyboardInterrupt("'Esc' is pressed. PGDrive exits now.")
 
     def set_current_seed(self, seed):
         self.current_seed = seed
+
+    def get_map(self):
+        return self.current_map.get_map_image_array()
+
+    def get_vehicle_num(self):
+        if self.traffic_manager is None:
+            return 0
+        return self.traffic_manager.get_vehicle_num()

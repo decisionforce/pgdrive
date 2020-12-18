@@ -1,18 +1,22 @@
 import copy
 import logging
+import math
 from collections import deque
 from os import path
 
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
-from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, Vec4, PythonCallbackObject
+from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject
+
+from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
+from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
-from pgdrive.pg_config.pg_config import PgConfig
 from pgdrive.pg_config.pg_space import PgSpace
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
@@ -42,26 +46,12 @@ class BaseVehicle(DynamicElement):
     COLLISION_MASK = 1
     STEERING_INCREMENT = 0.05
 
-    # priority and color
-    COLLISION_INFO_COLOR = dict(
-        red=(0, Vec4(195 / 255, 0, 0, 1)),
-        orange=(1, Vec4(218 / 255, 80 / 255, 0, 1)),
-        yellow=(2, Vec4(218 / 255, 163 / 255, 0, 1)),
-        green=(3, Vec4(65 / 255, 163 / 255, 0, 1))
-    )
-    COLOR = {
-        BodyName.Side_walk: "red",
-        BodyName.Continuous_line: "orange",
-        BodyName.Stripped_line: "yellow",
-        BodyName.Traffic_vehicle: "red"
-    }
-
     default_vehicle_config = PgConfig(
         dict(
             lidar=(240, 50, 4),  # laser num, distance, other vehicle info num
             mini_map=(84, 84, 250),  # buffer length, width
             rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84),  # buffer length, width
+            depth_cam=(84, 84, True),  # buffer length, width, view_ground
             show_navi_point=False,
             increment_steering=False,
             wheel_friction=0.6,
@@ -103,8 +93,11 @@ class BaseVehicle(DynamicElement):
         self.routing_localization = None
         self.lane = None
         self.lane_index = None
-        from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
-        self.vehicle_panel = VehiclePanel(self, self.pg_world)
+
+        if (not self.pg_world.pg_config["highway_render"]) and (self.pg_world.mode != "none"):
+            self.vehicle_panel = VehiclePanel(self, self.pg_world)
+        else:
+            self.vehicle_panel = None
 
         # other info
         self.throttle_brake = 0.0
@@ -174,9 +167,9 @@ class BaseVehicle(DynamicElement):
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
 
-        # if self.vehicle_config["wheel_friction"] != self.default_vehicle_config["wheel_friction"]:
-        #     for wheel in self.wheels:
-        #         wheel.setFrictionSlip(self.vehicle_config["wheel_friction"])
+        if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
+            for block in map.blocks:
+                block.node_path.hide(CamMask.DepthCam)
 
     def get_state(self):
         pass
@@ -231,36 +224,17 @@ class BaseVehicle(DynamicElement):
         """
         km/h
         """
-        speed = self.system.get_current_speed_km_hour()
-        return speed
+        speed = self.chassis_np.node().get_linear_velocity().length() * 3.6
+        return clip(speed, 0.0, 100000.0)
 
     @property
     def heading(self):
         real_heading = self.heading_theta
         heading = np.array([np.cos(real_heading), np.sin(real_heading)])
-
-        # # ===== Debug script to see the heading =====
-        # # This is the heading in Bullet system:
-        # print(f"Current Absolute Heading: {real_heading}")
-        # print("Absolute heading direction: {}".format(
-        #     heading
-        # ))
-        #
-        # # This is the heading reported by the forward vector (the velocity direction)
-        # forward_vector = self.vehicle.get_forward_vector()
-        # forward = (forward_vector[0], -forward_vector[1])
-        # print("Current Report Heading: {}".format(
-        #     np.arctan2(-forward[0], -forward[1]) / np.pi * 180
-        # ))
-        # print(f"Current Raw Forward Direction: {self.forward_direction}, "
-        #       f"norm {np.linalg.norm(self.forward_direction)}")
         return heading
 
     @property
     def heading_theta(self):
-        # return self.chassis_np.getHpr()[0] / 180 * math.pi
-        # print(self.chassis_np.getHpr()[0])
-        import math
         return -(self.chassis_np.getHpr()[0] + 90) / 180 * math.pi
 
     @property
@@ -327,7 +301,7 @@ class BaseVehicle(DynamicElement):
         return project_on_heading, project_on_side
 
     def lane_distance_to(self, vehicle, lane: AbstractLane = None) -> float:
-        assert self.routing_localization is not None, "a routing and localization module shoud be added " \
+        assert self.routing_localization is not None, "a routing and localization module should be added " \
                                                       "to interact with other vehicles"
         if not vehicle:
             return np.nan
@@ -423,7 +397,7 @@ class BaseVehicle(DynamicElement):
         self.image_sensors[name] = sensor
 
     def add_lidar(self, laser_num=240, distance=50):
-        self.lidar = Lidar(self.pg_world.worldNP, laser_num, distance)
+        self.lidar = Lidar(self.pg_world.render, laser_num, distance)
 
     def add_routing_localization(self, show_navi_point: bool):
         self.routing_localization = RoutingLocalizationModule(show_navi_point)
@@ -449,21 +423,8 @@ class BaseVehicle(DynamicElement):
             elif name[0] == BodyName.Side_walk:
                 self.out_of_road = True
             contacts.add(name[0])
-        contacts = sorted(list(contacts), key=lambda c: self.COLLISION_INFO_COLOR[self.COLOR[c]][0])
         if self.render:
-            self._render_on_console(contacts[0] if len(contacts) != 0 else None)
-
-    def _render_on_console(self, name):
-        if self.pg_world.collision_info_np is None:
-            return
-        if name is None:
-            text = self.pg_world.collision_info_np.node()
-            text.setCardColor(self.COLLISION_INFO_COLOR["green"][1])
-            text.setText("Normal")
-        else:
-            text = self.pg_world.collision_info_np.node()
-            text.setCardColor(self.COLLISION_INFO_COLOR[self.COLOR[name]][1])
-            text.setText(name)
+            self.pg_world.render_collision_info(contacts)
 
     def _collision_check(self, contact):
         """
@@ -480,8 +441,16 @@ class BaseVehicle(DynamicElement):
     def destroy(self, pg_world: BulletWorld):
         self.pg_world.physics_world.clearContactAddedCallback()
         self.pg_world = None
-        self.lidar = None
         self.routing_localization = None
+        if self.lidar is not None:
+            self.lidar.destroy()
+            self.lidar = None
+        if len(self.image_sensors) != 0:
+            for sensor in self.image_sensors.values():
+                sensor.destroy(self.pg_world)
+        self.image_sensors = None
+        if self.vehicle_panel is not None:
+            self.vehicle_panel.destroy()
         super(BaseVehicle, self).destroy(pg_world)
 
     def __del__(self):

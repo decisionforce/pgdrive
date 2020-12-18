@@ -13,17 +13,12 @@ if __name__ == "__main__":
             "start_seed": 4,
             "debug": True,
             "pg_world_config": {
-                "force_fps": None,
                 "debug_physics_world": True
             },
             "manual_control": True,
             "use_render": True,
             "use_image": False,
             "use_increment_steering": False,
-            # "map_config":{
-            #     "type":BigGenerateMethod.BLOCK_SEQUENCE,
-            #     "config":"",
-            # }
         }
     )
 
