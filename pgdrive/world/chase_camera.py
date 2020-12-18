@@ -14,7 +14,7 @@ class ChaseCamera:
     TASK_NAME = "update main camera"
 
     def __init__(
-            self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PgWorld
+        self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PgWorld
     ):
         self.camera = camera
         self.camera_queue = None

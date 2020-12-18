@@ -79,4 +79,3 @@ class VehiclePanel(ImageBuffer):
         for para in self.para_vis_np:
             para.removeNode()
         self.aspect2d_np.removeNode()
-
