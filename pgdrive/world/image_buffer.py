@@ -8,8 +8,8 @@ from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
 class ImageBuffer:
     LINE_FRAME_COLOR = (0.8, 0.8, 0.8, 0)
     CAM_MASK = None
-    BUFFER_W = 800  # left to right
-    BUFFER_H = 800  # bottom to top
+    BUFFER_W = 84  # left to right
+    BUFFER_H = 84  # bottom to top
     BKG_COLOR = Vec3(179 / 255, 211 / 255, 216 / 255)
     display_bottom = 0.8
     display_top = 1
