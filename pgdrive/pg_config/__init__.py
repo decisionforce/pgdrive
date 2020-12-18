@@ -36,8 +36,10 @@ class PgConfig:
     For these <key, value> items, use PgConfig["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
+
     def __init__(self, config: dict):
         self._config = config
+        self._types = dict()
 
     def update(self, new_dict: dict):
         _recursive_check_keys(new_dict, self._config)
@@ -55,7 +57,13 @@ class PgConfig:
     def __setitem__(self, key, value):
         assert key in self._config, "KeyError: {} doesn't exist in config".format(key)
         if self._config[key] is not None and value is not None:
-            assert isinstance(value, type(self._config[key])), "TypeError: {}:{}".format(key, value)
+            type_correct = isinstance(value, type(self._config[key]))
+            if isinstance(self._config[key], float):
+                # Int can be transformed to float
+                type_correct = type_correct or isinstance(value, int)
+            if key in self._types:
+                type_correct = type_correct or (type(value) in self._types[key])
+            assert type_correct, "TypeError: {}:{}".format(key, value)
         if not isinstance(self._config[key], dict):
             self._config[key] = value
         else:
@@ -70,3 +78,10 @@ class PgConfig:
     def add(self, key, value):
         assert key not in self._config, "KeyError: {} exists in config".format(key)
         self._config[key] = value
+
+    def register_type(self, key, *types):
+        """
+        Register special types for item in config. This is used for mixed type declaration.
+        """
+        assert key in self._config
+        self._types[key] = set(types)
