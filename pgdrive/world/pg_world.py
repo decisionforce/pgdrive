@@ -197,10 +197,6 @@ class PgWorld(ShowBase.ShowBase):
                 1 / (self.pg_config["physics_world_step_size"] * self.pg_config["decision_repeat"]), start=False
             )
 
-            # self added display regions and cameras attached to them
-            self.my_display_regions = []
-            self.my_buffers = []
-
             # onscreen message
             self.on_screen_message = PgOnScreenMessage() \
                 if self.pg_config["use_render"] and self.pg_config["onscreen_message"] else None
@@ -250,7 +246,7 @@ class PgWorld(ShowBase.ShowBase):
 
     def clear_world(self):
         """
-        Call me to setup the whole world after _init_
+        Call me to setup the whole visualization world after _init_
         """
         # attach all node to this node asset_path
         self.worldNP.node().removeAllChildren()
@@ -259,16 +255,6 @@ class PgWorld(ShowBase.ShowBase):
             self.addTask(self.report_body_nums, "report_num")
 
         self._episode_start_time = time.time()
-
-    def _clear_display_region_and_buffers(self):
-        for r in self.my_display_regions:
-            self.win.removeDisplayRegion(r)
-        for my_buffer in self.my_buffers:
-            self.graphicsEngine.removeWindow(my_buffer.buffer)
-            if my_buffer.cam in self.camList:
-                self.camList.remove(my_buffer.cam)
-        self.my_display_regions = []
-        self.my_buffers = []
 
     @staticmethod
     def default_config():

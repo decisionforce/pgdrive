@@ -92,7 +92,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -113,7 +113,7 @@ class PGDriveEnv(gym.Env):
         # lazy initialization, create the main vehicle in the lazy_init() func
         self.pg_world = None
         self.traffic_manager = None
-        self.control_camera = None
+        self.main_camera = None
         self.controller = None
         self.restored_maps = dict()
 
@@ -151,14 +151,11 @@ class PGDriveEnv(gym.Env):
 
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
-            self.control_camera = ChaseCamera(
+            self.main_camera = ChaseCamera(
                 self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
             )
         # add sensors
         self.add_modules_for_vehicle()
-
-        if self.use_render or self.config["use_image"]:
-            self.control_camera.reset(self.vehicle.position)
 
     def step(self, action: np.ndarray):
         if self.config["action_check"]:
@@ -256,7 +253,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -304,8 +301,8 @@ class PGDriveEnv(gym.Env):
             del self.traffic_manager
             self.traffic_manager = None
 
-            del self.control_camera
-            self.control_camera = None
+            del self.main_camera
+            self.main_camera = None
 
             del self.controller
             self.controller = None

@@ -104,7 +104,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -143,3 +143,6 @@ class RoutingLocalizationModule:
 
     def get_navi_info(self):
         return self.navi_info
+
+    def __del__(self):
+        logging.debug("{} is destroyed".format(self.__class__.__name__))
