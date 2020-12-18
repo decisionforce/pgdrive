@@ -328,13 +328,13 @@ class PgWorld(ShowBase.ShowBase):
         # It will report a warning said AsynTaskChain is created when taskMgr.destroy() is called but a new showbase is
         # created.
         logging.debug(
-            "Before del taskMgr: task_chain_num={}, {}".format(
+            "Before del taskMgr: task_chain_num={}, all_tasks={}".format(
                 self.taskMgr.mgr.getNumTaskChains(), self.taskMgr.getAllTasks()
             )
         )
         self.taskMgr.destroy()
         logging.debug(
-            "After del taskMgr: task_chain_num={}, {}".format(
+            "After del taskMgr: task_chain_num={}, all_tasks={}".format(
                 self.taskMgr.mgr.getNumTaskChains(), self.taskMgr.getAllTasks()
             )
         )
