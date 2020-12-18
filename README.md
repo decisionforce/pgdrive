@@ -58,6 +58,9 @@ for i in range(1000):
 env.close()
 ```
 
+We also prepare a Colab notebook which demonstrates some basic usage of PGDrive, please enjoy it! 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/decisionforce/PGDrive/blob/main/pgdrive/examples/Basic%20PGDrive%20Usages.ipynb)
+(TODO: The notebook is not accessible before the repo is public.)
 
 ## Predefined environment sets
 
