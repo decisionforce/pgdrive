@@ -8,7 +8,6 @@ import numpy as np
 import pygame
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
-
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_blocks import PgBlock
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
@@ -66,7 +65,6 @@ class Map:
         Map can be stored and recover to save time when we access the map encountered before
         """
         self.film_size = (self.DRAW_MAP_RESOLUTION, self.DRAW_MAP_RESOLUTION)
-        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         self.config = self.default_config()
         if big_config:
             self.config.update(big_config)
@@ -75,6 +73,16 @@ class Map:
         self.random_seed = self.config[self.SEED]
         self.road_network = RoadNetwork()
         self.blocks = []
+
+        self._generate_map(pg_world)
+
+        #  a trick to optimize performance
+        self.road_network.update_indices()
+        self.road_network.build_helper()
+        self._load_to_highway_render(pg_world)
+
+    def _generate_map(self, pg_world):
+        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         generate_type = self.config[self.GENERATE_METHOD]
         if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:
             self._big_generate(parent_node_path, pg_physics_world)
@@ -85,11 +93,6 @@ class Map:
             self._config_generate(blocks_config, parent_node_path, pg_physics_world)
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
-
-        #  a trick to optimize performance
-        self.road_network.update_indices()
-        self.road_network.build_helper()
-        self._load_to_highway_render(pg_world)
 
     @staticmethod
     def default_config():
