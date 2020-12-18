@@ -30,7 +30,7 @@ class ActionRepeat(PGDriveEnv):
         else:
             self.fixed_action_repeat = None
             self.action_space = Box(
-                shape=(self.action_space.shape[0] + 1,),
+                shape=(self.action_space.shape[0] + 1, ),
                 high=self.action_space.high[0],
                 low=self.action_space.low[0],
                 dtype=self.action_space.dtype
