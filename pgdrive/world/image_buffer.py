@@ -36,6 +36,11 @@ class ImageBuffer:
             self.cam = NodePath(Camera("non-sense camera"))
             self.lens = self.cam.node().getLens()
             return
+
+        if length > 10:
+            # Too large width or length will cause corruption in Mac.
+            logging.warning("You may using too large buffer! The width is {}, and length is {}.".format(width, length))
+
         self.pg_world = pg_world
         # self.texture = Texture()
         if frame_buffer_property is None:
