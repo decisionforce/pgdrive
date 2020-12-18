@@ -16,14 +16,14 @@ class ImageBuffer:
     display_region = None
 
     def __init__(
-        self,
-        length: float,
-        width: float,
-        pos: Vec3,
-        bkg_color: Union[Vec4, Vec3],
-        pg_world,
-        parent_node: NodePath,
-        frame_buffer_property=None,
+            self,
+            length: float,
+            width: float,
+            pos: Vec3,
+            bkg_color: Union[Vec4, Vec3],
+            pg_world,
+            parent_node: NodePath,
+            frame_buffer_property=None,
     ):
         try:
             assert pg_world.win is not None, "{} cannot be made without use_render or use_image".format(
@@ -45,7 +45,7 @@ class ImageBuffer:
             # now we have to setup a new scene graph to make this scene
 
         self.node_path = NodePath("new render")
-
+        self.line_borders = []
         # this takes care of setting up their camera properly
         self.cam = self.pg_world.makeCamera(self.buffer, clearColor=bkg_color)
         self.cam.reparentTo(self.node_path)
@@ -103,10 +103,20 @@ class ImageBuffer:
         bottom = display_region[2] * 2 - 1
         top = display_region[3] * 2 - 1
 
-        pg_world.draw_line([left, bottom], [left, top], self.LINE_FRAME_COLOR, 1.5)
-        pg_world.draw_line([left, top], [right, top], self.LINE_FRAME_COLOR, 1.5)
-        pg_world.draw_line([right, top], [right, bottom], self.LINE_FRAME_COLOR, 1.5)
-        pg_world.draw_line([right, bottom], [left, bottom], self.LINE_FRAME_COLOR, 1.5)
+        self.line_borders.append(pg_world.draw_line([left, bottom], [left, top], self.LINE_FRAME_COLOR, 1.5))
+        self.line_borders.append(pg_world.draw_line([left, top], [right, top], self.LINE_FRAME_COLOR, 1.5))
+        self.line_borders.append(pg_world.draw_line([right, top], [right, bottom], self.LINE_FRAME_COLOR, 1.5))
+        self.line_borders.append(pg_world.draw_line([right, bottom], [left, bottom], self.LINE_FRAME_COLOR, 1.5))
+
+    def destroy(self, pg_world):
+        if self.display_region in pg_world.my_display_regions:
+            pg_world.my_display_regions.remove(self.display_region)
+        if self.buffer in pg_world.my_buffers:
+            pg_world.my_buffers.remove(self.buffer)
+        if len(self.line_borders) != 0:
+            for line_np in self.line_borders:
+                line_np.removeNode()
+        self.node_path.removeNode()
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))

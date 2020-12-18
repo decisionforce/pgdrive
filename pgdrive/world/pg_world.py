@@ -74,13 +74,28 @@ class PgWorld(ShowBase.ShowBase):
                 loadPrcFileData("", "compressed-textures 1")
 
         super(PgWorld, self).__init__(windowType=self.mode)
+        # screen scale factor
+        self.w_scale = max(self.pg_config["window_size"][0] / self.pg_config["window_size"][1], 1)
+        self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
         if self.mode == "onscreen":
             self.disableMouse()
-
-        if (self.pg_config["use_render"] or self.pg_config["use_image"]) and not self.pg_config["highway_render"]:
+        if (self.pg_config["use_render"] or self.pg_config["use_image"]) \
+                and not self.pg_config["highway_render"] \
+                and not self.pg_config["debug_physics_world"]:
             path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
             AssetLoader.init_loader(self.loader, path)
             gltf.patch_loader(self.loader)
+            if self.pg_config["use_render"]:
+                # show logo
+                self.logo = OnscreenImage(
+                    image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive-large.png"),
+                    pos=(0, 0, 0),
+                    scale=(self.w_scale, 1, self.h_scale)
+                )
+                self.logo.setTransparency(True)
+                for i in range(4):
+                    self.graphicsEngine.renderFrame()
+                self.taskMgr.add(self.remove_logo, "remove logo in first frame")
 
         self.closed = False
         self.highway_render = HighwayRender(self.pg_config["window_size"], self.pg_config["use_render"]) if \
@@ -101,20 +116,6 @@ class PgWorld(ShowBase.ShowBase):
         self.pbrpipe = None
         self.light = None
         self.collision_info_np = None
-
-        self.w_scale = max(self.pg_config["window_size"][0] / self.pg_config["window_size"][1], 1)
-        self.h_scale = max(self.pg_config["window_size"][1] / self.pg_config["window_size"][0], 1)
-        if self.pg_config["use_render"]:
-            # show logo
-            self.logo = OnscreenImage(
-                image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive-large.png"),
-                pos=(0, 0, 0),
-                scale=(self.w_scale, 1, self.h_scale)
-            )
-            self.logo.setTransparency(True)
-            for i in range(4):
-                self.graphicsEngine.renderFrame()
-            self.taskMgr.add(self.remove_logo, "remove logo in first frame")
 
         # physics world
         self.physics_world = BulletWorld()
@@ -372,7 +373,8 @@ class PgWorld(ShowBase.ShowBase):
         line_seg.moveTo(start_p[0] * self.w_scale, 0, start_p[1] * self.h_scale)
         line_seg.drawTo(end_p[0] * self.w_scale, 0, end_p[1] * self.h_scale)
         line_seg.setThickness(thickness)
-        NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
+        line_np = NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
+        return line_np
 
     def remove_logo(self, task):
         alpha = self.logo.getColor()[-1]
