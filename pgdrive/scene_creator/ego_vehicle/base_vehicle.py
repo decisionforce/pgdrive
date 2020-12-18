@@ -276,8 +276,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -438,8 +438,9 @@ class BaseVehicle(DynamicElement):
             self.crash = True
             logging.debug("Crash with {}".format(name[0]))
 
-    def destroy(self, pg_world: BulletWorld):
+    def destroy(self, _=None):
         self.pg_world.physics_world.clearContactAddedCallback()
+        super(BaseVehicle, self).destroy(self.pg_world.physics_world)
         self.pg_world = None
         self.routing_localization = None
         if self.lidar is not None:
@@ -450,8 +451,7 @@ class BaseVehicle(DynamicElement):
                 sensor.destroy(self.pg_world)
         self.image_sensors = None
         if self.vehicle_panel is not None:
-            self.vehicle_panel.destroy()
-        super(BaseVehicle, self).destroy(pg_world)
+            self.vehicle_panel.destroy(self.pg_world)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
