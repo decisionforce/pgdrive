@@ -31,7 +31,8 @@ def parse_map_config(easy_map_config, original_map_config):
         original_map_config[Map.GENERATE_PARA] = easy_map_config
     else:
         raise ValueError(
-            "Unkown easy map config: {} and original map config: {}".format(easy_map_config, original_map_config))
+            "Unkown easy map config: {} and original map config: {}".format(easy_map_config, original_map_config)
+        )
     return original_map_config
 
 
