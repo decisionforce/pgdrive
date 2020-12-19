@@ -17,7 +17,7 @@ from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
-from pgdrive.utils import recursive_equal, safe_clip
+from pgdrive.utils import recursive_equal, safe_clip, clip
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PgWorld
@@ -254,7 +254,7 @@ class PGDriveEnv(gym.Env):
         long_now, lateral_now = current_lane.local_coordinates(self.vehicle.position)
 
         reward = 0.0
-        lateral_factor = 1 - 2 * abs(lateral_now) / self.current_map.lane_width
+        lateral_factor = clip(1 - 2 * abs(lateral_now) / self.current_map.lane_width, 0.0, 1.0)
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
         # Penalty for frequent steering
