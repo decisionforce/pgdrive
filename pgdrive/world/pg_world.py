@@ -44,6 +44,7 @@ class PgWorld(ShowBase.ShowBase):
     # loadPrcFileData("", "want-pstats 1")
     loadPrcFileData("", "notify-level-glgsg fatal")
     loadPrcFileData("", "notify-level-pgraph fatal")
+    loadPrcFileData("", "notify-level-pnmimage fatal")
 
     # loadPrcFileData("", "gl-version 3 2")
 
