@@ -190,17 +190,22 @@ class PGDriveEnv(gym.Env):
         self.pg_world.taskMgr.step()
 
         obs = self.observation.observe(self.vehicle)
-        reward = self.reward(action)
+        step_reward = self.reward(action)
         done_reward, done_info = self._done_episode()
+
+        if self.done:
+            step_reward = 0
+
         info = {
             "cost": float(0),
             "velocity": float(self.vehicle.speed),
             "steering": float(self.vehicle.steering),
             "acceleration": float(self.vehicle.throttle_brake),
-            "step_reward": float(reward)
+            "step_reward": float(step_reward)
         }
+
         info.update(done_info)
-        return obs, reward + done_reward, self.done, info
+        return obs, step_reward + done_reward, self.done, info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         assert self.use_render or self.config["use_image"], "render is off now, can not render"
@@ -269,6 +274,9 @@ class PGDriveEnv(gym.Env):
         reward -= self.config["general_penalty"]
 
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
+
+        # if reward > 3.0:
+        #     print("Stop here.")
 
         return reward
 
