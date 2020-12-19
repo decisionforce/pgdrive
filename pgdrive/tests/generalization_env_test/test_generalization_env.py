@@ -14,7 +14,7 @@ class TestEnv(PGDriveEnv):
                 "pg_world_config": {
                     "debug": False,
                 },
-                "random_traffic":True,
+                "random_traffic": True,
                 "image_source": "mini_map",
                 "manual_control": True,
                 "use_render": True,
