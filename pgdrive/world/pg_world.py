@@ -33,6 +33,7 @@ def _suppress_warning():
 
 
 def _free_warning():
+    # TODO: we should use a global debug option and to free those warning if such option is on.
     loadPrcFileData("", "notify-level-glgsg debug")
     loadPrcFileData("", "notify-level-pgraph debug")
     loadPrcFileData("", "notify-level-pnmimage debug")
