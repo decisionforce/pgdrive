@@ -11,7 +11,7 @@ class TestEnv(PGDriveEnv):
                 "pg_world_config": {
                     "onscreen_message": True,
                 },
-                "debug":True,
+                "debug": False,
                 "image_source": "mini_map",
                 "manual_control": True,
                 "use_render": True,
