@@ -37,9 +37,7 @@ class VehiclePanel(ImageBuffer):
             textNodePath.setPos(-1.125111, 0, 0.9 - i * 0.08)
             if i != 0:
                 cm = CardMaker(np_name)
-                cm.setFrame(0, self.PARA_VIS_LENGTH - 0.21,
-                            -self.PARA_VIS_HEIGHT / 2 + 0.1,
-                            self.PARA_VIS_HEIGHT / 2)
+                cm.setFrame(0, self.PARA_VIS_LENGTH - 0.21, -self.PARA_VIS_HEIGHT / 2 + 0.1, self.PARA_VIS_HEIGHT / 2)
                 cm.setHasNormals(True)
                 card = textNodePath.attachNewNode(cm.generate())
                 card.setPos(0.21, 0, 0.22)
@@ -48,9 +46,9 @@ class VehiclePanel(ImageBuffer):
                 # left
                 name = "Left"
                 cm = CardMaker(name)
-                cm.setFrame(0, (self.PARA_VIS_LENGTH-0.4) / 2,
-                            -self.PARA_VIS_HEIGHT / 2 + 0.1,
-                            self.PARA_VIS_HEIGHT / 2)
+                cm.setFrame(
+                    0, (self.PARA_VIS_LENGTH - 0.4) / 2, -self.PARA_VIS_HEIGHT / 2 + 0.1, self.PARA_VIS_HEIGHT / 2
+                )
                 cm.setHasNormals(True)
                 card = textNodePath.attachNewNode(cm.generate())
                 card.setPos(0.2 + self.PARA_VIS_LENGTH / 2, 0, 0.22)
@@ -58,9 +56,9 @@ class VehiclePanel(ImageBuffer):
                 # right
                 name = "Right"
                 cm = CardMaker(np_name)
-                cm.setFrame(-(self.PARA_VIS_LENGTH - 0.1) / 2, 0,
-                            -self.PARA_VIS_HEIGHT / 2 + 0.1,
-                            self.PARA_VIS_HEIGHT / 2)
+                cm.setFrame(
+                    -(self.PARA_VIS_LENGTH - 0.1) / 2, 0, -self.PARA_VIS_HEIGHT / 2 + 0.1, self.PARA_VIS_HEIGHT / 2
+                )
                 cm.setHasNormals(True)
                 card = textNodePath.attachNewNode(cm.generate())
                 card.setPos(0.2 + self.PARA_VIS_LENGTH / 2, 0, 0.22)

@@ -4,12 +4,7 @@ from memory_profiler import profile
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
-        super(TestEnv, self).__init__({
-            "manual_control": True,
-            "traffic_density": 0.0,
-            "use_render": True
-        }
-        )
+        super(TestEnv, self).__init__({"manual_control": True, "traffic_density": 0.0, "use_render": True})
 
     @profile(precision=4, stream=open('memory_leak_test.log', 'w+'))
     def step(self, action):
