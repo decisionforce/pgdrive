@@ -220,8 +220,8 @@ class PgWorld(ShowBase.ShowBase):
             )
 
             # a screenShot cam, feel free to use
-            self.screenshot_cam = ScreenShotCam(*Screenshot_cam, (5, 0), 100, self.render, self) if self.pg_config[
-                "screenshot_cam"] else None
+            self.screenshot_cam = ScreenShotCam(*Screenshot_cam, (5, 0), 100, self.render,
+                                                self) if self.pg_config["screenshot_cam"] else None
 
             # onscreen message
             self.on_screen_message = PgOnScreenMessage() \

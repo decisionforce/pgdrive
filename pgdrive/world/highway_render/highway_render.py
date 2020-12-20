@@ -134,12 +134,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
-            origin_pos=None,
-            show_rect: bool = False
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+        origin_pos=None,
+        show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -188,7 +188,6 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
-
     @classmethod
     def display(cls, lane, surface) -> None:
         """
@@ -297,22 +296,26 @@ class LaneGraphics(object):
             p_2 = lane.position(segment * Block.CIRCULAR_SEGMENT_LENGTH, width / 2)
             p_3 = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, width / 2)
             p_4 = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, -width / 2)
-            pygame.draw.polygon(surface, color,
-                                [surface.pos2pix(*p_1),
-                                 surface.pos2pix(*p_2),
-                                 surface.pos2pix(*p_3),
-                                 surface.pos2pix(*p_4)])
+            pygame.draw.polygon(
+                surface, color,
+                [surface.pos2pix(*p_1),
+                 surface.pos2pix(*p_2),
+                 surface.pos2pix(*p_3),
+                 surface.pos2pix(*p_4)]
+            )
 
         # # for last part
         p_1 = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, -width / 2)
         p_2 = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, width / 2)
         p_3 = lane.position(lane.length, width / 2)
         p_4 = lane.position(lane.length, -width / 2)
-        pygame.draw.polygon(surface, color,
-                            [surface.pos2pix(*p_1),
-                             surface.pos2pix(*p_2),
-                             surface.pos2pix(*p_3),
-                             surface.pos2pix(*p_4)])
+        pygame.draw.polygon(
+            surface, color,
+            [surface.pos2pix(*p_1),
+             surface.pos2pix(*p_2),
+             surface.pos2pix(*p_3),
+             surface.pos2pix(*p_4)]
+        )
 
     @classmethod
     def draw_ground(cls, lane, surface, color: Tuple[float], width: float, draw_surface: pygame.Surface = None) -> None:
@@ -332,7 +335,6 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
-
     @staticmethod
     def display(road, surface):
         """

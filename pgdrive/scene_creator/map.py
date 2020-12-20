@@ -240,12 +240,14 @@ class Map:
                 res_y_min = min(res_y_min, y_min)
         return res_x_min, res_x_max, res_y_min, res_y_max
 
-    def get_map_image_array(self,
-                            resolution=(512, 512),
-                            fill_hole=False,
-                            only_black_white=True,
-                            return_surface=False,
-                            simple_draw=True) -> Optional[Union[np.ndarray, pygame.Surface]]:
+    def get_map_image_array(
+        self,
+        resolution=(512, 512),
+        fill_hole=False,
+        only_black_white=True,
+        return_surface=False,
+        simple_draw=True
+    ) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         if fill_hole:
             surface = self.fill_hole(surface)
@@ -256,9 +258,13 @@ class Map:
         return pygame.surfarray.array3d(surface)
 
     def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True):
-        surface = self.get_map_image_array(resolution=resolution, fill_hole=fill_hole,
-                                           only_black_white=only_black_white, return_surface=True,
-                                           simple_draw=simple_draw)
+        surface = self.get_map_image_array(
+            resolution=resolution,
+            fill_hole=fill_hole,
+            only_black_white=only_black_white,
+            return_surface=True,
+            simple_draw=simple_draw
+        )
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
     @staticmethod
