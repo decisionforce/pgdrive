@@ -47,13 +47,13 @@ class TrafficManager:
         self.random_seed = None
 
     def generate_traffic(
-        self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
+            self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
         random_seed = map.random_seed if not self.random_traffic else None
-        logging.debug("load scene {}".format(random_seed))
+        logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.clear_traffic(pg_world.physics_world)
         self.ego_vehicle = ego_vehicle
         self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Add_once else None
@@ -153,7 +153,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
