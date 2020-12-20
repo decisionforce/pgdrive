@@ -24,6 +24,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -264,7 +265,8 @@ class Block(Element):
         """
         Create NodePath and Geom node to perform both collision detection and render
         """
-        self.model_node_path = NodePath(RigidBodyCombiner(self._block_name + "_model"))
+        self.lane_line_node_path = NodePath(RigidBodyCombiner(self._block_name + "_lane_line"))
+        self.side_walk_node_path = NodePath(RigidBodyCombiner(self._block_name + "_side_walk"))
         self.card_node_path = NodePath(RigidBodyCombiner(self._block_name + "_card"))
         graph = self.block_network.graph
         for _from, to_dict in graph.items():
@@ -274,20 +276,26 @@ class Block(Element):
                 for _id, l in enumerate(lanes):
                     line_color = l.line_color
                     self._add_lane(l, _id, line_color)
-        self.model_node_path.flattenStrong()
-        self.model_node_path.node().collect()
+        self.lane_line_node_path.flattenStrong()
+        self.lane_line_node_path.node().collect()
+
+        self.side_walk_node_path.flattenStrong()
+        self.side_walk_node_path.node().collect()
+        self.side_walk_node_path.hide(CamMask.ScreenshotCam)
 
         self.card_node_path.flattenStrong()
         self.card_node_path.node().collect()
-        self.card_node_path.hide(CamMask.DepthCam)
+        self.card_node_path.hide(CamMask.DepthCam | CamMask.ScreenshotCam)
 
         self.node_path = NodePath(self._block_name)
         self.node_path.hide(CamMask.Shadow)
-        self.model_node_path.reparentTo(self.node_path)
+
+        self.side_walk_node_path.reparentTo(self.node_path)
+        self.lane_line_node_path.reparentTo(self.node_path)
         self.card_node_path.reparentTo(self.node_path)
 
     def _add_lane(self, lane: AbstractLane, lane_id: int, colors: List[Vec4]):
-        parent_np = self.model_node_path
+        parent_np = self.lane_line_node_path
         lane_width = lane.width_at(0)
         for k, i in enumerate([-1, 1]):
             line_color = colors[k]
@@ -378,14 +386,14 @@ class Block(Element):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -429,7 +437,7 @@ class Block(Element):
         body_node.setActive(False)
         body_node.setKinematic(False)
         body_node.setStatic(True)
-        side_np = self.model_node_path.attachNewNode(body_node)
+        side_np = self.side_walk_node_path.attachNewNode(body_node)
         shape = BulletBoxShape(Vec3(1 / 2, 1 / 2, 1 / 2))
         body_node.addShape(shape)
         body_node.setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
