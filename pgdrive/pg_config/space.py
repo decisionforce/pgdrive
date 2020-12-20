@@ -17,7 +17,6 @@ class Space:
     code that applies to any Env. For example, you can choose a random
     action.
     """
-
     def __init__(self, shape=None, dtype=None):
         import numpy as np  # takes about 300-400ms to import, so we load lazily
         self.shape = None if shape is None else tuple(shape)
@@ -67,7 +66,6 @@ class Discrete(Space):
         >>> Discrete(2)
 
     """
-
     def __init__(self, n):
         assert n >= 0
         self.n = n
@@ -111,7 +109,6 @@ class Box(Space):
         Box(2,)
 
     """
-
     def __init__(self, low, high, shape=None, dtype=np.float32):
         assert dtype is not None, 'dtype must be explicitly provided. '
         self.dtype = np.dtype(dtype)
@@ -260,7 +257,6 @@ class Dict(Space):
         })
     })
     """
-
     def __init__(self, spaces=None, **spaces_kwargs):
         assert (spaces is None) or (not spaces_kwargs), 'Use either Dict(spaces=dict(...)) or Dict(foo=x, bar=z)'
         if spaces is None:
