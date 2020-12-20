@@ -32,7 +32,7 @@ class Space:
 
     def seed(self, seed=None):
         """Seed the PRNG of this space. """
-        self.np_random, seed = get_np_random(seed)
+        self.np_random, seed = get_np_random(seed, return_seed=True)
         return [seed]
 
     def contains(self, x):

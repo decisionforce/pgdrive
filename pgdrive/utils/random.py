@@ -9,7 +9,7 @@ import struct
 import numpy as np
 
 
-def get_np_random(seed=None):
+def get_np_random(seed=None, return_seed=False):
     if seed is not None and not (isinstance(seed, int) and 0 <= seed):
         raise logging.error('Seed must be a non-negative integer or omitted, not {}'.format(seed))
 
@@ -17,7 +17,10 @@ def get_np_random(seed=None):
 
     rng = np.random.RandomState()
     rng.seed(_int_list_from_bigint(hash_seed(seed)))
-    return rng, seed
+    if return_seed:
+        return rng, seed
+    else:
+        return rng
 
 
 def hash_seed(seed=None, max_bytes=8):

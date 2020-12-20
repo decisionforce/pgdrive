@@ -1,6 +1,6 @@
 import sys
 
-from pgdrive.utils.math_utils import safe_clip, clip
+from pgdrive.utils.math_utils import safe_clip, clip, norm
 from pgdrive.utils.random import get_np_random
 
 
