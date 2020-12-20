@@ -59,7 +59,7 @@ class Map:
     GENERATE_METHOD = "type"
 
     # draw with pygame, film size
-    DRAW_MAP_RESOLUTION = 2048  # pix
+    DRAW_MAP_RESOLUTION = 8192  # pix
 
     def __init__(self, pg_world: PgWorld, big_config: dict = None):
         """
@@ -299,6 +299,33 @@ class Map:
                     if count_a[i][j] >= threshold:
                         break
         return res_surface
+
+    def draw_map_with_navi_lines(self, vehicle, dest_resolution=(512, 512), save=False):
+        checkpoints = vehicle.routing_localization.checkpoints
+        map_surface = self.draw_map_image_on_surface(dest_resolution=dest_resolution, simple_draw=False)
+        from pgdrive.world.highway_render.highway_render import LaneGraphics
+        from pgdrive.world.highway_render.world_surface import WorldSurface
+        surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
+        b_box = self.get_map_bound_box(self.road_network)
+        x_len = b_box[1] - b_box[0]
+        y_len = b_box[3] - b_box[2]
+        max_len = max(x_len, y_len)
+        # scaling and center can be easily found by bounding box
+        scaling = self.film_size[1] / max_len - 0.1
+        surface.scaling = scaling
+        centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
+        surface.move_display_window_to(centering_pos)
+        for i, c in enumerate(checkpoints[:-1]):
+            lanes = self.road_network.graph[c][checkpoints[i + 1]]
+            for lane in lanes:
+                LaneGraphics.simple_draw(lane, surface)
+        dest_surface = pygame.Surface(dest_resolution)
+        pygame.transform.scale(surface, dest_resolution, dest_surface)
+        dest_surface.set_alpha(100)
+        map_surface.blit(dest_surface, (0, 0))
+        if save:
+            pygame.image.save(map_surface, "map_{}.png".format(self.random_seed))
+        return map_surface
 
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"

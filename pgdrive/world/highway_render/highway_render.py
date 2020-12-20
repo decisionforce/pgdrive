@@ -188,6 +188,7 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
+
     @classmethod
     def display(cls, lane, surface) -> None:
         """
@@ -308,7 +309,7 @@ class LaneGraphics(object):
         end = lane.position(lane.length, 0)
         middle = (start + end) / 2
         long, _ = lane.local_coordinates(middle)
-        h = lane.heading_at(long)
+        h = lane.heading_at(long) if abs(lane.heading_at(long)) > 2 * np.pi / 180 else 0
         position = [*middle]
         VehicleGraphics.blit_rotate(surface, ground_unit, surface.vec2pix(position), np.rad2deg(-h))
 
@@ -330,6 +331,7 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
+
     @staticmethod
     def display(road, surface):
         """
