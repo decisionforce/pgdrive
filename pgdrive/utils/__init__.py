@@ -1,6 +1,7 @@
 import sys
 
 from pgdrive.utils.math_utils import safe_clip, clip
+from pgdrive.utils.random import np_random
 
 
 def setup_logger(debug=False):
