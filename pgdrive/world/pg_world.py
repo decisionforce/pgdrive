@@ -74,7 +74,8 @@ class PgWorld(ShowBase.ShowBase):
             loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
             if self.pg_config["use_render"]:
                 self.mode = "onscreen"
-                # Warning it may cause memory leak
+                # Warning it may cause memory leak, Pand3d Official has fixed this in their master branch.
+                # You can enable it if your panda version is latest.
                 # loadPrcFileData(
                 #     "", "threading-model Cull/Draw"
                 # )  # multi-thread render, accelerate simulation when evaluate
