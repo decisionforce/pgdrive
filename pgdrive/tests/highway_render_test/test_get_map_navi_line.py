@@ -23,12 +23,12 @@ class TestEnv(PGDriveEnv):
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                # "map_config": {
-                #     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                #     Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
-                #     Map.LANE_WIDTH: 3.5,
-                #     Map.LANE_NUM: 3,
-                # }
+                "map_config": {
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                    Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
+                    Map.LANE_WIDTH: 3.5,
+                    Map.LANE_NUM: 3,
+                }
             }
         )
 

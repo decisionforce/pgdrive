@@ -300,7 +300,7 @@ class Map:
                         break
         return res_surface
 
-    def draw_map_with_navi_lines(self, vehicle, dest_resolution=(512, 512), save=False):
+    def draw_map_with_navi_lines(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
         checkpoints = vehicle.routing_localization.checkpoints
         map_surface = self.draw_map_image_on_surface(dest_resolution=dest_resolution, simple_draw=False)
         from pgdrive.world.highway_render.highway_render import LaneGraphics
@@ -318,7 +318,7 @@ class Map:
         for i, c in enumerate(checkpoints[:-1]):
             lanes = self.road_network.graph[c][checkpoints[i + 1]]
             for lane in lanes:
-                LaneGraphics.simple_draw(lane, surface)
+                LaneGraphics.simple_draw(lane, surface, color=navi_line_color)
         dest_surface = pygame.Surface(dest_resolution)
         pygame.transform.scale(surface, dest_resolution, dest_surface)
         dest_surface.set_alpha(100)

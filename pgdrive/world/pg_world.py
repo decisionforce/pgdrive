@@ -160,6 +160,7 @@ class PgWorld(ShowBase.ShowBase):
         self.pbrpipe = None
         self.light = None
         self.collision_info_np = None
+        self.screenshot_cam = None
 
         # physics world
         self.physics_world = BulletWorld()
