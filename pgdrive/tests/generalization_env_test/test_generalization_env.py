@@ -18,7 +18,6 @@ class TestEnv(PGDriveEnv):
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "random_traffic": True,
                 # "map_config": {
                 #     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
                 #     Map.GENERATE_PARA: 12,
