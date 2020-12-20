@@ -36,6 +36,8 @@ class RoutingLocalizationModule:
 
     def update(self, map: Map, parent_node_path):
         self.map = map
+
+        # TODO np.random should be removed, or use get_np_random from utils.
         self.final_road = np.random.RandomState(map.random_seed).choice(map.blocks[-1]._sockets).positive_road
         self.checkpoints = self.map.road_network.shortest_path(FirstBlock.NODE_1, self.final_road.end_node)
         self.final_lane = self.final_road.get_lanes(map.road_network)[-1]

@@ -9,7 +9,7 @@ import struct
 import numpy as np
 
 
-def np_random(seed=None):
+def get_np_random(seed=None):
     if seed is not None and not (isinstance(seed, int) and 0 <= seed):
         raise logging.error('Seed must be a non-negative integer or omitted, not {}'.format(seed))
 

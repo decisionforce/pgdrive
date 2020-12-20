@@ -6,7 +6,7 @@ import logging
 from collections import OrderedDict
 
 import numpy as np
-from pgdrive.utils.random import np_random
+from pgdrive.utils.random import get_np_random
 
 
 class Space:
@@ -32,7 +32,7 @@ class Space:
 
     def seed(self, seed=None):
         """Seed the PRNG of this space. """
-        self.np_random, seed = np_random(seed)
+        self.np_random, seed = get_np_random(seed)
         return [seed]
 
     def contains(self, x):
