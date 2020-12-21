@@ -24,6 +24,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -134,7 +135,10 @@ class Block(Element):
             )
             self.side_walk = self.loader.loadModel(AssetLoader.file_path(AssetLoader.asset_path, "models", "box.bam"))
 
-    def construct_block_random(self, root_render_np: NodePath, pg_physics_world: BulletWorld) -> bool:
+    def construct_block(self, root_render_np: NodePath, pg_physics_world: BulletWorld) -> bool:
+        """
+        Randomly Construct a block, if overlap return False
+        """
         self.set_config(self.PARAMETER_SPACE.sample())
         success = self._sample_topology()
         self._create_in_world()
