@@ -52,7 +52,7 @@ class BaseVehicle(DynamicElement):
             mini_map=(84, 84, 250),  # buffer length, width
             rgb_cam=(84, 84),  # buffer length, width
             depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_point=False,
+            show_navi_mark=True,
             increment_steering=False,
             wheel_friction=0.6,
         )
