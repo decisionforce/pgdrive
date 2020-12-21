@@ -62,6 +62,7 @@ class InRampOnStraight(Ramp):
         _extend_road = -extend_road
         _extend_road.get_lanes(self.block_network)[-1].line_types = [LineType.STRIPED, LineType.SIDE]
 
+        # main acc part
         acc_side_lane = ExtendStraightLane(
             extend_lane, acc_lane_len + self.lane_width, [LineType.STRIPED, LineType.SIDE]
         )
@@ -123,7 +124,7 @@ class InRampOnStraight(Ramp):
         no_cross = (not check_lane_on_road(self._global_network, bend_2, 0.95)) and no_cross
         no_cross = (not check_lane_on_road(self._global_network, acc_lane, 0.95)) and no_cross
 
-        # p1, road 4
+        # p1, road 4, small circular to decorate
         merge_lane, _ = sharpbend(
             acc_lane, 10, self.lane_width / 2, np.pi / 2, False, self.lane_width,
             (LineType.STRIPED, LineType.CONTINUOUS)
@@ -173,7 +174,7 @@ class OutRampOnStraight(Ramp):
         ) and no_cross
         no_cross = CreateAdverseRoad(dec_road, self.block_network, self._global_network) and no_cross
         dec_right_lane = dec_road.get_lanes(self.block_network)[-1]
-        dec_right_lane.line_types = [LineType.STRIPED, LineType.STRIPED]
+        dec_right_lane.line_types = [LineType.STRIPED, LineType.NONE]
 
         # part 0 road 1
         extend_lane = ExtendStraightLane(dec_right_lane, longitude_len, [LineType.STRIPED, LineType.CONTINUOUS])

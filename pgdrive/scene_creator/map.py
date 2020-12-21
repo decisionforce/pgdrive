@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from typing import List, Optional, Union
-
+from pgdrive.scene_creator.basic_utils import Decoration
 import numpy as np
 import pygame
 from panda3d.bullet import BulletWorld
@@ -214,12 +214,14 @@ class Map:
         centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
         surface.move_display_window_to(centering_pos)
         for _from in self.road_network.graph.keys():
+            decoration = True if _from == Decoration.start else False
             for _to in self.road_network.graph[_from].keys():
                 for l in self.road_network.graph[_from][_to]:
                     if simple_draw:
                         LaneGraphics.simple_draw(l, surface)
                     else:
-                        LaneGraphics.display(l, surface)
+                        two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
+                        LaneGraphics.display(l, surface, two_side)
         dest_surface = pygame.Surface(dest_resolution)
         pygame.transform.scale(surface, dest_resolution, dest_surface)
         return dest_surface
@@ -241,12 +243,12 @@ class Map:
         return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(
-        self,
-        resolution=(512, 512),
-        fill_hole=False,
-        only_black_white=True,
-        return_surface=False,
-        simple_draw=True
+            self,
+            resolution=(512, 512),
+            fill_hole=False,
+            only_black_white=True,
+            return_surface=False,
+            simple_draw=True
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         if fill_hole:

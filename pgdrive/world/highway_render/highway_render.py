@@ -134,12 +134,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -188,18 +188,21 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
+
     @classmethod
-    def display(cls, lane, surface) -> None:
+    def display(cls, lane, surface, two_side=True) -> None:
         """
         Display a lane on a surface.
 
         :param lane: the lane to be displayed
         :param surface: the pygame surface
+        :param two_side: draw two sides of the lane, or only one side
         """
+        side = 2 if two_side else 1
         stripes_count = int(2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
         s_origin, _ = lane.local_coordinates(surface.origin)
         s0 = (int(s_origin) // cls.STRIPE_SPACING - stripes_count // 2) * cls.STRIPE_SPACING
-        for side in range(2):
+        for side in range(side):
             if lane.line_types[side] == LineType.STRIPED:
                 cls.striped_line(lane, surface, stripes_count, s0, side)
             # circular side or continuous, it is same now
@@ -336,6 +339,7 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
+
     @staticmethod
     def display(road, surface):
         """

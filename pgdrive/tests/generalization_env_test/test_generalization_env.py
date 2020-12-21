@@ -1,4 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.scene_creator.map import Map, MapGenerateMethod
 
 
 class TestEnv(PGDriveEnv):
@@ -7,7 +8,7 @@ class TestEnv(PGDriveEnv):
             {
                 "environment_num": 1,
                 "traffic_density": 0.1,
-                "start_seed": 3,
+                "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
                 },
@@ -18,12 +19,12 @@ class TestEnv(PGDriveEnv):
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                # "map_config": {
-                #     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                #     Map.GENERATE_PARA: 12,
-                #     Map.LANE_WIDTH: 3.5,
-                #     Map.LANE_NUM: 3,
-                # }
+                "map_config": {
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+                    Map.GENERATE_PARA: 10,
+                    Map.LANE_WIDTH: 3.5,
+                    Map.LANE_NUM: 3,
+                }
             }
         )
 
