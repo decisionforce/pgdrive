@@ -56,11 +56,16 @@ class InRampOnStraight(Ramp):
         )
         extend_road = Road(self._pre_block_socket.positive_road.end_node, self.add_road_node())
         no_cross = CreateRoadFrom(
-            extend_lane, self.positive_lane_num, extend_road, self.block_network, self._global_network,
+            extend_lane,
+            self.positive_lane_num,
+            extend_road,
+            self.block_network,
+            self._global_network,
             side_lane_line_type=LineType.CONTINUOUS
         ) and no_cross
         extend_road.get_lanes(self.block_network)[-1].line_types = [
-            LineType.STRIPED if self.positive_lane_num != 1 else LineType.CONTINUOUS, LineType.CONTINUOUS]
+            LineType.STRIPED if self.positive_lane_num != 1 else LineType.CONTINUOUS, LineType.CONTINUOUS
+        ]
         no_cross = CreateAdverseRoad(extend_road, self.block_network, self._global_network) and no_cross
         _extend_road = -extend_road
         left_lane_line = LineType.NONE if self.positive_lane_num == 1 else LineType.STRIPED
@@ -72,7 +77,11 @@ class InRampOnStraight(Ramp):
         )
         acc_road = Road(extend_road.end_node, self.add_road_node())
         no_cross = CreateRoadFrom(
-            acc_side_lane, self.positive_lane_num, acc_road, self.block_network, self._global_network,
+            acc_side_lane,
+            self.positive_lane_num,
+            acc_road,
+            self.block_network,
+            self._global_network,
             side_lane_line_type=LineType.CONTINUOUS
         ) and no_cross
         no_cross = CreateAdverseRoad(acc_road, self.block_network, self._global_network) and no_cross
@@ -177,7 +186,11 @@ class OutRampOnStraight(Ramp):
         )
         dec_road = Road(self._pre_block_socket.positive_road.end_node, self.add_road_node())
         no_cross = CreateRoadFrom(
-            dec_lane, self.positive_lane_num, dec_road, self.block_network, self._global_network,
+            dec_lane,
+            self.positive_lane_num,
+            dec_road,
+            self.block_network,
+            self._global_network,
             side_lane_line_type=LineType.CONTINUOUS
         ) and no_cross
         no_cross = CreateAdverseRoad(dec_road, self.block_network, self._global_network) and no_cross
@@ -186,17 +199,23 @@ class OutRampOnStraight(Ramp):
         dec_right_lane.line_types = [left_line_type, LineType.NONE]
 
         # part 0 road 1
-        extend_lane = ExtendStraightLane(dec_right_lane, longitude_len,
-                                         [dec_right_lane.line_types[0], LineType.CONTINUOUS])
+        extend_lane = ExtendStraightLane(
+            dec_right_lane, longitude_len, [dec_right_lane.line_types[0], LineType.CONTINUOUS]
+        )
         extend_road = Road(dec_road.end_node, self.add_road_node())
         no_cross = CreateRoadFrom(
-            extend_lane, self.positive_lane_num, extend_road, self.block_network, self._global_network,
+            extend_lane,
+            self.positive_lane_num,
+            extend_road,
+            self.block_network,
+            self._global_network,
             side_lane_line_type=LineType.CONTINUOUS
         ) and no_cross
         no_cross = CreateAdverseRoad(extend_road, self.block_network, self._global_network) and no_cross
         _extend_road = -extend_road
         _extend_road.get_lanes(self.block_network)[-1].line_types = [
-            LineType.NONE if self.positive_lane_num == 1 else LineType.STRIPED, LineType.SIDE]
+            LineType.NONE if self.positive_lane_num == 1 else LineType.STRIPED, LineType.SIDE
+        ]
         self.add_sockets(self.create_socket_from_positive_road(extend_road))
 
         # part 1 road 0

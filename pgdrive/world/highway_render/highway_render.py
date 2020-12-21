@@ -134,12 +134,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
-            origin_pos=None,
-            show_rect: bool = False
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+        origin_pos=None,
+        show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -188,7 +188,6 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
-
     @classmethod
     def display(cls, lane, surface, two_side=True) -> None:
         """
@@ -339,7 +338,6 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
-
     @staticmethod
     def display(road, surface):
         """

@@ -22,14 +22,15 @@ class FirstBlock(Block):
     SOCKET_NUM = 1
 
     def __init__(
-            self, global_network: RoadNetwork, lane_width: float, lane_num: int, render_root_np: NodePath,
-            pg_physics_world: BulletWorld, random_seed
+        self, global_network: RoadNetwork, lane_width: float, lane_num: int, render_root_np: NodePath,
+        pg_physics_world: BulletWorld, random_seed
     ):
         place_holder = BlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))
         super(FirstBlock, self).__init__(0, place_holder, global_network, random_seed)
         basic_lane = StraightLane(
             [0, lane_width * (lane_num - 1)], [10, lane_width * (lane_num - 1)],
-            line_types=(LineType.STRIPED, LineType.SIDE), width=lane_width
+            line_types=(LineType.STRIPED, LineType.SIDE),
+            width=lane_width
         )
         ego_v_born_road = Road(self.NODE_1, self.NODE_2)
         CreateRoadFrom(basic_lane, lane_num, ego_v_born_road, self.block_network, self._global_network)
