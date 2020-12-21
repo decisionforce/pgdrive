@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from panda3d.core import NodePath
+from panda3d.core import NodePath, LQuaternionf
 
 from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -27,14 +27,14 @@ class RoutingLocalizationModule:
         self.checkpoints = None
         self.final_lane = None
         self.target_checkpoints_index = None
-        self.navi_point_vis = None
-        self.ndoe_path = None
+        self.arrow_node_path = None
+        self.target_node_path = None
         self.navi_info = None
         self.current_ref_lanes = None
         self.show_navi_point = show_navi_point
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
-    def update(self, map: Map, parent_node_path):
+    def update(self, map: Map, parent_node_path: NodePath):
         self.map = map
 
         # TODO(pzh): I am not sure whether we should change the random state here.
@@ -44,23 +44,21 @@ class RoutingLocalizationModule:
         self.checkpoints = self.map.road_network.shortest_path(FirstBlock.NODE_1, self.final_road.end_node)
         self.final_lane = self.final_road.get_lanes(map.road_network)[-1]
         self.target_checkpoints_index = [0, 1]
-        self.navi_point_vis = [] if self.show_navi_point else None
-        self.ndoe_path = NodePath("navi_points") if self.show_navi_point else None
+        self.target_node_path = parent_node_path.attachNewNode("target") if self.show_navi_point else None
+        self.arrow_node_path = parent_node_path.attachNewNode("arrow") if self.show_navi_point else None
         self.navi_info = []
         target_road_1_start = self.checkpoints[0]
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
 
         if self.show_navi_point:
-            for _ in self.target_checkpoints_index:
-                navi_point_model = AssetLoader.loader.loadModel(
-                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
-                )
-                navi_point_model.setScale(1)
-                navi_point_model.setColor(0, 0.5, 0.5)
-                navi_point_model.reparentTo(self.ndoe_path)
-                self.navi_point_vis.append(navi_point_model)
-            self.ndoe_path.reparentTo(parent_node_path)
+            navi_point_model = AssetLoader.loader.loadModel(
+                AssetLoader.file_path(AssetLoader.asset_path, "models", "navi_arrow.gltf")
+            )
+            # navi_point_model.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, np.sin(-np.pi / 4), 0))
+            navi_point_model.setScale(1, 1, 0.25)
+            navi_point_model.setPos(0., 0, 0)
+            navi_point_model.reparentTo(self.arrow_node_path)
 
     def get_navigate_landmarks(self, distance):
         ret = []
@@ -89,7 +87,7 @@ class RoutingLocalizationModule:
         target_lanes_2 = self.map.road_network.graph[target_road_2_start][target_road_2_end]
         res = []
         self.current_ref_lanes = target_lanes_1
-
+        ckpts = []
         for lanes_id, lanes in enumerate([target_lanes_1, target_lanes_2]):
             ref_lane = lanes[0]
             later_middle = (float(self.map.lane_num) / 2 - 0.5) * self.map.lane_width
@@ -97,6 +95,7 @@ class RoutingLocalizationModule:
                 ref_lane = lanes[-1]
                 later_middle *= -1
             check_point = ref_lane.position(ref_lane.length, later_middle)
+            ckpts.append(check_point)
             dir_vec = check_point - ego_vehicle.position
             dir_norm = norm(dir_vec[0], dir_vec[1])
             if dir_norm > self.NAVI_POINT_DIST:
@@ -108,7 +107,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -122,8 +121,15 @@ class RoutingLocalizationModule:
                 clip((dir + 1) / 2, 0.0, 1.0),
                 clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
             ]
-            if self.navi_point_vis is not None:
-                self.navi_point_vis[lanes_id].setPos(check_point[0], -check_point[1], 0.5)
+            if self.show_navi_point:
+                if lanes_id == 1:
+                    self.target_node_path.setPos(check_point[0], -check_point[1], 2.0)
+                    self.arrow_node_path.lookAt(self.target_node_path)
+                else:
+                    v_pos = ego_vehicle.chassis_np.getPos()
+                    v_pos[-1] = 2.0
+                    self.arrow_node_path.setPos(v_pos)
+
         self.navi_info = res
         return lane, lane_index
 

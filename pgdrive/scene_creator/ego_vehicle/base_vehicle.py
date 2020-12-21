@@ -408,7 +408,7 @@ class BaseVehicle(DynamicElement):
         self.routing_localization = RoutingLocalizationModule(show_navi_point)
 
     def update_map_info(self, map):
-        self.routing_localization.update(map, self.pg_world.worldNP)
+        self.routing_localization.update(map, self.pg_world.pbr_worldNP)
         self.lane_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place))
         self.lane = self.routing_localization.map.road_network.get_lane(self.lane_index)
 
