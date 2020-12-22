@@ -32,4 +32,3 @@ COLOR = {
     BodyName.Stripped_line: "yellow",
     BodyName.Traffic_vehicle: "red"
 }
-

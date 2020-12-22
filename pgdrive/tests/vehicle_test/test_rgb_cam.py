@@ -31,10 +31,10 @@ if __name__ == "__main__":
         o, r, d, info = env.step([0, 1])
         assert env.observation_space.contains(o)
         # if env.config["use_render"]:
-            # for i in range(ImageObservation.STACK_SIZE):
-            #      ObservationType.show_gray_scale_array(o["image"][:, :, i])
-            # image = env.render(mode="any str except human", text={"can you see me": i})
-            # ObservationType.show_gray_scale_array(image)
+        # for i in range(ImageObservation.STACK_SIZE):
+        #      ObservationType.show_gray_scale_array(o["image"][:, :, i])
+        # image = env.render(mode="any str except human", text={"can you see me": i})
+        # ObservationType.show_gray_scale_array(image)
         if d:
             print("Reset")
             env.reset()

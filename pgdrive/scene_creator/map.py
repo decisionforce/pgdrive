@@ -236,7 +236,7 @@ class Map:
         res_y_max = -np.inf
         for _from, to_dict in road_network.graph.items():
             for _to, lanes in to_dict.items():
-                if len(lanes)==0:
+                if len(lanes) == 0:
                     continue
                 x_max, x_min, y_max, y_min = get_road_bound_box(lanes)
                 res_x_max = max(res_x_max, x_max)
