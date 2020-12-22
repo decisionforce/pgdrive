@@ -1,5 +1,5 @@
 import logging
-from panda3d.core import BitMask32
+from panda3d.core import BitMask32, LQuaternionf
 import numpy as np
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
@@ -7,7 +7,7 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
-from pgdrive.utils.math_utils import clip, norm
+from pgdrive.utils.math_utils import clip, norm, wrap_to_pi
 
 
 class RoutingLocalizationModule:
@@ -16,7 +16,7 @@ class RoutingLocalizationModule:
     It is necessary to interactive with other traffic vehicles
     """
     NAVI_POINT_DIST = 50
-    CKPT_DIST = 60
+    PRE_NOTIFY_DIST = 40
 
     def __init__(self, pg_world, show_navi_point: False):
         """
@@ -29,25 +29,30 @@ class RoutingLocalizationModule:
         self.target_checkpoints_index = None
         self.navi_info = None  # navi information res
         self.current_ref_lanes = None
+
         # Vis
+        self.showing = True  # store the state of navigation mark
         self.show_navi_point = show_navi_point and pg_world.mode == "onscreen"
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
-        self.arrow_node_path = pg_world.pbr_render.attachNewNode("arrow") if self.show_navi_point else None
+        self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
             navi_arrow_model = AssetLoader.loader.loadModel(
                 AssetLoader.file_path(AssetLoader.asset_path, "models", "navi_arrow.gltf")
             )
-            navi_arrow_model.getChildren().reparentTo(self.arrow_node_path)
-            self.arrow_node_path.setScale(0.1, 0.8, 0.25)
+            navi_arrow_model.setPos(1,0,-1)
+            navi_arrow_model.reparentTo(self.arrow_node_path)
+            self.arrow_node_path.setScale(0.1, 0.5 / 2, 0.25 / 4)
+            self.arrow_node_path.setPos(0, 0, 0.5)
+            self.arrow_node_path.setColor(65 / 255, 163 / 255, 0)
             self.arrow_node_path.hide(BitMask32.allOn())
             self.arrow_node_path.show(CamMask.MainCam)
-            if pg_world.DEBUG:
+            self.arrow_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
+            if pg_world.DEBUG or 1:
                 navi_point_model = AssetLoader.loader.loadModel(
                     AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
                 )
                 navi_point_model.reparentTo(self.goal_node_path)
             self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.1)
-            # self.goal_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), np.sin(-np.pi / 4), 0, 0))
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
     def update(self, map: Map):
@@ -93,6 +98,7 @@ class RoutingLocalizationModule:
         res = []
         self.current_ref_lanes = target_lanes_1
         ckpts = []
+        lanes_heading = []
         for lanes_id, lanes in enumerate([target_lanes_1, target_lanes_2]):
             ref_lane = lanes[0]
             later_middle = (float(self.map.lane_num) / 2 - 0.5) * self.map.lane_width
@@ -100,6 +106,11 @@ class RoutingLocalizationModule:
                 ref_lane = lanes[-1]
                 later_middle *= -1
             check_point = ref_lane.position(ref_lane.length, later_middle)
+            if lanes_id == 0:
+                # calculate ego v lane heading
+                lanes_heading.append(ref_lane.heading_at(ref_lane.local_coordinates(ego_vehicle.position)[0]))
+            else:
+                lanes_heading.append(ref_lane.heading_at(self.PRE_NOTIFY_DIST))
             ckpts.append(check_point)
             dir_vec = check_point - ego_vehicle.position
             dir_norm = norm(dir_vec[0], dir_vec[1])
@@ -111,7 +122,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -127,17 +138,30 @@ class RoutingLocalizationModule:
             ]
 
         if self.show_navi_point:
-            pos_of_goal = check_point
+            pos_of_goal = ckpts[0]
             self.goal_node_path.setPos(pos_of_goal[0], -pos_of_goal[1], 1.8)
             self.goal_node_path.setH(self.goal_node_path.getH() + 3)
-            self.arrow_node_path.lookAt(self.goal_node_path)
-
-            v_pos = ego_vehicle.chassis_np.getPos()
-            v_pos[-1] = 1.8
-            self.arrow_node_path.setPos(v_pos)
+            self.update_navi_arrow(lanes_heading, ego_vehicle)
 
         self.navi_info = res
         return lane, lane_index
+
+    def update_navi_arrow(self, lanes_heading, ego_vehicle):
+        lane_0_heading = wrap_to_pi(lanes_heading[0])
+        lane_1_heading = wrap_to_pi(lanes_heading[1])
+        if abs(lane_0_heading - lane_1_heading) < 0.01:
+            if self.showing:
+                self.arrow_node_path.detachNode()
+                self.showing = False
+        else:
+            if not self.showing:
+                self.arrow_node_path.reparentTo(ego_vehicle.pg_world.aspect2d)
+                self.showing = True
+            if lane_0_heading>lane_1_heading:
+                self.arrow_node_path.setP(180)
+            else:
+                self.arrow_node_path.setP(0)
+            # self.arrow_node_path.reparentTo(ego_vehicle.pg_world.aspect2d)
 
     def _update_target_checkpoints(self, ego_lane_index):
         current_road_start_point = ego_lane_index[0]
