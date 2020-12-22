@@ -43,7 +43,8 @@ class RoutingLocalizationModule:
             self.arrow_node_path.show(CamMask.MainCam)
             if pg_world.DEBUG:
                 navi_point_model = AssetLoader.loader.loadModel(
-                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg"))
+                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
+                )
                 navi_point_model.reparentTo(self.goal_node_path)
             self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.1)
             # self.goal_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), np.sin(-np.pi / 4), 0, 0))
@@ -54,7 +55,7 @@ class RoutingLocalizationModule:
 
         # TODO(pzh): I am not sure whether we should change the random state here.
         #  If so, then the vehicle may have different final road in single map, this will avoid it from over-fitting
-        #  the map and memorize the routes. 
+        #  the map and memorize the routes.
         self.final_road = np.random.RandomState(map.random_seed).choice(map.blocks[-1]._sockets).positive_road
         self.checkpoints = self.map.road_network.shortest_path(FirstBlock.NODE_1, self.final_road.end_node)
         self.final_lane = self.final_road.get_lanes(map.road_network)[-1]
@@ -110,7 +111,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
