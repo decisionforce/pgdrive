@@ -35,7 +35,8 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = show_navi_point and pg_world.mode == "onscreen"
+        self.show_navi_point = show_navi_point and pg_world.mode == "onscreen" and not pg_world.pg_config[
+            "debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -56,11 +57,11 @@ class RoutingLocalizationModule:
             self.arrow_node_path.show(CamMask.MainCam)
             self.arrow_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
             self.arrow_node_path.setTransparency(TransparencyAttrib.M_alpha)
-
-            navi_point_model = AssetLoader.loader.loadModel(
-                AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
-            )
-            navi_point_model.reparentTo(self.goal_node_path)
+            if pg_world.DEBUG:
+                navi_point_model = AssetLoader.loader.loadModel(
+                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
+                )
+                navi_point_model.reparentTo(self.goal_node_path)
             self.goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
             self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.7)
             self.goal_node_path.hide(BitMask32.allOn())
@@ -134,7 +135,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
