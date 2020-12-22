@@ -19,7 +19,7 @@ class RoutingLocalizationModule:
     NAVI_POINT_DIST = 50
     PRE_NOTIFY_DIST = 40
     MARK_COLOR = COLLISION_INFO_COLOR["green"][1]
-    MIN_ALPHA = 0.1
+    MIN_ALPHA = 0.15
 
     def __init__(self, pg_world, show_navi_point: False):
         """
@@ -32,7 +32,6 @@ class RoutingLocalizationModule:
         self.target_checkpoints_index = None
         self.navi_info = None  # navi information res
         self.current_ref_lanes = None
-
 
         # Vis
         self.showing = True  # store the state of navigation mark
@@ -52,18 +51,20 @@ class RoutingLocalizationModule:
             self.right_arrow.setColor(self.MARK_COLOR)
             navi_arrow_model.instanceTo(self.left_arrow)
             navi_arrow_model.instanceTo(self.right_arrow)
-            self.arrow_node_path.setPos(0,0,0.09)
+            self.arrow_node_path.setPos(0, 0, 0.08)
             self.arrow_node_path.hide(BitMask32.allOn())
             self.arrow_node_path.show(CamMask.MainCam)
             self.arrow_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
             self.arrow_node_path.setTransparency(TransparencyAttrib.M_alpha)
-            if pg_world.DEBUG or 1:
-                navi_point_model = AssetLoader.loader.loadModel(
-                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
-                )
-                navi_point_model.reparentTo(self.goal_node_path)
-                self.goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
-                self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.7)
+
+            navi_point_model = AssetLoader.loader.loadModel(
+                AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
+            )
+            navi_point_model.reparentTo(self.goal_node_path)
+            self.goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
+            self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.7)
+            self.goal_node_path.hide(BitMask32.allOn())
+            self.goal_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
     def update(self, map: Map):
