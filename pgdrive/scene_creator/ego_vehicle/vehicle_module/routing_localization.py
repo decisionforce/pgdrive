@@ -1,5 +1,5 @@
 import logging
-from panda3d.core import BitMask32, LQuaternionf
+from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
 import numpy as np
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
@@ -8,6 +8,7 @@ from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.math_utils import clip, norm, wrap_to_pi
+from pgdrive.world.constants import COLLISION_INFO_COLOR
 
 
 class RoutingLocalizationModule:
@@ -17,6 +18,8 @@ class RoutingLocalizationModule:
     """
     NAVI_POINT_DIST = 50
     PRE_NOTIFY_DIST = 40
+    MARK_COLOR = COLLISION_INFO_COLOR["green"][1]
+    MIN_ALPHA = 0.1
 
     def __init__(self, pg_world, show_navi_point: False):
         """
@@ -30,6 +33,7 @@ class RoutingLocalizationModule:
         self.navi_info = None  # navi information res
         self.current_ref_lanes = None
 
+
         # Vis
         self.showing = True  # store the state of navigation mark
         self.show_navi_point = show_navi_point and pg_world.mode == "onscreen"
@@ -39,20 +43,27 @@ class RoutingLocalizationModule:
             navi_arrow_model = AssetLoader.loader.loadModel(
                 AssetLoader.file_path(AssetLoader.asset_path, "models", "navi_arrow.gltf")
             )
-            navi_arrow_model.setPos(1,0,-1)
-            navi_arrow_model.reparentTo(self.arrow_node_path)
-            self.arrow_node_path.setScale(0.1, 0.5 / 2, 0.25 / 4)
-            self.arrow_node_path.setPos(0, 0, 0.5)
-            self.arrow_node_path.setColor(65 / 255, 163 / 255, 0)
+            navi_arrow_model.setScale(0.1, 0.12, 0.2)
+            navi_arrow_model.setPos(2, 1.15, -0.221)
+            self.left_arrow = self.arrow_node_path.attachNewNode("left arrow")
+            self.left_arrow.setP(180)
+            self.right_arrow = self.arrow_node_path.attachNewNode("right arrow")
+            self.left_arrow.setColor(self.MARK_COLOR)
+            self.right_arrow.setColor(self.MARK_COLOR)
+            navi_arrow_model.instanceTo(self.left_arrow)
+            navi_arrow_model.instanceTo(self.right_arrow)
+            self.arrow_node_path.setPos(0,0,0.09)
             self.arrow_node_path.hide(BitMask32.allOn())
             self.arrow_node_path.show(CamMask.MainCam)
             self.arrow_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
+            self.arrow_node_path.setTransparency(TransparencyAttrib.M_alpha)
             if pg_world.DEBUG or 1:
                 navi_point_model = AssetLoader.loader.loadModel(
                     AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
                 )
                 navi_point_model.reparentTo(self.goal_node_path)
-            self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.1)
+                self.goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
+                self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.7)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
     def update(self, map: Map):
@@ -141,27 +152,28 @@ class RoutingLocalizationModule:
             pos_of_goal = ckpts[0]
             self.goal_node_path.setPos(pos_of_goal[0], -pos_of_goal[1], 1.8)
             self.goal_node_path.setH(self.goal_node_path.getH() + 3)
-            self.update_navi_arrow(lanes_heading, ego_vehicle)
+            self.update_navi_arrow(lanes_heading)
 
         self.navi_info = res
         return lane, lane_index
 
-    def update_navi_arrow(self, lanes_heading, ego_vehicle):
+    def update_navi_arrow(self, lanes_heading):
         lane_0_heading = wrap_to_pi(lanes_heading[0])
         lane_1_heading = wrap_to_pi(lanes_heading[1])
         if abs(lane_0_heading - lane_1_heading) < 0.01:
             if self.showing:
-                self.arrow_node_path.detachNode()
+                self.left_arrow.setAlphaScale(self.MIN_ALPHA)
+                self.right_arrow.setAlphaScale(self.MIN_ALPHA)
                 self.showing = False
         else:
             if not self.showing:
-                self.arrow_node_path.reparentTo(ego_vehicle.pg_world.aspect2d)
                 self.showing = True
-            if lane_0_heading>lane_1_heading:
-                self.arrow_node_path.setP(180)
+            if lane_0_heading > lane_1_heading:
+                self.left_arrow.setAlphaScale(1)
+                self.right_arrow.setAlphaScale(self.MIN_ALPHA)
             else:
-                self.arrow_node_path.setP(0)
-            # self.arrow_node_path.reparentTo(ego_vehicle.pg_world.aspect2d)
+                self.right_arrow.setAlphaScale(1)
+                self.left_arrow.setAlphaScale(self.MIN_ALPHA)
 
     def _update_target_checkpoints(self, ego_lane_index):
         current_road_start_point = ego_lane_index[0]
