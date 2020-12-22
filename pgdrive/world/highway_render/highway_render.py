@@ -6,6 +6,7 @@ from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.utils import import_pygame
 from pgdrive.world.highway_render.world_surface import WorldSurface
+from pgdrive.scene_creator.basic_utils import Decoration
 
 pygame = import_pygame()
 
@@ -15,33 +16,35 @@ class HighwayRender:
     Most of the source code is from Highway-Env, we only optimize and integrate it in PG-Drive
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
-    SCALING = 5.5
     i = 0.1
-    Map_Region = (10000, 10000)
+    RESOLUTION = (512, 512)
+    MAP_REGION = (8192, 8192)
 
-    def __init__(self, resolution: Tuple, onscreen: bool):
-        self.resolution = resolution
-        self.map_surface = None
-        self.traffic_surface = None
-        self.onscreen = onscreen
+    def __init__(self, onscreen: str):
+        self.resolution = self.RESOLUTION
+        self.frame_surface = None
+        self._scaling = None  # automatically change, don't set the value
+        self._center_pos = None # automatically change, don't set the value
+        self.onscreen = True if onscreen == "onscreen" else False
+
+        # map
         self.map = None
+        self.map_surface = None
+
+        # traffic
         self.traffic_mgr = None
+        self.traffic_surface = None
+
         from pgdrive.world.pg_world import PG_EDITION
         pygame.init()
-        pygame.display.set_caption(PG_EDITION)
-        if onscreen:
-            self.screen = pygame.display.set_mode(resolution)
+        pygame.display.set_caption(PG_EDITION + "-highway-render")
+        if self.onscreen:
+            self.screen = pygame.display.set_mode(self.resolution)
 
     def draw_scene(self) -> np.ndarray:
-        self.i += 0.1
-        self.map_surface = WorldSurface(self.resolution, 0, pygame.Surface(self.resolution))
-        self.map_surface.scaling = self.SCALING
-        self.map_surface.centering_position = [0.5, 0.5]
-        self.map_surface.fill(self.map_surface.GREY)
-        self.map_surface.move_display_window_to([self.i, 10])
-        self.draw_map(self.map.road_network, self.map_surface)
-
-        self.screen.blit(self.map_surface, (0, 0))
+        self.frame_surface=pygame.Surface(self.RESOLUTION)
+        self.frame_surface.blit(self.map_surface, (0,0))
+        self.screen.blit(self.frame_surface, (0, 0))
         pygame.display.flip()
 
     def render(self):
@@ -51,14 +54,47 @@ class HighwayRender:
         self.traffic_mgr = traffic_mgr
 
     def set_map(self, map):
+        """
+        Initialize the most big map surface to save calculation time, this func is called in map class automatically
+        :param map: Map class
+        :return: None
+        """
         self.map = map
+        self.draw_map()
 
-    @staticmethod
-    def draw_map(roadnetwork, surface):
-        for _from in roadnetwork.graph.keys():
-            for _to in roadnetwork.graph[_from].keys():
-                for l in roadnetwork.graph[_from][_to]:
-                    LaneGraphics.display(l, surface)
+    def draw_vehicles(self):
+        """
+        :return: center position
+        """
+        surface = WorldSurface(self.MAP_REGION, 0, pygame.Surface(self.MAP_REGION))
+        surface.scaling = self._scaling
+        surface.move_display_window_to(self._center_pos)
+        VehicleGraphics.display(self.traffic_mgr.ego_vehicle, surface)
+        self.traffic_surface = surface
+
+    def draw_map(self) -> pygame.Surface:
+        """
+        :return: a big map surface, clip  and rotate to use a piece of it
+        """
+        surface = WorldSurface(self.MAP_REGION, 0, pygame.Surface(self.MAP_REGION))
+        b_box = self.map.get_map_bound_box(self.map.road_network)
+        x_len = b_box[1] - b_box[0]
+        y_len = b_box[3] - b_box[2]
+        max_len = max(x_len, y_len)
+        # scaling and center can be easily found by bounding box
+        scaling = self.MAP_REGION[1] / max_len - 0.1
+        surface.scaling = scaling
+        self._scaling = scaling
+        centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
+        self._center_pos =centering_pos
+        surface.move_display_window_to(centering_pos)
+        for _from in self.map.road_network.graph.keys():
+            decoration = True if _from == Decoration.start else False
+            for _to in self.map.road_network.graph[_from].keys():
+                for l in self.map.road_network.graph[_from][_to]:
+                        two_side = True if l is self.map.road_network.graph[_from][_to][-1] or decoration else False
+                        LaneGraphics.display(l, surface, two_side)
+        self.map_surface = surface
 
 
 class VehicleGraphics(object):
@@ -99,7 +135,7 @@ class VehicleGraphics(object):
             surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
             surface.pix(v.WIDTH)
         )
-        pygame.draw.rect(vehicle_surface, cls.get_color(v, transparent), rect, 0)
+        pygame.draw.rect(vehicle_surface, cls.BLUE, rect, 0)
         pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
         # # Tires
@@ -118,7 +154,7 @@ class VehicleGraphics(object):
         #         cls.blit_rotate(vehicle_surface, tire_surface, tire_position, np.rad2deg(-tire_angle))
 
         # Centered rotation
-        h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
+        h = v.heading_theta if abs(v.heading_theta) > 2 * np.pi / 180 else 0
         position = [*surface.pos2pix(v.position[0], v.position[1])]
         if not offscreen:
             # convert_alpha throws errors in offscreen mode
@@ -135,12 +171,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -189,6 +225,7 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
+
     @classmethod
     def display(cls, lane, surface, two_side=True) -> None:
         """
@@ -339,6 +376,7 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
+
     @staticmethod
     def display(road, surface):
         """

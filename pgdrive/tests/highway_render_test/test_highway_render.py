@@ -2,7 +2,7 @@ from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
 
-setup_logger(debug=True)
+setup_logger(True)
 
 
 class TestEnv(PGDriveEnv):
@@ -11,12 +11,13 @@ class TestEnv(PGDriveEnv):
             {
                 "environment_num": 1,
                 "traffic_density": 0.1,
-                "start_seed": 3,
+                "start_seed": 5,
                 "pg_world_config": {
-                    "debug": False,
+                    "onscreen_message": True,
+                    "highway_render": "onscreen",
                 },
                 "image_source": "mini_map",
-                "manual_control": False,
+                "manual_control": True,
                 "use_render": False,
                 "use_image": False,
                 "steering_penalty": 0.0,
@@ -24,9 +25,9 @@ class TestEnv(PGDriveEnv):
                 "rgb_clip": True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
+                    Map.GENERATE_PARA: "OTCSXTrSR",
                     Map.LANE_WIDTH: 3.5,
-                    Map.LANE_NUM: 1,
+                    Map.LANE_NUM: 3,
                 }
             }
         )
@@ -34,5 +35,12 @@ class TestEnv(PGDriveEnv):
 
 if __name__ == "__main__":
     env = TestEnv()
-    env.reset()
-    env.current_map.draw_map_with_navi_lines(env.vehicle, dest_resolution=(4096, 4096), save=True)
+
+    o = env.reset()
+    for i in range(1, 100000):
+        o, r, d, info = env.step([0, 1])
+        env.render()
+        if d:
+            print("Reset")
+            env.reset()
+    env.close()
