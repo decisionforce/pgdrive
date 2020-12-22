@@ -6,7 +6,7 @@ class TestEnv(PGDriveEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             {
-                "environment_num": 1,
+                "environment_num": 1000,
                 "traffic_density": 0.1,
                 "start_seed": 5,
                 "pg_world_config": {
@@ -20,8 +20,8 @@ class TestEnv(PGDriveEnv):
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "map_config": {
-                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+                    Map.GENERATE_PARA: 12,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }
@@ -34,14 +34,7 @@ if __name__ == "__main__":
 
     o = env.reset()
     for i in range(1, 100000):
-        # start = time.time()
-        # print("Step: ", i)
         env.step([0, 1])
-        # print(r)
-        # print(o)
-        # print(time.time() - start)
-        # print(len(o), "Vs.", env.observation_space.shape[0])
-        # print(info)
         env.render("Test: {}".format(i))
         # if d:
         #     print("Reset")

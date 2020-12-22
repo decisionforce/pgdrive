@@ -57,11 +57,10 @@ class RoutingLocalizationModule:
             self.arrow_node_path.show(CamMask.MainCam)
             self.arrow_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
             self.arrow_node_path.setTransparency(TransparencyAttrib.M_alpha)
-            if pg_world.DEBUG:
-                navi_point_model = AssetLoader.loader.loadModel(
-                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
-                )
-                navi_point_model.reparentTo(self.goal_node_path)
+            navi_point_model = AssetLoader.loader.loadModel(
+                AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
+            )
+            navi_point_model.reparentTo(self.goal_node_path)
             self.goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
             self.goal_node_path.setColor(0.6, 0.8, 0.5, 0.7)
             self.goal_node_path.hide(BitMask32.allOn())
@@ -160,17 +159,20 @@ class RoutingLocalizationModule:
         return lane, lane_index
 
     def update_navi_arrow(self, lanes_heading):
-        lane_0_heading = wrap_to_pi(lanes_heading[0])
-        lane_1_heading = wrap_to_pi(lanes_heading[1])
+        lane_0_heading = lanes_heading[0]
+        lane_1_heading = lanes_heading[1]
         if abs(lane_0_heading - lane_1_heading) < 0.01:
             if self.showing:
                 self.left_arrow.setAlphaScale(self.MIN_ALPHA)
                 self.right_arrow.setAlphaScale(self.MIN_ALPHA)
                 self.showing = False
         else:
+            dir_0 = np.array([np.cos(lane_0_heading), np.sin(lane_0_heading), 0])
+            dir_1 = np.array([np.cos(lane_1_heading), np.sin(lane_1_heading), 0])
+            left = False if np.cross(dir_1, dir_0)[-1] < 0 else True
             if not self.showing:
                 self.showing = True
-            if lane_0_heading > lane_1_heading:
+            if left:
                 self.left_arrow.setAlphaScale(1)
                 self.right_arrow.setAlphaScale(self.MIN_ALPHA)
             else:
