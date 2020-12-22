@@ -1,12 +1,13 @@
 from typing import List, Tuple
 
 import numpy as np
-import pygame
-
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-from .world_surface import WorldSurface
+from pgdrive.utils import import_pygame
+from pgdrive.world.highway_render.world_surface import WorldSurface
+
+pygame = import_pygame()
 
 
 class HighwayRender:
@@ -134,12 +135,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -188,6 +189,7 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
+
     @classmethod
     def display(cls, lane, surface, two_side=True) -> None:
         """
@@ -338,6 +340,7 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
+
     @staticmethod
     def display(road, surface):
         """
