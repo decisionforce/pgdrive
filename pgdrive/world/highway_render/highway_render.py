@@ -114,26 +114,29 @@ class HighwayRender:
         height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
 
         scale_surface = pygame.Surface((width, height))
-        scale_surface.blit(surface, (0, 0),
-                           (pos[0] - width / 2, pos[1] - height / 2, width, height))
+        scale_surface.blit(surface, (0, 0), (pos[0] - width / 2, pos[1] - height / 2, width, height))
         #  scale the frame surface to window size
         rotate_surface = pygame.Surface((width, height))
-        self.blit_rotate(rotate_surface, scale_surface, (width / 2, height / 2),
-                         angle=np.rad2deg(self.traffic_mgr.ego_vehicle.heading_theta) + 90)
+        self.blit_rotate(
+            rotate_surface,
+            scale_surface, (width / 2, height / 2),
+            angle=np.rad2deg(self.traffic_mgr.ego_vehicle.heading_theta) + 90
+        )
 
         final_cut_surface = pygame.Surface((width / 2, height / 2))
-        final_cut_surface.blit(rotate_surface, (0, 0),
-                               (rotate_surface.get_width() / 4, rotate_surface.get_height() / 4, width / 2,
-                                height / 2))
+        final_cut_surface.blit(
+            rotate_surface, (0, 0),
+            (rotate_surface.get_width() / 4, rotate_surface.get_height() / 4, width / 2, height / 2)
+        )
         self.frame_surface = pygame.Surface(self.RESOLUTION)
         pygame.transform.scale(final_cut_surface, self.RESOLUTION, self.frame_surface)
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -222,12 +225,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
-            origin_pos=None,
-            show_rect: bool = False
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+        origin_pos=None,
+        show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -429,7 +432,6 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
-
     @staticmethod
     def display(road, surface):
         """

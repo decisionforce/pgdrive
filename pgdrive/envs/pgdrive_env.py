@@ -92,7 +92,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -168,8 +168,8 @@ class PGDriveEnv(gym.Env):
             )
 
         # prepare step
-        if self.config["manual_control"] and (
-                self.use_render or self.pg_world.pg_config["highway_render"] == "onscreen"):
+        if self.config["manual_control"] and (self.use_render
+                                              or self.pg_world.pg_config["highway_render"] == "onscreen"):
             action = self.controller.process_input()
 
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
@@ -266,7 +266,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
