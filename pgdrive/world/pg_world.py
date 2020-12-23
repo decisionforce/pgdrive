@@ -137,6 +137,7 @@ class PgWorld(ShowBase.ShowBase):
                 self.taskMgr.add(self.remove_logo, "remove _loading_logo in first frame")
 
         self.closed = False
+        assert self.mode != self.pg_config["highway_render"], "Only one graphics window can be opened !"
         self.highway_render = HighwayRender(self.pg_config["highway_render"]) if \
             self.pg_config["highway_render"] != "none" else None
 
@@ -244,7 +245,7 @@ class PgWorld(ShowBase.ShowBase):
             with self.force_fps:
                 self.sky_box.step()
         if self.highway_render is not None:
-            self.highway_render.draw_scene()
+            self.highway_render.render()
 
     def clear_world(self):
         """

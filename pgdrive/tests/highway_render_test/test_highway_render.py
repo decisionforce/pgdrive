@@ -24,8 +24,8 @@ class TestEnv(PGDriveEnv):
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "map_config": {
-                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_PARA: "OTCSXTrSR",
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+                    Map.GENERATE_PARA: 12,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render()
-        if d:
-            print("Reset")
-            env.reset()
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()

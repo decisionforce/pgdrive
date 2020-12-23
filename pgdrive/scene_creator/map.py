@@ -134,7 +134,7 @@ class Map:
         self._load_to_highway_render(pg_world)
 
     def _load_to_highway_render(self, pg_world: PgWorld):
-        if pg_world.pg_config["highway_render"]:
+        if pg_world.pg_config["highway_render"] != "none":
             pg_world.highway_render.set_map(self)
 
     def unload_from_pg_world(self, pg_world: PgWorld):
@@ -246,12 +246,12 @@ class Map:
         return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(
-        self,
-        resolution=(512, 512),
-        fill_hole=False,
-        only_black_white=True,
-        return_surface=False,
-        simple_draw=True
+            self,
+            resolution=(512, 512),
+            fill_hole=False,
+            only_black_white=True,
+            return_surface=False,
+            simple_draw=True
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         if fill_hole:
