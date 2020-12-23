@@ -41,7 +41,7 @@ class PGDriveEnv(gym.Env):
             # ===== Traffic =====
             traffic_density=0.1,
             traffic_mode=TrafficMode.Add_once,
-            random_traffic=True,  # Traffic is randomized at default.
+            random_traffic=False,  # Traffic is randomized at default.
 
             # ===== Observation =====
             use_image=False,
