@@ -419,6 +419,7 @@ class PGDriveEnv(gym.Env):
         self.pg_world.clear_world()
 
         for seed in range(self.start_seed, self.start_seed + self.env_num):
+            print(seed)
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
             new_map = Map(self.pg_world, map_config)
