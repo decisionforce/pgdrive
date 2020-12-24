@@ -42,12 +42,12 @@ class HighwayRender:
         pygame.init()
         pygame.display.set_caption(PG_EDITION + " (Top-down)")
         self.clock = None
-        if self.onscreen:
-            # main_window_position means the left upper location.
-            os.environ['SDL_VIDEO_WINDOW_POS'
-                       ] = '%i,%i' % (main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
-            self.screen = pygame.display.set_mode(self.resolution)
-            self.clock = pygame.time.Clock()
+        # if self.onscreen:
+        # main_window_position means the left upper location.
+        os.environ['SDL_VIDEO_WINDOW_POS'] = \
+            '%i,%i' % (main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
+        self.screen = pygame.display.set_mode(self.resolution)
+        self.clock = pygame.time.Clock()
 
     def render(self) -> np.ndarray:
         for event in pygame.event.get():

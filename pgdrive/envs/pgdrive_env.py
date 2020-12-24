@@ -211,7 +211,9 @@ class PGDriveEnv(gym.Env):
         return obs, step_reward + done_reward, self.done, info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
-        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE, "render is off now, can not render"
+        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE or self.pg_world.highway_render is not None, (
+            "render is off now, can not render"
+        )
         self.pg_world.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting

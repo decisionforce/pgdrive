@@ -9,8 +9,8 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "manual_control": False,
-                "use_render": True,
+                "manual_control": True,
+                "use_render": False,
                 "use_image": False,
                 "use_topdown": True,
             }
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     o = env.reset()
     for i in range(1, 100000):
-        o, r, d, info = env.step([0, 1])
+        o, r, d, info = env.step([0.01, 0.1])
         env.render()
         # if d:
         #     print("Reset")
