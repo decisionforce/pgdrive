@@ -12,7 +12,7 @@ class TestEnv(PGDriveEnv):
             {
                 "environment_num": 1,
                 "manual_control": True,
-                "use_render": False,
+                "use_render": True,
                 "use_image": False,
                 "use_topdown": True,
             }
