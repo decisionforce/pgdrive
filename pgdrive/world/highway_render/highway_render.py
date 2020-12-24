@@ -44,8 +44,8 @@ class HighwayRender:
         self.clock = None
         if self.onscreen:
             # main_window_position means the left upper location.
-            os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (
-                main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
+            os.environ['SDL_VIDEO_WINDOW_POS'
+                       ] = '%i,%i' % (main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
             self.screen = pygame.display.set_mode(self.resolution)
             self.clock = pygame.time.Clock()
 
@@ -138,10 +138,10 @@ class HighwayRender:
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -230,12 +230,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
-            origin_pos=None,
-            show_rect: bool = False
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+        origin_pos=None,
+        show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -437,7 +437,6 @@ class LaneGraphics(object):
 
 class RoadGraphics(object):
     """A visualization of a road lanes."""
-
     @staticmethod
     def display(road, surface):
         """

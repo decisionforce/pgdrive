@@ -102,6 +102,7 @@ class PgWorld(ShowBase.ShowBase):
         super(PgWorld, self).__init__(windowType=self.mode)
 
         # Change window size at runtime if screen too small
+        assert int(self.pg_config["use_topdown"]) + int(self.pg_config["use_image"]) <= 1
         main_window_position = (0, 0)
         if self.mode == RENDER_MODE_ONSCREEN:
             loadPrcFileData("", "compressed-textures 1")  # Default to compress
@@ -122,7 +123,8 @@ class PgWorld(ShowBase.ShowBase):
                     )
                 )
             main_window_position = (
-                (w - self.pg_config["window_size"][0]) / 2, (h - self.pg_config["window_size"][1]) / 2)
+                (w - self.pg_config["window_size"][0]) / 2, (h - self.pg_config["window_size"][1]) / 2
+            )
 
         self.highway_render = None
         if self.pg_config["use_topdown"]:
@@ -228,8 +230,8 @@ class PgWorld(ShowBase.ShowBase):
             )
 
             # onscreen message
-            self.on_screen_message = PgOnScreenMessage() if self.mode == RENDER_MODE_ONSCREEN and self.pg_config[
-                "onscreen_message"] else None
+            self.on_screen_message = PgOnScreenMessage(
+            ) if self.mode == RENDER_MODE_ONSCREEN and self.pg_config["onscreen_message"] else None
             self._show_help_message = False
             self._episode_start_time = time.time()
 
