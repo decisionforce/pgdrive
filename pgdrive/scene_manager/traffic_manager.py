@@ -2,7 +2,6 @@ import logging
 from collections import deque, namedtuple
 from typing import List, Tuple
 
-import numpy as np
 import pandas as pd
 from panda3d.bullet import BulletWorld
 from pgdrive.scene_creator.map import Map
@@ -47,7 +46,7 @@ class TrafficManager:
         self.random_seed = None
 
     def generate_traffic(
-        self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
+            self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -67,7 +66,7 @@ class TrafficManager:
         self.random_seed = random_seed
         self.np_random = get_np_random(self.random_seed)
         self.add_vehicles(pg_world)
-        if pg_world.pg_config["highway_render"] != "none":
+        if pg_world.highway_render is not None:
             pg_world.highway_render.set_traffic_mgr(self)
 
     def clear_traffic(self, pg_physics_world: BulletWorld):
@@ -155,7 +154,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
