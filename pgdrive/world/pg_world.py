@@ -102,7 +102,9 @@ class PgWorld(ShowBase.ShowBase):
         super(PgWorld, self).__init__(windowType=self.mode)
 
         # Change window size at runtime if screen too small
-        assert int(self.pg_config["use_topdown"]) + int(self.pg_config["use_image"]) <= 1
+        assert int(self.pg_config["use_topdown"]) + int(self.pg_config["use_image"]) <= 1, (
+            "Only one of use_topdown and use_image options can be selected."
+        )
         main_window_position = (0, 0)
         if self.mode == RENDER_MODE_ONSCREEN:
             loadPrcFileData("", "compressed-textures 1")  # Default to compress
