@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
         steering_error = o[0] - target_lateral
         steering = steering_controller.get_result(steering_error)
-        t_speed = target_speed if abs(o[12]-0.5) < 0.01 else 20
+        t_speed = target_speed if abs(o[12] - 0.5) < 0.01 else 20
         acc_error = env.vehicle.speed - t_speed
         acc = acc_controller.get_result(acc_error)
 

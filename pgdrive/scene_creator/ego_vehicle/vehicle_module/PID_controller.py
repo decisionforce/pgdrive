@@ -1,5 +1,4 @@
 class PIDController:
-
     def __init__(self, k_p: float, k_i: float, k_d: float):
         self.k_p = k_p
         self.k_i = k_i
