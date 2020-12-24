@@ -190,7 +190,6 @@ class RoutingLocalizationModule:
                 if self.left_arrow.hasParent():
                     self.left_arrow.detachNode()
 
-
     def _update_target_checkpoints(self, ego_lane_index):
         current_road_start_point = ego_lane_index[0]
         # print(current_road_start_point, self.vehicle.lane_index[1])
