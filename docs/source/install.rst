@@ -23,7 +23,7 @@ or you can install via::
 
 Install PGDrive on headless machine or cluster
 #################################################
-If lidar information is enough for your agent, you can also install PGDrive on your headless machine as same as we mentioned above.
+If lidar information is enough for your agent, you can also install PGDrive on your headless machine by the way we mentioned above.
 However, if you want to use image to train your agent on headless machine, you have to compile from the source code of panda3d.
 Follow the instructions on the main page of `panda3d <https://github.com/panda3d/panda3d>`_, and then use the command following to compile panda3d::
 
@@ -31,9 +31,16 @@ Follow the instructions on the main page of `panda3d <https://github.com/panda3d
 
 
 It will give you a panda3d which can run in EGL environment without the X11 support.
-Install the wheel file by pip install panda3d-1.10.xxx.whl, and utilize the power of cluster to train your agent!
+Install the wheel file by::
 
-.. note:: The boolean in "pg_world_config" named "headless_image" must be set to True, when training the agent of image input.
+    pip install panda3d-1.10.xxx.whl
+
+and PGDrive will utilize the power of cluster to train your agent!
+
+.. warning:: Compiling panda3d from source requires the **Admin permission** to install some libraries.
+We are working to provide a static built panda3d for cluster users of PGDrive to make it easy to use on headless machines.
+
+.. note:: The boolean in "pg_world_config" named "headless_image" must be set to True, when training the agent using image input.
 
 Verify Installation
 #########################

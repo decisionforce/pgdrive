@@ -9,10 +9,16 @@ Run::
 
     python -m pgdrive.examples.enjoy_journey
 
-to watch its show! Or you can manual control a vehicle with::
+to watch its show!
+
+Or you can manual control a vehicle with::
 
      python -m pgdrive.examples.manual_control
 
+
+A simple PID Controller can also be used to accept some high level commands with *w*, *a*, *s*, *d*::
+
+    python -m pgdrive.examples.PID_control
 
 Environment Usage
 #########################
