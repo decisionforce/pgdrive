@@ -42,6 +42,12 @@ Running the following line allows you to draw the generated maps:
 python -m pgdrive.examples.draw_maps
 ```
 
+To show the main feature, procedural generation, we provide a script to show BIG:
+
+```bash
+python -m pgdrive.examples.render_big
+```
+
 To build the environment in python script, you can simply run:
 
 ```python
