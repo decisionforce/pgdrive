@@ -4,17 +4,14 @@
 Getting Start with PGDrive
 #############################
 
-We provide a pre-trained RL-Agent to show the power of PGDrive.
-Run::
+We provide a pre-trained RL agent to show the power of PGDrive.
+Please run the following script to watch its performance::
 
     python -m pgdrive.examples.enjoy_journey
 
-to watch its show!
-
-Or you can manual control a vehicle with::
+You can also manually control a vehicle with keyboard, please run::
 
      python -m pgdrive.examples.manual_control
-
 
 A simple PID Controller can also be used to accept some high level commands with *w*, *a*, *s*, *d*::
 
@@ -37,7 +34,7 @@ The usage of PGDrive is as same as other **gym** environments::
             env.reset()
     env.close()
 
-Any Reinforcement Algorithms and Imitation Learning Algorithms are compatible with PGDrive.
+Any Reinforcement Learning algorithms and Imitation Learning algorithms are compatible with PGDrive.
 
 Pre-defined Environments
 #############################

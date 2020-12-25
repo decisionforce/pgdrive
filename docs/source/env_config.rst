@@ -1,12 +1,20 @@
 .. _gen_env_config:
 
 ##########################
-Generalization-Env Config
+Environment Configuration
 ##########################
 
+An PGDrive instance accepts a dict as the environmental config. For example, you can build a PGDrive instance with 200 generated maps via::
 
-We assume that you only want to use built-in functions instead of developing some new features, and thus
-provide a list for you to learn more about the meaning of each configuration options in **PGDriveEnv (**PGDriveEnv**).
+    from pgdrive import PGDriveEnv
+    config = dict(
+        environment_num=200,
+        start_seed=0
+    )
+    env = PGDriveEnv(config)
+
+
+In this page, we describe the meaning of each configuration options.
 
 PGDriveEnv Config
 ###########################

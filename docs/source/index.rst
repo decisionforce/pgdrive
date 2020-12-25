@@ -13,7 +13,8 @@ Welcome to the PGDrive documentation. PGDrive is an open-ended driving simulator
 - **Efficient**: Up to 500 simulation step per second.
 - **Open-ended**: Can generate infinite scenes.
 
-This documentation let you get familiar with the installation and basic utilization of PGDrive. Please go through :doc:`install` and enjoy PGDrive!
+This documentation let you get familiar with the installation and basic utilization of PGDrive.
+Please go through :doc:`install` to install PGDrive and try the examples in :doc:`get_start` to enjoy PGDrive!
 
 
 
@@ -24,13 +25,13 @@ Table of Content
    :caption: Quick Start
 
    install.rst
-   getting_start.rst
+   get_start.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Environment Config
 
-   generalization_env_config.rst
+   env_config.rst
 
 
 
