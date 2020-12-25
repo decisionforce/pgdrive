@@ -7,9 +7,7 @@ import sys
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
-        super(TestEnv, self).__init__({
-            "use_render": False,
-            "use_image": False})
+        super(TestEnv, self).__init__({"use_render": False, "use_image": False})
 
 
 def capture_image(headless):
@@ -35,8 +33,10 @@ def capture_image(headless):
         os.remove("test_install.png")
         print("Offscreen render launched successfully! \n ")
     else:
-        print("Headless mode Offscreen render launched successfully! \n "
-              "A image named \'tset_install.png\' is saved. Open it to check if offscreen mode works well")
+        print(
+            "Headless mode Offscreen render launched successfully! \n "
+            "A image named \'tset_install.png\' is saved. Open it to check if offscreen mode works well"
+        )
 
 
 def test_install(headless):
