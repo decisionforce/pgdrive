@@ -6,7 +6,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-  <title>InterFaceGAN</title>
+  <title>PGDrive</title>
 
   <link href="./assets/bootstrap.min.css" rel="stylesheet">
   <link href="./assets/font.css" rel="stylesheet" type="text/css">
@@ -23,31 +23,28 @@
   <!-- === Title Starts === -->
   <div class="header">
     <div class="logo">
-      <a href="https://genforce.github.io/" target="_blank"><img src="./assets/genforce.png"></a>
+      <a href="https://decisionforce.github.io/" target="_blank"><img src="./assets/deciforce.png"></a>
     </div>
     <div class="title", style="padding-top: 10pt;">
-      Interpreting the Latent Space of GANs for Semantic Face Editing
+      PGDrive: A highly flexible open-ended driving simulator
     </div>
   </div>
   <!-- === Title Ends === -->
   <div class="author">
-    <a href="http://shenyujun.github.io" target="_blank">Yujun Shen</a><sup>1</sup>,&nbsp;
-    <a href="http://www.jasongt.com" target="_blank">Jinjin Gu</a><sup>2</sup>,&nbsp;
-    <a href="http://www.ie.cuhk.edu.hk/people/xotang.shtml" target="_blank">Xiaoou Tang</a><sup>1</sup>,&nbsp;
+    <a href="http://shenyujun.github.io" target="_blank">Quanyi Li</a><sup>*2</sup>,&nbsp;
+    <a href="http://www.jasongt.com" target="_blank">Zhenghao Peng</a><sup>*1</sup>,&nbsp;
+    <a href="http://www.ie.cuhk.edu.hk/people/xotang.shtml" target="_blank">Qihang Zhang</a><sup>2,3</sup>,&nbsp;
+    <a href="http://shenyujun.github.io" target="_blank">Cong Qiu</a><sup>2</sup>,&nbsp;
+    <a href="http://www.jasongt.com" target="_blank">Chunxiao Liu</a><sup>2</sup>,&nbsp;
     <a href="http://bzhou.ie.cuhk.edu.hk" target="_blank">Bolei Zhou</a><sup>1</sup>&nbsp;
   </div>
   <div class="institution">
     <sup>1</sup>The Chinese University of Hong Kong <br>
-    <sup>2</sup>The Chinese University of Hong Kong, Shenzhen
-  </div>
-  <div class="link">
-    <a href="https://arxiv.org/pdf/1907.10786.pdf" target="_blank">[Paper (CVPR)]</a>&nbsp;
-    <a href="https://arxiv.org/pdf/2005.09635.pdf" target="_blank">[Paper (TPAMI)]</a>&nbsp;
-    <a href="https://github.com/genforce/interfacegan" target="_blank">[Code]</a>
-    <a href="https://colab.research.google.com/github/genforce/interfacegan/blob/master/docs/InterFaceGAN.ipynb" target="_blank">[Colab]</a>
+    <sup>2</sup>Sense Time Inc.<br>
+    <sup>3</sup>Zhejiang University
   </div>
   <div class="teaser">
-    <img src="./assets/teaser.jpg">
+    <img src="./assets/panel.pdf">
   </div>
 </div>
 <!-- === Home Section Ends === -->
@@ -57,12 +54,8 @@
 <div class="section">
   <div class="title">Overview</div>
   <div class="body">
-    We find that the latent code for well-trained generative models, such as PGGAN and StyleGAN,
-    actually learns a disentangled representation after some linear transformations.
-    Based on our analysis, we propose a simple and general technique, called <b>InterFaceGAN</b>,
-    for semantic face editing in latent space.
-    We manage to control the pose as well as other facial attributes, such as gender, age, eyeglasses.
-    More importantly, we are able to correct the artifacts made by GANs.
+    To better evaluate and improve the generalization of end-to-end driving, we introduce an open-ended and highly configurable driving simulator called PGDrive. PGDrive first defines multiple basic road blocks such as ramp, fork, and roundabout with configurable settings. Then a range of diverse maps can be assembled from those blocks with procedural generation, which are further turned into interactive environments.
+  
   </div>
 </div>
 <!-- === Overview Section Ends === -->
