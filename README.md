@@ -73,7 +73,7 @@ env = gym.make("PGDrive-v0")
 
 The following table presents some predefined environment names. 
 
-| Gym Environment Name   | Random Seed Range | Number of Maps | Comments                                                |
+|&nbsp;  Gym Environment Name  &nbsp;  | Random Seed Range | Number of Maps | Comments                                   |
 | ----------------------- | ----------------- | -------------- | ------------------------------------------------------- |
 | `PGDrive-test-v0`       | [0, 200)          | 200            | Test set, not change for all experiments.               |
 | `PGDrive-validation-v0` | [200, 1000)       | 800            | Validation set.                                         |
