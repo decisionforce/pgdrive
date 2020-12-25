@@ -5,17 +5,17 @@ Generalization-Env Config
 ##########################
 
 
-We assume that you only want to use built-in functions instead of developing some new feature, and thus
-provide a list for you to learn more about the meaning of each configuration options in **GeneralizationEnv**.
+We assume that you only want to use built-in functions instead of developing some new features, and thus
+provide a list for you to learn more about the meaning of each configuration options in **PGDriveEnv (**PGDriveEnv**).
 
-GeneralizationEnv Config
+PGDriveEnv Config
 ###########################
 
-We do generalization experiments under the default setting of GeneralizationEnv. To reproduce our experiment results,
+We do generalization experiments under the default setting of PGDriveEnv. To reproduce our experiment results,
 no special configuration is needed.
 
 However, PGDrive can also support other research topics, and we will simply introduce the meaning of some configuration
-options of GeneralizationEnv.
+options of PGDriveEnv.
 
 Draw Scene & Visualization
 ###########################
@@ -76,7 +76,7 @@ Reward Scheme
 ####################
 
     - Coefficient of different kinds of reward to describe the driving goal
-    - Find more information by accessing our source code in GeneralizationEnv
+    - Find more information by accessing our source code in PGDriveEnv
     - You can adjust our primitive reward function or design your own reward function
 
 Etc.

@@ -7,6 +7,9 @@
 PGDrive Home
 #####################
 
+.. image:: ../../pgdrive/assets/PGDrive.png
+   :width: 600
+
 Welcome to the PGDrive home.
 PGDrive is a lightweight autonomous driving environment.
 Referring to this documentation, you can utilize PGDrive to research diverse driving **topics**, including:
