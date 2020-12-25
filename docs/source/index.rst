@@ -9,7 +9,7 @@ PGDrive Documentation
 Welcome to the PGDrive documentation. PGDrive is an open-ended driving simulator with infinite scenes. The key features of PGDrive includes:
 
 - **Lightweight**: Extremely easy to install and run in almost all platform.
-- **Accurate**: Accurate physics simulation allows realistic dynamics.
+- **Realistic**: Accurate physics simulation and multiple sensory input including RGB / Depth camera, Lidar and sensory data.
 - **Efficient**: Up to 500 simulation step per second.
 - **Open-ended**: Can generate infinite scenes.
 
