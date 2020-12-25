@@ -1,9 +1,14 @@
 import sys
 from distutils.core import setup
+from os import path
 
 from setuptools import find_packages
 
 assert sys.version_info.major == 3 and sys.version_info.minor >= 6, "python version >= 3.6 is required"
+
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name="PGDrive",
@@ -27,5 +32,24 @@ setup(
         "pillow"
     ],
     include_package_data=True,
-    license="Apache License 2.0"
+    license="Apache License 2.0",
+    long_description=long_description,
+    long_description_content_type='text/markdown'
 )
+
+"""
+How to publish to pypi?  Noted by Zhenghao in Dec 25, 2020.
+
+1. Remove old files
+    rm -rf dist/
+    
+2. Get wheel
+    python setup.py sdist bdist_wheel
+
+3.a Upload to test channel
+    twine upload --repository testpypi dist/*
+
+3.b Upload to production channel 
+    twine upload dist/*
+    
+"""
