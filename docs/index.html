@@ -31,11 +31,11 @@
   </div>
   <!-- === Title Ends === -->
   <div class="author">
-    <a href="http://shenyujun.github.io" target="_blank">Quanyi Li</a><sup>*2</sup>,&nbsp;
-    <a href="http://www.jasongt.com" target="_blank">Zhenghao Peng</a><sup>*1</sup>,&nbsp;
-    <a href="http://www.ie.cuhk.edu.hk/people/xotang.shtml" target="_blank">Qihang Zhang</a><sup>2,3</sup>,&nbsp;
-    <a href="http://shenyujun.github.io" target="_blank">Cong Qiu</a><sup>2</sup>,&nbsp;
-    <a href="http://www.jasongt.com" target="_blank">Chunxiao Liu</a><sup>2</sup>,&nbsp;
+    <a href="https://decisionforce.github.io/pgdrive/" target="_blank">Quanyi Li</a><sup>2</sup>*,&nbsp;
+    <a href="https://decisionforce.github.io/pgdrive/" target="_blank">Zhenghao Peng</a><sup>1</sup>*,&nbsp;
+    <a href="https://decisionforce.github.io/pgdrive/" target="_blank">Qihang Zhang</a><sup>2,3</sup>,&nbsp;
+    <a href="https://decisionforce.github.io/pgdrive/" target="_blank">Cong Qiu</a><sup>2</sup>,&nbsp;
+    <a href="https://decisionforce.github.io/pgdrive/" target="_blank">Chunxiao Liu</a><sup>2</sup>,&nbsp;
     <a href="http://bzhou.ie.cuhk.edu.hk" target="_blank">Bolei Zhou</a><sup>1</sup>&nbsp;
   </div>
   <div class="institution">
@@ -44,7 +44,7 @@
     <sup>3</sup>Zhejiang University
   </div>
   <div class="teaser">
-    <img src="./assets/panel.pdf">
+    <img src="./assets/panel.png">
   </div>
 </div>
 <!-- === Home Section Ends === -->
@@ -65,31 +65,17 @@
 <div class="section">
   <div class="title">Results</div>
   <div class="body">
-    We manipulate the following attributes with PGGAN.
+    We generate maps with these basic blocks:
+    <div class="teaser"><img src="assets/blocks-1row.png"></div>
 
-    <table width="100%" style="margin: 20pt auto; text-align: center;">
-      <tr>
-        <td><b>Pose</b></td>
-        <td><b>Age</b></td>
-        <td><b>Gender</b></td>
-      </tr>
-      <tr>
-        <td><img src="./assets/pose.gif" width="90%"></img></td>
-        <td><img src="./assets/age.gif" width="90%"></img></td>
-        <td><img src="./assets/gender.gif" width="90%"></img></td>
-      </tr>
-      <tr>
-        <td><b>Expression</b></td>
-        <td><b>Eyeglasses</b></td>
-        <td><b>Artifacts</b></td>
-      </tr>
-      <tr>
-        <td><img src="./assets/expression.gif" width="90%"></img></td>
-        <td><img src="./assets/eyeglasses.gif" width="90%"></img></td>
-        <td><img src="./assets/artifact.gif" width="90%"></img></td>
-      </tr>
-    </table>
+    Here are various generated maps.
+    <div class="teaser"><img src="assets/maps.png"></div>
 
+    Agents trained with larger map set show better test performance. Our PGDrive endows agent with generality!
+    <div class="teaser"><img src="assets/sac-up.png"></div>
+    <div class="teaser"><img src="assets/sac-down.png"></div>
+
+    
     Check more results in the following video.
 
     <!-- Adjust the frame size based on the demo (Every project differs). -->
@@ -122,55 +108,6 @@
   year    = {2020}
 }
 </pre>
-
-  <div class="ref">Related Work</div>
-  <div class="citation">
-    <div class="image"><img src="./assets/gandissection.jpg"></div>
-    <div class="comment">
-      <a href="http://gandissect.csail.mit.edu/" target="_blank">
-        D. Bau, JY. Zhu, H. Strobelt, B. Zhou, JB. Tenenbaum, WT. Freeman, A. Torralba.
-        GAN Dissection: Visualizing and Understanding Generative Adversarial Networks.
-        ICLR 2019.</a><br>
-      <b>Comment:</b>
-      Dissects neurons in GANs from the perspective of spatial feature map.
-    </div>
-  </div>
-  <div class="citation">
-    <div class="image"><img src="./assets/ganalyze.jpg"></div>
-    <div class="comment">
-      <a href="http://ganalyze.csail.mit.edu/" target="_blank">
-        L. Goetschalckx, A. Andonian, A. Oliva, P. Isola.
-        GANalyze: Toward Visual Definitions of Cognitive Image Properties.
-        ICCV, 2019.</a><br>
-      <b>Comment:</b>
-      Navigates the manifold of GAN's latent space to increase memorability.
-    </div>
-  </div>
-  <div class="citation">
-    <div class="image"><img src="./assets/steerability.jpg"></div>
-    <div class="comment">
-      <a href="https://ali-design.github.io/gan_steerability/" target="_blank">
-        A. Jahanian, L. Chai, P. Isola.
-        On the "Steerability" of Generative Adversarial Networks.
-        ICLR, 2020.</a><br>
-      <b>Comment:</b>
-      Shifts the data distribution by steering the latent code to fit camera movements and color changes.
-    </div>
-  </div>
-  <div class="citation">
-    <div class="image"><img src="./assets/higan.jpg"></div>
-    <div class="comment">
-      <a href="https://genforce.github.io/higan/" target="_blank">
-        C. Yang, Y. Shen, B. Zhou.
-        Semantic Hierarchy Emerges in Deep Generative Representations for Scene Synthesis.
-        arXiv preprint arXiv:1911.09267.</a><br>
-      <b>Comment:</b>
-      Explores the emergent semantic hierarchy in scene synthesis models.
-    </div>
-  </div>
-</div>
-<!-- === Reference Section Ends === -->
-
 
 </body>
 </html>
