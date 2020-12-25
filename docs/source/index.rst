@@ -11,7 +11,7 @@ PGDrive Home
    :width: 600
 
 Welcome to the PGDrive home.
-PGDrive is a lightweight autonomous driving environment.
+PGDrive: an open-ended driving simulator with infinite scenes.
 Referring to this documentation, you can utilize PGDrive to research diverse driving **topics**, including:
 
 - Reinforcement learning
