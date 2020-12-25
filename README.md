@@ -85,3 +85,9 @@ The following table presents some predefined environment names. Please feel free
 | `PGDrive-training1-v0`  | [5000, 6000)      | 1000           | Second set of 1000 environments.                        |
 | `PGDrive-training2-v0`  | [7000, 8000)      | 1000           | Thirds set of 1000 environments.                        |
 | ...                          |                   |                | *More map set can be added in response to the requests* |
+
+## Documentations
+
+More information about PGDrive can be found in 
+[![Documentation](https://readthedocs.org/projects/carla/badge/?version=latest)](https://pgdrive.readthedocs.io)
+
