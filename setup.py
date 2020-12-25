@@ -6,9 +6,9 @@ from setuptools import find_packages
 assert sys.version_info.major == 3 and sys.version_info.minor >= 6, "python version >= 3.6 is required"
 
 setup(
-    name="pgdrive",
+    name="PGDrive",
     version="0.1.0",
-    description="PGDrive",
+    description="PGDrive: an open-ended driving simulator with infinite scenes",
     url="https://github.com/decisionforce/pgdrive",
     author="Quanyi Li, Zhenghao Peng",
     author_email="liquanyi@bupt.edu.cn, pengzh@ie.cuhk.edu.hk",
@@ -26,5 +26,6 @@ setup(
         "panda3d-simplepbr",
         "pillow"
     ],
-    include_package_data=True
+    include_package_data=True,
+    license="Apache License 2.0"
 )
