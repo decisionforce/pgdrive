@@ -57,16 +57,16 @@ pre {
 
 /* Author */
 .section .author {
-  margin: 5pt 0;
+  margin: 10pt 0;
   text-align: center;
-  font-size: 16pt;
+  font-size: 14pt;
 }
 
 /* Institution */
 .section .institution {
-  margin: 5pt 0;
+  margin: 10pt 0;
   text-align: center;
-  font-size: 16pt;
+  font-size: 14pt;
 }
 
 /* Hyperlink (such as Paper and Code) */
