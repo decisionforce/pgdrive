@@ -23,7 +23,8 @@ setup(
         "seaborn",
         "panda3d==1.10.5",
         "panda3d-gltf",
-        "panda3d-simplepbr"
+        "panda3d-simplepbr",
+        "pillow"
     ],
     include_package_data=True
 )

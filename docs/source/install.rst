@@ -39,17 +39,14 @@ Verify Installation
 #########################
 Run commands below to verify the installation::
 
-    python -m pgdrive.tests.install_test.test_no_image
+    python -m pgdrive.tests.install_test.test_install
 
-or::
-
-    python -m pgdrive.tests.install_test.test_get_image
-
-Successfully running the first script means the PGDrive physics world works well.
-And the second script will generate *three* images under offscreen mode, by which you can check the if the scene is drawn correctly.
+Successfully running this script means the PGDrive works well, and an image will be shown to help you check if PGDrive
+can launch and capture image in offscreen mode
 
 To verify the installation on cluster, run following command instead::
 
-    python -m pgdrive.tests.install_test.test_get_image_headless
+    python -m pgdrive.tests.install_test.test_headless_install
 
-Please, fetch the images on cluster and check the images generated on the headless machine.
+Please, fetch the images on cluster and check the images generated on the headless machine to ensure PGDrive can draw scene
+and capture images without X11.
