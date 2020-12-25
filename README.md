@@ -73,17 +73,17 @@ env = gym.make("PGDrive-v0")
 
 The following table presents some predefined environment names. 
 
-|&nbsp;  Gym Environment Name   | Random Seed Range | Number of Maps | Comments                                   |
+|&nbsp;  Gym Environment Name   | Random Seed Range | Number of Maps | Comments                                          |
 | ----------------------- | ----------------- | -------------- | ------------------------------------------------------- |
 | `PGDrive-test-v0`       | [0, 200)          | 200            | Test set, not change for all experiments.               |
-| `PGDrive-validation-v0` &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | [200, 1000)       | 800            | Validation set.                                         |
+| `PGDrive-validation-v0` &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;|[200, 1000)|800| Validation set.|
 | `PGDrive-v0`            | [1000, 1100)      | 100            | Default training setting, for quick start.              |
-| `PGDrive-10envs-v0`            | [1000, 1100)      | 10            | Training environment with 10 maps.              |
-| `PGDrive-1000envs-v0`            | [1000, 1100)      | 1000            | Training environment with 1000 maps.              |
+| `PGDrive-10envs-v0`     | [1000, 1100)      | 10             | Training environment with 10 maps.                      |
+| `PGDrive-1000envs-v0`   | [1000, 1100)      | 1000           | Training environment with 1000 maps.                    |
 | `PGDrive-training0-v0`  | [3000, 4000)      | 1000           | First set of 1000 environments.                         |
 | `PGDrive-training1-v0`  | [5000, 6000)      | 1000           | Second set of 1000 environments.                        |
 | `PGDrive-training2-v0`  | [7000, 8000)      | 1000           | Thirds set of 1000 environments.                        |
-| ...                          |                   |                | *More map set can be added in response to the requests* |
+| ...                     |                   |                | *More map set can be added in response to the requests* |
 
 ## Documentations
 
