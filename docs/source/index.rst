@@ -37,11 +37,25 @@ Content
 #############
 .. toctree::
    :maxdepth: 2
+   :caption: Home
 
    self
-   install
-   getting_start
-   generalization_env_config
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Quick Start
+
+   install.rst
+   getting_start.rst
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Environment Config
+
+
+   generalization_env_config.rst
 
 
 
