@@ -2,7 +2,7 @@
 <img align=right width=300px  src="pgdrive/assets/PGDrive.png" />
 
 # PGDrive: an open-ended driving simulator with procedural generation
-[![Documentation](https://readthedocs.org/projects/carla/badge/?version=latest)](https://pgdrive.readthedocs.io)
+[![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
 
 Please install PGDrive via:
 
