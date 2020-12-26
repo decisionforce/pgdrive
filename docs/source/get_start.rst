@@ -7,15 +7,27 @@ Getting Start with PGDrive
 We provide a pre-trained RL agent to show the power of PGDrive.
 Please run the following script to watch its performance::
 
-    python -m pgdrive.examples.enjoy_journey
+    python -m pgdrive.examples.enjoy_expert
 
 You can also manually control a vehicle with keyboard, please run::
 
-     python -m pgdrive.examples.manual_control
+     python -m pgdrive.examples.enjoy_manual
 
-A simple PID Controller can also be used to accept some high level commands with *w*, *a*, *s*, *d*::
+A simple PID Controller can also be used to accept some high level commands with *w* (accelerate), *a* (decelerate), *s* (moving left), *d* (moving right)::
 
-    python -m pgdrive.examples.PID_control
+    python -m pgdrive.examples.enjoy_controller
+
+You can verify the efficiency of PGDrive via running::
+
+    python -m pgdrive.examples.profile_pgdirve
+
+You can also draw multiple maps in the top-down view via running::
+
+    python -m pgdrive.examples.draw_maps
+
+To enjoy the process of generate map through our Block Incremental Generation (BIG) algorithm, you can also run::
+
+    python -m pgdrive.examples.render_big
 
 Environment Usage
 #########################
