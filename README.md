@@ -10,7 +10,7 @@
 Welcome to PGDrive! PGDrive is an driving simulator with many key features, including:
 
 - **Lightweight**: Extremely easy to download, install and run in almost all platform.
-- **Realistic**: Accurate physics simulation and multiple sensory input including RGB camera, Lidar and sensory data.
+- **Realistic**: Accurate physics simulation and multiple sensory inputs.
 - **Efficient**: Up to 500 simulation step per second.
 - **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
 
