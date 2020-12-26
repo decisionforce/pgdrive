@@ -72,7 +72,7 @@ Map Config
             +---------------+-----------+
             | TIntersection |     T     |
             +---------------+-----------+
-            | Fork          |    WIP    |
+            | Fork          |   (WIP)   |
             +---------------+-----------+
 
 
@@ -115,13 +115,12 @@ Coefficient of different kinds of reward to describe the driving goal
 Find more information by accessing our source code in PGDriveEnv
 You can adjust our primitive reward function or design your own reward function
 
-Etc.
+Misc.
 ##########
 
-    - :code:`use_increment_steering` (bool): Keyboard manual control is not linear, but set this value to True can use a linear
-      manual control
-    - :code:`action_check` (bool): Check whether the value of action computed by well-trained agent is between \[0.0, 1.0\] or not.
-    - :code:`pg_world_config` (dict): Some basic settings for low level physics world. More information can be found in source code.
+    - :code:`use_increment_steering` (bool): Keyboard control use discretized action such as -1, 0, +1. You can set this value to True to make the keyboard strokes serve as increments to existing action.
+    - :code:`action_check` (bool): Check whether the value of action is between \[0.0, 1.0\] or not.
+    - :code:`pg_world_config` (dict): Some basic settings for low-level physics world. More information can be found in source code.
 
 PGWorld Config
 ################
