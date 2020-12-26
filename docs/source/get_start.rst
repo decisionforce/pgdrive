@@ -15,7 +15,7 @@ You can also manually control a vehicle with keyboard, please run::
 
 You can verify the efficiency of PGDrive via running::
 
-    python -m pgdrive.examples.profile_pgdirve
+    python -m pgdrive.examples.profile_pgdrive
 
 You can also draw multiple maps in the top-down view via running::
 
