@@ -137,4 +137,3 @@ PGWorld Config
      - :code:`headless_image` (bool): Set this to true only when training on headless machine and use rgb image!!!!!!
      - :code:`use_render` (bool): The value is same as *use_render* in PGDriveEnv
      - :code:`use_image` (bool): The value is same as *use_image* in PGDriveEnv.
-     - :code:`use_topdown` (bool): 2D rendering with pygame(still work in progress)

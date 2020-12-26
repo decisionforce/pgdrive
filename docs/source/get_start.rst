@@ -13,10 +13,6 @@ You can also manually control a vehicle with keyboard, please run::
 
      python -m pgdrive.examples.enjoy_manual
 
-A simple PID Controller can also be used to accept some high level commands with *w* (accelerate), *a* (decelerate), *s* (moving left), *d* (moving right)::
-
-    python -m pgdrive.examples.enjoy_controller
-
 You can verify the efficiency of PGDrive via running::
 
     python -m pgdrive.examples.profile_pgdirve

@@ -20,7 +20,7 @@ or you can install via::
     pip install -e .
 
 The basic functionality, namely the render-less simulation can be conducted extremely easily. However, if you wish to
-use rendering features such as the RGB / Depth camera, the installation need more efforts, especially in headless machine or cluster.
+use rendering features such as the RGB, the installation need more efforts, especially in headless machine or cluster.
 
 Verify the installation of PGDrive
 #############################################
