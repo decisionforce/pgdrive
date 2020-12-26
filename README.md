@@ -2,10 +2,10 @@
 <img align=right width=300px  src="pgdrive/assets/PGDrive.png" />
 
 # PGDrive: an open-ended driving simulator with infinite scenes
+
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
 
-
-
+**[ [Website](https://decisionforce.github.io/pgdrive/) | [Github Repo](https://github.com/decisionforce/pgdrive) | [Documentation](https://pgdrive.readthedocs.io/en/latest/) | [Paper](#) ]**
 
 Welcome to PGDrive! PGDrive is an driving simulator with many key features, including:
 
