@@ -12,8 +12,8 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "start_seed": 5,
                 "map_config": {
-                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_PARA: "rTCROSXR",
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+                    Map.GENERATE_PARA: 7,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }
@@ -66,8 +66,15 @@ def run_PID():
         t_speed = target.speed if abs(o[12] - 0.5) < 0.01 else target.speed - 10
         acc_error = env.vehicle.speed - t_speed
         acc = acc_controller.get_result(acc_error)
-
-        env.render()
+        if i < 700:
+            env.render(text={"W": "Target speed +",
+                             "S": "Target speed -",
+                             "A": "Change to left lane",
+                             "D": "Change to right lane"})
+        if i == 500:
+            env.pg_world.on_screen_message.data.clear()
+        else:
+            env.render()
         if d:
             print("Reset")
             o = env.reset()
