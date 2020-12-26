@@ -39,7 +39,7 @@ python -m pgdrive.examples.profile_pgdrive
 Please run the following line to drive the car in the environment manually with keyboard!
 
 ```bash
-python -m pgdrive.examples.manual_control
+python -m pgdrive.examples.enjoy_manual
 ```
 
 You can also enjoy a journey carrying out by our professional driver pretrained from reinforcement learning! 
@@ -47,7 +47,7 @@ You can also enjoy a journey carrying out by our professional driver pretrained 
 Note that this script requires your system to have the capacity of rendering. Please refer to the installation guideline for more information.
 
 ```bash
-python -m pgdrive.examples.enjoy_journey
+python -m pgdrive.examples.enjoy_expert
 ```
 
 *Note that the above two scripts can not be run in headless machine.*
