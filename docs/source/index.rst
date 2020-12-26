@@ -31,8 +31,9 @@ Table of Content
 
 .. toctree::
    :maxdepth: 2
-   :caption: Environment Config
+   :caption: Config
 
+   vehicle_config.rst
    env_config.rst
 
 
