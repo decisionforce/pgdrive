@@ -67,10 +67,14 @@ def run_PID():
         acc_error = env.vehicle.speed - t_speed
         acc = acc_controller.get_result(acc_error)
         if i < 700:
-            env.render(text={"W": "Target speed +",
-                             "S": "Target speed -",
-                             "A": "Change to left lane",
-                             "D": "Change to right lane"})
+            env.render(
+                text={
+                    "W": "Target speed +",
+                    "S": "Target speed -",
+                    "A": "Change to left lane",
+                    "D": "Change to right lane"
+                }
+            )
         if i == 500:
             env.pg_world.on_screen_message.data.clear()
         else:
