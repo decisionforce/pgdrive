@@ -18,7 +18,7 @@ default_policy/value_out/kernel (256, 1)
 default_policy/value_out/bias (1,)
 """
 
-ckpt_path = osp.join(osp.dirname(__file__), "expert_weights.npz")
+ckpt_path = osp.join(osp.dirname(__file__), "expert_weights_241.npz")
 weights = None
 
 

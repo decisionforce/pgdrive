@@ -6,16 +6,25 @@ Note: This script require rendering, please following the installation instructi
 environment that allows popping up an window.
 """
 from pgdrive import PGDriveEnv
-from pgdrive.examples import expert
+from pgdrive.examples import expert, get_terminal_state
 
-env = PGDriveEnv(dict(use_render=False, environment_num=10000, pg_world_config={"highway_render": "onscreen"}))
+env = PGDriveEnv(dict(use_render=True, environment_num=10000))
 obs = env.reset()
+ep_reward = 0
+ep_len = 0
 try:
     while True:
         action = expert(obs)
         obs, reward, done, info = env.step(action)
-        env.render()
+        ep_reward += reward
+        ep_len += 1
+        # env.render()
         if done:
+            print("Episode terminated! Length: {}, Reward: {:.4f}, Terminal state: {}.".format(
+                ep_len, ep_reward, get_terminal_state(info)
+            ))
+            ep_reward = 0
+            ep_len = 0
             obs = env.reset()
 finally:
     print("Closing the environment!")
