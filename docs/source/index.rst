@@ -23,6 +23,11 @@ You can also visit `our webpage <https://decisionforce.github.io/pgdrive/>`_ and
 Table of Content
 ################
 .. toctree::
+    :caption: Home
+
+    self
+
+.. toctree::
    :maxdepth: 2
    :caption: Quick Start
 
