@@ -1,8 +1,15 @@
 
 <img align=right width=300px  src="pgdrive/assets/PGDrive.png" />
 
-# PGDrive: PGDrive: an open-ended driving simulator with infinite scenes
+# PGDrive: an open-ended driving simulator with infinite scenes
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
+
+The key features of PGDrive includes:
+
+- **Lightweight**: Extremely easy to download, install and run in almost all platform.
+- **Realistic**: Accurate physics simulation and multiple sensory input including RGB camera, Lidar and sensory data.
+- **Efficient**: Up to 500 simulation step per second.
+- **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
 
 Please install PGDrive via:
 
@@ -16,6 +23,12 @@ or you can install via:
 git clone https://github.com/decisionforce/pgdrive.git
 cd pgdrive
 pip install -e .
+```
+
+You can verify the installation and efficiency of PGDrive via running::
+
+```bash
+python -m pgdrive.examples.profile_pgdirve
 ```
 
 ## Quick Start
