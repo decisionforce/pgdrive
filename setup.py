@@ -10,6 +10,9 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+packages = find_namespace_packages(exclude=("docs", "docs.*", "pgdrive.assets.*"))
+print("We will install the following packages: ", packages)
+
 setup(
     name="pgdrive",
     version="0.1.0",
@@ -17,7 +20,7 @@ setup(
     url="https://github.com/decisionforce/pgdrive",
     author="PGDrive Team",
     author_email="liquanyi@bupt.edu.cn, pengzh@ie.cuhk.edu.hk",
-    packages=find_namespace_packages(),
+    packages=packages,
     install_requires=[
         "gym",
         "numpy<=1.19.3",
