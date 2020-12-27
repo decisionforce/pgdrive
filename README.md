@@ -14,7 +14,6 @@ Welcome to PGDrive! PGDrive is an driving simulator with many key features, incl
 - **Efficient**: Up to 500 simulation step per second.
 - **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
 
----
 
 <img src="https://raw.githubusercontent.com/decisionforce/decisionforce.github.io/master/projects/pgdrive/panel.png">
 
