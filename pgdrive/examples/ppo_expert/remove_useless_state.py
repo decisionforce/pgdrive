@@ -19,6 +19,6 @@ if __name__ == '__main__':
     pickled_worker = pickle.dumps(worker)
     weights = worker["state"]["default_policy"]
     weights = {k: v for k, v in weights.items() if "value" not in k}
-    path = "expert_weights_417.npz"
+    path = "expert_weights.npz"
     np.savez_compressed(path, **weights)
     print("Numpy agent weight is saved at: {}!".format(path))

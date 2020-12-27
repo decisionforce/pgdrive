@@ -18,7 +18,7 @@ default_policy/value_out/kernel (256, 1)
 default_policy/value_out/bias (1,)
 """
 
-ckpt_path = osp.join(osp.dirname(__file__), "expert_weights_417.npz")
+ckpt_path = osp.join(osp.dirname(__file__), "expert_weights.npz")
 _expert_weights = None
 
 
@@ -35,7 +35,6 @@ def expert(obs):
     x = np.matmul(x, weights["default_policy/fc_out/kernel"]) + weights["default_policy/fc_out/bias"]
     x = x.reshape(-1)
     mean, log_std = np.split(x, 2)
-    # return mean
     std = np.exp(log_std)
     action = np.random.normal(mean, std)
     ret = action

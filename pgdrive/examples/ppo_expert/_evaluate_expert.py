@@ -116,7 +116,7 @@ def get_trainer(checkpoint_path=None, extra_config=None, num_workers=10):
         lr=0.0,
         batch_mode="complete_episodes",
         callbacks=DrivingCallbacks,
-        explore=False,  # Add this line to only use mean for action.
+        # explore=False,  # Add this line to only use mean for action.
 
         # Setup the correct environment
         env=GeneralizationRacing,
