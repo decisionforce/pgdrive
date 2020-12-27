@@ -2,12 +2,11 @@ import logging
 from collections import deque, namedtuple
 from typing import List, Tuple
 
-import numpy as np
 import pandas as pd
 from panda3d.bullet import BulletWorld
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road_object.object import RoadObject
-from pgdrive.utils.math_utils import norm
+from pgdrive.utils import norm, get_np_random
 from pgdrive.world.pg_world import PgWorld
 
 logger = logging.getLogger(__name__)
@@ -27,8 +26,13 @@ class TrafficManager:
     """Manage all traffic vehicles"""
     VEHICLE_GAP = 10  # m
 
-    def __init__(self, traffic_mode=TrafficMode.Add_once):
+    def __init__(self, traffic_mode=TrafficMode.Add_once, random_traffic: bool = False):
+        """
+        :param traffic_mode: reborn/trigger mode
+        :param random_traffic: if True, map seed is different with traffic manager seed
+        """
         self.traffic_mode = traffic_mode
+        self.random_traffic = random_traffic
         self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Add_once else None
         self.blocks = None
         self.network = None
@@ -47,8 +51,8 @@ class TrafficManager:
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
-        random_seed = map.random_seed
-        logging.debug("load scene {}".format(random_seed))
+        random_seed = map.random_seed if not self.random_traffic else None
+        logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.clear_traffic(pg_world.physics_world)
         self.ego_vehicle = ego_vehicle
         self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Add_once else None
@@ -59,9 +63,11 @@ class TrafficManager:
         self.vehicles = [ego_vehicle]  # it is used to perform IDM and bicycle model based motion
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self.objects = road_objects or []
-        self.np_random = np.random.RandomState(random_seed)
         self.random_seed = random_seed
+        self.np_random = get_np_random(self.random_seed)
         self.add_vehicles(pg_world)
+        if pg_world.highway_render is not None:
+            pg_world.highway_render.set_traffic_mgr(self)
 
     def clear_traffic(self, pg_physics_world: BulletWorld):
         if self.traffic_vehicles is not None:
@@ -98,7 +104,7 @@ class TrafficManager:
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
             random_v = vehicle_type.create_random_traffic_vehicle(
-                self, lane, long, self.random_seed, enable_reborn=is_reborn_lane
+                self, lane, long, seed=self.random_seed, enable_reborn=is_reborn_lane
             )
             self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)

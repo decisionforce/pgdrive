@@ -85,7 +85,9 @@ def CreateRoadFrom(
     ignore_start: str = None,
     ignore_end: str = None,
     center_line_type=Block.CENTER_LINE_TYPE,
-    detect_one_side=True
+    detect_one_side=True,
+    side_lane_line_type=LineType.SIDE,
+    inner_lane_line_type=LineType.STRIPED
 ) -> bool:
     """
         | | | |
@@ -118,9 +120,9 @@ def CreateRoadFrom(
             side_lane.radius = radius2
             side_lane.update_length()
         if i == 1:
-            side_lane.line_types = [LineType.CONTINUOUS, LineType.STRIPED]
+            side_lane.line_types = [center_line_type, inner_lane_line_type]
         else:
-            side_lane.line_types = [LineType.STRIPED, LineType.STRIPED]
+            side_lane.line_types = [inner_lane_line_type, inner_lane_line_type]
         lanes.append(side_lane)
         lane = side_lane
     if toward_smaller_Lane_index:
@@ -142,7 +144,7 @@ def CreateRoadFrom(
     for l in lanes:
         roadnet_to_add_lanes.add_lane(road.start_node, road.end_node, l)
     if lane_num == 0:
-        lanes[-1].line_types = [center_line_type, LineType.SIDE]
+        lanes[-1].line_types = [center_line_type, side_lane_line_type]
     return no_cross
 
 
@@ -204,8 +206,7 @@ def CreateAdverseRoad(
         ignore_end=ignore_end
     )
     inner_lane = roadnet_to_get_road.get_lane((adverse_road.start_node, adverse_road.end_node, 0))
-    inner_lane.line_types = [LineType.NONE, LineType.STRIPED
-                             ] if int(num / 2) > 1 else [LineType.NONE, LineType.CONTINUOUS]
+    inner_lane.line_types = [LineType.NONE, LineType.STRIPED] if len(lanes) > 1 else [LineType.NONE, LineType.SIDE]
     positive_road.get_lanes(roadnet_to_get_road)[0].line_color = [LineColor.YELLOW, LineColor.GREY]
     return success
 

@@ -31,6 +31,8 @@ def check_lane_on_road(road_network: RoadNetwork, lane, positive: float = 0, ign
         for _to, lanes in to_dict.items():
             if ignored and (_from, _to) == ignored:
                 continue
+            if len(lanes) == 0:
+                continue
             x_max_1, x_min_1, y_max_1, y_min_1 = get_road_bound_box(lanes)
             x_max_2, x_min_2, y_max_2, y_min_2 = get_road_bound_box([lane])
             if x_min_1 > x_max_2 or x_min_2 > x_max_1 or y_min_1 > y_max_2 or y_min_2 > y_max_1:
@@ -47,35 +49,26 @@ def check_lane_on_road(road_network: RoadNetwork, lane, positive: float = 0, ign
 
 def get_road_bound_box(lanes):
     from pgdrive.scene_creator.lanes.circular_lane import CircularLane
-    from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-    if isinstance(lanes[0], StraightLane):
-        lane_1 = lanes[0]
-        line_1_start = lane_1.position(0.1, -lane_1.width / 2.0)
-        line_1_end = lane_1.position(lane_1.length - 0.1, -lane_1.width / 2.0)
-        lane_last = lanes[-1]
-        line_2_start = lane_last.position(0.1, lane_1.width / 2.0)
-        line_2_end = lane_last.position(lane_last.length - 0.1, lane_1.width / 2.0)
-        x_max = max(line_1_start[0], line_1_end[0], line_2_start[0], line_2_end[0])
-        x_min = min(line_1_start[0], line_1_end[0], line_2_start[0], line_2_end[0])
-        y_max = max(line_1_start[1], line_1_end[1], line_2_start[1], line_2_end[1])
-        y_min = min(line_1_start[1], line_1_end[1], line_2_start[1], line_2_end[1])
-        return x_max, x_min, y_max, y_min
-    elif isinstance(lanes[0], CircularLane):
-        line_points = get_arc_bound_box_points(lanes[0], -1)
-        line_points += get_arc_bound_box_points(lanes[-1], 1)
-        x_max = -np.inf
-        x_min = np.inf
-        y_max = -np.inf
-        y_min = np.inf
-        for p in line_points:
-            x_max = max(x_max, p[0])
-            x_min = min(x_min, p[0])
-            y_max = max(y_max, p[1])
-            y_min = min(y_min, p[1])
-        return x_max, x_min, y_max, y_min
+    line_points = get_arc_bound_box_points(lanes[0], -1) if isinstance(lanes[0], CircularLane) \
+        else get_straight_bound_box_points(lanes[0])
+    line_points += get_arc_bound_box_points(lanes[-1], 1) if isinstance(lanes[-1], CircularLane) else \
+        get_straight_bound_box_points(lanes[-1])
+    x_max = -np.inf
+    x_min = np.inf
+    y_max = -np.inf
+    y_min = np.inf
+    for p in line_points:
+        x_max = max(x_max, p[0])
+        x_min = min(x_min, p[0])
+        y_max = max(y_max, p[1])
+        y_min = min(y_min, p[1])
+    return x_max, x_min, y_max, y_min
 
-    else:
-        raise ValueError("not lane type, can not calculate rectangular")
+
+def get_straight_bound_box_points(lane):
+    start = lane.position(0.1, -lane.width / 2.0)
+    end = lane.position(lane.length - 0.1, -lane.width / 2.0)
+    return [start, end]
 
 
 def get_arc_bound_box_points(lane, lateral_dir):

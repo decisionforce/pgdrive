@@ -1,13 +1,13 @@
 import copy
 import logging
 import math
+import time
 from collections import deque
 from os import path
 
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
-from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject
-
+from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
@@ -25,6 +25,8 @@ from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle import PgTrafficVe
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.world import RENDER_MODE_ONSCREEN
+from pgdrive.world.constants import COLOR, COLLISION_INFO_COLOR
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_world import PgWorld
 from pgdrive.world.terrain import Terrain
@@ -52,7 +54,7 @@ class BaseVehicle(DynamicElement):
             mini_map=(84, 84, 250),  # buffer length, width
             rgb_cam=(84, 84),  # buffer length, width
             depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_point=False,
+            show_navi_mark=False,
             increment_steering=False,
             wheel_friction=0.6,
         )
@@ -94,10 +96,7 @@ class BaseVehicle(DynamicElement):
         self.lane = None
         self.lane_index = None
 
-        if (not self.pg_world.pg_config["highway_render"]) and (self.pg_world.mode == "onscreen"):
-            self.vehicle_panel = VehiclePanel(self, self.pg_world)
-        else:
-            self.vehicle_panel = None
+        self.vehicle_panel = VehiclePanel(self.pg_world) if (self.pg_world.mode == RENDER_MODE_ONSCREEN) else None
 
         # other info
         self.throttle_brake = 0.0
@@ -105,6 +104,11 @@ class BaseVehicle(DynamicElement):
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
+
+        # collision info render
+        self.collision_info_np = self._init_collision_info_render(pg_world)
+        self.collision_banners = {}  # to save time
+        self.current_banner = None
 
         # collision group
         self.pg_world.physics_world.setGroupCollisionFlag(self.COLLISION_MASK, Block.COLLISION_MASK, True)
@@ -402,10 +406,10 @@ class BaseVehicle(DynamicElement):
         self.lidar = Lidar(self.pg_world.render, laser_num, distance)
 
     def add_routing_localization(self, show_navi_point: bool):
-        self.routing_localization = RoutingLocalizationModule(show_navi_point)
+        self.routing_localization = RoutingLocalizationModule(self.pg_world, show_navi_point)
 
     def update_map_info(self, map):
-        self.routing_localization.update(map, self.pg_world.worldNP)
+        self.routing_localization.update(map)
         self.lane_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place))
         self.lane = self.routing_localization.map.road_network.get_lane(self.lane_index)
 
@@ -426,7 +430,7 @@ class BaseVehicle(DynamicElement):
                 self.out_of_road = True
             contacts.add(name[0])
         if self.render:
-            self.pg_world.render_collision_info(contacts)
+            self.render_collision_info(contacts)
 
     def _collision_check(self, contact):
         """
@@ -440,10 +444,54 @@ class BaseVehicle(DynamicElement):
             self.crash = True
             logging.debug("Crash with {}".format(name[0]))
 
+    def _init_collision_info_render(self, pg_world):
+        if pg_world.mode == "onscreen":
+            info_np = NodePath("Collision info nodepath")
+            info_np.reparentTo(pg_world.aspect2d)
+        else:
+            info_np = None
+        return info_np
+
+    def render_collision_info(self, contacts):
+        contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
+        text = contacts[0] if len(contacts) != 0 else None
+        if text is None:
+            text = "Normal" if time.time() - self.pg_world._episode_start_time > 10 else "Press H to see help message"
+            self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
+        else:
+            self.render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
+
+    def render_banner(self, text, color=COLLISION_INFO_COLOR["green"][1]):
+        """
+        Render the banner in the left bottom corner.
+        """
+        if self.collision_info_np is None:
+            return
+        if self.current_banner is not None:
+            self.current_banner.detachNode()
+        if text in self.collision_banners:
+            self.collision_banners[text].reparentTo(self.collision_info_np)
+            self.current_banner = self.collision_banners[text]
+        else:
+            new_banner = NodePath(TextNode("collision_info:{}".format(text)))
+            self.collision_banners[text] = new_banner
+            text_node = new_banner.node()
+            text_node.setCardColor(color)
+            text_node.setText(text)
+            text_node.setCardActual(-5 * self.pg_world.w_scale, 5.1 * self.pg_world.w_scale, -0.3, 1)
+            text_node.setCardDecal(True)
+            text_node.setTextColor(1, 1, 1, 1)
+            text_node.setAlign(TextNode.A_center)
+            new_banner.setScale(0.05)
+            new_banner.setPos(-0.75 * self.pg_world.w_scale, 0, -0.8 * self.pg_world.h_scale)
+            new_banner.reparentTo(self.collision_info_np)
+            self.current_banner = new_banner
+
     def destroy(self, _=None):
         self.bullet_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world.physics_world)
         self.pg_world.physics_world.clearContactAddedCallback()
+        self.routing_localization.destory()
         self.routing_localization = None
         if self.lidar is not None:
             self.lidar.destroy()

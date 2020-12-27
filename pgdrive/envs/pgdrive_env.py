@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import os.path as osp
 import sys
 import time
@@ -16,7 +17,8 @@ from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
-from pgdrive.utils import recursive_equal, safe_clip
+from pgdrive.utils import recursive_equal, safe_clip, clip, get_np_random
+from pgdrive.world import RENDER_MODE_NONE
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PgWorld
@@ -41,9 +43,11 @@ class PGDriveEnv(gym.Env):
             # ===== Traffic =====
             traffic_density=0.1,
             traffic_mode=TrafficMode.Add_once,
+            random_traffic=False,  # Traffic is randomized at default.
 
             # ===== Observation =====
-            use_image=False,
+            use_image=False,  # Use first view
+            use_topdown=False,  # Use topdown view
             rgb_clip=True,
             vehicle_config=dict(),  # use default vehicle modules see more in BaseVehicle
             image_source="rgb_cam",  # mini_map or rgb_cam or depth cam
@@ -106,6 +110,7 @@ class PGDriveEnv(gym.Env):
             {
                 "use_render": self.use_render,
                 "use_image": self.config["use_image"],
+                "use_topdown": self.config["use_topdown"],
                 "debug": self.config["debug"],
                 # "force_fps": self.config["force_fps"],
                 "decision_repeat": self.config["decision_repeat"],
@@ -118,6 +123,7 @@ class PGDriveEnv(gym.Env):
         self.traffic_manager = None
         self.main_camera = None
         self.controller = None
+        self._expert_take_over = False
         self.restored_maps = dict()
 
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
@@ -135,14 +141,16 @@ class PGDriveEnv(gym.Env):
         self.pg_world = PgWorld(self.pg_world_config)
         self.pg_world.accept("r", self.reset)
         self.pg_world.accept("escape", sys.exit)
-        # self.pg_world.accept("escape", self.force_close)
+
+        # Press t can let expert take over. But this function is still experimental.
+        self.pg_world.accept("t", self.toggle_expert_take_over)
 
         # init traffic manager
-        self.traffic_manager = TrafficManager(self.config["traffic_mode"])
+        self.traffic_manager = TrafficManager(self.config["traffic_mode"], self.config["random_traffic"])
 
         if self.config["manual_control"]:
             if self.config["controller"] == "keyboard":
-                self.controller = KeyboardController()
+                self.controller = KeyboardController(pg_world=self.pg_world)
             elif self.config["controller"] == "joystick":
                 self.controller = JoystickController(self.pg_world)
             else:
@@ -169,6 +177,7 @@ class PGDriveEnv(gym.Env):
         # prepare step
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
+            action = self.expert_take_over(action)
 
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
@@ -189,20 +198,27 @@ class PGDriveEnv(gym.Env):
         self.pg_world.taskMgr.step()
 
         obs = self.observation.observe(self.vehicle)
-        reward = self.reward(action)
+        step_reward = self.reward(action)
         done_reward, done_info = self._done_episode()
+
+        if self.done:
+            step_reward = 0
+
         info = {
             "cost": float(0),
             "velocity": float(self.vehicle.speed),
             "steering": float(self.vehicle.steering),
             "acceleration": float(self.vehicle.throttle_brake),
-            "step_reward": float(reward)
+            "step_reward": float(step_reward)
         }
+
         info.update(done_info)
-        return obs, reward + done_reward, self.done, info
+        return obs, step_reward + done_reward, self.done, info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
-        assert self.use_render or self.config["use_image"], "render is off now, can not render"
+        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE or self.pg_world.highway_render is not None, (
+            "render is off now, can not render"
+        )
         self.pg_world.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting
@@ -238,7 +254,9 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
-        o, *_ = self.step(np.array([0.0, 0.0]))
+        self.vehicle.prepare_step(np.array([0.0, 0.0]))
+        self.vehicle.update_state()
+        o = self.observation.observe(self.vehicle)
         return o
 
     def reward(self, action):
@@ -248,7 +266,7 @@ class PGDriveEnv(gym.Env):
         long_now, lateral_now = current_lane.local_coordinates(self.vehicle.position)
 
         reward = 0.0
-        lateral_factor = 1 - 2 * abs(lateral_now) / self.current_map.lane_width
+        lateral_factor = clip(1 - 2 * abs(lateral_now) / self.current_map.lane_width, 0.0, 1.0)
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
         # Penalty for frequent steering
@@ -269,6 +287,9 @@ class PGDriveEnv(gym.Env):
 
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
 
+        # if reward > 3.0:
+        #     print("Stop here.")
+
         return reward
 
     def _done_episode(self) -> (float, dict):
@@ -281,17 +302,17 @@ class PGDriveEnv(gym.Env):
                 0.5 - self.current_map.lane_num) * self.current_map.lane_width:
             self.done = True
             reward_ += self.config["success_reward"]
-            print("arrive_dest")
+            logging.info("Episode ended! Reason: arrive_dest.")
             done_info["arrive_dest"] = True
         elif self.vehicle.crash:
             self.done = True
             reward_ -= self.config["crash_penalty"]
-            print("crash")
+            logging.info("Episode ended! Reason: crash. ")
             done_info["crash"] = True
         elif self.vehicle.out_of_road or self.vehicle.out_of_road:
             self.done = True
             reward_ -= self.config["out_of_road_penalty"]
-            print("out_of_road")
+            logging.info("Episode ended! Reason: out_of_road.")
             done_info["out_of_road"] = True
 
         return reward_, done_info
@@ -336,7 +357,7 @@ class PGDriveEnv(gym.Env):
             self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
-        self.current_seed = np.random.randint(self.start_seed, self.start_seed + self.env_num)
+        self.current_seed = get_np_random().randint(self.start_seed, self.start_seed + self.env_num)
         if self.maps.get(self.current_seed, None) is None:
 
             if self.config["load_map_from_json"]:
@@ -357,7 +378,7 @@ class PGDriveEnv(gym.Env):
     def add_modules_for_vehicle(self):
         # add vehicle module for training according to config
         vehicle_config = self.vehicle.vehicle_config
-        self.vehicle.add_routing_localization(vehicle_config["show_navi_point"])  # default added
+        self.vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         if not self.config["use_image"]:
             # TODO visualize lidar
             self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
@@ -406,12 +427,13 @@ class PGDriveEnv(gym.Env):
         self.pg_world.clear_world()
 
         for seed in range(self.start_seed, self.start_seed + self.env_num):
+            print(seed)
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
             new_map = Map(self.pg_world, map_config)
             self.maps[seed] = new_map
             new_map.unload_from_pg_world(self.pg_world)
-            print("Finish generating map with seed: ", seed)
+            logging.info("Finish generating map with seed: {}".format(seed))
 
         map_data = dict()
         for seed, map in self.maps.items():
@@ -426,7 +448,7 @@ class PGDriveEnv(gym.Env):
         assert set(data.keys()) == set(["map_config", "map_data"])
         assert set(self.maps.keys()).issubset(set([int(v) for v in data["map_data"].keys()]))
 
-        print(
+        logging.info(
             "Restoring the maps from pre-generated file! "
             "We have {} maps in the file and restoring {} maps range from {} to {}".format(
                 len(data["map_data"]), len(self.maps.keys()), min(self.maps.keys()), max(self.maps.keys())
@@ -457,7 +479,7 @@ class PGDriveEnv(gym.Env):
             self.load_all_maps(restored_data)
             return True
         else:
-            print(
+            logging.warning(
                 "Warning: The pre-generated maps is with config {}, but current environment's map "
                 "config is {}.\nWe now fallback to BIG algorithm to generate map online!".format(
                     restored_data["map_config"], self.map_config
@@ -482,3 +504,13 @@ class PGDriveEnv(gym.Env):
         if self.traffic_manager is None:
             return 0
         return self.traffic_manager.get_vehicle_num()
+
+    def expert_take_over(self, action):
+        if self._expert_take_over:
+            from pgdrive.examples.ppo_expert import expert
+            return expert(self.observation.observe(self.vehicle))
+        else:
+            return action
+
+    def toggle_expert_take_over(self):
+        self._expert_take_over = not self._expert_take_over

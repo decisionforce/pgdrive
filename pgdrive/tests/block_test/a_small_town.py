@@ -11,7 +11,7 @@ from pgdrive.utils.asset_loader import AssetLoader
 
 if __name__ == "__main__":
     test = TestBlock(True)
-    AssetLoader.init_loader(test.loader, test.asset_path)
+    AssetLoader.init_loader(test, test.asset_path)
     global_network = RoadNetwork()
     blocks = []
     init_block = FirstBlock(global_network, 3.0, 3, test.render, test.world, 1)
@@ -245,4 +245,4 @@ if __name__ == "__main__":
     block = Straight(34, t_11.get_socket(1), global_network, 1)
     block.construct_from_config({Parameter.length: 40}, test.render, test.world)
 
-    # test.run()
+    test.run()

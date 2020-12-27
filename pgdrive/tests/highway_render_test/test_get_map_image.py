@@ -14,7 +14,6 @@ class TestEnv(PGDriveEnv):
                 "start_seed": 3,
                 "pg_world_config": {
                     "debug": False,
-                    "highway_render": False
                 },
                 "image_source": "mini_map",
                 "manual_control": False,
@@ -36,7 +35,7 @@ class TestEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = TestEnv()
     env.reset()
-    env.current_map.save_map_image()
+    env.current_map.save_map_image(simple_draw=False)
     # print(env.current_map.get_map_image_array())
 
     import numpy as np

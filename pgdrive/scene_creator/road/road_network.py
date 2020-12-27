@@ -24,21 +24,10 @@ class RoadNetwork:
         self.debug = debug
 
     def __add__(self, other):
-        from pgdrive.scene_creator.basic_utils import Decoration
-        graph_1 = copy.copy(self.graph)
-        graph_2 = copy.copy(other)
-        set_1 = set(graph_1) - {Decoration.start, Decoration.end}
-        set_2 = set(graph_2) - {Decoration.start, Decoration.end}
-        if len(set_1.intersection(set_2)) == 0:
-            # handle decoration lanes
-            dec_lanes = self.get_all_decoration_lanes() + other.get_all_decoration_lanes()
-            graph_1.update(graph_2)
-            new_road_network = RoadNetwork()
-            new_road_network.graph = graph_1
-            new_road_network.update_decoration_lanes(dec_lanes)
-            return new_road_network
-        else:
-            raise ValueError("Same start node in two road network")
+        ret = RoadNetwork()
+        ret.graph = self.graph
+        ret += other
+        return ret
 
     def __iadd__(self, other):
         from pgdrive.scene_creator.basic_utils import Decoration
@@ -54,10 +43,15 @@ class RoadNetwork:
             raise ValueError("Same start node in two road network")
 
     def __isub__(self, other):
-        intersection = self.graph.keys() & other.graph.keys()
+        from pgdrive.scene_creator.basic_utils import Decoration
+        intersection = self.graph.keys() & other.graph.keys() - {Decoration.start, Decoration.end}
         if len(intersection) != 0:
             for k in intersection:
                 self.graph.pop(k, None)
+        if Decoration.start in other.graph.keys():
+            for lane in other.graph[Decoration.start][Decoration.end]:
+                if lane in self.graph[Decoration.start][Decoration.end]:
+                    self.graph[Decoration.start][Decoration.end].remove(lane)
         return self
 
     def __sub__(self, other):
@@ -78,9 +72,8 @@ class RoadNetwork:
             return
         from pgdrive.scene_creator.basic_utils import Decoration
         if Decoration.start in self.graph:
-            self.graph[Decoration.start][Decoration.end] = lanes
-        else:
-            self.graph[Decoration.start] = {Decoration.end: lanes}
+            self.graph.pop(Decoration.start, None)
+        self.graph[Decoration.start] = {Decoration.end: lanes}
 
     def clear(self):
         self.graph.clear()
@@ -195,7 +188,8 @@ class RoadNetwork:
         current_index: LaneIndex,
         route: Route = None,
         position: np.ndarray = None,
-        np_random: np.random.RandomState = np.random
+        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+        np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -210,6 +204,8 @@ class RoadNetwork:
         :param np_random: a source of randomness.
         :return: the index of the next lane to be followed when current lane is finished.
         """
+        assert np_random
+
         _from, _to, _id = current_index
         next_to = None
         # Pick next road according to planned route

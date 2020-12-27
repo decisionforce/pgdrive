@@ -1,12 +1,16 @@
+import os
 from typing import List, Tuple
 
 import numpy as np
-import pygame
-
+from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-from .world_surface import WorldSurface
+from pgdrive.utils import import_pygame
+from pgdrive.world.constants import PG_EDITION
+from pgdrive.world.highway_render.world_surface import WorldSurface
+
+pygame = import_pygame()
 
 
 class HighwayRender:
@@ -14,50 +18,157 @@ class HighwayRender:
     Most of the source code is from Highway-Env, we only optimize and integrate it in PG-Drive
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
-    SCALING = 5.5
-    i = 0.1
-    Map_Region = (10000, 10000)
+    RESOLUTION = (200, 200)  # pix x pix
+    MAP_RESOLUTION = (2000, 2000)  # pix x pix
 
-    def __init__(self, resolution: Tuple, onscreen: bool):
-        self.resolution = resolution
-        self.map_surface = None
-        self.traffic_surface = None
+    # CAM_REGION = 100  # 50m x (50m * HEIGHT/WIDTH)
+    # FPS = 60
+    # ROTATE = True
+
+    def __init__(self, onscreen: bool, main_window_position=None):
+        self.resolution = self.RESOLUTION
+        self.frame_surface = None
+        self._scaling = None  # automatically change, don't set the value
+        self._center_pos = None  # automatically change, don't set the value
         self.onscreen = onscreen
+
+        # map
         self.map = None
+        self.map_surface = None
+
+        # traffic
         self.traffic_mgr = None
-        from pgdrive.world.pg_world import PG_EDITION
+
         pygame.init()
-        pygame.display.set_caption(PG_EDITION)
-        if onscreen:
-            self.screen = pygame.display.set_mode(resolution)
+        pygame.display.set_caption(PG_EDITION + " (Top-down)")
+        self.clock = None
+        # if self.onscreen:
+        # main_window_position means the left upper location.
+        os.environ['SDL_VIDEO_WINDOW_POS'] = \
+            '%i,%i' % (main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
+        self.screen = pygame.display.set_mode(self.resolution)
+        self.clock = pygame.time.Clock()
 
-    def draw_scene(self) -> np.ndarray:
-        self.i += 0.1
-        self.map_surface = WorldSurface(self.resolution, 0, pygame.Surface(self.resolution))
-        self.map_surface.scaling = self.SCALING
-        self.map_surface.centering_position = [0.5, 0.5]
-        self.map_surface.fill(self.map_surface.GREY)
-        self.map_surface.move_display_window_to([self.i, 10])
-        self.draw_map(self.map.road_network, self.map_surface)
+        self.surface = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.frame_surface = pygame.Surface(self.RESOLUTION)
 
-        self.screen.blit(self.map_surface, (0, 0))
+    def render(self) -> np.ndarray:
+        # for event in pygame.event.get():
+        #     if event.type == pygame.KEYDOWN:
+        #         if event.key == pygame.K_j:
+        #             self.CAM_REGION -= 5 if 10 < self.CAM_REGION else 0
+        #         if event.key == pygame.K_k:
+        #             self.CAM_REGION += 5 if self.CAM_REGION < 100 else 0
+        #         if event.key == pygame.K_ESCAPE:
+        #             sys.exit()
+
+        self.draw_scene()
+        self.screen.fill(pygame.Color("black"))
+        self.screen.blit(self.frame_surface, (0, 0))
+        # if self.clock is not None:
+        #     self.clock.tick(self.FPS)
         pygame.display.flip()
-
-    def render(self):
-        pass
 
     def set_traffic_mgr(self, traffic_mgr):
         self.traffic_mgr = traffic_mgr
 
     def set_map(self, map):
+        """
+        Initialize the most big map surface to save calculation time, this func is called in map class automatically
+        :param map: Map class
+        :return: None
+        """
         self.map = map
+        self.draw_map()
+
+    def draw_map(self) -> pygame.Surface:
+        """
+        :return: a big map surface, clip  and rotate to use a piece of it
+        """
+        surface = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        surface.set_colorkey(surface.BLACK)
+        b_box = self.map.get_map_bound_box(self.map.road_network)
+        x_len = b_box[1] - b_box[0]
+        y_len = b_box[3] - b_box[2]
+        max_len = max(x_len, y_len)
+        # scaling and center can be easily found by bounding box
+        scaling = self.MAP_RESOLUTION[1] / max_len - 0.1
+        surface.scaling = scaling
+        self._scaling = scaling
+        centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
+        self._center_pos = centering_pos
+        surface.move_display_window_to(centering_pos)
+        for _from in self.map.road_network.graph.keys():
+            decoration = True if _from == Decoration.start else False
+            for _to in self.map.road_network.graph[_from].keys():
+                for l in self.map.road_network.graph[_from][_to]:
+                    two_side = True if l is self.map.road_network.graph[_from][_to][-1] or decoration else False
+                    LaneGraphics.LANE_LINE_WIDTH = 0.5
+                    LaneGraphics.display(l, surface, two_side)
+        self.map_surface = surface
+
+    def draw_scene(self):
+        self.surface.fill(pygame.Color("black"))
+        surface = self.surface
+        surface.scaling = self._scaling
+        surface.move_display_window_to(self._center_pos)
+        surface.blit(self.map_surface, (0, 0))
+        VehicleGraphics.display(self.traffic_mgr.ego_vehicle, surface)
+        for v in self.traffic_mgr.vehicles:
+            if v is self.traffic_mgr.ego_vehicle:
+                continue
+            VehicleGraphics.display(v, surface)
+        pos = surface.pos2pix(*self.traffic_mgr.ego_vehicle.position)
+        width = self.MAP_RESOLUTION[0] / 2
+        height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
+
+        scale_surface = pygame.Surface((width, height))
+        scale_surface.blit(surface, (0, 0), (pos[0] - width / 2, pos[1] - height / 2, width, height))
+        #  scale the frame surface to window size
+        rotate_surface = pygame.Surface((width, height))
+        self.blit_rotate(
+            rotate_surface,
+            scale_surface, (width / 2, height / 2),
+            angle=np.rad2deg(self.traffic_mgr.ego_vehicle.heading_theta) + 90
+        )
+
+        final_cut_surface = pygame.Surface((width / 2, height / 2))
+        final_cut_surface.blit(
+            rotate_surface, (0, 0),
+            (rotate_surface.get_width() / 4, rotate_surface.get_height() / 4, width / 2, height / 2)
+        )
+        pygame.transform.scale(final_cut_surface, self.RESOLUTION, self.frame_surface)
 
     @staticmethod
-    def draw_map(roadnetwork, surface):
-        for _from in roadnetwork.graph.keys():
-            for _to in roadnetwork.graph[_from].keys():
-                for l in roadnetwork.graph[_from][_to]:
-                    LaneGraphics.display(l, surface)
+    def blit_rotate(
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+    ) -> Tuple:
+        """Many thanks to https://stackoverflow.com/a/54714144."""
+        # calculate the axis aligned bounding box of the rotated image
+        w, h = image.get_size()
+        box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
+        box_rotate = [p.rotate(angle) for p in box]
+        min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
+        max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
+
+        # calculate the translation of the pivot
+        origin_pos = w / 2, h / 2
+        pivot = pygame.math.Vector2(origin_pos[0], -origin_pos[1])
+        pivot_rotate = pivot.rotate(angle)
+        pivot_move = pivot_rotate - pivot
+
+        # calculate the upper left origin of the rotated image
+        origin = (
+            pos[0] - origin_pos[0] + min_box[0] - pivot_move[0], pos[1] - origin_pos[1] - max_box[1] + pivot_move[1]
+        )
+        # get a rotated image
+        rotated_image = pygame.transform.rotate(image, angle)
+        # rotate and blit the image
+        surf.blit(rotated_image, origin)
+        return origin
 
 
 class VehicleGraphics(object):
@@ -71,7 +182,7 @@ class VehicleGraphics(object):
     EGO_COLOR = GREEN
 
     @classmethod
-    def display(cls, vehicle, surface, transparent: bool = False, offscreen: bool = False, label: bool = False) -> None:
+    def display(cls, vehicle, surface, offscreen: bool = False, label: bool = False) -> None:
         """
         Display a vehicle on a pygame surface.
 
@@ -79,10 +190,10 @@ class VehicleGraphics(object):
 
         :param vehicle: the vehicle to be drawn
         :param surface: the surface to draw the vehicle on
-        :param transparent: whether the vehicle should be drawn slightly transparent
         :param offscreen: whether the rendering should be done offscreen or not
         :param label: whether a text label should be rendered
         """
+        from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
         if not surface.is_visible(vehicle.position):
             return
 
@@ -98,26 +209,14 @@ class VehicleGraphics(object):
             surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
             surface.pix(v.WIDTH)
         )
-        pygame.draw.rect(vehicle_surface, cls.get_color(v, transparent), rect, 0)
+        pygame.draw.rect(vehicle_surface, cls.BLUE if not isinstance(vehicle, BaseVehicle) else cls.GREEN, rect, 0)
         pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
-        # # Tires
-        # if type(vehicle) in [Vehicle, BicycleVehicle]:
-        #     tire_positions = [[surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2)],
-        #                       [surface.pix(tire_length), surface.pix(length / 2 + v.WIDTH / 2)],
-        #                       [surface.pix(length - tire_length), surface.pix(length / 2 - v.WIDTH / 2)],
-        #                       [surface.pix(length - tire_length), surface.pix(length / 2 + v.WIDTH / 2)]]
-        #     tire_angles = [0, 0, v.action["steering"], v.action["steering"]]
-        #     for tire_position, tire_angle in zip(tire_positions, tire_angles):
-        #         tire_surface = pygame.Surface((surface.pix(tire_length), surface.pix(tire_length)),
-        #                                       pygame.SRCALPHA)
-        #         rect = (0, surface.pix(tire_length / 2 - tire_width / 2), surface.pix(tire_length),
-        #                 surface.pix(tire_width))
-        #         pygame.draw.rect(tire_surface, cls.BLACK, rect, 0)
-        #         cls.blit_rotate(vehicle_surface, tire_surface, tire_position, np.rad2deg(-tire_angle))
-
         # Centered rotation
-        h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
+        if not isinstance(vehicle, BaseVehicle):
+            h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
+        else:
+            h = v.heading_theta if abs(v.heading_theta) > 2 * np.pi / 180 else 0
         position = [*surface.pos2pix(v.position[0], v.position[1])]
         if not offscreen:
             # convert_alpha throws errors in offscreen mode
@@ -188,18 +287,23 @@ class LaneGraphics(object):
 
     STRIPE_WIDTH: float = 0.3
     """ Width of a stripe [m]"""
+
+    LANE_LINE_WIDTH: float = 1
+
     @classmethod
-    def display(cls, lane, surface) -> None:
+    def display(cls, lane, surface, two_side=True) -> None:
         """
         Display a lane on a surface.
 
         :param lane: the lane to be displayed
         :param surface: the pygame surface
+        :param two_side: draw two sides of the lane, or only one side
         """
+        side = 2 if two_side else 1
         stripes_count = int(2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
         s_origin, _ = lane.local_coordinates(surface.origin)
         s0 = (int(s_origin) // cls.STRIPE_SPACING - stripes_count // 2) * cls.STRIPE_SPACING
-        for side in range(2):
+        for side in range(side):
             if lane.line_types[side] == LineType.STRIPED:
                 cls.striped_line(lane, surface, stripes_count, s0, side)
             # circular side or continuous, it is same now
@@ -283,34 +387,40 @@ class LaneGraphics(object):
             if abs(starts[k] - ends[k]) > 0.5 * cls.STRIPE_LENGTH:
                 pygame.draw.line(
                     surface, surface.WHITE, (surface.vec2pix(lane.position(starts[k], lats[k]))),
-                    (surface.vec2pix(lane.position(ends[k], lats[k]))), max(surface.pix(cls.STRIPE_WIDTH), 1)
+                    (surface.vec2pix(lane.position(ends[k], lats[k]))),
+                    max(surface.pix(cls.STRIPE_WIDTH), surface.pix(cls.LANE_LINE_WIDTH))
                 )
 
     @classmethod
-    def simple_draw(cls, lane, surface):
+    def simple_draw(cls, lane, surface, color=(255, 255, 255)):
         from pgdrive.scene_creator.blocks.block import Block
         segment_num = int(lane.length / Block.CIRCULAR_SEGMENT_LENGTH)
-        len = Block.CIRCULAR_SEGMENT_LENGTH * 1.2
-        width = lane.width * 1.2
+        width = lane.width
         for segment in range(segment_num):
-            ground_unit = pygame.Surface((surface.pix(len), surface.pix(width)))  # per-pixel alpha
-            ground_unit.fill(surface.WHITE)
-            # Centered rotation
-            middle = lane.position((segment + 0.5) * Block.CIRCULAR_SEGMENT_LENGTH, 0)
-            h = lane.heading_at((segment + 0.5) * Block.CIRCULAR_SEGMENT_LENGTH)
-            position = [*middle]
-            VehicleGraphics.blit_rotate(surface, ground_unit, surface.vec2pix(position), np.rad2deg(-h))
+            p_1 = lane.position(segment * Block.CIRCULAR_SEGMENT_LENGTH, -width / 2)
+            p_2 = lane.position(segment * Block.CIRCULAR_SEGMENT_LENGTH, width / 2)
+            p_3 = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, width / 2)
+            p_4 = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, -width / 2)
+            pygame.draw.polygon(
+                surface, color,
+                [surface.pos2pix(*p_1),
+                 surface.pos2pix(*p_2),
+                 surface.pos2pix(*p_3),
+                 surface.pos2pix(*p_4)]
+            )
 
         # # for last part
-        ground_unit = pygame.Surface((surface.pix(len), surface.pix(width)))  # per-pixel alpha
-        ground_unit.fill(surface.WHITE)
-        start = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, 0)
-        end = lane.position(lane.length, 0)
-        middle = (start + end) / 2
-        long, _ = lane.local_coordinates(middle)
-        h = lane.heading_at(long)
-        position = [*middle]
-        VehicleGraphics.blit_rotate(surface, ground_unit, surface.vec2pix(position), np.rad2deg(-h))
+        p_1 = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, -width / 2)
+        p_2 = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, width / 2)
+        p_3 = lane.position(lane.length, width / 2)
+        p_4 = lane.position(lane.length, -width / 2)
+        pygame.draw.polygon(
+            surface, color,
+            [surface.pos2pix(*p_1),
+             surface.pos2pix(*p_2),
+             surface.pos2pix(*p_3),
+             surface.pos2pix(*p_4)]
+        )
 
     @classmethod
     def draw_ground(cls, lane, surface, color: Tuple[float], width: float, draw_surface: pygame.Surface = None) -> None:
