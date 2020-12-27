@@ -14,6 +14,13 @@ Welcome to PGDrive! PGDrive is an driving simulator with many key features, incl
 - **Efficient**: Up to 500 simulation step per second.
 - **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
 
+---
+
+<img src="https://raw.githubusercontent.com/decisionforce/decisionforce.github.io/master/projects/pgdrive/panel.png">
+
+
+
+## Quick Start
 Please install PGDrive via:
 
 ```bash
@@ -34,7 +41,7 @@ You can verify the installation and efficiency of PGDrive via running:
 python -m pgdrive.examples.profile_pgdrive
 ```
 
-## Quick Start
+## Examples
 
 Please run the following line to drive the car in the environment manually with keyboard!
 
