@@ -1,7 +1,6 @@
 import os.path as osp
 
 import numpy as np
-
 """
 The existing layer names and shapes in numpy file:
 (note that the terms with "value" in it are removed to save space).
@@ -19,7 +18,7 @@ default_policy/value_out/kernel (256, 1)
 default_policy/value_out/bias (1,)
 """
 
-ckpt_path = osp.join(osp.dirname(__file__), "expert_weights_380.npz")
+ckpt_path = osp.join(osp.dirname(__file__), "expert_weights_417.npz")
 _expert_weights = None
 
 
@@ -36,6 +35,7 @@ def expert(obs):
     x = np.matmul(x, weights["default_policy/fc_out/kernel"]) + weights["default_policy/fc_out/bias"]
     x = x.reshape(-1)
     mean, log_std = np.split(x, 2)
+    # return mean
     std = np.exp(log_std)
     action = np.random.normal(mean, std)
     ret = action
@@ -46,5 +46,5 @@ def expert(obs):
 if __name__ == '__main__':
     for i in range(100):
         print("Weights? ", type(_expert_weights))
-        ret = expert(np.clip(np.random.normal(0.5, 1, size=(275,)), 0.0, 1.0))
+        ret = expert(np.clip(np.random.normal(0.5, 1, size=(275, )), 0.0, 1.0))
         print("Return: ", ret)

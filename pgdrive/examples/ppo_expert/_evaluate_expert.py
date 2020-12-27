@@ -28,8 +28,8 @@ matplotlib.rcParams['ps.fonttype'] = 42
 
 class DrivingCallbacks(DefaultCallbacks):
     def on_episode_start(
-            self, *, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
-            env_index: int, **kwargs
+        self, *, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
+        env_index: int, **kwargs
     ):
         episode.user_data["velocity"] = []
         episode.user_data["steering"] = []
@@ -37,7 +37,7 @@ class DrivingCallbacks(DefaultCallbacks):
         episode.user_data["acceleration"] = []
 
     def on_episode_step(
-            self, *, worker: RolloutWorker, base_env: BaseEnv, episode: MultiAgentEpisode, env_index: int, **kwargs
+        self, *, worker: RolloutWorker, base_env: BaseEnv, episode: MultiAgentEpisode, env_index: int, **kwargs
     ):
         info = episode.last_info_for()
         if info is not None:
@@ -47,8 +47,8 @@ class DrivingCallbacks(DefaultCallbacks):
             episode.user_data["acceleration"].append(info["acceleration"])
 
     def on_episode_end(
-            self, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
-            **kwargs
+        self, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
+        **kwargs
     ):
         arrive_dest = episode.last_info_for()["arrive_dest"]
         crash = episode.last_info_for()["crash"]
@@ -116,6 +116,7 @@ def get_trainer(checkpoint_path=None, extra_config=None, num_workers=10):
         lr=0.0,
         batch_mode="complete_episodes",
         callbacks=DrivingCallbacks,
+        explore=False,  # Add this line to only use mean for action.
 
         # Setup the correct environment
         env=GeneralizationRacing,
@@ -160,14 +161,18 @@ def evaluate(trainer, num_episodes=20):
         episode_count=episode_count,
         time=time.time() - start,
     )
-    print("We collected {} episodes. Spent: {:.3f} s.\nResult: {}".format(
-        episode_count, time.time() - start, {k: round(v, 3) for k, v in ret.items()}
-    ))
+    print(
+        "We collected {} episodes. Spent: {:.3f} s.\nResult: {}".format(
+            episode_count,
+            time.time() - start, {k: round(v, 3)
+                                  for k, v in ret.items()}
+        )
+    )
     return ret
 
 
 if __name__ == '__main__':
-    ckpt = "checkpoint_380/checkpoint-380"
+    ckpt = "checkpoint_417/checkpoint-417"
     num_episodes = 500
 
     initialize_ray(test_mode=False)

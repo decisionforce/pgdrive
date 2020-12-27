@@ -8,7 +8,7 @@ import pickle
 
 import numpy as np
 
-ckpt_path = osp.join(osp.dirname(__file__), "checkpoint_380/checkpoint-380")
+ckpt_path = osp.join(osp.dirname(__file__), "checkpoint_417/checkpoint-417")
 if __name__ == '__main__':
     with open(ckpt_path, "rb") as f:
         data = f.read()
@@ -19,6 +19,6 @@ if __name__ == '__main__':
     pickled_worker = pickle.dumps(worker)
     weights = worker["state"]["default_policy"]
     weights = {k: v for k, v in weights.items() if "value" not in k}
-    path = "expert_weights_380.npz"
+    path = "expert_weights_417.npz"
     np.savez_compressed(path, **weights)
     print("Numpy agent weight is saved at: {}!".format(path))
