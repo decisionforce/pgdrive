@@ -37,7 +37,10 @@ class DynamicMap(Map):
             }
         )
 
-    def add_block(self, blocks_config: List, ):
+    def add_block(
+        self,
+        blocks_config: List,
+    ):
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
         last_block = FirstBlock(
             self.road_network, self.lane_width, self.lane_num, self.pg_world.worldNP, self.pg_world.physics_world, 1

@@ -8,9 +8,7 @@ class MapGenEnv(gym.Env):
 
     @staticmethod
     def default_config() -> PgConfig:
-        env_config = dict(
-            pgdrive_config=dict(map=7)
-        )
+        env_config = dict(pgdrive_config=dict(map=7))
         config = PgConfig(env_config)
         return config
 
