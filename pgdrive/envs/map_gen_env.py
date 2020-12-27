@@ -1,4 +1,5 @@
 import gym
+
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.pg_config import PgConfig
 
@@ -18,7 +19,8 @@ class MapGenEnv(gym.Env):
             self.config.update(config)
 
         self.env = None
-        self.action_space = None
+        self.block_parameter_length = 10
+        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(self.block_parameter_length,))
         self.observation_space = None
 
     def step(self, action):
@@ -60,7 +62,18 @@ class MapGenEnv(gym.Env):
         return create_result
 
     def _get_obs(self):
-        obs = None
+        assert self.env is not None
+        assert self.env.initialized
+
+        import matplotlib.pyplot as plt
+        plt.imshow(self.env.get_map(resolution=(512, 512)))
+        plt.show()
+
+        obs = self.env.get_map(resolution=(64, 64))
+
+        plt.imshow(obs)
+        plt.show()
+
         return obs
 
     def _get_reward(self, info):
