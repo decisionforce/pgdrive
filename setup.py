@@ -10,12 +10,13 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-packages = find_namespace_packages(exclude=("docs", "docs.*", "pgdrive.assets.*"))
+packages = find_namespace_packages(
+    exclude=("docs", "docs.*", "documentation", "documentation.*", "pgdrive.assets.*", "build.*"))
 print("We will install the following packages: ", packages)
 
 setup(
     name="pgdrive",
-    version="0.1.1.dev0",
+    version="0.1.1",
     description="An open-ended driving simulator with infinite scenes",
     url="https://github.com/decisionforce/pgdrive",
     author="PGDrive Team",
@@ -26,7 +27,7 @@ setup(
         "numpy<=1.19.3",
         "matplotlib",
         "pandas",
-        "pygame>=1.9.6",
+        "pygame",
         "yapf==0.30.0",
         "seaborn",
         "panda3d==1.10.5",
@@ -44,10 +45,10 @@ setup(
 How to publish to pypi?  Noted by Zhenghao in Dec 27, 2020.
 
 1. Remove old files
-    rm -rf dist/
+    rm -rf dist/ build/ documentation/build/ pgdrive.egg-info/
     
-2. Rename current version to X.Y.Z.devA, where A is arbitrary value. This is really important since pypi do not
-   support renaming and re-uploading.
+2. Rename current version to X.Y.Z.rcA, where A is arbitrary value represent "release candidate A". 
+   This is really important since pypi do not support renaming and re-uploading.
     
 3. Get wheel
     python setup.py sdist bdist_wheel
@@ -55,7 +56,7 @@ How to publish to pypi?  Noted by Zhenghao in Dec 27, 2020.
 4. Upload to test channel
     twine upload --repository testpypi dist/*
     
-5. Test
+5. Test as next line. If failed, change the version name and repeat 1, 2, 3, 4, 5.
     pip install --index-url https://test.pypi.org/simple/ pgdrive
 
 6. Rename current version to X.Y.Z in setup.py, rerun 1, 3 steps.
