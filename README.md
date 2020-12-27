@@ -1,4 +1,4 @@
-<img align=right width=300px  src="pgdrive/assets/PGDrive.png" />
+<img align=right width=250px  src="pgdrive/assets/PGDrive.png" />
 
 # PGDrive: an open-ended driving simulator with infinite scenes
 
@@ -91,7 +91,7 @@ env.close()
 We also prepare a Colab which demonstrates some basic usage of PGDrive as follows:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/decisionforce/PGDrive/blob/main/pgdrive/examples/Basic%20PGDrive%20Usages.ipynb)
 
-## 🧾 Predefined environment sets
+## 📦 Predefined environment sets
 
 We also define several Gym environment names, so user can start training in the minimalist manner:
 
@@ -115,7 +115,7 @@ The following table presents some predefined environment names.
 | `PGDrive-training2-v0`  | [7000, 8000)      | 1000           | Thirds set of 1000 environments.                        |
 | ...                     |                   |                | *More map set can be added in response to the requests* |
 
-## Documentations
+## 🏫 Documentations
 
 More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io).
 
