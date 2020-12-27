@@ -24,9 +24,14 @@ class MapGenEnv(gym.Env):
         self.observation_space = None
 
     def step(self, action):
+
+        # Step 1: Parse input action to structural data
         block_info = self._parse_action(action)
+
+        # Step 2: Create / append a road block
         create_result = self._create_block(block_info)
 
+        # Step 3: Get the return for the map-generation agent
         obs = self._get_obs()
         reward = self._get_reward(create_result)
         done = self._get_done(create_result)
@@ -35,6 +40,7 @@ class MapGenEnv(gym.Env):
         return obs, reward, done, info
 
     def render(self, mode='human'):
+        # TODO How should we render the map generation process?
         pass
 
     def reset(self):
