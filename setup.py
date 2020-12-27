@@ -13,9 +13,9 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     name="pgdrive",
     version="0.1.0",
-    description="PGDrive: an open-ended driving simulator with infinite scenes",
+    description="An open-ended driving simulator with infinite scenes",
     url="https://github.com/decisionforce/pgdrive",
-    author="Quanyi Li, Zhenghao Peng",
+    author="PGDrive Team",
     author_email="liquanyi@bupt.edu.cn, pengzh@ie.cuhk.edu.hk",
     packages=find_namespace_packages(),
     install_requires=[
@@ -32,7 +32,7 @@ setup(
         "pillow"
     ],
     include_package_data=True,
-    license="Apache License 2.0",
+    license="Apache 2.0",
     long_description=long_description,
     long_description_content_type='text/markdown'
 )
