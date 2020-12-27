@@ -40,6 +40,9 @@ You can verify the installation and efficiency of PGDrive via running:
 python -m pgdrive.examples.profile_pgdrive
 ```
 
+The above script is supposed to be runnable in all places.
+Note that please do not run the above command in the folder that has a sub-folder called `./pgdrive`.
+
 ## Examples
 
 Please run the following line to drive the car in the environment manually with keyboard!
@@ -50,24 +53,23 @@ python -m pgdrive.examples.enjoy_manual
 
 You can also enjoy a journey carrying out by our professional driver pretrained from reinforcement learning! 
 
-Note that this script requires your system to have the capacity of rendering. Please refer to the installation guideline for more information.
-
 ```bash
 python -m pgdrive.examples.enjoy_expert
-```
-
-*Note that the above two scripts can not be run in headless machine.*
-
-Running the following line allows you to draw the generated maps:
-
-```bash
-python -m pgdrive.examples.draw_maps
 ```
 
 To show the main feature, procedural generation, we provide a script to show BIG:
 
 ```bash
 python -m pgdrive.examples.render_big
+```
+
+*Note that the above three scripts can not be run in headless machine.* 
+Please refer to the installation guideline in documentation for more information.
+
+Running the following line allows you to draw the generated maps:
+
+```bash
+python -m pgdrive.examples.draw_maps
 ```
 
 To build the environment in python script, you can simply run:
@@ -77,6 +79,7 @@ import pgdrive  # Import this package to register the environment!
 import gym
 
 env = gym.make("PGDrive-v0", config=dict(use_render=True))
+# env = pgdrive.PGDriveEnv(config=dict(environment_num=100))  # Or build environment from class
 env.reset()
 for i in range(1000):
     obs, reward, done, info = env.step(env.action_space.sample())  # Use random policy
