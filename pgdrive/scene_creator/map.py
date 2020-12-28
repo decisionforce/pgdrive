@@ -264,7 +264,7 @@ class Map:
         # Not finished! Just put it WIP
         import cv2
         ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution,
-                         interpolation=cv2.INTER_AREA
+                         interpolation=cv2.INTER_LINEAR
                          )
         return ret
 
