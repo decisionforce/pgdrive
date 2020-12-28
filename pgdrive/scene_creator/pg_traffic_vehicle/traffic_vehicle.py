@@ -41,7 +41,7 @@ class PgTrafficVehicle(DynamicElement):
         :param np_random: Random Engine
         """
         super(PgTrafficVehicle, self).__init__()
-        self.vehicle_node = PgTrafficVehicleNode(BodyName.Traffic_vehicle + "-" + str(index),
+        self.vehicle_node = PgTrafficVehicleNode(BodyName.Traffic_vehicle,
                                                  IDMVehicle.create_from(kinematic_model))
         chassis_shape = BulletBoxShape(Vec3(kinematic_model.LENGTH / 2, kinematic_model.WIDTH / 2, self.HEIGHT / 2))
         self.index = index
@@ -58,7 +58,7 @@ class PgTrafficVehicle(DynamicElement):
         [path, scale, zoffset, H] = self.path[np_random.randint(0, len(self.path))]
 
         self._state = {"heading": self.vehicle_node.kinematic_model.heading,
-                       "position": self.vehicle_node.kinematic_model.position}
+                       "position": self.vehicle_node.kinematic_model.position.tolist()}
 
         if self.render:
             if path not in PgTrafficVehicle.model_collection:
@@ -111,7 +111,7 @@ class PgTrafficVehicle(DynamicElement):
         super(PgTrafficVehicle, self).destroy(pg_world)
 
     def get_name(self):
-        return self.vehicle_node.getName()
+        return self.vehicle_node.getName() + "_" + str(self.index)
 
     @classmethod
     def create_random_traffic_vehicle(

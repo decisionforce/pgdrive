@@ -117,8 +117,8 @@ class TrafficManager:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
-            random_v = vehicle_type.create_random_traffic_vehicle(
-                self, lane, long, seed=self.random_seed, enable_reborn=is_reborn_lane, index=start_index + i)
+            random_v = vehicle_type.create_random_traffic_vehicle(start_index + i, self,lane, long, seed=self.random_seed,
+                                                                  enable_reborn=is_reborn_lane)
             self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
@@ -140,7 +140,7 @@ class TrafficManager:
                 num = min(int(len(lanes) * self.traffic_density) + 1, len(lanes))
                 lanes = self.np_random.choice(lanes, num, replace=False) if len(lanes) != 1 else lanes
                 for l in lanes:
-                    vehicles_on_block += self._create_vehicles_on_lane(l, len(self.vehicles - 1))
+                    vehicles_on_block += self._create_vehicles_on_lane(l, len(self.vehicles) - 1)
             for vehicle in vehicles_on_block:
                 vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
             block_vehicles = BlockVehicles(trigger_road=trigger_road, vehicles=vehicles_on_block)
@@ -247,9 +247,8 @@ class TrafficManager:
         return v_front, v_rear
 
     def dump(self) -> None:
-        """Dump the data of all entities on the road."""
-        for v in self.vehicles:
-            v.dump()
+        """Dump the data of an episode."""
+        return self.episode_info
 
     def get_log(self) -> pd.DataFrame:
         """
@@ -291,7 +290,8 @@ class TrafficManager:
         if self.traffic_mode == TrafficMode.Add_once:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
-                    states[vehicle.get_name()] = vehicle.get_state
+                    states[vehicle.get_name()] = vehicle.get_state()
+        return states
 
     def _collect_all_vehicle_info(self):
         vehicles = dict()
@@ -305,6 +305,6 @@ class TrafficManager:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
                     init_state = vehicle.get_state()
-                    init_state["type"] = vehicle.class_name()
+                    init_state["type"] = vehicle.class_name
                     vehicles[vehicle.get_name()] = init_state
         return vehicles
