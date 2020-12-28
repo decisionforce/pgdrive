@@ -5,4 +5,9 @@
 *.rar
 /docs/build/
 /docs/.idea/
-/docs/document/build/
+/build/
+/dist/
+/documentation/build/
+/pgdrive.egg-info/
+.DS_Store
+**/.DS_Store
