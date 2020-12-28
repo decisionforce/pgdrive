@@ -9,19 +9,6 @@ class TestEnv(PGDriveEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             {
-                "environment_num": 1,
-                "traffic_density": 0.1,
-                "start_seed": 3,
-                "pg_world_config": {
-                    "debug": False,
-                },
-                "image_source": "mini_map",
-                "manual_control": False,
-                "use_render": False,
-                "use_image": False,
-                "steering_penalty": 0.0,
-                "decision_repeat": 5,
-                "rgb_clip": True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                     Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
@@ -35,7 +22,7 @@ class TestEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = TestEnv()
     env.reset()
-    env.current_map.save_map_image(simple_draw=False)
+    env.current_map.save_map_image(resolution=(64, 64),simple_draw=True, fill_hole=False)
     # print(env.current_map.get_map_image_array())
 
     import numpy as np

@@ -246,12 +246,12 @@ class Map:
         return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(
-        self,
-        resolution=(512, 512),
-        fill_hole=False,
-        only_black_white=True,
-        return_surface=False,
-        simple_draw=True
+            self,
+            resolution=(512, 512),
+            fill_hole=False,
+            only_black_white=True,
+            return_surface=False,
+            simple_draw=True
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         if fill_hole:
@@ -273,15 +273,19 @@ class Map:
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
     @staticmethod
-    def fill_hole(surface: pygame.Surface):
+    def fill_hole(surface: pygame.Surface, threshold=3, kernal=(3, 3)):
+        assert threshold <= kernal[0] * kernal[1], "Two large threshold !"
+
         def add_count(x, y, x_size, y_size, count_a):
             for x_1 in [-1, 0, 1]:
                 for y_1 in [-1, 0, 1]:
                     if 0 < x + x_1 < x_size and 0 < y + y_1 < y_size:
                         count_a[x + x_1][y + y_1] += 1
 
-        threshold = 3
-
+        w_max = int(kernal[0] / 2) + 1 if kernal[0] % 2 != 0 else int(kernal[0] / 2)
+        w = [i for i in range(-int(kernal[0] / 2), w_max)]
+        h_max = int(kernal[1] / 2) + 1 if kernal[1] % 2 != 0 else int(kernal[1] / 2)
+        h = [i for i in range(-int(kernal[1] / 2), h_max)]
         res_surface = surface.copy()
         height = surface.get_height()
         width = surface.get_width()
@@ -295,15 +299,13 @@ class Map:
                 if count_a[i][j] >= threshold:
                     res_surface.set_at((i, j), (255, 255, 255, 255))
                     continue
-                for k_1 in [-1, 0, 1]:
-                    for k_2 in [-1, 0, 1]:
+                for k_1 in w:
+                    for k_2 in h:
                         if k_1 == 0 and k_2 == 0:
                             continue
                         if 0 < i + k_1 < height and 0 < j + k_2 < width:
                             if surface.get_at((i + k_1, j + k_2)) == (255, 255, 255, 255):
                                 add_count(i + k_1, j + k_2, height, width, count_a)
-                        else:
-                            count_a[i][j] += 1
                         if count_a[i][j] >= threshold:
                             res_surface.set_at((i, j), (255, 255, 255, 255))
                             break
