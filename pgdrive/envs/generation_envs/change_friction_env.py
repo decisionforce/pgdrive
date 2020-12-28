@@ -61,9 +61,7 @@ class ChangeFrictionEnv(PGDriveEnv):
 
         # generate new traffic according to the map
         assert self.vehicle is not None
-        self.traffic_manager.reset(
-            self.pg_world, self.current_map, self.vehicle, self.config["traffic_density"]
-        )
+        self.traffic_manager.reset(self.pg_world, self.current_map, self.vehicle, self.config["traffic_density"])
         o = self._get_reset_return()
         return o
 

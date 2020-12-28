@@ -51,8 +51,15 @@ class TrafficManager:
         self.restore_vehicles = None
         self.restore_episode_info = None
 
-    def reset(self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None,
-              episode_data=None):
+    def reset(
+        self,
+        pg_world: PgWorld,
+        map: Map,
+        ego_vehicle,
+        traffic_density: float,
+        road_objects: List = None,
+        episode_data=None
+    ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
@@ -88,8 +95,12 @@ class TrafficManager:
             map_data = dict()
             map_data[map.random_seed] = map.save_map()
             init_vehicle_state = self._collect_all_vehicle_info()
-            self.episode_info = dict(dict(map_config=map.config.get_dict(), init_traffic=init_vehicle_state,
-                                          map_data=copy.deepcopy(map_data)), frame=[])
+            self.episode_info = dict(
+                dict(
+                    map_config=map.config.get_dict(), init_traffic=init_vehicle_state, map_data=copy.deepcopy(map_data)
+                ),
+                frame=[]
+            )
 
     def clear_traffic(self, pg_physics_world: BulletWorld):
         if self.traffic_vehicles is not None:
@@ -135,9 +146,9 @@ class TrafficManager:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
-            random_v = vehicle_type.create_random_traffic_vehicle(start_index + i, self, lane, long,
-                                                                  seed=self.random_seed,
-                                                                  enable_reborn=is_reborn_lane)
+            random_v = vehicle_type.create_random_traffic_vehicle(
+                start_index + i, self, lane, long, seed=self.random_seed, enable_reborn=is_reborn_lane
+            )
             self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
@@ -186,7 +197,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -346,7 +357,7 @@ class TrafficManager:
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def _recover_vehicles_from_data(self, episode_data: dict, pg_world:PgWorld):
+    def _recover_vehicles_from_data(self, episode_data: dict, pg_world: PgWorld):
         assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
         import pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type as v_types
         traffics = episode_data["init_traffic"]

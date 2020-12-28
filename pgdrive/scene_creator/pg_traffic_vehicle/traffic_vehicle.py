@@ -41,8 +41,7 @@ class PgTrafficVehicle(DynamicElement):
         :param np_random: Random Engine
         """
         super(PgTrafficVehicle, self).__init__()
-        self.vehicle_node = PgTrafficVehicleNode(BodyName.Traffic_vehicle,
-                                                 IDMVehicle.create_from(kinematic_model))
+        self.vehicle_node = PgTrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model))
         chassis_shape = BulletBoxShape(Vec3(kinematic_model.LENGTH / 2, kinematic_model.WIDTH / 2, self.HEIGHT / 2))
         self.index = index
         self.vehicle_node.addShape(chassis_shape, TransformState.makePos(Point3(0, 0, self.HEIGHT / 2 + 0.2)))
@@ -58,9 +57,11 @@ class PgTrafficVehicle(DynamicElement):
         np_random = np_random or get_np_random()
         [path, scale, zoffset, H] = self.path[np_random.randint(0, len(self.path))]
 
-        self._state = {"heading": self.vehicle_node.kinematic_model.heading,
-                       "position": self.vehicle_node.kinematic_model.position.tolist(),
-                       "done": self.out_of_road}
+        self._state = {
+            "heading": self.vehicle_node.kinematic_model.heading,
+            "position": self.vehicle_node.kinematic_model.position.tolist(),
+            "done": self.out_of_road
+        }
 
         if self.render:
             if path not in PgTrafficVehicle.model_collection:
@@ -96,7 +97,8 @@ class PgTrafficVehicle(DynamicElement):
     def update_state(self):
         self.vehicle_node.kinematic_model.on_state_update()
         self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
-            self.vehicle_node.kinematic_model.position, margin=2)
+            self.vehicle_node.kinematic_model.position, margin=2
+        )
 
     def need_remove(self):
         if self._initial_state is not None:
@@ -133,14 +135,14 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_random_traffic_vehicle(
-            cls,
-            index: int,
-            traffic_mgr: TrafficManager,
-            lane: Union[StraightLane, CircularLane],
-            longitude: float,
-            seed=None,
-            enable_lane_change: bool = True,
-            enable_reborn=False
+        cls,
+        index: int,
+        traffic_mgr: TrafficManager,
+        lane: Union[StraightLane, CircularLane],
+        longitude: float,
+        seed=None,
+        enable_lane_change: bool = True,
+        enable_reborn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change
@@ -148,7 +150,7 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_traffic_vehicle_from_config(cls, traffic_mgr: TrafficManager, config: dict):
-        v = IDMVehicle(traffic_mgr, config["position"], config["heading"],np_random=np.random.RandomState())
+        v = IDMVehicle(traffic_mgr, config["position"], config["heading"], np_random=np.random.RandomState())
         return cls(config["index"], v)
 
     def __del__(self):
