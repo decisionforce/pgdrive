@@ -497,8 +497,8 @@ class PGDriveEnv(gym.Env):
     def set_current_seed(self, seed):
         self.current_seed = seed
 
-    def get_map(self, pooling=None):
-        return self.current_map.get_map_image_array(pooling=pooling)
+    def get_map(self):
+        return self.current_map.get_map_image_array()
 
     def get_vehicle_num(self):
         if self.traffic_manager is None:

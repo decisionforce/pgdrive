@@ -201,8 +201,7 @@ class Map:
             ret = self.read_map(map_config)
         return ret
 
-    def draw_map_image_on_surface(self, dest_resolution=(512, 512), simple_draw=True,
-                                  pooling: Optional[float] = None) -> pygame.Surface:
+    def draw_maximum_surface(self, simple_draw: bool):
         from pgdrive.world.highway_render.highway_render import LaneGraphics
         from pgdrive.world.highway_render.world_surface import WorldSurface
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
@@ -224,10 +223,12 @@ class Map:
                     else:
                         two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
                         LaneGraphics.display(l, surface, two_side)
+        return surface
+
+    def draw_map_image_on_surface(self, dest_resolution=(512, 512), simple_draw=True) -> pygame.Surface:
+        surface = self.draw_maximum_surface(simple_draw=simple_draw)
         dest_surface = pygame.Surface(dest_resolution)
         pygame.transform.scale(surface, dest_resolution, dest_surface)
-        if pooling is not None:
-            dest_surface = Map.pooling(surface, dest_surface, pooling)
         return dest_surface
 
     @staticmethod
@@ -255,72 +256,78 @@ class Map:
             only_black_white=True,
             return_surface=False,
             simple_draw=True,
-            pooling: Optional[float] = None
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
-        surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw, pooling=pooling)
+        # surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
+        # TODO change the surface to dest resolution from (8192, 8192)
+        surface = self.draw_maximum_surface(simple_draw)
+        """
+        
+        fill it please
+        
+        """
         if fill_hole:
             surface = self.fill_hole(surface)
         if only_black_white:
             return np.clip(pygame.surfarray.pixels_red(surface), 0.0, 1.0)
         if return_surface:
             return surface
-        return pygame.surfarray.array3d(surface)
+        # return pygame.surfarray.array3d(surface)
+        return 
 
-    def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True, pooling=None):
+    def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True):
         surface = self.get_map_image_array(
             resolution=resolution,
             fill_hole=fill_hole,
             only_black_white=only_black_white,
             return_surface=True,
             simple_draw=simple_draw,
-            pooling=pooling
         )
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
-    @staticmethod
-    def pooling(origin_surface: pygame.Surface, transformed_surface: pygame.Surface, threshold: float = 0.1):
-        """
-        Since pixels will be lost after calling the pygame.transform, this function is used to restore some pixels
-        :param origin_surface: The high resolution images
-        :param transformed_surface: The low resolution images
-        :param threshold: a float in (0, 1]
-        :return: pygame.surface
-        """
-
-        assert 0 < threshold <= 1, "Threshold should be in (0, 1]"
-        origin_w = origin_surface.get_width()
-        origin_h = origin_surface.get_height()
-
-        trans_w = transformed_surface.get_width()
-        trans_h = transformed_surface.get_height()
-
-        w_scale = int(origin_w / trans_w)
-        h_scale = int(origin_h / trans_h)
-
-        threshold = int(threshold * w_scale * h_scale)
-        w_max = int(w_scale / 2) + 1 if w_scale % 2 != 0 else int(w_scale / 2)
-        w = [i for i in range(-int(w_scale / 2), w_max)]
-        h_max = int(h_scale / 2) + 1 if h_scale % 2 != 0 else int(h_scale / 2)
-        h = [i for i in range(-int(h_scale / 2), h_max)]
-
-        origin_surface = pygame.surfarray.array2d(origin_surface)
-        transformed_surface = pygame.surfarray.array2d(transformed_surface)
-        for i in range(trans_w):
-            for j in range(trans_h):
-                origin_i = i * w_scale
-                origin_j = j * h_scale
-                count = 0
-                for k_1 in w:
-                    for k_2 in h:
-                        if 0 < origin_i + k_1 < origin_w and 0 < origin_j + k_2 < origin_h:
-                            if abs(origin_surface[origin_i + k_1][origin_j + k_2] - 1.0) < 0.01:
-                                count += 1
-                        if count >= threshold:
-                            transformed_surface[i][j] = 1.0
-                            break
-                    if count >= threshold:
-                        break
-        return transformed_surface
+    # @staticmethod
+    # def pooling(origin_surface: pygame.Surface, transformed_surface: pygame.Surface, threshold: float = 0.1):
+    #     """
+    #     Since pixels will be lost after calling the pygame.transform, this function is used to restore some pixels
+    #     :param origin_surface: The high resolution images
+    #     :param transformed_surface: The low resolution images
+    #     :param threshold: a float in (0, 1]
+    #     :return: pygame.surface
+    #     """
+    #
+    #     assert 0 < threshold <= 1, "Threshold should be in (0, 1]"
+    #     origin_w = origin_surface.get_width()
+    #     origin_h = origin_surface.get_height()
+    #
+    #     trans_w = transformed_surface.get_width()
+    #     trans_h = transformed_surface.get_height()
+    #
+    #     w_scale = int(origin_w / trans_w)
+    #     h_scale = int(origin_h / trans_h)
+    #
+    #     threshold = int(threshold * w_scale * h_scale)
+    #     w_max = int(w_scale / 2) + 1 if w_scale % 2 != 0 else int(w_scale / 2)
+    #     w = [i for i in range(-int(w_scale / 2), w_max)]
+    #     h_max = int(h_scale / 2) + 1 if h_scale % 2 != 0 else int(h_scale / 2)
+    #     h = [i for i in range(-int(h_scale / 2), h_max)]
+    #
+    #     origin_surface = pygame.surfarray.array2d(origin_surface)
+    #     transformed_surface = pygame.surfarray.array2d(transformed_surface)
+    #     for i in range(trans_w):
+    #         for j in range(trans_h):
+    #             origin_i = i * w_scale
+    #             origin_j = j * h_scale
+    #             count = 0
+    #             for k_1 in w:
+    #                 for k_2 in h:
+    #                     if 0 < origin_i + k_1 < origin_w and 0 < origin_j + k_2 < origin_h:
+    #                         if abs(origin_surface[origin_i + k_1][origin_j + k_2] - 1.0) < 0.01:
+    #                             count += 1
+    #                     if count >= threshold:
+    #                         transformed_surface[i][j] = 1.0
+    #                         break
+    #                 if count >= threshold:
+    #                     break
+    #     return transformed_surface
 
     @staticmethod
     def fill_hole(surface: pygame.Surface, threshold=3, kernal=(3, 3)):
