@@ -303,6 +303,8 @@ class Map:
         h_max = int(h_scale / 2) + 1 if h_scale % 2 != 0 else int(h_scale / 2)
         h = [i for i in range(-int(h_scale / 2), h_max)]
 
+        origin_surface = pygame.surfarray.array2d(origin_surface)
+        transformed_surface = pygame.surfarray.array2d(transformed_surface)
         for i in range(trans_w):
             for j in range(trans_h):
                 origin_i = i * w_scale
@@ -311,10 +313,10 @@ class Map:
                 for k_1 in w:
                     for k_2 in h:
                         if 0 < origin_i + k_1 < origin_w and 0 < origin_j + k_2 < origin_h:
-                            if origin_surface.get_at((origin_i + k_1, origin_j + k_2)) == (255, 255, 255, 255):
+                            if abs(origin_surface[origin_i + k_1][origin_j + k_2] - 1.0) < 0.01:
                                 count += 1
                         if count >= threshold:
-                            transformed_surface.set_at((i, j), (255, 255, 255, 255))
+                            transformed_surface[i][j] = 1.0
                             break
                     if count >= threshold:
                         break
