@@ -17,12 +17,11 @@ var institution_corpus = [
     '<div><sup>1</sup>香港中文大学, <sup>2</sup>商汤科技, <sup>3</sup>浙江大学</div>'],
 ]
 var text_corpus = [
-    ['To better evaluate and improve the generalization of learning-based driving system, we introduce an open-ended\
+    ['To better evaluate and improve the generalization of learning-based driving systems, we introduce an\
+    open-ended\
     and highly configurable driving simulator called PGDrive.\
-    PGDrive can generate infinite driving scenes through procedural generalization, which can benifit the research\
-    on the generalization of learning system.\
-    Please visit <a href="https://github.com/decisionforce/pgdrive">github.com/decisionforce/pgdrive</a> to enjoy\
-    PGDrive!', '为了更好地评估和改善基于强化学习的自动驾驶系统的泛化性能，我们提出了一个开放式、极易配置的模拟器：PGDrive！PGDrive可以通过过程生成技术生成无限多的地图\
+    PGDrive can generate a diverse set of driving scenes through procedural generalization from basic traffic building blocks. Currently the simulator is used to study the generalization of the driving agents trained from reinforcement learning. See <a href="">paper</a> for more detail.\ ', 
+    '为了更好地评估和改善基于强化学习的自动驾驶系统的泛化性能，我们提出了一个开放式、极易配置的模拟器：PGDrive！PGDrive可以通过过程生成技术生成无限多的地图\
     ，从而助力学习系统泛化性能的研究。欢迎访问 <a href="https://github.com/decisionforce/pgdrive">github.com/decisionforce/pgdrive</a> 来亲身感受！'],
     ['We first define the elementary road blocks as follows,','我们首先定义了如下的基础路块'],
     ['we then follow the proposed algorithm of procedural generation to synthesize maps:', '随后我们用了过程生成的技术来生成地图：'],
@@ -37,6 +36,15 @@ var bar_corpus = [
     ['<b>Documentation</b>', '<b>文档</b>'],
     ['<b>Paper</b>', '<b>论文</b>']
 ]
+var vedio_corpus = [
+    ['<iframe src="https://www.youtube.com/embed/T368RveOY9g" frameborder=0\
+    style="position: absolute; top: 2.5%; left: 2.5%; width: 95%; height: 100%;"\
+    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"\
+    allowfullscreen></iframe>', 
+    '<iframe src="//player.bilibili.com/player.html?aid=373258795&bvid=BV15Z4y137cz&cid=271979816&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>'],
+]
+
+
 var lang_flag = 1;
 
 $(document).ready(function(){
@@ -74,7 +82,6 @@ $(document).ready(function(){
             }
         );
 
-
         i=0
         $(".bar").each(
             function(){
@@ -82,6 +89,14 @@ $(document).ready(function(){
                 i=i+1;
             }
         );
+
+        // i=0
+        // $(".vedio").each(
+        //     function(){
+        //         $(this).html(vedio_corpus[i][lang_flag]);
+        //         i=i+1;
+        //     }
+        // );
 
         lang_flag = 1-lang_flag;
     });
