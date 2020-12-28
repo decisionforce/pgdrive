@@ -143,14 +143,14 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        seed=None,
-        enable_lane_change: bool = True,
-        enable_reborn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            seed=None,
+            enable_lane_change: bool = True,
+            enable_reborn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change

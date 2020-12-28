@@ -525,6 +525,7 @@ class BaseVehicle(DynamicElement):
         self.set_heading(state["heading"])
         self.set_position(state["position"])
 
+
     def __del__(self):
         super(BaseVehicle, self).__del__()
         self.pg_world = None
