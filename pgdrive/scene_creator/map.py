@@ -225,7 +225,7 @@ class Map:
                         LaneGraphics.display(l, surface, two_side)
         dest_surface = pygame.Surface(dest_resolution)
         pygame.transform.scale(surface, dest_resolution, dest_surface)
-        return dest_surface
+        return self.pooling(surface, dest_surface)
 
     @staticmethod
     def get_map_bound_box(road_network):
@@ -273,14 +273,51 @@ class Map:
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
     @staticmethod
+    def pooling(origin_surface: pygame.Surface, transformed_surface: pygame.Surface, threshold: float = 0.1):
+        """
+        Since pixels will be lost after calling the pygame.transform, this function is used to restore some pixels
+        :param origin_surface: The high resolution images
+        :param transformed_surface: The low resolution images
+        :param threshold: a float in (0, 1]
+        :return: pygame.surface
+        """
+
+        assert 0 < threshold <= 1, "Threshold should be in (0, 1]"
+        origin_w = origin_surface.get_width()
+        origin_h = origin_surface.get_height()
+
+        trans_w = transformed_surface.get_width()
+        trans_h = transformed_surface.get_height()
+
+        w_scale = int(origin_w / trans_w)
+        h_scale = int(origin_h / trans_h)
+
+        threshold = int(threshold * w_scale * h_scale)
+        w_max = int(w_scale / 2) + 1 if w_scale % 2 != 0 else int(w_scale / 2)
+        w = [i for i in range(-int(w_scale / 2), w_max)]
+        h_max = int(h_scale / 2) + 1 if h_scale % 2 != 0 else int(h_scale / 2)
+        h = [i for i in range(-int(h_scale / 2), h_max)]
+
+        for i in range(trans_w):
+            for j in range(trans_h):
+                origin_i = i * w_scale
+                origin_j = j * h_scale
+                count = 0
+                for k_1 in w:
+                    for k_2 in h:
+                        if 0 < origin_i + k_1 < origin_w and 0 < origin_j + k_2 < origin_h:
+                            if origin_surface.get_at((origin_i + k_1, origin_j + k_2)) == (255, 255, 255, 255):
+                                count += 1
+                        if count >= threshold:
+                            transformed_surface.set_at((i, j), (255, 255, 255, 255))
+                            break
+                    if count >= threshold:
+                        break
+        return transformed_surface
+
+    @staticmethod
     def fill_hole(surface: pygame.Surface, threshold=3, kernal=(3, 3)):
         assert threshold <= kernal[0] * kernal[1], "Two large threshold !"
-
-        def add_count(x, y, x_size, y_size, count_a):
-            for x_1 in [-1, 0, 1]:
-                for y_1 in [-1, 0, 1]:
-                    if 0 < x + x_1 < x_size and 0 < y + y_1 < y_size:
-                        count_a[x + x_1][y + y_1] += 1
 
         w_max = int(kernal[0] / 2) + 1 if kernal[0] % 2 != 0 else int(kernal[0] / 2)
         w = [i for i in range(-int(kernal[0] / 2), w_max)]
@@ -294,7 +331,7 @@ class Map:
             for j in range(width):
                 pix = surface.get_at((i, j))
                 if pix == (255, 255, 255, 255):
-                    add_count(i, j, height, width, count_a)
+                    Map._add_count(i, j, height, width, count_a)
                     continue
                 if count_a[i][j] >= threshold:
                     res_surface.set_at((i, j), (255, 255, 255, 255))
@@ -305,13 +342,20 @@ class Map:
                             continue
                         if 0 < i + k_1 < height and 0 < j + k_2 < width:
                             if surface.get_at((i + k_1, j + k_2)) == (255, 255, 255, 255):
-                                add_count(i + k_1, j + k_2, height, width, count_a)
+                                Map._add_count(i + k_1, j + k_2, height, width, count_a)
                         if count_a[i][j] >= threshold:
                             res_surface.set_at((i, j), (255, 255, 255, 255))
                             break
                     if count_a[i][j] >= threshold:
                         break
         return res_surface
+
+    @staticmethod
+    def _add_count(x, y, x_size, y_size, count_a):
+        for x_1 in [-1, 0, 1]:
+            for y_1 in [-1, 0, 1]:
+                if 0 < x + x_1 < x_size and 0 < y + y_1 < y_size:
+                    count_a[x + x_1][y + y_1] += 1
 
     def draw_map_with_navi_lines(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
         checkpoints = vehicle.routing_localization.checkpoints
