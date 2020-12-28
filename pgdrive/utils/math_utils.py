@@ -1,10 +1,11 @@
 import math
 import time
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from pgdrive.scene_creator.road.road_network import RoadNetwork
+if TYPE_CHECKING:
+    from pgdrive.scene_creator.road.road_network import RoadNetwork
 
 
 def safe_clip(array, min_val, max_val):
@@ -21,7 +22,7 @@ def get_vertical_vector(vector: np.array):
     return (vector[1] / length, -vector[0] / length), (-vector[1] / length, vector[0] / length)
 
 
-def check_lane_on_road(road_network: RoadNetwork, lane, positive: float = 0, ignored=None) -> bool:
+def check_lane_on_road(road_network: "RoadNetwork", lane, positive: float = 0, ignored=None) -> bool:
     """
     Calculate if the new lane intersects with other lanes in current road network
     The return Value is True when cross !!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -86,7 +87,7 @@ def get_arc_bound_box_points(lane, lateral_dir):
     return points
 
 
-def get_all_lanes(roadnet: RoadNetwork):
+def get_all_lanes(roadnet: "RoadNetwork"):
     graph = roadnet.graph
     res = []
     for from_, to_dict in graph.items():
@@ -106,7 +107,7 @@ def time_me(fn):
 
 
 def norm(x, y):
-    return math.sqrt(x**2 + y**2)
+    return math.sqrt(x ** 2 + y ** 2)
 
 
 def clip(a, low, high):
