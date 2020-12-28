@@ -32,9 +32,17 @@ class PgTrafficVehicle(DynamicElement):
     path = None
     model_collection = {}  # save memory, load model once
 
-    def __init__(self, kinematic_model: IDMVehicle, enable_reborn: bool = False, np_random=None):
+    def __init__(self, index: int, kinematic_model: IDMVehicle, enable_reborn: bool = False, np_random=None):
+        """
+        A traffic vehicle class.
+        :param index: Each Traffic vehicle has an unique index, and the name of this vehicle will contain this index
+        :param kinematic_model: IDM Model or other models
+        :param enable_reborn: It will be generated at the born place again when arriving at the destination
+        :param np_random: Random Engine
+        """
         super(PgTrafficVehicle, self).__init__()
-        self.vehicle_node = PgTrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model))
+        self.vehicle_node = PgTrafficVehicleNode(BodyName.Traffic_vehicle + "-" + str(index),
+                                                 IDMVehicle.create_from(kinematic_model))
         chassis_shape = BulletBoxShape(Vec3(kinematic_model.LENGTH / 2, kinematic_model.WIDTH / 2, self.HEIGHT / 2))
         self.vehicle_node.addShape(chassis_shape, TransformState.makePos(Point3(0, 0, self.HEIGHT / 2 + 0.2)))
         self.vehicle_node.setMass(800.0)
@@ -98,19 +106,23 @@ class PgTrafficVehicle(DynamicElement):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
         super(PgTrafficVehicle, self).destroy(pg_world)
 
+    def get_name(self):
+        return self.vehicle_node.getName()
+
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        scene: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        seed=None,
-        enable_lane_change: bool = True,
-        enable_reborn=False
+            cls,
+            index:int,
+            scene: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            seed=None,
+            enable_lane_change: bool = True,
+            enable_reborn=False
     ):
         v = IDMVehicle.create_random(scene, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change
-        return cls(v, enable_reborn, np_random=v.np_random)
+        return cls(index, v, enable_reborn, np_random=v.np_random)
 
     def __del__(self):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)

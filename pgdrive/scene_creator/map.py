@@ -146,9 +146,6 @@ class Map:
             block.destroy(pg_physics_world)
 
     def save_map(self):
-        """
-        This func will generate a json file named 'map_name.json', in 'save_dir'
-        """
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
         import numpy as np
         map_config = []
@@ -173,6 +170,9 @@ class Map:
         return saved_data
 
     def save_map_to_json(self, map_name: str, save_dir: str = os.path.dirname(__file__)):
+        """
+        This func will generate a json file named 'map_name.json', in 'save_dir'
+        """
         data = self.save_map()
         with open(AssetLoader.file_path(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
             json.dump(data, outfile)

@@ -248,7 +248,7 @@ class PGDriveEnv(gym.Env):
         self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
 
         # generate new traffic according to the map
-        self.traffic_manager.generate_traffic(
+        self.traffic_manager.reset(
             self.pg_world, self.current_map, self.vehicle, self.config["traffic_density"]
         )
         return self._get_reset_return()
