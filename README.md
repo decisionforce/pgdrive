@@ -14,7 +14,7 @@ Welcome to PGDrive! PGDrive is an driving simulator with many key features, incl
 - 🗺 **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
 
 
-<img src="docs/images/panel.png">
+<img src="docs/images/panel.jpg">
 
 
 
