@@ -56,6 +56,9 @@ class PgTrafficVehicle(DynamicElement):
         np_random = np_random or get_np_random()
         [path, scale, zoffset, H] = self.path[np_random.randint(0, len(self.path))]
 
+        self._state = {"heading": self.vehicle_node.kinematic_model.heading,
+                       "position": self.vehicle_node.kinematic_model.position}
+
         if self.render:
             if path not in PgTrafficVehicle.model_collection:
                 carNP = self.loader.loadModel(AssetLoader.file_path(AssetLoader.asset_path, "models", path))
@@ -112,7 +115,7 @@ class PgTrafficVehicle(DynamicElement):
     @classmethod
     def create_random_traffic_vehicle(
             cls,
-            index:int,
+            index: int,
             scene: TrafficManager,
             lane: Union[StraightLane, CircularLane],
             longitude: float,

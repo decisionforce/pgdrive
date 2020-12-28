@@ -120,6 +120,10 @@ class BaseVehicle(DynamicElement):
         self.crash = False
         self.out_of_road = False
 
+        # state info
+        self._state = {"heading": self.heading_theta,
+                       "position": self.position}
+
         self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
     @classmethod
@@ -282,8 +286,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
