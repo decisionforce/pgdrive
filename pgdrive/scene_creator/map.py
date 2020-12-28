@@ -260,11 +260,15 @@ class Map:
         # surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         # TODO change the surface to dest resolution from (8192, 8192)
         surface = self.draw_maximum_surface(simple_draw)
-        """
-        
-        fill it please
-        
-        """
+
+        # Not finished! Just put it WIP
+        import cv2
+        ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution,
+                         interpolation=cv2.INTER_AREA
+                         )
+        return ret
+
+
         if fill_hole:
             surface = self.fill_hole(surface)
         if only_black_white:

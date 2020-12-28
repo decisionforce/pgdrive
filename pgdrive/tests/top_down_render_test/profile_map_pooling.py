@@ -9,12 +9,12 @@ class TestEnv(PGDriveEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             {
-                # "map_config": {
-                #     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                #     Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
-                #     Map.LANE_WIDTH: 3.5,
-                #     Map.LANE_NUM: 3,
-                # }
+                "map_config": {
+                    "type": "block_sequence",
+                    "config": "OCrRCTXRCCCCrOr",
+                    # Map.LANE_WIDTH: 3.5,
+                    # Map.LANE_NUM: 3,
+                }
             }
         )
 
