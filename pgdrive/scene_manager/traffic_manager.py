@@ -72,7 +72,9 @@ class TrafficManager:
             # Save current map like what we do in PGDriveEnv dump_all_maps(). Fill the frame list when step is calling !
             map_data = dict()
             map_data[map.random_seed] = map.save_map()
-            self.episode_info = dict(dict(map_config=map.config.get_dict(), map_data=copy.deepcopy(map_data)), frame=[])
+            init_vehicle_state = self._collect_all_vehicle_info()
+            self.episode_info = dict(dict(map_config=map.config.get_dict(), init_traffic=init_vehicle_state,
+                                          map_data=copy.deepcopy(map_data)), frame=[])
 
     def clear_traffic(self, pg_physics_world: BulletWorld):
         if self.traffic_vehicles is not None:
@@ -294,10 +296,15 @@ class TrafficManager:
     def _collect_all_vehicle_info(self):
         vehicles = dict()
         for vehicle in self.traffic_vehicles:
-            states[vehicle.get_name()] = vehicle.get_state()
+            init_state = vehicle.get_state()
+            init_state["type"] = vehicle.class_name()
+            vehicles[vehicle.get_name()] = init_state
 
         # collect other vehicles
         if self.traffic_mode == TrafficMode.Add_once:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
-                    states[vehicle.get_name()] = vehicle.get_state
+                    init_state = vehicle.get_state()
+                    init_state["type"] = vehicle.class_name()
+                    vehicles[vehicle.get_name()] = init_state
+        return vehicles

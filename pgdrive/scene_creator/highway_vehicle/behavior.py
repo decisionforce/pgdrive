@@ -45,7 +45,7 @@ class IDMVehicle(ControlledVehicle):
 
     def __init__(
         self,
-        scene: TrafficManager,
+        traffic_mgr: TrafficManager,
         position: List,
         heading: float = 0,
         speed: float = 0,
@@ -56,7 +56,7 @@ class IDMVehicle(ControlledVehicle):
         timer: float = None,
         np_random: np.random.RandomState = None,
     ):
-        super().__init__(scene, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random)
+        super().__init__(traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random)
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position) * np.pi) % self.LANE_CHANGE_DELAY
 
