@@ -226,7 +226,8 @@ class TrafficManager:
         for v in self.traffic_vehicles:
             v.step(dt)
 
-    def update_state(self, pg_physics_world: BulletWorld) -> bool:
+    def update_state(self, pg_world: PgWorld) -> bool:
+        pg_physics_world = pg_world.physics_world
         vehicles_to_remove = []
         for v in self.traffic_vehicles:
             if v.out_of_road:
@@ -250,12 +251,15 @@ class TrafficManager:
             if len(self.restore_episode_info) == 0:
                 return True
             frame = self.restore_episode_info.pop(-1)
+            vehicles_to_remove = []
             for index, state in frame.items():
                 vehicle = self.restore_vehicles[index] if index != "ego" else self.ego_vehicle
-                if index != "ego" and state["done"]:
-                    vehicle.destory(pg_physics_world)
                 vehicle.set_position(state["position"])
                 vehicle.set_heading(state["heading"])
+                if index != "ego" and state["done"]:
+                    vehicles_to_remove.append(vehicle)
+            for v in vehicles_to_remove:
+                v.destroy(pg_physics_world)
         return False
 
     def neighbour_vehicles(self, vehicle, lane_index: LaneIndex = None) -> Tuple:

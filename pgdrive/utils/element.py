@@ -85,11 +85,9 @@ class DynamicElement(Element):
         To avoid this, only derive from this class for elements who can do step().
         """
         super(DynamicElement, self).__init__(np_random)
-        self._state = None
 
     def get_state(self):
-        assert self._state is not None, "state of " + self.class_name + " is None, can not be read !"
-        return copy.copy(self._state)
+        raise NotImplementedError
 
     def set_state(self, state: Dict):
         """

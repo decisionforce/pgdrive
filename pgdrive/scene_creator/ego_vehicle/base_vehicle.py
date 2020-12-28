@@ -120,13 +120,6 @@ class BaseVehicle(DynamicElement):
         self.crash = False
         self.out_of_road = False
 
-        # state info
-        self._state = {
-            "heading": self.heading_theta,
-            "position": self.position.tolist(),
-            "done": self.crash or self.out_of_road
-        }
-
         self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
     @classmethod
@@ -492,7 +485,7 @@ class BaseVehicle(DynamicElement):
         self.bullet_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world.physics_world)
         self.pg_world.physics_world.clearContactAddedCallback()
-        self.routing_localization.destory()
+        self.routing_localization.destroy()
         self.routing_localization = None
         if self.lidar is not None:
             self.lidar.destroy()
@@ -511,7 +504,7 @@ class BaseVehicle(DynamicElement):
         :param position: 2d array or list
         :return: None
         """
-        self.node_path.setPos(Vec3(position[0], -position[1], 0))
+        self.chassis_np.setPos(Vec3(position[0], -position[1], 0.4))
 
     def set_heading(self, heading_theta) -> None:
         """
@@ -519,7 +512,14 @@ class BaseVehicle(DynamicElement):
         :param heading_theta: float in rad
         :return: None
         """
-        self.node_path.setH(heading_theta * 180 / np.pi - 90)
+        self.chassis_np.setH((-heading_theta * 180 / np.pi) - 90)
+
+    def get_state(self):
+        return {
+            "heading": self.heading_theta,
+            "position": self.position.tolist(),
+            "done": self.crash or self.out_of_road
+        }
 
     def __del__(self):
         super(BaseVehicle, self).__del__()

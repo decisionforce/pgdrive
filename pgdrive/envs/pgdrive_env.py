@@ -194,10 +194,9 @@ class PGDriveEnv(gym.Env):
                 # traffic vehicles step
                 self.traffic_manager.step(self.pg_world.pg_config["physics_world_step_size"])
                 self.pg_world.step()
-
         # update states
         self.vehicle.update_state()
-        done = self.traffic_manager.update_state(self.pg_world.physics_world)
+        done = self.traffic_manager.update_state(self.pg_world)
         self.done = self.done or done
 
         #  panda3d render and garbage collecting loop

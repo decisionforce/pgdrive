@@ -27,7 +27,7 @@ class TestEnv(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    test_dump = False
+    test_dump = True
 
     env = TestEnv()
     o = env.reset()
