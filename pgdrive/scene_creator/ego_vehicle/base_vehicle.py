@@ -122,7 +122,8 @@ class BaseVehicle(DynamicElement):
 
         # state info
         self._state = {"heading": self.heading_theta,
-                       "position": self.position}
+                       "position": self.position.tolist(),
+                       "done": self.crash or self.out_of_road}
 
         self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
@@ -180,12 +181,6 @@ class BaseVehicle(DynamicElement):
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
                 block.node_path.hide(CamMask.DepthCam)
-
-    def get_state(self):
-        pass
-
-    def set_state(self, state):
-        pass
 
     """------------------------------------------- act -------------------------------------------------"""
 
@@ -507,6 +502,22 @@ class BaseVehicle(DynamicElement):
         if self.vehicle_panel is not None:
             self.vehicle_panel.destroy(self.pg_world)
         self.pg_world = None
+
+    def set_position(self, position):
+        """
+        Should only be called when restore traffic from episode data
+        :param position: 2d array or list
+        :return: None
+        """
+        self.node_path.setPos(Vec3(position[0], -position[1], 0))
+
+    def set_heading(self, heading_theta) -> None:
+        """
+        Should only be called when restore traffic from episode data
+        :param heading_theta: float in rad
+        :return: None
+        """
+        self.node_path.setH(heading_theta * 180 / np.pi - 90)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()

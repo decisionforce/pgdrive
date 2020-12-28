@@ -183,18 +183,21 @@ class PGDriveEnv(gym.Env):
 
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
-        self.vehicle.prepare_step(action)
-        self.traffic_manager.prepare_step()
+        if self.traffic_manager.restore_episode_info is None:
+            # if not restore
+            self.vehicle.prepare_step(action)
+            self.traffic_manager.prepare_step()
 
-        # ego vehicle/ traffic step
-        for _ in range(self.config["decision_repeat"]):
-            # traffic vehicles step
-            self.traffic_manager.step(self.pg_world.pg_config["physics_world_step_size"])
-            self.pg_world.step()
+            # ego vehicle/ traffic step
+            for _ in range(self.config["decision_repeat"]):
+                # traffic vehicles step
+                self.traffic_manager.step(self.pg_world.pg_config["physics_world_step_size"])
+                self.pg_world.step()
 
         # update states
         self.vehicle.update_state()
-        self.traffic_manager.update_state(self.pg_world.physics_world)
+        done = self.traffic_manager.update_state(self.pg_world.physics_world)
+        self.done = self.done or done
 
         #  panda3d render and garbage collecting loop
         self.pg_world.taskMgr.step()
@@ -237,22 +240,26 @@ class PGDriveEnv(gym.Env):
         # logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
         return None
 
-    def reset(self):
+    def reset(self, episode_data: dict = None):
+        """
+        Reset the environment or load an episode from episode data to recover is
+        :param episode_data:
+        :return:
+        """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.done = False
 
         # clear world and traffic manager
         self.pg_world.clear_world()
         # select_map
-        self.select_map()
+        self.select_map(episode_data)
 
         # reset main vehicle
         self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
 
         # generate new traffic according to the map
         self.traffic_manager.reset(
-            self.pg_world, self.current_map, self.vehicle, self.config["traffic_density"]
-        )
+            self.pg_world, self.current_map, self.vehicle, self.config["traffic_density"], episode_data=episode_data)
         return self._get_reset_return()
 
     def _get_reset_return(self):
@@ -349,7 +356,19 @@ class PGDriveEnv(gym.Env):
         del self.restored_maps
         self.restored_maps = dict()
 
-    def select_map(self):
+    def select_map(self, episode_data: dict = None):
+        if episode_data is not None:
+            # Since in episode data map data only contains one map, values()[0] is the map_parameters
+            map_data = episode_data["map_data"].values()
+            assert len(map_data) > 0, "Can not find map info in episode data"
+            for map in map_data:
+                blocks_info = map
+            map_config = {}
+            map_config[Map.GENERATE_METHOD] = MapGenerateMethod.PG_MAP_FILE
+            map_config[Map.GENERATE_PARA] = blocks_info
+            self.current_map = Map(self.pg_world, map_config)
+            return
+
         if self.config["load_map_from_json"] and self.current_map is None:
             assert self.config["_load_map_from_json"]
             self.load_all_maps_from_json(self.config["_load_map_from_json"])

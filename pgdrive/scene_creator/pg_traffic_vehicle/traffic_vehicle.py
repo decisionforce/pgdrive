@@ -53,12 +53,14 @@ class PgTrafficVehicle(DynamicElement):
         self._initial_state = kinematic_model if enable_reborn else None
         self.bullet_nodes.append(self.vehicle_node)
         self.node_path = NodePath(self.vehicle_node)
+        self.out_of_road = False
 
         np_random = np_random or get_np_random()
         [path, scale, zoffset, H] = self.path[np_random.randint(0, len(self.path))]
 
         self._state = {"heading": self.vehicle_node.kinematic_model.heading,
-                       "position": self.vehicle_node.kinematic_model.position.tolist()}
+                       "position": self.vehicle_node.kinematic_model.position.tolist(),
+                       "done": self.out_of_road}
 
         if self.render:
             if path not in PgTrafficVehicle.model_collection:
@@ -93,18 +95,18 @@ class PgTrafficVehicle(DynamicElement):
 
     def update_state(self):
         self.vehicle_node.kinematic_model.on_state_update()
+        self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
+            self.vehicle_node.kinematic_model.position, margin=2)
 
     def need_remove(self):
         if self._initial_state is not None:
             self.vehicle_node.reset(self._initial_state)
+            self.out_of_road = False
             return False
         else:
             self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
             self.node_path.removeNode()
             return True
-
-    def out_of_road(self):
-        return not self.vehicle_node.kinematic_model.lane.on_lane(self.vehicle_node.kinematic_model.position, margin=2)
 
     def destroy(self, pg_world: BulletWorld):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
@@ -112,6 +114,22 @@ class PgTrafficVehicle(DynamicElement):
 
     def get_name(self):
         return self.vehicle_node.getName() + "_" + str(self.index)
+
+    def set_position(self, position):
+        """
+        Should only be called when restore traffic from episode data
+        :param position: 2d array or list
+        :return: None
+        """
+        self.node_path.setPos(Vec3(position[0], -position[1], 0))
+
+    def set_heading(self, heading_theta) -> None:
+        """
+        Should only be called when restore traffic from episode data
+        :param heading_theta: float in rad
+        :return: None
+        """
+        self.node_path.setH(heading_theta * 180 / np.pi - 90)
 
     @classmethod
     def create_random_traffic_vehicle(
@@ -130,7 +148,7 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_traffic_vehicle_from_config(cls, traffic_mgr: TrafficManager, config: dict):
-        v = IDMVehicle(traffic_mgr, config["position"], config["heading"], speed=config["speed"])
+        v = IDMVehicle(traffic_mgr, config["position"], config["heading"],np_random=np.random.RandomState())
         return cls(config["index"], v)
 
     def __del__(self):

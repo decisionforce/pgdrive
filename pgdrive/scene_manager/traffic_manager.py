@@ -8,6 +8,7 @@ from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road_object.object import RoadObject
 from pgdrive.utils import norm, get_np_random
 from pgdrive.world.pg_world import PgWorld
+from pgdrive.pg_config.body_name import BodyName
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,12 @@ class TrafficManager:
         self.np_random = None
         self.random_seed = None
         self.episode_info = None
+        # for recovering
+        self.restore_vehicles = None
+        self.restore_episode_info = None
 
-    def reset(self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None):
+    def reset(self, pg_world: PgWorld, map: Map, ego_vehicle, traffic_density: float, road_objects: List = None,
+              episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
@@ -61,14 +66,24 @@ class TrafficManager:
         self.reborn_lanes = self._get_available_reborn_lanes()
         self.traffic_density = traffic_density
         self.vehicles = [ego_vehicle]  # it is used to perform IDM and bicycle model based motion
+        self.restore_vehicles = None
+        self.restore_episode_info = None
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self.objects = road_objects or []
         self.random_seed = random_seed
         self.np_random = get_np_random(self.random_seed)
-        self.add_vehicles(pg_world)
+
+        if episode_data is None:
+            self.add_vehicles(pg_world)
+        else:
+            self.restore_episode_info = episode_data["frame"]
+            self.restore_episode_info.reverse()
+            self.restore_vehicles = {}
+            self._recover_vehicles_from_data(episode_data, pg_world)
         if pg_world.highway_render is not None:
             pg_world.highway_render.set_traffic_mgr(self)
         if self.save_episode:
+            assert episode_data is None, "You can not save this episode. PGDrive is recovering from the same episode"
             # Save current map like what we do in PGDriveEnv dump_all_maps(). Fill the frame list when step is calling !
             map_data = dict()
             map_data[map.random_seed] = map.save_map()
@@ -84,6 +99,9 @@ class TrafficManager:
             for block_vs in self.block_triggered_vehicles:
                 for v in block_vs.vehicles:
                     v.destroy(pg_physics_world)
+        if self.restore_vehicles is not None:
+            for v in self.restore_vehicles.values():
+                v.destroy(pg_physics_world)
 
     def add_vehicles(self, pg_world):
         if abs(self.traffic_density - 0.0) < 1e-2:
@@ -117,7 +135,8 @@ class TrafficManager:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
-            random_v = vehicle_type.create_random_traffic_vehicle(start_index + i, self,lane, long, seed=self.random_seed,
+            random_v = vehicle_type.create_random_traffic_vehicle(start_index + i, self, lane, long,
+                                                                  seed=self.random_seed,
                                                                   enable_reborn=is_reborn_lane)
             self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
@@ -196,10 +215,10 @@ class TrafficManager:
         for v in self.traffic_vehicles:
             v.step(dt)
 
-    def update_state(self, pg_physics_world: BulletWorld):
+    def update_state(self, pg_physics_world: BulletWorld) -> bool:
         vehicles_to_remove = []
         for v in self.traffic_vehicles:
-            if v.out_of_road():
+            if v.out_of_road:
                 remove = v.need_remove()
                 if remove:
                     vehicles_to_remove.append(v)
@@ -214,6 +233,19 @@ class TrafficManager:
 
         if self.save_episode:
             self.episode_info["frame"].append(self._collect_all_vehicle_states())
+
+        if self.restore_vehicles is not None:
+            assert self.restore_episode_info is not None, "Not frame data in episode info"
+            if len(self.restore_episode_info) == 0:
+                return True
+            frame = self.restore_episode_info.pop(-1)
+            for index, state in frame.items():
+                vehicle = self.restore_vehicles[index] if index != "ego" else self.ego_vehicle
+                if index != "ego" and state["done"]:
+                    vehicle.destory(pg_physics_world)
+                vehicle.set_position(state["position"])
+                vehicle.set_heading(state["heading"])
+        return False
 
     def neighbour_vehicles(self, vehicle, lane_index: LaneIndex = None) -> Tuple:
         """
@@ -266,9 +298,11 @@ class TrafficManager:
         self.traffic_density = None
         self.vehicles = None
         self.traffic_vehicles = None
+        self.restore_vehicles = None
         self.objects = None
         self.np_random = None
         self.random_seed = None
+        self.restore_episode_info = None
 
     def __repr__(self):
         return self.vehicles.__repr__()
@@ -284,13 +318,15 @@ class TrafficManager:
     def _collect_all_vehicle_states(self):
         states = dict()
         for vehicle in self.traffic_vehicles:
-            states[vehicle.get_name()] = vehicle.get_state()
+            states[vehicle.index] = vehicle.get_state()
 
         # collect other vehicles
         if self.traffic_mode == TrafficMode.Add_once:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
-                    states[vehicle.get_name()] = vehicle.get_state()
+                    states[vehicle.index] = vehicle.get_state()
+
+        states["ego"] = self.ego_vehicle.get_state()
         return states
 
     def _collect_all_vehicle_info(self):
@@ -298,7 +334,7 @@ class TrafficManager:
         for vehicle in self.traffic_vehicles:
             init_state = vehicle.get_state()
             init_state["type"] = vehicle.class_name()
-            vehicles[vehicle.get_name()] = init_state
+            vehicles[vehicle.index] = init_state
 
         # collect other vehicles
         if self.traffic_mode == TrafficMode.Add_once:
@@ -306,5 +342,16 @@ class TrafficManager:
                 for vehicle in v_b.vehicles:
                     init_state = vehicle.get_state()
                     init_state["type"] = vehicle.class_name
-                    vehicles[vehicle.get_name()] = init_state
+                    init_state["index"] = vehicle.index
+                    vehicles[vehicle.index] = init_state
         return vehicles
+
+    def _recover_vehicles_from_data(self, episode_data: dict, pg_world:PgWorld):
+        assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
+        import pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type as v_types
+        traffics = episode_data["init_traffic"]
+        for name, config in traffics.items():
+            car_type = getattr(v_types, config["type"])
+            car = car_type.create_traffic_vehicle_from_config(self, config)
+            self.restore_vehicles[name] = car
+            car.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
