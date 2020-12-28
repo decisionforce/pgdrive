@@ -201,7 +201,8 @@ class Map:
             ret = self.read_map(map_config)
         return ret
 
-    def draw_map_image_on_surface(self, dest_resolution=(512, 512), simple_draw=True) -> pygame.Surface:
+    def draw_map_image_on_surface(self, dest_resolution=(512, 512), simple_draw=True,
+                                  pooling: Optional[float] = None) -> pygame.Surface:
         from pgdrive.world.highway_render.highway_render import LaneGraphics
         from pgdrive.world.highway_render.world_surface import WorldSurface
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
@@ -225,7 +226,9 @@ class Map:
                         LaneGraphics.display(l, surface, two_side)
         dest_surface = pygame.Surface(dest_resolution)
         pygame.transform.scale(surface, dest_resolution, dest_surface)
-        return self.pooling(surface, dest_surface)
+        if pooling is not None:
+            dest_surface = Map.pooling(surface, dest_surface, pooling)
+        return dest_surface
 
     @staticmethod
     def get_map_bound_box(road_network):
@@ -251,9 +254,10 @@ class Map:
             fill_hole=False,
             only_black_white=True,
             return_surface=False,
-            simple_draw=True
+            simple_draw=True,
+            pooling: Optional[float] = None
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
-        surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
+        surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw, pooling=pooling)
         if fill_hole:
             surface = self.fill_hole(surface)
         if only_black_white:
@@ -262,13 +266,14 @@ class Map:
             return surface
         return pygame.surfarray.array3d(surface)
 
-    def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True):
+    def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True, pooling=None):
         surface = self.get_map_image_array(
             resolution=resolution,
             fill_hole=fill_hole,
             only_black_white=only_black_white,
             return_surface=True,
-            simple_draw=simple_draw
+            simple_draw=simple_draw,
+            pooling=pooling
         )
         pygame.image.save(surface, "map_{}.png".format(self.random_seed))
 
