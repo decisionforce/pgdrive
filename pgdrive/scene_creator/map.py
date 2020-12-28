@@ -271,8 +271,11 @@ class Map:
             return np.clip(pygame.surfarray.pixels_red(surface), 0.0, 1.0)
         if return_surface:
             return surface
-        # return pygame.surfarray.array3d(surface)
-        return 
+
+        """
+        change the return value
+        """
+        return pygame.surfarray.array3d(surface)
 
     def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True):
         surface = self.get_map_image_array(

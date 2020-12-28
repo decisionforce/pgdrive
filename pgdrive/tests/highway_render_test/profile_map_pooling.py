@@ -1,5 +1,6 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import setup_logger
+import matplotlib.pyplot as plt
 
 setup_logger(debug=True)
 
@@ -22,4 +23,5 @@ if __name__ == "__main__":
     env = TestEnv()
     env.reset()
     # it will return a numpy array
-    env.current_map.draw_map_image_on_surface(dest_resolution=(64, 64))
+    plt.imshow(env.current_map.get_map_image_array(resolution=(64, 64)))
+    plt.show()
