@@ -211,7 +211,7 @@ class TrafficManager:
             v.destroy(pg_physics_world)
 
         if self.save_episode:
-            self.episode_info["frame"].append(self.collect_all_vehicle_states())
+            self.episode_info["frame"].append(self._collect_all_vehicle_states())
 
     def neighbour_vehicles(self, vehicle, lane_index: LaneIndex = None) -> Tuple:
         """
@@ -280,8 +280,19 @@ class TrafficManager:
             return len(self.traffic_vehicles)
         return sum(len(block_vehicle_set.vehicles) for block_vehicle_set in self.block_triggered_vehicles)
 
-    def collect_all_vehicle_states(self):
+    def _collect_all_vehicle_states(self):
         states = dict()
+        for vehicle in self.traffic_vehicles:
+            states[vehicle.get_name()] = vehicle.get_state()
+
+        # collect other vehicles
+        if self.traffic_mode == TrafficMode.Add_once:
+            for v_b in self.block_triggered_vehicles:
+                for vehicle in v_b.vehicles:
+                    states[vehicle.get_name()] = vehicle.get_state
+
+    def _collect_all_vehicle_info(self):
+        vehicles = dict()
         for vehicle in self.traffic_vehicles:
             states[vehicle.get_name()] = vehicle.get_state()
 
