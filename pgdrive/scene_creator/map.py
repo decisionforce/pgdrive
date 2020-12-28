@@ -250,12 +250,12 @@ class Map:
         return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(
-            self,
-            resolution=(512, 512),
-            fill_hole=False,
-            only_black_white=True,
-            return_surface=False,
-            simple_draw=True,
+        self,
+        resolution=(512, 512),
+        fill_hole=False,
+        only_black_white=True,
+        return_surface=False,
+        simple_draw=True,
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
         # surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         # TODO change the surface to dest resolution from (8192, 8192)
@@ -263,11 +263,8 @@ class Map:
 
         # Not finished! Just put it WIP
         import cv2
-        ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution,
-                         interpolation=cv2.INTER_LINEAR
-                         )
+        ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution, interpolation=cv2.INTER_LINEAR)
         return ret
-
 
         if fill_hole:
             surface = self.fill_hole(surface)
@@ -275,7 +272,6 @@ class Map:
             return np.clip(pygame.surfarray.pixels_red(surface), 0.0, 1.0)
         if return_surface:
             return surface
-
         """
         change the return value
         """

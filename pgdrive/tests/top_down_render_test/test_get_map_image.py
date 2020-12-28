@@ -23,7 +23,7 @@ if __name__ == "__main__":
     env = TestEnv()
     env.reset()
     # env.current_map.save_map_image(resolution=(64, 64),simple_draw=True, pooling=0.4)
-    env.current_map.save_map_image(resolution=(64, 64),simple_draw=True)
+    env.current_map.save_map_image(resolution=(64, 64), simple_draw=True)
     # print(env.current_map.get_map_image_array())
 
     import numpy as np
