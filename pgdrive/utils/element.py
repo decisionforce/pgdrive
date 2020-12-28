@@ -92,8 +92,12 @@ class DynamicElement(Element):
         return copy.copy(self._state)
 
     def set_state(self, state: Dict):
-        logging.debug("Read state to " + self.class_name)
-        self._state = copy.copy(state)
+        """
+        Override it in Dynamical element
+        :param state: dict
+        :return: None
+        """
+        raise NotImplementedError
 
     def step(self, *args, **kwargs):
         """

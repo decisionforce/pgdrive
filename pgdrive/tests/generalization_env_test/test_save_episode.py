@@ -26,15 +26,25 @@ class TestEnv(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    env = TestEnv()
+    test_dump = False
 
+    env = TestEnv()
     o = env.reset()
+    epi_info = None
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render()
         if d:
-            info = env.traffic_manager.dump()
-            with open("test.json", "w") as f:
-                json.dump(info, f)
+            epi_info = env.traffic_manager.dump()
+
+            # test dump json
+            if test_dump:
+                with open("test.json", "w") as f:
+                    json.dump(info, f)
             break
     env.close()
+
+    del env
+    env = TestEnv()
+    o = env.reset()
+
