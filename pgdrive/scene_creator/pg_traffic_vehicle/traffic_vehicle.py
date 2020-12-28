@@ -56,13 +56,6 @@ class PgTrafficVehicle(DynamicElement):
 
         np_random = np_random or get_np_random()
         [path, scale, zoffset, H] = self.path[np_random.randint(0, len(self.path))]
-
-        self._state = {
-            "heading": self.vehicle_node.kinematic_model.heading,
-            "position": self.vehicle_node.kinematic_model.position.tolist(),
-            "done": self.out_of_road
-        }
-
         if self.render:
             if path not in PgTrafficVehicle.model_collection:
                 carNP = self.loader.loadModel(AssetLoader.file_path(AssetLoader.asset_path, "models", path))
@@ -131,7 +124,22 @@ class PgTrafficVehicle(DynamicElement):
         :param heading_theta: float in rad
         :return: None
         """
-        self.node_path.setH(heading_theta * 180 / np.pi - 90)
+        self.node_path.setH((-heading_theta * 180 / np.pi))
+
+    def get_state(self):
+        return {"heading": self.heading, "position": self.position, "done": self.out_of_road}
+
+    def set_state(self, state: dict):
+        self.set_heading(state["heading"])
+        self.set_position(state["position"])
+
+    @property
+    def heading(self):
+        return self.vehicle_node.kinematic_model.heading
+
+    @property
+    def position(self):
+        return self.vehicle_node.kinematic_model.position.tolist()
 
     @classmethod
     def create_random_traffic_vehicle(
@@ -151,6 +159,7 @@ class PgTrafficVehicle(DynamicElement):
     @classmethod
     def create_traffic_vehicle_from_config(cls, traffic_mgr: TrafficManager, config: dict):
         v = IDMVehicle(traffic_mgr, config["position"], config["heading"], np_random=np.random.RandomState())
+        print(config)
         return cls(config["index"], v)
 
     def __del__(self):

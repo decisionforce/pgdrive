@@ -194,10 +194,9 @@ class PGDriveEnv(gym.Env):
                 # traffic vehicles step
                 self.traffic_manager.step(self.pg_world.pg_config["physics_world_step_size"])
                 self.pg_world.step()
-
         # update states
         self.vehicle.update_state()
-        done = self.traffic_manager.update_state(self.pg_world.physics_world)
+        done = self.traffic_manager.update_state(self.pg_world)
         self.done = self.done or done
 
         #  panda3d render and garbage collecting loop
@@ -253,7 +252,7 @@ class PGDriveEnv(gym.Env):
         # clear world and traffic manager
         self.pg_world.clear_world()
         # select_map
-        self.select_map(episode_data)
+        self.update_map(episode_data)
 
         # reset main vehicle
         self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
@@ -358,7 +357,7 @@ class PGDriveEnv(gym.Env):
         del self.restored_maps
         self.restored_maps = dict()
 
-    def select_map(self, episode_data: dict = None):
+    def update_map(self, episode_data: dict = None):
         if episode_data is not None:
             # Since in episode data map data only contains one map, values()[0] is the map_parameters
             map_data = episode_data["map_data"].values()

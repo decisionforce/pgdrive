@@ -34,7 +34,7 @@ class ChangeFrictionEnv(PGDriveEnv):
         # clear world and traffic manager
         self.pg_world.clear_world()
         # select_map
-        self.select_map()
+        self.update_map()
 
         if self.config["change_friction"] and self.vehicle is not None:
             self.vehicle.destroy(self.pg_world.physics_world)
