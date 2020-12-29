@@ -1,14 +1,14 @@
 import logging
+
+from . import TrafficMode
+from .replay_record_system import PGReplay, PGRecord
 from collections import deque, namedtuple
 from typing import List, Tuple
-import copy
 import pandas as pd
-from panda3d.bullet import BulletWorld
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road_object.object import RoadObject
 from pgdrive.utils import norm, get_np_random
 from pgdrive.world.pg_world import PgWorld
-from pgdrive.pg_config.body_name import BodyName
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +18,8 @@ Route = List[LaneIndex]
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 
 
-class TrafficMode:
-    Reborn = 0
-    Add_once = 1
-
-
-class TrafficManager:
-    """Manage all traffic vehicles"""
+class SceneManager:
+    """Manage all traffic vehicles, and all runtime elements"""
     VEHICLE_GAP = 10  # m
 
     def __init__(self, traffic_mode=TrafficMode.Add_once, random_traffic: bool = False, save_episode: bool = False):
@@ -46,20 +41,19 @@ class TrafficManager:
         self.objects = None
         self.np_random = None
         self.random_seed = None
-        self.episode_info = None
-        # for recovering
-        self.restore_vehicles = None
-        self.restore_episode_info = None
-        self.restore_traffic_mode = None
+
+        # for recovering, they can not exist together
+        self.replay_system = None
+        self.record_system = None
 
     def reset(
-        self,
-        pg_world: PgWorld,
-        map: Map,
-        ego_vehicle,
-        traffic_density: float,
-        road_objects: List = None,
-        episode_data=None
+            self,
+            pg_world: PgWorld,
+            map: Map,
+            ego_vehicle,
+            traffic_density: float,
+            road_objects: List = None,
+            episode_data=None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -74,9 +68,10 @@ class TrafficManager:
         self.reborn_lanes = self._get_available_reborn_lanes()
         self.traffic_density = traffic_density
         self.vehicles = [ego_vehicle]  # it is used to perform IDM and bicycle model based motion
-        self.restore_vehicles = None
-        self.restore_episode_info = None
-        self.restore_traffic_mode = None
+        if self.replay_system is not None:
+            self.replay_system.destroy(pg_world)
+        if self.record_system is not None:
+            self.record_system.destroy(pg_world)
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self.objects = road_objects or []
         self.random_seed = random_seed
@@ -85,40 +80,23 @@ class TrafficManager:
         if episode_data is None:
             self.add_vehicles(pg_world)
         else:
-            self.restore_traffic_mode = episode_data["traffic_mode"]
-            self.restore_episode_info = episode_data["frame"]
-            self.restore_episode_info.reverse()
-            self.restore_vehicles = {}
-            self._recover_vehicles_from_data(episode_data, pg_world)
+            self.replay_system = PGReplay(self, map, episode_data, pg_world)
+
         if pg_world.highway_render is not None:
-            pg_world.highway_render.set_traffic_mgr(self)
+            pg_world.highway_render.set_scene_mgr(self)
         if self.save_episode:
             assert episode_data is None, "You can not save this episode. PGDrive is recovering from the same episode"
             # Save current map like what we do in PGDriveEnv dump_all_maps(). Fill the frame list when step is calling !
-            map_data = dict()
-            map_data[map.random_seed] = map.save_map()
-            init_vehicle_state = self._collect_all_vehicle_info()
-            self.episode_info = dict(
-                dict(
-                    map_config=map.config.get_dict(),
-                    init_traffic=init_vehicle_state,
-                    traffic_mode=self.traffic_mode,
-                    map_data=copy.deepcopy(map_data)
-                ),
-                frame=[]
-            )
+            self.record_system = PGRecord(map, self.collect_all_vehicle_init_states(), self.traffic_mode)
 
-    def clear_traffic(self, pg_physics_world: BulletWorld):
+    def clear_traffic(self, pg_world: PgWorld):
         if self.traffic_vehicles is not None:
             for v in self.traffic_vehicles:
-                v.destroy(pg_physics_world)
+                v.destroy(pg_world)
         if self.block_triggered_vehicles is not None:
             for block_vs in self.block_triggered_vehicles:
                 for v in block_vs.vehicles:
-                    v.destroy(pg_physics_world)
-        if self.restore_vehicles is not None:
-            for v in self.restore_vehicles.values():
-                v.destroy(pg_physics_world)
+                    v.destroy(pg_world)
 
     def add_vehicles(self, pg_world):
         if abs(self.traffic_density - 0.0) < 1e-2:
@@ -126,14 +104,14 @@ class TrafficManager:
         if self.traffic_mode == TrafficMode.Reborn:
             # add reborn vehicle
             for lane in self.reborn_lanes:
-                self.traffic_vehicles += self._create_vehicles_on_lane(lane, len(self.vehicles) - 1, True)
+                self.traffic_vehicles += self._create_vehicles_on_lane(lane, True)
             for vehicle in self.traffic_vehicles:
                 vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
             logging.debug("Init {} Traffic Vehicles".format(len(self.traffic_vehicles)))
         else:
             self._create_vehicles_once(pg_world)
 
-    def _create_vehicles_on_lane(self, lane, start_index: int, is_reborn_lane=False):
+    def _create_vehicles_on_lane(self, lane, is_reborn_lane=False):
         """
         Create vehicles on one lane
         :param lane: Straight lane or Circular lane
@@ -153,7 +131,7 @@ class TrafficManager:
                 continue
             vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.5, 0.3, 0.2])]
             random_v = vehicle_type.create_random_traffic_vehicle(
-                start_index + i, self, lane, long, seed=self.random_seed, enable_reborn=is_reborn_lane
+                len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=is_reborn_lane
             )
             self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
@@ -176,7 +154,7 @@ class TrafficManager:
                 num = min(int(len(lanes) * self.traffic_density) + 1, len(lanes))
                 lanes = self.np_random.choice(lanes, num, replace=False) if len(lanes) != 1 else lanes
                 for l in lanes:
-                    vehicles_on_block += self._create_vehicles_on_lane(l, len(self.vehicles) - 1)
+                    vehicles_on_block += self._create_vehicles_on_lane(l)
             for vehicle in vehicles_on_block:
                 vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
             block_vehicles = BlockVehicles(trigger_road=trigger_road, vehicles=vehicles_on_block)
@@ -203,7 +181,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -233,7 +211,6 @@ class TrafficManager:
             v.step(dt)
 
     def update_state(self, pg_world: PgWorld) -> bool:
-        pg_physics_world = pg_world.physics_world
         vehicles_to_remove = []
         for v in self.traffic_vehicles:
             if v.out_of_road:
@@ -247,24 +224,13 @@ class TrafficManager:
         for v in vehicles_to_remove:
             self.traffic_vehicles.remove(v)
             self.vehicles.remove(v.vehicle_node.kinematic_model)
-            v.destroy(pg_physics_world)
+            v.destroy(pg_world)
 
-        if self.save_episode:
-            self.episode_info["frame"].append(self._collect_all_vehicle_states())
+        if self.record_system is not None:
+            self.record_system.record_frame(self.collect_all_vehicle_states())
 
-        if self.restore_vehicles is not None:
-            assert self.restore_episode_info is not None, "Not frame data in episode info"
-            if len(self.restore_episode_info) == 0:
-                return True
-            frame = self.restore_episode_info.pop(-1)
-            vehicles_to_remove = []
-            for index, state in frame.items():
-                vehicle = self.restore_vehicles[index] if index != "ego" else self.ego_vehicle
-                vehicle.set_state(state)
-                if index != "ego" and state["done"] and self.restore_traffic_mode == TrafficMode.Add_once:
-                    vehicles_to_remove.append(vehicle)
-            for v in vehicles_to_remove:
-                v.destroy(pg_physics_world)
+        if self.replay_system is not None:
+            self.replay_system.replay_frame(self.ego_vehicle, pg_world)
         return False
 
     def neighbour_vehicles(self, vehicle, lane_index: LaneIndex = None) -> Tuple:
@@ -300,7 +266,8 @@ class TrafficManager:
 
     def dump(self) -> None:
         """Dump the data of an episode."""
-        return self.episode_info
+        assert self.record_system is not None
+        return self.record_system.dump()
 
     def get_log(self) -> pd.DataFrame:
         """
@@ -310,19 +277,23 @@ class TrafficManager:
         """
         return pd.concat([v.get_log() for v in self.vehicles])
 
-    def destroy(self, pg_physics_world: BulletWorld):
-        self.clear_traffic(pg_physics_world)
+    def destroy(self, pg_world: PgWorld):
+        self.clear_traffic(pg_world)
         self.blocks = None
         self.network = None
         self.reborn_lanes = None
         self.traffic_density = None
         self.vehicles = None
         self.traffic_vehicles = None
-        self.restore_vehicles = None
         self.objects = None
         self.np_random = None
         self.random_seed = None
-        self.restore_episode_info = None
+        if self.record_system is not None:
+            self.record_system.destroy(pg_world)
+            self.record_system = None
+        if self.replay_system is not None:
+            self.replay_system.destroy(pg_world)
+            self.replay_system = None
 
     def __repr__(self):
         return self.vehicles.__repr__()
@@ -335,7 +306,7 @@ class TrafficManager:
             return len(self.traffic_vehicles)
         return sum(len(block_vehicle_set.vehicles) for block_vehicle_set in self.block_triggered_vehicles)
 
-    def _collect_all_vehicle_states(self):
+    def collect_all_vehicle_states(self):
         states = dict()
         for vehicle in self.traffic_vehicles:
             states[vehicle.index] = vehicle.get_state()
@@ -349,7 +320,7 @@ class TrafficManager:
         states["ego"] = self.ego_vehicle.get_state()
         return states
 
-    def _collect_all_vehicle_info(self):
+    def collect_all_vehicle_init_states(self):
         vehicles = dict()
         for vehicle in self.traffic_vehicles:
             init_state = vehicle.get_state()
@@ -366,13 +337,3 @@ class TrafficManager:
                     init_state["index"] = vehicle.index
                     vehicles[vehicle.index] = init_state
         return vehicles
-
-    def _recover_vehicles_from_data(self, episode_data: dict, pg_world: PgWorld):
-        assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
-        import pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type as v_types
-        traffics = episode_data["init_traffic"]
-        for name, config in traffics.items():
-            car_type = getattr(v_types, config["type"])
-            car = car_type.create_traffic_vehicle_from_config(self, config)
-            self.restore_vehicles[name] = car
-            car.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)

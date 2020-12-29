@@ -7,7 +7,7 @@ from pgdrive.pg_config.body_name import BodyName
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import get_np_random
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
@@ -102,7 +102,7 @@ class PgTrafficVehicle(DynamicElement):
             self.node_path.removeNode()
             return True
 
-    def destroy(self, pg_world: BulletWorld):
+    def destroy(self, pg_world):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
         super(PgTrafficVehicle, self).destroy(pg_world)
 
@@ -144,21 +144,20 @@ class PgTrafficVehicle(DynamicElement):
     def create_random_traffic_vehicle(
             cls,
             index: int,
-            traffic_mgr: TrafficManager,
+            scene_mgr: SceneManager,
             lane: Union[StraightLane, CircularLane],
             longitude: float,
             seed=None,
             enable_lane_change: bool = True,
             enable_reborn=False
     ):
-        v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=seed)
+        v = IDMVehicle.create_random(scene_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change
         return cls(index, v, enable_reborn, np_random=v.np_random)
 
     @classmethod
-    def create_traffic_vehicle_from_config(cls, traffic_mgr: TrafficManager, config: dict):
-        v = IDMVehicle(traffic_mgr, config["position"], config["heading"], np_random=np.random.RandomState())
-        print(config)
+    def create_traffic_vehicle_from_config(cls, scene_mgr: SceneManager, config: dict):
+        v = IDMVehicle(scene_mgr, config["position"], config["heading"], np_random=np.random.RandomState())
         return cls(config["index"], v)
 
     def __del__(self):

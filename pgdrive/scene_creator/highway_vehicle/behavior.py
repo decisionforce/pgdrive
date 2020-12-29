@@ -5,7 +5,7 @@ import pgdrive.utils.math_utils as utils
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.road_object.object import RoadObject
-from pgdrive.scene_manager.traffic_manager import TrafficManager, Route, LaneIndex
+from pgdrive.scene_manager.scene_manager import SceneManager, Route, LaneIndex
 from pgdrive.utils.math_utils import clip
 
 
@@ -44,7 +44,7 @@ class IDMVehicle(ControlledVehicle):
 
     def __init__(
         self,
-        traffic_mgr: TrafficManager,
+        scene_mgr: SceneManager,
         position: List,
         heading: float = 0,
         speed: float = 0,
@@ -56,7 +56,7 @@ class IDMVehicle(ControlledVehicle):
         np_random: np.random.RandomState = None,
     ):
         super().__init__(
-            traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
+            scene_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
         )
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position) * np.pi) % self.LANE_CHANGE_DELAY
@@ -318,7 +318,7 @@ class LinearVehicle(IDMVehicle):
 
     def __init__(
         self,
-        road: TrafficManager,
+        road: SceneManager,
         position: List,
         heading: float = 0,
         speed: float = 0,

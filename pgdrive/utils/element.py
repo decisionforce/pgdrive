@@ -58,11 +58,11 @@ class Element:
         for node in self.bullet_nodes:
             pg_physics_world.remove(node)
 
-    def destroy(self, pg_physics_world: BulletWorld):
+    def destroy(self, pg_world):
         """
         Fully delete this element and release the memory
         """
-        self.detach_from_pg_world(pg_physics_world)
+        self.detach_from_pg_world(pg_world.physics_world)
         self.node_path.removeNode()
         self.bullet_nodes.clear()
         self._config.clear()

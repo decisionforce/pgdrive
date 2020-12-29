@@ -483,7 +483,7 @@ class BaseVehicle(DynamicElement):
 
     def destroy(self, _=None):
         self.bullet_nodes.remove(self.chassis_np.node())
-        super(BaseVehicle, self).destroy(self.pg_world.physics_world)
+        super(BaseVehicle, self).destroy(self.pg_world)
         self.pg_world.physics_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None

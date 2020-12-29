@@ -1,7 +1,7 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
-from pgdrive.scene_manager.traffic_manager import TrafficMode
+from pgdrive.scene_manager import TrafficMode
 import json
 
 setup_logger(True)
@@ -29,7 +29,7 @@ class TestEnv(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    test_dump = True
+    test_dump = False
 
     env = TestEnv()
     o = env.reset()
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step([0, 1])
         env.render()
         if d:
-            epi_info = env.traffic_manager.dump()
+            epi_info = env.scene_manager.dump()
 
             # test dump json
             if test_dump:

@@ -144,9 +144,9 @@ class Map:
         for block in self.blocks:
             block.detach_from_pg_world(pg_world.physics_world)
 
-    def destroy_map(self, pg_physics_world: BulletWorld):
+    def destroy(self, pg_world: PgWorld):
         for block in self.blocks:
-            block.destroy(pg_physics_world)
+            block.destroy(pg_world=pg_world)
 
     def save_map(self):
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
@@ -245,12 +245,12 @@ class Map:
         return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(
-        self,
-        resolution=(512, 512),
-        fill_hole=False,
-        only_black_white=True,
-        return_surface=False,
-        simple_draw=True
+            self,
+            resolution=(512, 512),
+            fill_hole=False,
+            only_black_white=True,
+            return_surface=False,
+            simple_draw=True
     ) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
         if fill_hole:
