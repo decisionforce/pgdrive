@@ -1,49 +1,14 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
 
-setup_logger(debug=True)
 
-
-class TestEnv(PGDriveEnv):
-    def __init__(self):
-        super(TestEnv, self).__init__(
-            {
-                # "map_config": {
-                #     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                #     Map.GENERATE_PARA: "OCrRCTXRCCCCrOr",
-                #     Map.LANE_WIDTH: 3.5,
-                #     Map.LANE_NUM: 3,
-                # }
-            }
-        )
+def test_save_map_image():
+    setup_logger(debug=True)
+    env = PGDriveEnv()
+    env.reset()
+    env.current_map.save_map_image(resolution=(64, 64))
+    env.close()
 
 
 if __name__ == "__main__":
-    env = TestEnv()
-    env.reset()
-    # env.current_map.save_map_image(resolution=(64, 64),simple_draw=True, pooling=0.4)
-    env.current_map.save_map_image(resolution=(64, 64), simple_draw=True)
-    # print(env.current_map.get_map_image_array())
-
-    # env = TestEnv()
-    # env.reset()
-    # env.current_map.save_map_image(False)
-    # print(env.current_map.get_map_image_array())
-
-    # def remove_noise(gray, num):
-    #     Y, X = gray.shape
-    #     nearest_neigbours = [[
-    #         np.argmax(
-    #             np.bincount(
-    #                 gray[max(i - num, 0):min(i + num, Y), max(j - num, 0):min(j + num, X)].ravel()))
-    #         for j in range(X)] for i in range(Y)]
-    #     result = np.array(nearest_neigbours, dtype=np.uint8)
-    #     cv2.imwrite('result2.jpg', result)
-    #     return result
-    #
-    #
-    # img = cv2.imread('map_3.png')
-    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    #
-    # remove_noise(gray, 10)
+    test_save_map_image()
