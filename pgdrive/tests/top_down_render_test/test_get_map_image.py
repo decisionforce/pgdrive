@@ -1,12 +1,20 @@
+import os
+
+import matplotlib.pyplot as plt
+
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import setup_logger
 
 
 def test_save_map_image():
+    os.makedirs("tmp_images", exist_ok=True)
     setup_logger(debug=True)
-    env = PGDriveEnv()
-    env.reset()
-    env.current_map.save_map_image(resolution=(64, 64))
+    env = PGDriveEnv(dict(environment_num=20, start_seed=0, map=10))
+    for i in range(20):
+        env.reset()
+        surface = env.get_map(resolution=(128, 128))
+        plt.imshow(surface, cmap="Greys")
+        plt.savefig("tmp_images/map_{}.png".format(i))
     env.close()
 
 
