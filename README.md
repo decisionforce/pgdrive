@@ -4,6 +4,7 @@
 
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
 [![build](https://github.com/decisionforce/pgdrive/workflows/pytest/badge.svg)](http://github.com/decisionforce/pgdrive/actions)
+[![codecov](https://codecov.io/gh/decisionforce/pgdrive/branch/main/graph/badge.svg?token=1ZYN8L5397)](https://codecov.io/gh/decisionforce/pgdrive)
 
 **[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/abs/2012.13681) ]**
 
