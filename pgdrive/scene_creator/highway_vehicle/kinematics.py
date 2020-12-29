@@ -2,12 +2,11 @@ from collections import deque
 from typing import Union, List
 
 import numpy as np
-
 import pgdrive.utils.math_utils as utils
-from pgdrive.utils import get_np_random
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.road_object.object import Landmark, Obstacle, RoadObject
-from pgdrive.scene_manager.traffic_manager import TrafficManager, LaneIndex
+from pgdrive.scene_manager.scene_manager import SceneManager, LaneIndex
+from pgdrive.utils import get_np_random
 
 
 class Vehicle:
@@ -31,7 +30,7 @@ class Vehicle:
     """ Maximum reachable speed [m/s] """
     def __init__(
         self,
-        scene: TrafficManager,
+        scene: SceneManager,
         position: List,
         heading: float = 0,
         speed: float = 0,
@@ -47,7 +46,6 @@ class Vehicle:
         self.crashed = False
         self.log = []
         self.history = deque(maxlen=30)
-        assert np_random is not None
         self.np_random = np_random if np_random else get_np_random()
 
     @property
@@ -58,7 +56,7 @@ class Vehicle:
         self._position = np.asarray(pos).copy()
 
     @classmethod
-    def make_on_lane(cls, scene: TrafficManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
+    def make_on_lane(cls, scene: SceneManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
         """
         Create a vehicle on a given lane at a longitudinal position.
 
@@ -75,7 +73,7 @@ class Vehicle:
 
     @classmethod
     def create_random(
-        cls, scene: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
+        cls, scene: SceneManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
     ):
         """
         Create a random vehicle on the road.

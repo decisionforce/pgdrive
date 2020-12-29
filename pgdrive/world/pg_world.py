@@ -98,6 +98,9 @@ class PgWorld(ShowBase.ShowBase):
         else:
             # only report fatal error when debug is False
             _suppress_warning()
+            # a special debug mode
+            if self.pg_config["debug_physics_world"]:
+                self.accept('1', self.toggleDebug)
 
         super(PgWorld, self).__init__(windowType=self.mode)
 
@@ -233,6 +236,7 @@ class PgWorld(ShowBase.ShowBase):
 
             # onscreen message
             self.on_screen_message = PgOnScreenMessage(
+                debug=self.DEBUG
             ) if self.mode == RENDER_MODE_ONSCREEN and self.pg_config["onscreen_message"] else None
             self._show_help_message = False
             self._episode_start_time = time.time()

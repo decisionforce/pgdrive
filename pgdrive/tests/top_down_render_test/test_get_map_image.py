@@ -26,9 +26,6 @@ if __name__ == "__main__":
     env.current_map.save_map_image(resolution=(64, 64), simple_draw=True)
     # print(env.current_map.get_map_image_array())
 
-    import numpy as np
-    import cv2
-
     # env = TestEnv()
     # env.reset()
     # env.current_map.save_map_image(False)

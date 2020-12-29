@@ -2,9 +2,14 @@
 
 # PGDrive: an open-ended driving simulator with infinite scenes
 
+[![build](https://github.com/decisionforce/pgdrive/workflows/test/badge.svg)](http://github.com/decisionforce/pgdrive/actions)
+[![codecov](https://codecov.io/gh/decisionforce/pgdrive/branch/main/graph/badge.svg?token=1ZYN8L5397)](https://codecov.io/gh/decisionforce/pgdrive)
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
+[![GitHub license](https://img.shields.io/github/license/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/blob/main/LICENSE.txt)
+[![GitHub stars](https://img.shields.io/github/stars/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/stargazers)
 
-**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](#) ]**
+
+**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/pdf/2012.13681) ]**
 
 Welcome to PGDrive! PGDrive is an driving simulator with many key features, including:
 
@@ -117,6 +122,10 @@ The following table presents some predefined environment names.
 
 ## 🏫 Documentations
 
-More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io).
+More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io). 
+Besides, the training code of our [paper](https://arxiv.org/pdf/2012.13681) can be found in [this repo](https://github.com/decisionforce/pgdrive-generalization-paper).
 
-
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2d6fabe328a644b49e1269497b741057)](https://www.codacy.com/gh/decisionforce/pgdrive/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=decisionforce/pgdrive&amp;utm_campaign=Badge_Grade)
+[![GitHub contributors](https://img.shields.io/github/contributors/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/graphs/contributors)
+[![GitHub forks](https://img.shields.io/github/forks/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/network)
+[![GitHub issues](https://img.shields.io/github/issues/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/issues)
