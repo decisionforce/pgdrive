@@ -20,7 +20,8 @@ blackbox_test_configs = dict(
     envs_1000=dict(environment_num=1000),
     envs_10000=dict(environment_num=10000),
     envs_100000=dict(environment_num=100000),
-    pid_control=dict(environment_num=1, start_seed=5, map="CrXROSTR", traffic_density=0.0))
+    pid_control=dict(environment_num=1, start_seed=5, map="CrXROSTR", traffic_density=0.0)
+)
 
 info_keys = ["cost", "velocity", "steering", "acceleration", "step_reward", "crash", "out_of_road", "arrive_dest"]
 
