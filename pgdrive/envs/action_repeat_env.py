@@ -115,6 +115,7 @@ class ActionRepeat(PGDriveEnv):
                 discounted_reward=discounted_r_list[idx],
                 obs=o_list[idx],
                 action=action,
+                count=self.primitive_steps_count - len(r_list) + idx
             ) for idx in range(len(r_list))
         ]
 
@@ -132,7 +133,7 @@ if __name__ == '__main__':
     env = ActionRepeat(dict(max_action_repeat=5))
     env.reset()
     for i in range(1000):
-        _, _, d, _ = env.step(env.action_space.sample())
+        _, _, d, i = env.step(env.action_space.sample())
         print("Finish step {}".format(i))
         if d:
             env.reset()
