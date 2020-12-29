@@ -13,15 +13,12 @@ from pgdrive.scene_creator import get_road_bound_box
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
 from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.blocks.block import Block
+from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils import AssetLoader, import_pygame
+from pgdrive.world.highway_render.highway_render import LaneGraphics
+from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_world import PgWorld
-from pgdrive.world.highway_render.highway_render import LaneGraphics
-from pgdrive.world.highway_render.world_surface import WorldSurface
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
-import numpy as np
-from pgdrive.world.highway_render.highway_render import LaneGraphics
-from pgdrive.world.highway_render.world_surface import WorldSurface
 
 pygame = import_pygame()
 
