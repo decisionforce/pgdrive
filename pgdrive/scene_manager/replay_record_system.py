@@ -6,7 +6,6 @@ from pgdrive.scene_creator.map import Map
 
 
 class PGReplay:
-
     def __init__(self, scene_mgr, current_map: Map, episode_data: dict, pg_world: PgWorld):
         self.restore_traffic_mode = episode_data["traffic_mode"]
         self.restore_episode_info = episode_data["frame"]
@@ -54,11 +53,11 @@ class PGRecord:
         map_data[map.random_seed] = map.save_map()
         init_vehicle_state = init_vehicle_states
         self.episode_info = dict(
-                map_config=map.config.get_dict(),
-                init_traffic=init_vehicle_state,
-                traffic_mode=traffic_mode,
-                map_data=copy.deepcopy(map_data),
-                frame=[]
+            map_config=map.config.get_dict(),
+            init_traffic=init_vehicle_state,
+            traffic_mode=traffic_mode,
+            map_data=copy.deepcopy(map_data),
+            frame=[]
         )
 
     def record_frame(self, frame_info: dict):
