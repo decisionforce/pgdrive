@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import pytest
-
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.PID_controller import PIDController, Target
 from pgdrive import PGDriveEnv
 
 # Key: case name, value: environmental config
@@ -20,7 +20,7 @@ blackbox_test_configs = dict(
     envs_1000=dict(environment_num=1000),
     envs_10000=dict(environment_num=10000),
     envs_100000=dict(environment_num=100000),
-)
+    pid_control=dict(environment_num=1, start_seed=5, map="CrXROSTR", traffic_density=0.0))
 
 info_keys = ["cost", "velocity", "steering", "acceleration", "step_reward", "crash", "out_of_road", "arrive_dest"]
 
@@ -48,6 +48,33 @@ def test_pgdrive_env_blackbox(config):
             env.reset()
             for y in [-1, 0, 1]:
                 _act(env, [x, y])
+    finally:
+        env.close()
+
+
+def test_zombie():
+    env = PGDriveEnv(config=blackbox_test_configs["pid_control"])
+    target = Target(0.375, 30)
+    dest = [-288.88415527, -411.55871582]
+    try:
+        o = env.reset()
+        steering_controller = PIDController(1.6, 0.0008, 27.3)
+        acc_controller = PIDController(0.1, 0.001, 0.3)
+        steering_error = o[0] - target.lateral
+        steering = steering_controller.get_result(steering_error)
+        acc_error = env.vehicle.speed - target.speed
+        acc = acc_controller.get_result(acc_error)
+        for i in range(1, 1000000):
+            o, r, d, info = env.step([-steering, acc])
+            steering_error = o[0] - target.lateral
+            steering = steering_controller.get_result(steering_error)
+            t_speed = target.speed if abs(o[12] - 0.5) < 0.01 else target.speed - 10
+            acc_error = env.vehicle.speed - t_speed
+            acc = acc_controller.get_result(acc_error)
+            if d:
+                assert info["arrive_dest"]
+                assert abs(env.vehicle.position[0] - dest[0]) < 0.1 and abs(env.vehicle.position[1] - dest[1]) < 0.1
+                break
     finally:
         env.close()
 
