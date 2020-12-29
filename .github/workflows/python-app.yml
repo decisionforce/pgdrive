@@ -27,5 +27,12 @@ jobs:
           pwd
           pip install -e .
           pip install pytest
+          pip install pytest-cov
           cd pgdrive/tests/
-          pytest -sv test_pgdrive_env.py
+          pytest --cov=./ --cov-report=xml -sv test_pgdrive_env.py
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
