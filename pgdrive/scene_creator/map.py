@@ -4,7 +4,6 @@ import logging
 import os
 from typing import List, Optional, Union, Iterable
 
-import cv2
 import numpy as np
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
@@ -16,7 +15,7 @@ from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils import AssetLoader, import_pygame
+from pgdrive.utils import AssetLoader, import_pygame, import_opencv
 from pgdrive.world.highway_render.highway_render import LaneGraphics
 from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_world import PgWorld
@@ -251,6 +250,8 @@ class Map:
 
     def get_map_image_array(self, resolution: Iterable = (512, 512)) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_maximum_surface()
+        cv2 = import_opencv()
+        assert cv2 is not None
         ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution, interpolation=cv2.INTER_LINEAR)
         return ret
 
