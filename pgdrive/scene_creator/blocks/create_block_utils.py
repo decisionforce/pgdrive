@@ -1,17 +1,15 @@
 import copy
-from typing import Tuple, Union, List, TYPE_CHECKING
+from typing import Tuple, Union, List
 
 import numpy as np
+from pgdrive.scene_creator.basic_utils import check_lane_on_road
+from pgdrive.scene_creator.blocks.constants import BlockDefault
+from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import LineColor, AbstractLane, LineType
-from pgdrive.utils.math_utils import get_vertical_vector, check_lane_on_road
-
-if TYPE_CHECKING:
-    from pgdrive.scene_creator.road.road_network import RoadNetwork
-    from pgdrive.scene_creator.road.road import Road
-    from pgdrive.scene_creator.blocks.block import Block, BlockSocket
-    from pgdrive.scene_creator.lanes.circular_lane import CircularLane
-    from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-    # from pgdrive.scene_creator.lanes.lane import LineType, AbstractLane, LineColor
+from pgdrive.scene_creator.lanes.straight_lane import StraightLane
+from pgdrive.scene_creator.road.road import Road
+from pgdrive.scene_creator.road.road_network import RoadNetwork
+from pgdrive.utils.math_utils import get_vertical_vector
 
 
 class Decoration:
@@ -133,8 +131,7 @@ def CreateRoadFrom(
 
     # check the left lane and right lane
     ignore = (ignore_start, ignore_end)
-    from pgdrive.scene_creator.blocks.block import Block
-    factor = (Block.SIDE_WALK_WIDTH + Block.SIDE_WALK_LINE_DIST + lane_width / 2.0) * 2.0 / lane_width
+    factor = (BlockDefault.SIDE_WALK_WIDTH + BlockDefault.SIDE_WALK_LINE_DIST + lane_width / 2.0) * 2.0 / lane_width
     if not detect_one_side:
         # Because of side walk, the width of side walk should be consider
         no_cross = not (
