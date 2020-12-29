@@ -2,7 +2,7 @@
 
 # PGDrive: an open-ended driving simulator with infinite scenes
 
-[![build](https://github.com/decisionforce/pgdrive/workflows/pytest/badge.svg)](http://github.com/decisionforce/pgdrive/actions)
+[![build](https://github.com/decisionforce/pgdrive/workflows/test/badge.svg)](http://github.com/decisionforce/pgdrive/actions)
 [![codecov](https://codecov.io/gh/decisionforce/pgdrive/branch/main/graph/badge.svg?token=1ZYN8L5397)](https://codecov.io/gh/decisionforce/pgdrive)
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
 [![GitHub license](https://img.shields.io/github/license/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/blob/main/LICENSE.txt)
