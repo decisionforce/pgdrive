@@ -5,9 +5,8 @@
 [![build](https://github.com/decisionforce/pgdrive/workflows/pytest/badge.svg)](http://github.com/decisionforce/pgdrive/actions)
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
 [![codecov](https://codecov.io/gh/decisionforce/pgdrive/branch/main/graph/badge.svg?token=1ZYN8L5397)](https://codecov.io/gh/decisionforce/pgdrive)
-[![GitHub license](https://img.shields.io/github/license/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/blob/main/LICENSE.txt)
-[![GitHub stars](https://img.shields.io/github/stars/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/stargazers)
 [![GitHub contributors](https://img.shields.io/github/contributors/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/graphs/contributors)
+[![GitHub stars](https://img.shields.io/github/stars/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/stargazers)
 
 
 **[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/abs/2012.13681) ]**
