@@ -9,7 +9,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/stargazers)
 
 
-**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/abs/2012.13681) ]**
+**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/pdf/2012.13681) ]**
 
 Welcome to PGDrive! PGDrive is an driving simulator with many key features, including:
 
@@ -122,6 +122,7 @@ The following table presents some predefined environment names.
 
 ## 🏫 Documentations
 
-More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io).
+More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io). 
+Besides, the training code of our [paper](https://arxiv.org/pdf/2012.13681) can be found in [this repo](https://github.com/decisionforce/pgdrive-generalization-paper).
 
 
