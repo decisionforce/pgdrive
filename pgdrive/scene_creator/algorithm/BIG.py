@@ -18,7 +18,7 @@ class NextStep:
 
 
 class BigGenerateMethod:
-    BLOCK_SEQUENCE = "block_sequence"
+    BLOCK_SEQUENCE = "blgitock_sequence"
     BLOCK_NUM = "block_num"
 
 
