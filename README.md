@@ -5,7 +5,7 @@
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
 [![build](https://github.com/decisionforce/pgdrive/workflows/Check%20code%20style/badge.svg)](http://https://github.com/decisionforce/pgdrive/actions)
 
-**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](#) ]**
+**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/abs/2012.13681) ]**
 
 Welcome to PGDrive! PGDrive is an driving simulator with many key features, including:
 
