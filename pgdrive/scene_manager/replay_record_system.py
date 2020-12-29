@@ -5,7 +5,7 @@ import copy
 from pgdrive.scene_creator.map import Map
 
 
-class PGReplay:
+class PGReplayer:
     def __init__(self, scene_mgr, current_map: Map, episode_data: dict, pg_world: PgWorld):
         self.restore_traffic_mode = episode_data["traffic_mode"]
         self.restore_episode_info = episode_data["frame"]
@@ -47,7 +47,7 @@ class PGReplay:
         logging.debug("Replay system is destroyed")
 
 
-class PGRecord:
+class PGRecorder:
     def __init__(self, map: Map, init_vehicle_states: dict, traffic_mode: TrafficMode):
         map_data = dict()
         map_data[map.random_seed] = map.save_map()
@@ -63,7 +63,7 @@ class PGRecord:
     def record_frame(self, frame_info: dict):
         self.episode_info["frame"].append(frame_info)
 
-    def dump(self):
+    def dump_episode(self):
         return copy.deepcopy(self.episode_info)
 
     def destroy(self, pg_world: PgWorld):

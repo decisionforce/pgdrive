@@ -157,7 +157,7 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_traffic_vehicle_from_config(cls, scene_mgr: SceneManager, config: dict):
-        v = IDMVehicle(scene_mgr, config["position"], config["heading"], np_random=np.random.RandomState())
+        v = IDMVehicle(scene_mgr, config["position"], config["heading"], np_random=None)
         return cls(config["index"], v)
 
     def __del__(self):

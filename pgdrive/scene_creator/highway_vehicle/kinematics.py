@@ -46,7 +46,6 @@ class Vehicle:
         self.crashed = False
         self.log = []
         self.history = deque(maxlen=30)
-        assert np_random is not None
         self.np_random = np_random if np_random else get_np_random()
 
     @property

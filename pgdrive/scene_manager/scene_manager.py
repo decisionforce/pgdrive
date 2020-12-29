@@ -1,7 +1,7 @@
 import logging
 
 from . import TrafficMode
-from .replay_record_system import PGReplay, PGRecord
+from .replay_record_system import PGReplayer, PGRecorder
 from collections import deque, namedtuple
 from typing import List, Tuple
 import pandas as pd
@@ -22,12 +22,12 @@ class SceneManager:
     """Manage all traffic vehicles, and all runtime elements"""
     VEHICLE_GAP = 10  # m
 
-    def __init__(self, traffic_mode=TrafficMode.Add_once, random_traffic: bool = False, save_episode: bool = False):
+    def __init__(self, traffic_mode=TrafficMode.Add_once, random_traffic: bool = False, record_episode: bool = False):
         """
         :param traffic_mode: reborn/trigger mode
         :param random_traffic: if True, map seed is different with traffic manager seed
         """
-        self.save_episode = save_episode
+        self.record_episode = record_episode
         self.traffic_mode = traffic_mode
         self.random_traffic = random_traffic
         self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Add_once else None
@@ -80,14 +80,15 @@ class SceneManager:
         if episode_data is None:
             self.add_vehicles(pg_world)
         else:
-            self.replay_system = PGReplay(self, map, episode_data, pg_world)
+            self.replay_system = PGReplayer(self, map, episode_data, pg_world)
 
         if pg_world.highway_render is not None:
             pg_world.highway_render.set_scene_mgr(self)
-        if self.save_episode:
-            assert episode_data is None, "You can not save this episode. PGDrive is recovering from the same episode"
-            # Save current map like what we do in PGDriveEnv dump_all_maps(). Fill the frame list when step is calling !
-            self.record_system = PGRecord(map, self.get_global_init_states(), self.traffic_mode)
+        if self.record_episode:
+            if episode_data is None:
+                self.record_system = PGRecorder(map, self.get_global_init_states(), self.traffic_mode)
+            else:
+                logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
     def clear_traffic(self, pg_world: PgWorld):
         if self.traffic_vehicles is not None:

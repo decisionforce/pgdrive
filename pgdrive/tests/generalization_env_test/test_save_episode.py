@@ -17,7 +17,7 @@ class TestEnv(PGDriveEnv):
                 "manual_control": True,
                 "use_render": True,
                 "traffic_mode": TrafficMode.Reborn,
-                "save_episode": save_episode,
+                "record_episode": save_episode,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                     Map.GENERATE_PARA: "XTXTXTXTXT",

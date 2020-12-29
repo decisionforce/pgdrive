@@ -80,7 +80,7 @@ class PGDriveEnv(gym.Env):
             pg_world_config=dict(),
             use_increment_steering=False,
             action_check=False,
-            save_episode=False,
+            record_episode=False,
         )
         config = PgConfig(env_config)
         config.register_type("map", str, int)
@@ -148,7 +148,7 @@ class PGDriveEnv(gym.Env):
 
         # init traffic manager
         self.scene_manager = SceneManager(
-            self.config["traffic_mode"], self.config["random_traffic"], self.config["save_episode"]
+            self.config["traffic_mode"], self.config["random_traffic"], self.config["record_episode"]
         )
 
         if self.config["manual_control"]:
