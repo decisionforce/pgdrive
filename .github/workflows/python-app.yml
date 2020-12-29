@@ -26,7 +26,8 @@ jobs:
           bash format.sh --test
       - name: Blackbox tests
         run: |
-          pip install -e .
+          pwd
+          pip install -e pgdrive/
           pip install pytest
           cd pgdrive/tests/
           pytest -sv test_pgdrive_env.py
