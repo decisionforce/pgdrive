@@ -10,7 +10,7 @@ from panda3d.core import NodePath
 
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_blocks import PgBlock
-from pgdrive.scene_creator import get_road_bound_box
+from pgdrive.scene_creator import get_road_bounding_box
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -19,6 +19,7 @@ from pgdrive.utils import AssetLoader, import_pygame, import_opencv
 from pgdrive.world.highway_render.highway_render import LaneGraphics
 from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_world import PgWorld
+from pgdrive.utils.math_utils import get_boxes_bounding_box
 
 pygame = import_pygame()
 
@@ -205,7 +206,7 @@ class Map:
 
     def draw_maximum_surface(self) -> pygame.Surface:
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        b_box = self.get_map_bound_box(self.road_network)
+        b_box = self.get_map_bounding_box(self.road_network)
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
@@ -232,20 +233,14 @@ class Map:
         return dest_surface
 
     @staticmethod
-    def get_map_bound_box(road_network):
-        res_x_max = -np.inf
-        res_x_min = np.inf
-        res_y_min = np.inf
-        res_y_max = -np.inf
+    def get_map_bounding_box(road_network):
+        boxes = []
         for _from, to_dict in road_network.graph.items():
             for _to, lanes in to_dict.items():
                 if len(lanes) == 0:
                     continue
-                x_max, x_min, y_max, y_min = get_road_bound_box(lanes)
-                res_x_max = max(res_x_max, x_max)
-                res_x_min = min(res_x_min, x_min)
-                res_y_max = max(res_y_max, y_max)
-                res_y_min = min(res_y_min, y_min)
+                boxes.append(get_road_bounding_box(lanes))
+        res_x_max, res_x_min, res_y_max, res_y_min = get_boxes_bounding_box(boxes)
         return res_x_min, res_x_max, res_y_min, res_y_max
 
     def get_map_image_array(self, resolution: Iterable = (512, 512)) -> Optional[Union[np.ndarray, pygame.Surface]]:
@@ -255,47 +250,47 @@ class Map:
         ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution, interpolation=cv2.INTER_LINEAR)
         return ret
 
-    @staticmethod
-    def fill_hole(surface: pygame.Surface, threshold=3, kernal=(3, 3)):
-        assert threshold <= kernal[0] * kernal[1], "Two large threshold !"
+    # @staticmethod
+    # def fill_hole(surface: pygame.Surface, threshold=3, kernal=(3, 3)):
+    #     assert threshold <= kernal[0] * kernal[1], "Two large threshold !"
+    #
+    #     w_max = int(kernal[0] / 2) + 1 if kernal[0] % 2 != 0 else int(kernal[0] / 2)
+    #     w = [i for i in range(-int(kernal[0] / 2), w_max)]
+    #     h_max = int(kernal[1] / 2) + 1 if kernal[1] % 2 != 0 else int(kernal[1] / 2)
+    #     h = [i for i in range(-int(kernal[1] / 2), h_max)]
+    #     res_surface = surface.copy()
+    #     height = surface.get_height()
+    #     width = surface.get_width()
+    #     count_a = [[0 for _ in range(width)] for _ in range(height)]
+    #     for i in range(height):
+    #         for j in range(width):
+    #             pix = surface.get_at((i, j))
+    #             if pix == (255, 255, 255, 255):
+    #                 Map._add_count(i, j, height, width, count_a)
+    #                 continue
+    #             if count_a[i][j] >= threshold:
+    #                 res_surface.set_at((i, j), (255, 255, 255, 255))
+    #                 continue
+    #             for k_1 in w:
+    #                 for k_2 in h:
+    #                     if k_1 == 0 and k_2 == 0:
+    #                         continue
+    #                     if 0 < i + k_1 < height and 0 < j + k_2 < width:
+    #                         if surface.get_at((i + k_1, j + k_2)) == (255, 255, 255, 255):
+    #                             Map._add_count(i + k_1, j + k_2, height, width, count_a)
+    #                     if count_a[i][j] >= threshold:
+    #                         res_surface.set_at((i, j), (255, 255, 255, 255))
+    #                         break
+    #                 if count_a[i][j] >= threshold:
+    #                     break
+    #     return res_surface
 
-        w_max = int(kernal[0] / 2) + 1 if kernal[0] % 2 != 0 else int(kernal[0] / 2)
-        w = [i for i in range(-int(kernal[0] / 2), w_max)]
-        h_max = int(kernal[1] / 2) + 1 if kernal[1] % 2 != 0 else int(kernal[1] / 2)
-        h = [i for i in range(-int(kernal[1] / 2), h_max)]
-        res_surface = surface.copy()
-        height = surface.get_height()
-        width = surface.get_width()
-        count_a = [[0 for _ in range(width)] for _ in range(height)]
-        for i in range(height):
-            for j in range(width):
-                pix = surface.get_at((i, j))
-                if pix == (255, 255, 255, 255):
-                    Map._add_count(i, j, height, width, count_a)
-                    continue
-                if count_a[i][j] >= threshold:
-                    res_surface.set_at((i, j), (255, 255, 255, 255))
-                    continue
-                for k_1 in w:
-                    for k_2 in h:
-                        if k_1 == 0 and k_2 == 0:
-                            continue
-                        if 0 < i + k_1 < height and 0 < j + k_2 < width:
-                            if surface.get_at((i + k_1, j + k_2)) == (255, 255, 255, 255):
-                                Map._add_count(i + k_1, j + k_2, height, width, count_a)
-                        if count_a[i][j] >= threshold:
-                            res_surface.set_at((i, j), (255, 255, 255, 255))
-                            break
-                    if count_a[i][j] >= threshold:
-                        break
-        return res_surface
-
-    @staticmethod
-    def _add_count(x, y, x_size, y_size, count_a):
-        for x_1 in [-1, 0, 1]:
-            for y_1 in [-1, 0, 1]:
-                if 0 < x + x_1 < x_size and 0 < y + y_1 < y_size:
-                    count_a[x + x_1][y + y_1] += 1
+    # @staticmethod
+    # def _add_count(x, y, x_size, y_size, count_a):
+    #     for x_1 in [-1, 0, 1]:
+    #         for y_1 in [-1, 0, 1]:
+    #             if 0 < x + x_1 < x_size and 0 < y + y_1 < y_size:
+    #                 count_a[x + x_1][y + y_1] += 1
 
     # def draw_map_with_navi_lines(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
     #     checkpoints = vehicle.routing_localization.checkpoints
