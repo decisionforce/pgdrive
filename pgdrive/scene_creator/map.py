@@ -65,7 +65,7 @@ class Map:
     GENERATE_METHOD = "type"
 
     # draw with pygame, film size
-    DRAW_MAP_RESOLUTION = 8192  # pix
+    DRAW_MAP_RESOLUTION = 1024  # pix
 
     def __init__(self, pg_world: PgWorld, big_config: dict = None):
         """
@@ -253,12 +253,6 @@ class Map:
         surface = self.draw_maximum_surface()
         ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution, interpolation=cv2.INTER_LINEAR)
         return ret
-
-    def save_map_image(self, resolution: Iterable = (2048, 2048)):
-        surface = self.get_map_image_array(resolution=resolution)
-        import matplotlib.pyplot as plt
-        plt.imshow(surface, cmap="Greys")
-        plt.savefig("map_{}.png".format(self.random_seed))
 
     @staticmethod
     def fill_hole(surface: pygame.Surface, threshold=3, kernal=(3, 3)):

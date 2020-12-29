@@ -7,13 +7,15 @@ from pgdrive.utils import setup_logger
 def test_highway_render_with_panda_render():
     setup_logger(True)
 
-    env = PGDriveEnv({
-        "environment_num": 1,
-        "manual_control": True,
-        "use_render": True,
-        "use_image": False,
-        "use_topdown": True,
-    })
+    env = PGDriveEnv(
+        {
+            "environment_num": 1,
+            "manual_control": True,
+            "use_render": True,
+            "use_image": False,
+            "use_topdown": True,
+        }
+    )
     o = env.reset()
     s = time.time()
     for i in range(1, 100000):
