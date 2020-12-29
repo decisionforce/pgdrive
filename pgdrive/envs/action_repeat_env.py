@@ -5,21 +5,30 @@ from pgdrive.pg_config import PgConfig
 
 
 class ActionRepeat(PGDriveEnv):
-    @staticmethod
-    def default_config() -> PgConfig:
+    ORIGINAL_ACTION_REPEAT = 5
+
+    @classmethod
+    def default_config(cls) -> PgConfig:
         config = PGDriveEnv.default_config()
 
         # Set the internal environment run in 0.02s interval.
         config["decision_repeat"] = 1
 
         # Speed reward is given for current state, so its magnitude need to be reduced
-        config["speed_reward"] = config["speed_reward"] / 5
+        config["speed_reward"] = config["speed_reward"] / cls.ORIGINAL_ACTION_REPEAT
 
         # Set the interval from 0.02s to 1s
         config.add("fixed_action_repeat", 0)  # 0 stands for using varying action repeat.
         config.add("max_action_repeat", 50)
         config.add("min_action_repeat", 1)
-        config.add("gamma", 0.99)  # common config default gamma
+        config.add("horizon", 5000)  # How many primitive steps within one episode
+
+        # default gamma for ORIGINAL primitive step!
+        # Note that we will change this term since ORIGINAL primitive steps is not the internal step!
+        # It still contains ORIGINAL_ACTION_STEP internal steps!
+        # So we will modify this gamma to make sure it behaves like the one applied to ORIGINAL primitive steps.
+        # config.add("gamma", 0.99)
+
         return config
 
     def __init__(self, config: dict = None):
@@ -36,12 +45,17 @@ class ActionRepeat(PGDriveEnv):
                 dtype=self.action_space.dtype
             )
 
+        # self.gamma = self.config["gamma"]
+        # Modify gamma to make sure it behaves like the one applied to ORIGINAL steps.
+        # self.gamma =
+
         self.low = self.action_space.low[0]
         self.high = self.action_space.high[0]
         self.action_repeat_low = self.config["min_action_repeat"]
         self.action_repeat_high = self.config["max_action_repeat"]
 
         self.interval = 2e-2  # This is determined by the default config of pg_world.
+        self.primitive_steps_count = 0
 
         assert self.action_repeat_low > 0
 
@@ -78,18 +92,22 @@ class ActionRepeat(PGDriveEnv):
             i_list.append(i)
             discounted_r_list.append(0.0)
             real_ret += r
-            if d:
+            self.primitive_steps_count += 1
+            if d or self.primitive_steps_count > self.config["horizon"]:
                 break
 
         discounted = 0.0
         for idx in reversed(range(len(r_list))):
             reward = r_list[idx]
-            discounted = self.config["gamma"] * discounted + reward
+            # discounted = self.config["gamma"] * discounted + reward
+            discounted = discounted + reward
             discounted_r_list[idx] = discounted
 
         i["simulation_time"] = (repeat + 1) * self.interval
         i["real_return"] = real_ret
         i["action_repeat"] = action_repeat
+        i["primitive_steps_count"] = self.primitive_steps_count
+        i["max_step"] = self.primitive_steps_count > self.config["horizon"]
         i["render"] = render_list
         i["trajectory"] = [
             dict(
@@ -99,6 +117,10 @@ class ActionRepeat(PGDriveEnv):
                 action=action,
             ) for idx in range(len(r_list))
         ]
+
+        if d:
+            self.primitive_steps_count = 0
+
         return o, discounted, d, i
 
     def _get_reset_return(self):
@@ -107,7 +129,11 @@ class ActionRepeat(PGDriveEnv):
 
 
 if __name__ == '__main__':
-    env = ActionRepeat(dict(fixed_action_repeat=5))
+    env = ActionRepeat(dict(max_action_repeat=5))
     env.reset()
-    env.step(env.action_space.sample())
+    for i in range(1000):
+        _, _, d, _ = env.step(env.action_space.sample())
+        print("Finish step {}".format(i))
+        if d:
+            env.reset()
     env.close()
