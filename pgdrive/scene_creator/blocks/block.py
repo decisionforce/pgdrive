@@ -3,11 +3,12 @@ from typing import Dict, Union, List
 
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletWorld
-from panda3d.core import Vec3, LQuaternionf, BitMask32, NodePath, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
-    TransparencyAttrib, SamplerState
-
+from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
+    TransparencyAttrib, SamplerState, NodePath
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
+from pgdrive.pg_config.pg_space import PgSpace
+from pgdrive.scene_creator import Decoration, CreateRoadFrom, CreateAdverseRoad, ExtendStraightLane
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import AbstractLane, LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
@@ -80,7 +81,6 @@ class Block(Element):
         assert self.ID is not None, "Each Block must has its unique ID When define Block"
         assert self.SOCKET_NUM is not None, "The number of Socket should be specified when define a new block"
         if block_index == 0:
-            from pgdrive.scene_creator.blocks.first_block import FirstBlock
             assert isinstance(self, FirstBlock), "only first block can use block index 0"
         elif block_index < 0:
             logging.debug("It is recommended that block index should > 1")
@@ -515,3 +515,43 @@ class Block(Element):
             "Socket can only be created from positive road"
         positive_road = Road(road.start_node, road.end_node)
         return BlockSocket(positive_road, -positive_road)
+
+
+class FirstBlock(Block):
+    """
+    A special Block type, only used to create the first block. One scene has only one first block!!!
+    """
+    NODE_1 = ">"
+    NODE_2 = ">>"
+    NODE_3 = ">>>"
+    PARAMETER_SPACE = PgSpace({})
+    ID = "I"
+    SOCKET_NUM = 1
+
+    def __init__(
+        self, global_network: RoadNetwork, lane_width: float, lane_num: int, render_root_np: NodePath,
+        pg_physics_world: BulletWorld, random_seed
+    ):
+        place_holder = BlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))
+        super(FirstBlock, self).__init__(0, place_holder, global_network, random_seed)
+        basic_lane = StraightLane(
+            [0, lane_width * (lane_num - 1)], [10, lane_width * (lane_num - 1)],
+            line_types=(LineType.STRIPED, LineType.SIDE),
+            width=lane_width
+        )
+        ego_v_born_road = Road(self.NODE_1, self.NODE_2)
+        CreateRoadFrom(basic_lane, lane_num, ego_v_born_road, self.block_network, self._global_network)
+        CreateAdverseRoad(ego_v_born_road, self.block_network, self._global_network)
+
+        next_lane = ExtendStraightLane(basic_lane, 40, [LineType.STRIPED, LineType.SIDE])
+        other_v_born_road = Road(self.NODE_2, self.NODE_3)
+        CreateRoadFrom(next_lane, lane_num, other_v_born_road, self.block_network, self._global_network)
+        CreateAdverseRoad(other_v_born_road, self.block_network, self._global_network)
+
+        self._create_in_world()
+        global_network += self.block_network
+        socket = self.create_socket_from_positive_road(other_v_born_road)
+        socket.index = 0
+        self.add_sockets(socket)
+        self.attach_to_pg_world(render_root_np, pg_physics_world)
+        self._reborn_roads = [other_v_born_road]
