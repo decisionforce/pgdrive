@@ -87,7 +87,7 @@ class SceneManager:
         if self.save_episode:
             assert episode_data is None, "You can not save this episode. PGDrive is recovering from the same episode"
             # Save current map like what we do in PGDriveEnv dump_all_maps(). Fill the frame list when step is calling !
-            self.record_system = PGRecord(map, self.collect_all_vehicle_init_states(), self.traffic_mode)
+            self.record_system = PGRecord(map, self.get_global_init_states(), self.traffic_mode)
 
     def clear_traffic(self, pg_world: PgWorld):
         if self.traffic_vehicles is not None:
@@ -227,7 +227,7 @@ class SceneManager:
             v.destroy(pg_world)
 
         if self.record_system is not None:
-            self.record_system.record_frame(self.collect_all_vehicle_states())
+            self.record_system.record_frame(self.get_global_states())
 
         if self.replay_system is not None:
             self.replay_system.replay_frame(self.ego_vehicle, pg_world)
@@ -264,10 +264,10 @@ class SceneManager:
                     v_rear = v
         return v_front, v_rear
 
-    def dump(self) -> None:
+    def dump_episode(self) -> None:
         """Dump the data of an episode."""
         assert self.record_system is not None
-        return self.record_system.dump()
+        return self.record_system.dump_episode()
 
     def get_log(self) -> pd.DataFrame:
         """
@@ -306,7 +306,7 @@ class SceneManager:
             return len(self.traffic_vehicles)
         return sum(len(block_vehicle_set.vehicles) for block_vehicle_set in self.block_triggered_vehicles)
 
-    def collect_all_vehicle_states(self):
+    def get_global_states(self):
         states = dict()
         for vehicle in self.traffic_vehicles:
             states[vehicle.index] = vehicle.get_state()
@@ -320,7 +320,7 @@ class SceneManager:
         states["ego"] = self.ego_vehicle.get_state()
         return states
 
-    def collect_all_vehicle_init_states(self):
+    def get_global_init_states(self):
         vehicles = dict()
         for vehicle in self.traffic_vehicles:
             init_state = vehicle.get_state()

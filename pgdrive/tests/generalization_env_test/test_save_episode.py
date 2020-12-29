@@ -38,7 +38,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step([0, 1])
         env.render()
         if d:
-            epi_info = env.scene_manager.dump()
+            epi_info = env.scene_manager.dump_episode()
 
             # test dump json
             if test_dump:
