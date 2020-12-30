@@ -12,4 +12,4 @@ if __name__ == '__main__':
         )
     )
     env.reset()
-    map = env.current_map.draw_navi_line(env.vehicle,dest_resolution=(2048, 2048), save=True)
+    map = env.current_map.draw_navi_line(env.vehicle, dest_resolution=(2048, 2048), save=True)
