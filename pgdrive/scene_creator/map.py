@@ -64,18 +64,15 @@ class Map:
     GENERATE_PARA = "config"
     GENERATE_METHOD = "type"
 
-    # draw with pygame, film size
-    DRAW_MAP_RESOLUTION = 1024  # pix
-
-    def __init__(self, pg_world: PgWorld, big_config: dict = None):
+    def __init__(self, pg_world: PgWorld, map_config: dict = None):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        self.film_size = (self.DRAW_MAP_RESOLUTION, self.DRAW_MAP_RESOLUTION)
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         self.config = self.default_config()
-        if big_config:
-            self.config.update(big_config)
+        if map_config:
+            self.config.update(map_config)
+        self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
         self.lane_width = self.config[self.LANE_WIDTH]
         self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
@@ -105,7 +102,8 @@ class Map:
                 Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
                 Map.LANE_WIDTH: 3.5,
                 Map.LANE_NUM: 3,
-                Map.SEED: 10
+                Map.SEED: 10,
+                "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
             }
         )
 
