@@ -1,13 +1,13 @@
 import copy
 import logging
 from typing import List, Tuple, Dict
-
+from pgdrive.utils.math_utils import get_boxes_bounding_box
 import numpy as np
 from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.lanes.lane import LineType, AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
-
+from pgdrive.scene_creator import get_road_bounding_box
 logger = logging.getLogger(__name__)
 
 LaneIndex = Tuple[str, str, int]
@@ -98,6 +98,21 @@ class RoadNetwork:
                     ret.append(lanes)
         return ret
 
+    def get_bounding_box(self):
+        """
+        By using this bounding box, the edge length of x, y direction and the center of this road network can be
+        easily calculated.
+        :return: minimum x value, maximum x value, minimum y value, maximum y value
+        """
+        boxes = []
+        for _from, to_dict in self.graph.items():
+            for _to, lanes in to_dict.items():
+                if len(lanes) == 0:
+                    continue
+                boxes.append(get_road_bounding_box(lanes))
+        res_x_max, res_x_min, res_y_max, res_y_min = get_boxes_bounding_box(boxes)
+        return res_x_min, res_x_max, res_y_min, res_y_max
+
     def remove_road(self, road):
         assert isinstance(road, Road), "Only Road Type can be deleted"
         ret = self.graph[road.start_node].pop(road.end_node)
@@ -178,12 +193,12 @@ class RoadNetwork:
         pass
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-        np_random: np.random.RandomState = None
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+            np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -288,12 +303,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?

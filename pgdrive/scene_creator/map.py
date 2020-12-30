@@ -7,11 +7,11 @@ from typing import List, Optional, Union, Iterable
 import numpy as np
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
-from pgdrive.scene_creator.basic_utils import Decoration
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_blocks import PgBlock
-from pgdrive.scene_creator import get_road_bounding_box
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
+from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
@@ -19,7 +19,6 @@ from pgdrive.utils import AssetLoader, import_pygame, import_opencv
 from pgdrive.world.highway_render.highway_render import LaneGraphics
 from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_world import PgWorld
-from pgdrive.utils.math_utils import get_boxes_bounding_box
 
 pygame = import_pygame()
 
@@ -206,7 +205,7 @@ class Map:
 
     def draw_maximum_surface(self, simple_draw=True) -> pygame.Surface:
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        b_box = self.get_map_bounding_box(self.road_network)
+        b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
@@ -226,17 +225,6 @@ class Map:
                         LaneGraphics.display(l, surface, two_side)
         return surface
 
-    @staticmethod
-    def get_map_bounding_box(road_network):
-        boxes = []
-        for _from, to_dict in road_network.graph.items():
-            for _to, lanes in to_dict.items():
-                if len(lanes) == 0:
-                    continue
-                boxes.append(get_road_bounding_box(lanes))
-        res_x_max, res_x_min, res_y_max, res_y_min = get_boxes_bounding_box(boxes)
-        return res_x_min, res_x_max, res_y_min, res_y_max
-
     def get_map_image_array(self, resolution: Iterable = (512, 512)) -> Optional[Union[np.ndarray, pygame.Surface]]:
         surface = self.draw_maximum_surface()
         cv2 = import_opencv()
@@ -251,7 +239,7 @@ class Map:
         map_surface = pygame.Surface(dest_resolution)
         pygame.transform.scale(max_surface, dest_resolution, map_surface)
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        b_box = self.get_map_bounding_box(self.road_network)
+        b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
