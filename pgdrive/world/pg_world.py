@@ -73,9 +73,7 @@ class PgWorld(ShowBase.ShowBase):
             self.mode = RENDER_MODE_ONSCREEN
             # Warning it may cause memory leak, Pand3d Official has fixed this in their master branch.
             # You can enable it if your panda version is latest.
-            loadPrcFileData(
-                "", "threading-model Cull/Draw"
-            )  # multi-thread render, accelerate simulation when evaluate
+            loadPrcFileData("", "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
         else:
             if self.pg_config["use_image"]:
                 self.mode = RENDER_MODE_OFFSCREEN
@@ -312,7 +310,6 @@ class PgWorld(ShowBase.ShowBase):
                 # The following two option are exclusive. Only one can be True
                 use_image=False,  # Render the first-view image in screen or buffer
                 use_topdown=False,  # Render the top-down view image in screen or buffer
-
                 pstats=False
             )
         )
