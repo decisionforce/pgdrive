@@ -233,6 +233,14 @@ class Map:
         return ret
 
     def draw_navi_line(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
+        """
+        Use this function to draw the whole map, with a navigation line.
+        :param vehicle: ego vehicle, BaseVehicle Class
+        :param dest_resolution: image resolution
+        :param save: save this image
+        :param navi_line_color: color of navigation line
+        :return: pygame.Surface
+        """
         self.film_size = (2 * dest_resolution[0], 2 * dest_resolution[1])
         checkpoints = vehicle.routing_localization.checkpoints
         max_surface = self.draw_maximum_surface(simple_draw=False)
