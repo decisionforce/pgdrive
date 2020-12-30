@@ -1,5 +1,6 @@
 import numpy as np
 from gym.spaces import Box
+
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.pg_config import PgConfig
 
@@ -93,7 +94,8 @@ class ActionRepeat(PGDriveEnv):
             discounted_r_list.append(0.0)
             real_ret += r
             self.primitive_steps_count += 1
-            if d or self.primitive_steps_count > self.config["horizon"]:
+            d = d or self.primitive_steps_count > self.config["horizon"]
+            if d:
                 break
 
         discounted = 0.0
@@ -130,11 +132,11 @@ class ActionRepeat(PGDriveEnv):
 
 
 if __name__ == '__main__':
-    env = ActionRepeat(dict(max_action_repeat=5))
+    env = ActionRepeat(dict(fixed_action_repeat=25))
     env.reset()
-    for i in range(1000):
-        _, _, d, i = env.step(env.action_space.sample())
-        print("Finish step {}".format(i))
+    for i in range(5000):
+        _, _, d, info = env.step([0, 0])
+        print("max_step: ", info["max_step"], i, info["primitive_steps_count"])
         if d:
-            env.reset()
+            break
     env.close()
