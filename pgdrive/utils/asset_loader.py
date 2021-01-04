@@ -48,8 +48,10 @@ class AssetLoader:
 
 def initialize_asset_loader(pg_world):
     if AssetLoader.initialized():
-        logging.warning("AssetLoader is initialize to root path: {}! But you are initializing again!".format(
-            AssetLoader.asset_path
-        ))
+        logging.warning(
+            "AssetLoader is initialize to root path: {}! But you are initializing again!".format(
+                AssetLoader.asset_path
+            )
+        )
         return
     AssetLoader.init_loader(pg_world)
