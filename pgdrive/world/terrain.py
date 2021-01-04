@@ -27,9 +27,7 @@ class Terrain(Element):
             # self.terrain_normal = self.loader.loadTexture(
             #     AssetLoader.file_path( "textures", "grass2", "normal.jpg")
             # )
-            self.terrain_texture = self.loader.loadTexture(
-                AssetLoader.file_path( "textures", "ground.png")
-            )
+            self.terrain_texture = self.loader.loadTexture(AssetLoader.file_path("textures", "ground.png"))
             self.terrain_texture.setWrapU(Texture.WM_repeat)
             self.terrain_texture.setWrapV(Texture.WM_repeat)
             self.ts_color = TextureStage("color")

@@ -15,8 +15,9 @@ class AssetLoader:
         """
         Due to the feature of Panda3d, keep reference of loader in static variable
         """
-        root_path = pathlib.PurePosixPath(
-            __file__).parent.parent if sys.platform != "win32" else pathlib.Path(__file__).resolve().parent.parent
+        root_path = pathlib.PurePosixPath(__file__).parent.parent if sys.platform != "win32" else pathlib.Path(
+            __file__
+        ).resolve().parent.parent
         AssetLoader.asset_path = root_path.joinpath("assets")
         if pg_world.win is None:
             logging.debug("Physics world mode")

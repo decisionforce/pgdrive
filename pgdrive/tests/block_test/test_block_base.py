@@ -8,7 +8,6 @@ from pgdrive.scene_creator.map import Map
 
 
 class TestBlock(ShowBase.ShowBase):
-
     def __init__(self, debug=False):
         self.debug = debug
         super(TestBlock, self).__init__(windowType="onscreen")
