@@ -16,7 +16,9 @@ def test_gen_map_read():
         restored_data = json.load(f)
     env.close()
 
-    env = PGDriveEnv({"environment_num": 10, })
+    env = PGDriveEnv({
+        "environment_num": 10,
+    })
     env.lazy_init()
     env.pg_world.clear_world()
     print("Start loading.")
