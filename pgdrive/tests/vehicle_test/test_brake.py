@@ -81,7 +81,6 @@ if __name__ == '__main__':
                 "start_seed": 4,
                 "pg_world_config": {
                     "debug": False,
-                    "real_time":True
                 },
                 "manual_control": False,
                 "use_render": True,

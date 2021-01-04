@@ -193,7 +193,7 @@ class PGDriveEnv(gym.Env):
             # traffic vehicles step
             self.scene_manager.step(self.pg_world.pg_config["physics_world_step_size"])
             self.pg_world.step()
-            if self.use_render and self.pg_world.force_fps and i < self.config["decision_repeat"] - 1:
+            if self.pg_world.force_fps(i < self.config["decision_repeat"] - 1):
                 # insert frame to render in min step_size
                 self.pg_world.taskMgr.step()
 
