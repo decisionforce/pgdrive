@@ -39,7 +39,7 @@ class Target:
         self.speed -= 10
 
 
-def test_navigation(vis):
+def test_navigation(vis=False):
     env = TestEnv(vis)
     target = Target(0.375, 30)
     o = env.reset()
