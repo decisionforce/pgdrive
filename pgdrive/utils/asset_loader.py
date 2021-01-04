@@ -40,3 +40,16 @@ class AssetLoader:
     def file_path(*path_string):
         path = AssetLoader.asset_path.joinpath(*path_string)
         return AssetLoader.windows_style2unix_style(path) if sys.platform.startswith("win") else str(path)
+
+    @property
+    def initialized(self):
+        return self.asset_path is not None
+
+
+def initialize_asset_loader(pg_world):
+    if AssetLoader.initialized:
+        logging.warning("AssetLoader is initialize to root path: {}! But you are initializing again!".format(
+            AssetLoader.asset_path
+        ))
+        return
+    AssetLoader.init_loader(pg_world)
