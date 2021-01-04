@@ -37,7 +37,7 @@ def get_result(env):
                     max_speed, s - 1, spend, env.vehicle.position
                 )
             )
-            print("real time spend to acc: {}".format(time.time()-start_time))
+            print("real time spend to acc: {}".format(time.time() - start_time))
             reported_max_speed = s
             max_speed_loc = env.vehicle.position
 
