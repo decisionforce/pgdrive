@@ -41,5 +41,6 @@ class ForceFPS:
         self.tick()
         return task.cont
 
-    def __call__(self, other_condition):
-        return self.state == self.FORCED and self.pg_world.mode == RENDER_MODE_ONSCREEN and other_condition
+    @property
+    def real_time_simulation(self):
+        return self.state == self.FORCED and self.pg_world.mode == RENDER_MODE_ONSCREEN
