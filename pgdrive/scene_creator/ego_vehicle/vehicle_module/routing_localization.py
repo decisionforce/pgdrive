@@ -43,7 +43,7 @@ class RoutingLocalizationModule:
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
             navi_arrow_model = AssetLoader.loader.loadModel(
-                AssetLoader.file_path(AssetLoader.asset_path, "models", "navi_arrow.gltf")
+                AssetLoader.file_path( "models", "navi_arrow.gltf")
             )
             navi_arrow_model.setScale(0.1, 0.12, 0.2)
             navi_arrow_model.setPos(2, 1.15, -0.221)
@@ -63,7 +63,7 @@ class RoutingLocalizationModule:
             # self.arrow_node_path.setTransparency(TransparencyAttrib.M_alpha)
             if show_navi_point:
                 navi_point_model = AssetLoader.loader.loadModel(
-                    AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg")
+                    AssetLoader.file_path( "models", "box.egg")
                 )
                 navi_point_model.reparentTo(self.goal_node_path)
             self.goal_node_path.setTransparency(TransparencyAttrib.M_alpha)

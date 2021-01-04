@@ -9,7 +9,7 @@ if __name__ == "__main__":
     test = TestBlock(True)
     from pgdrive.utils.asset_loader import AssetLoader
 
-    AssetLoader.init_loader(test, test.asset_path)
+    AssetLoader.init_loader(test)
 
     global_network = RoadNetwork()
     first = FirstBlock(global_network, 3.0, 2, test.render, test.world, 1)

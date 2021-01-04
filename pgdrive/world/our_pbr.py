@@ -8,7 +8,7 @@ from simplepbr import Pipeline, _add_shader_defines
 
 
 def _load_shader_str(shaderpath, defines=None):
-    shader_dir = AssetLoader.file_path(AssetLoader.asset_path, "shaders", "pbr_shaders")
+    shader_dir = AssetLoader.file_path( "shaders", "pbr_shaders")
 
     with open(os.path.join(shader_dir, shaderpath)) as shaderfile:
         shaderstr = shaderfile.read()

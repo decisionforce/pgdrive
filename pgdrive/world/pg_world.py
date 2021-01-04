@@ -1,6 +1,5 @@
 import logging
-import os
-import sys
+
 import time
 from typing import Optional, Union
 
@@ -22,8 +21,6 @@ from pgdrive.world.light import Light
 from pgdrive.world.onscreen_message import PgOnScreenMessage
 from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
-
-root_path = os.path.dirname(os.path.dirname(__file__))
 
 
 def _suppress_warning():
@@ -144,14 +141,13 @@ class PgWorld(ShowBase.ShowBase):
             self.disableMouse()
 
         if not self.pg_config["debug_physics_world"] and (self.mode in [RENDER_MODE_ONSCREEN, RENDER_MODE_OFFSCREEN]):
-            path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
-            AssetLoader.init_loader(self, path)
+            AssetLoader.init_loader(self)
             gltf.patch_loader(self.loader)
 
             # Display logo
             if self.mode == RENDER_MODE_ONSCREEN:
                 self._loading_logo = OnscreenImage(
-                    image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive-large.png"),
+                    image=AssetLoader.file_path( "PGDrive-large.png"),
                     pos=(0, 0, 0),
                     scale=(self.w_scale, 1, self.h_scale)
                 )

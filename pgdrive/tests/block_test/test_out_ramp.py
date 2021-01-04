@@ -8,7 +8,7 @@ from pgdrive.utils.asset_loader import AssetLoader
 if __name__ == "__main__":
     test = TestBlock()
 
-    AssetLoader.init_loader(test, test.asset_path)
+    AssetLoader.init_loader(test)
 
     global_network = RoadNetwork()
     straight = FirstBlock(global_network, 3.0, 1, test.render, test.world, 1)
