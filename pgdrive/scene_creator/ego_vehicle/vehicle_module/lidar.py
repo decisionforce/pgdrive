@@ -8,7 +8,7 @@ from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle import PgTrafficVehicle
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 
 
 class Lidar:

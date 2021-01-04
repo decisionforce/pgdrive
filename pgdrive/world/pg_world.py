@@ -11,7 +11,7 @@ from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, LineS
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac, setup_logger
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.world import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN
 from pgdrive.world.constants import PG_EDITION
 from pgdrive.world.force_fps import ForceFPS
@@ -141,7 +141,7 @@ class PgWorld(ShowBase.ShowBase):
             self.disableMouse()
 
         if not self.pg_config["debug_physics_world"] and (self.mode in [RENDER_MODE_ONSCREEN, RENDER_MODE_OFFSCREEN]):
-            AssetLoader.init_loader(self)
+            initialize_asset_loader(self)
             gltf.patch_loader(self.loader)
 
             # Display logo

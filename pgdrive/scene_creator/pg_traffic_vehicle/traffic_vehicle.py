@@ -9,7 +9,7 @@ from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import get_np_random
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.utils.element import DynamicElement
 
 

@@ -2,7 +2,7 @@ from panda3d.core import Vec3, NodePath, Shader, RenderState, ShaderAttrib, BitM
 
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_world import PgWorld
 

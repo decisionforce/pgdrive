@@ -3,7 +3,7 @@
 import os
 
 from panda3d.core import Shader, ConfigVariableString
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from simplepbr import Pipeline, _add_shader_defines
 
 
