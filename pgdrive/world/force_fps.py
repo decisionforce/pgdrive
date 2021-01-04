@@ -6,7 +6,9 @@ class ForceFPS:
     # FPS60 = 1
     FORCED = 2
 
-    def __init__(self, fps, start=False):
+    def __init__(self, pg_world, start=False):
+        fps = 1 / pg_world.pg_config["physics_world_step_size"]
+        self.pg_world = pg_world
         self.last = time.time()
         self.init_fps = fps
         if start:
@@ -31,9 +33,18 @@ class ForceFPS:
 
     def toggle(self):
         if self.state == self.UNLIMITED:
+            self.pg_world.taskMgr.add(self.force_fps_task, "force_fps")
             self.state = self.FORCED
             self.fps = self.init_fps
-
         elif self.state == self.FORCED:
+            self.pg_world.taskMgr.remove("force_fps")
             self.state = self.UNLIMITED
             self.fps = None
+
+    def force_fps_task(self, task):
+        with self:
+            pass
+        return task.cont
+
+    def __call__(self, *args, **kwargs):
+        return self.state == self.FORCED

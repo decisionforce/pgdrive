@@ -231,9 +231,7 @@ class PgWorld(ShowBase.ShowBase):
             # ui and render property
             if self.pg_config["show_fps"]:
                 self.setFrameRateMeter(True)
-            self.force_fps = ForceFPS(
-                1 / (self.pg_config["physics_world_step_size"] * self.pg_config["decision_repeat"]), start=False
-            )
+            self.force_fps = ForceFPS(self, start=False)
 
             # onscreen message
             self.on_screen_message = PgOnScreenMessage(
@@ -264,8 +262,7 @@ class PgWorld(ShowBase.ShowBase):
             self.on_screen_message.update_data(text)
             self.on_screen_message.render()
         if self.mode == RENDER_MODE_ONSCREEN:
-            with self.force_fps:
-                self.sky_box.step()
+            self.sky_box.step()
         if self.highway_render is not None:
             self.highway_render.render()
 

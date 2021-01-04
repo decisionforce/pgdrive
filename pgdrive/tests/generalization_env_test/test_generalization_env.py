@@ -14,11 +14,11 @@ class TestEnv(PGDriveEnv):
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
+                    "real_time":False,
                 },
                 "image_source": "mini_map",
                 "manual_control": True,
                 "use_render": True,
-                "insert_frame": True,
                 "use_image": False,
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
