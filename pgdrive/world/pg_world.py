@@ -1,5 +1,4 @@
 import logging
-
 import time
 from typing import Optional, Union
 
@@ -8,6 +7,7 @@ from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, LineSegs
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac, setup_logger

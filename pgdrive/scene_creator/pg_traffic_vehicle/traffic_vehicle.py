@@ -1,15 +1,16 @@
 from typing import Union
 
 import numpy as np
-from panda3d.bullet import BulletWorld, BulletRigidBodyNode, BulletBoxShape
+from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
+
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import get_np_random
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
 
 

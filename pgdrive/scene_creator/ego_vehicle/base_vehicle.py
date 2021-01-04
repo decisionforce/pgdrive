@@ -3,11 +3,11 @@ import logging
 import math
 import time
 from collections import deque
-from os import path
 
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
@@ -22,7 +22,7 @@ from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle import PgTrafficVehicle
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.world import RENDER_MODE_ONSCREEN

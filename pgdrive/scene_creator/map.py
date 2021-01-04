@@ -15,7 +15,7 @@ from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils import AssetLoader, initialize_asset_loader, import_pygame
+from pgdrive.utils import AssetLoader, import_pygame
 from pgdrive.world.highway_render.highway_render import LaneGraphics
 from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_world import PgWorld

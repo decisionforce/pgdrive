@@ -4,7 +4,7 @@ from panda3d.core import Vec3, CardMaker, LQuaternionf, BitMask32, NodePath, Tex
 
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import Element
 
 

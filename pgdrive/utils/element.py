@@ -4,9 +4,10 @@ from typing import Dict
 
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_space import PgSpace
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import AssetLoader
 
 
 class Element:

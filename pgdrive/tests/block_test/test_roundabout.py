@@ -6,7 +6,7 @@ from pgdrive.tests.block_test.test_block_base import TestBlock
 
 if __name__ == "__main__":
     test = TestBlock(False)
-    from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+    from pgdrive.utils.asset_loader import initialize_asset_loader
 
     initialize_asset_loader(test)
 

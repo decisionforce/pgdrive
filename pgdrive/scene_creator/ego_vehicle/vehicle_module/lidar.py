@@ -4,11 +4,12 @@ from typing import Set
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape
 from panda3d.core import Point3, BitMask32, Vec3, NodePath
+
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle import PgTrafficVehicle
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import AssetLoader
 
 
 class Lidar:

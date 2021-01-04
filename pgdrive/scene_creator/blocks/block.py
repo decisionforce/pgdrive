@@ -5,6 +5,7 @@ import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletWorld
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
     TransparencyAttrib, SamplerState, NodePath
+
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.scene_creator.blocks.constants import BlockDefault
@@ -13,7 +14,7 @@ from pgdrive.scene_creator.lanes.lane import AbstractLane, LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import Element
 from pgdrive.utils.math_utils import norm
 

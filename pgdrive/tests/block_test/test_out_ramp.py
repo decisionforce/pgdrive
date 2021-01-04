@@ -3,7 +3,7 @@ from pgdrive.scene_creator.blocks.ramp import OutRampOnStraight
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.tests.block_test.test_block_base import TestBlock
 
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
+from pgdrive.utils.asset_loader import initialize_asset_loader
 
 if __name__ == "__main__":
     test = TestBlock()
