@@ -15,8 +15,8 @@ class AssetLoader:
         """
         Due to the feature of Panda3d, keep reference of loader in static variable
         """
-        root_path = pathlib.PurePosixPath(__file__).parent.parent
-        # path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
+        root_path = pathlib.PurePosixPath(
+            __file__).parent.parent if sys.platform != "win32" else pathlib.Path(__file__).resolve().parent.parent
         AssetLoader.asset_path = root_path.joinpath("assets")
         if pg_world.win is None:
             logging.debug("Physics world mode")
@@ -30,14 +30,12 @@ class AssetLoader:
         return cls.loader
 
     @staticmethod
-    def windows_style2unix_style(path):
-        u_path = "/" + path[0].lower() + path[2:]
-        u_path.replace("\\", "/")
-        return u_path
+    def windows_style2unix_style(win_path):
+        path = win_path.as_posix()
+        panda_path = "/" + path[0].lower() + path[2:]
+        return panda_path
 
     @staticmethod
     def file_path(*path_string):
         path = AssetLoader.asset_path.joinpath(*path_string)
-        if sys.platform.startswith("win"):
-            path = path.replace("\\", "/")
-        return str(path)
+        return AssetLoader.windows_style2unix_style(path) if sys.platform.startswith("win") else str(path)
