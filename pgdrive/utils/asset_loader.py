@@ -1,9 +1,6 @@
 import logging
 import pathlib
-import os
 import sys
-
-
 
 
 class AssetLoader:
@@ -40,7 +37,7 @@ class AssetLoader:
 
     @staticmethod
     def file_path(*path_string):
-        path=AssetLoader.asset_path.join
+        path = AssetLoader.asset_path.joinpath(*path_string)
         if sys.platform.startswith("win"):
             path = path.replace("\\", "/")
-        return path
+        return str(path)

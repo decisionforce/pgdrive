@@ -147,7 +147,7 @@ class PgWorld(ShowBase.ShowBase):
             # Display logo
             if self.mode == RENDER_MODE_ONSCREEN:
                 self._loading_logo = OnscreenImage(
-                    image=AssetLoader.file_path( "PGDrive-large.png"),
+                    image=AssetLoader.file_path("PGDrive-large.png"),
                     pos=(0, 0, 0),
                     scale=(self.w_scale, 1, self.h_scale)
                 )
