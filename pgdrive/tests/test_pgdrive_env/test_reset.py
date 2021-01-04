@@ -3,9 +3,10 @@ import time
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import setup_logger
 
-setup_logger(debug=True)
 
-if __name__ == "__main__":
+def test_reset():
+    setup_logger(debug=True)
+
     env = PGDriveEnv(
         {
             "environment_num": 1,
@@ -39,3 +40,7 @@ if __name__ == "__main__":
         if d:
             env.reset()
     env.close()
+
+
+if __name__ == "__main__":
+    test_reset()

@@ -22,7 +22,7 @@ class TestEnv(PGDriveEnv):
         # self.pg_world.cam.lookAt(0, 0, 0)
 
 
-if __name__ == "__main__":
+def test_destroy():
     # Close and reset
     env = TestEnv()
     env.reset()
@@ -40,3 +40,7 @@ if __name__ == "__main__":
         env2.step([1, 1])
     env2.reset()
     env2.close()
+
+
+if __name__ == "__main__":
+    test_destroy()

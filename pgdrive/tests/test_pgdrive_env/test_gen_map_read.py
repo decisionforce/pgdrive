@@ -3,9 +3,10 @@ import json
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import recursive_equal, setup_logger
 
-setup_logger(debug=True)
 
-if __name__ == "__main__":
+def test_gen_map_read():
+    setup_logger(debug=True)
+
     env = PGDriveEnv({"environment_num": 10, "load_map_from_json": False})
     data = env.dump_all_maps()
     env.close()
@@ -15,9 +16,7 @@ if __name__ == "__main__":
     with open("test_10maps.json", "r") as f:
         restored_data = json.load(f)
 
-    env = PGDriveEnv({
-        "environment_num": 10,
-    })
+    env = PGDriveEnv({"environment_num": 10, })
     env.lazy_init()
     env.pg_world.clear_world()
     print("Start loading.")
@@ -31,3 +30,7 @@ if __name__ == "__main__":
         recursive_equal(m, data["map_data"][i], need_assert=True)
     print("Finish!")
     env.close()
+
+
+if __name__ == "__main__":
+    test_gen_map_read()
