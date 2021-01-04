@@ -1,6 +1,7 @@
 import os.path as osp
 
 import numpy as np
+
 """
 The existing layer names and shapes in numpy file:
 (note that the terms with "value" in it are removed to save space).

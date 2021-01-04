@@ -1,4 +1,5 @@
-from pgdrive.tests.block_test.vis_big import vis_big
+from pgdrive.tests.vis_block.vis_big import vis_big
+
 from pgdrive.utils import setup_logger
 
 if __name__ == "__main__":
