@@ -9,12 +9,12 @@ def test_gen_map_read():
 
     env = PGDriveEnv({"environment_num": 10, "load_map_from_json": False})
     data = env.dump_all_maps()
-    env.close()
     with open("test_10maps.json", "w") as f:
         json.dump(data, f)
 
     with open("test_10maps.json", "r") as f:
         restored_data = json.load(f)
+    env.close()
 
     env = PGDriveEnv({"environment_num": 10, })
     env.lazy_init()

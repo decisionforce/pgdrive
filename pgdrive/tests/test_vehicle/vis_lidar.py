@@ -18,7 +18,7 @@ class TestEnv(PGDriveEnv):
         )
 
 
-def test_lidar():
+def vis_lidar():
     setup_logger(debug=True)
     Lidar.enable_show = True
     env = TestEnv()
@@ -31,4 +31,4 @@ def test_lidar():
 
 
 if __name__ == "__main__":
-    test_lidar()
+    vis_lidar()

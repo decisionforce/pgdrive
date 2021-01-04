@@ -27,7 +27,7 @@ def test_nan_speed(vis=False):
     acc = [0, 1]
     brake = [-1, -np.nan]
     env.reset()
-    for i in range(1, 100000):
+    for i in range(1, 100000 if vis else 2000):
         if i < 110:
             a = acc
         elif 110 < i < 120:
