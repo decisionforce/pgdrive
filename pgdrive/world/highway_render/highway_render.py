@@ -55,10 +55,11 @@ class HighwayRender:
         self.frame_surface = pygame.Surface(self.RESOLUTION)
 
     def render(self) -> np.ndarray:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    sys.exit()
+        if self.onscreen:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sys.exit()
 
         self.draw_scene()
         if self.onscreen:
@@ -431,4 +432,3 @@ class LaneGraphics(object):
             new_dots = reversed(new_dots) if side else new_dots
             dots.extend(new_dots)
         pygame.draw.polygon(draw_surface, color, dots, 0)
-
