@@ -16,7 +16,7 @@ print("We will install the following packages: ", packages)
 
 setup(
     name="pgdrive",
-    version="0.1.1",
+    version="0.1.2.rc0",
     description="An open-ended driving simulator with infinite scenes",
     url="https://github.com/decisionforce/pgdrive",
     author="PGDrive Team",
