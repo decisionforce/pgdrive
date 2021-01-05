@@ -25,7 +25,9 @@ class MVehicle(PgTrafficVehicle):
     LENGTH = 3.9
     WIDTH = 2.0
     HEIGHT = 1.3
-    path = [['new/130/scene.gltf', (factor * .0055, factor * .0046, factor * .0049), (0, 0, factor * 0.33), 90], ]
+    path = [
+        ['new/130/scene.gltf', (factor * .0055, factor * .0046, factor * .0049), (0, 0, factor * 0.33), 90],
+    ]
 
 
 class XLVehicle(PgTrafficVehicle):
