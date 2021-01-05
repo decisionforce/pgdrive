@@ -10,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  Check code style:
+  Check_code_style:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
         run: |
           pip install "yapf==0.30.0"
           bash format.sh --test
-  Blckbox Tests:
+  Blckbox_Tests:
     runs-on: ubuntu-latest
     steps:
       - name: Blackbox tests
