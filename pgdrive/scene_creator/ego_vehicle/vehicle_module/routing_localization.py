@@ -99,8 +99,7 @@ class RoutingLocalizationModule:
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
-        lane_index = self.map.road_network.get_closest_lane_index(position, ego_vehicle.pg_world)
-        lane = self.map.road_network.get_lane(lane_index)
+        lane, lane_index = self.map.road_network.get_closest_lane_index(position, ego_vehicle.pg_world)
         self._update_target_checkpoints(lane_index)
 
         target_road_1_start = self.checkpoints[self.target_checkpoints_index[0]]
@@ -136,7 +135,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:

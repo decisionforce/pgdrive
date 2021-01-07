@@ -85,7 +85,10 @@ class PgTrafficVehicle(DynamicElement):
         self.node_path.setH(heading)
 
     def update_state(self):
-        self.vehicle_node.kinematic_model.on_state_update()
+        scene_mgr = self.vehicle_node.kinematic_model.scene
+        lane, lane_index = scene_mgr.network.get_closest_lane_index(self.position, scene_mgr.ego_vehicle.pg_world)
+        if lane is not None:
+            self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
         self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
             self.vehicle_node.kinematic_model.position, margin=2
         )
@@ -140,14 +143,14 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        scene_mgr: SceneManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        seed=None,
-        enable_lane_change: bool = True,
-        enable_reborn=False
+            cls,
+            index: int,
+            scene_mgr: SceneManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            seed=None,
+            enable_lane_change: bool = True,
+            enable_reborn=False
     ):
         v = IDMVehicle.create_random(scene_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change

@@ -23,7 +23,7 @@ class SceneManager:
     """Manage all traffic vehicles, and all runtime elements"""
     VEHICLE_GAP = 10  # m
 
-    def __init__(self, traffic_mode=TrafficMode.Add_once, random_traffic: bool = False, record_episode: bool = False):
+    def __init__(self, traffic_mode=TrafficMode.Trigger, random_traffic: bool = False, record_episode: bool = False):
         """
         :param traffic_mode: reborn/trigger mode
         :param random_traffic: if True, map seed is different with traffic manager seed
@@ -31,7 +31,7 @@ class SceneManager:
         self.record_episode = record_episode
         self.traffic_mode = traffic_mode
         self.random_traffic = random_traffic
-        self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Add_once else None
+        self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Trigger else None
         self.blocks = None
         self.network = None
         self.reborn_lanes = None
@@ -63,7 +63,7 @@ class SceneManager:
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.clear_traffic(pg_world)
         self.ego_vehicle = ego_vehicle
-        self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Add_once else None
+        self.block_triggered_vehicles = [] if self.traffic_mode == TrafficMode.Trigger else None
         self.blocks = map.blocks
         self.network = map.road_network
         self.reborn_lanes = self._get_available_reborn_lanes()
@@ -193,7 +193,7 @@ class SceneManager:
 
     def prepare_step(self):
         from pgdrive.scene_creator.road.road import Road
-        if self.traffic_mode == TrafficMode.Add_once:
+        if self.traffic_mode == TrafficMode.Trigger:
             ego_lane_idx = self.ego_vehicle.lane_index[:-1]
             ego_road = Road(ego_lane_idx[0], ego_lane_idx[1])
             if len(self.block_triggered_vehicles) > 0 and ego_road == self.block_triggered_vehicles[-1].trigger_road:
@@ -314,7 +314,7 @@ class SceneManager:
             states[vehicle.index] = vehicle.get_state()
 
         # collect other vehicles
-        if self.traffic_mode == TrafficMode.Add_once:
+        if self.traffic_mode == TrafficMode.Trigger:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
                     states[vehicle.index] = vehicle.get_state()
@@ -331,7 +331,7 @@ class SceneManager:
             vehicles[vehicle.index] = init_state
 
         # collect other vehicles
-        if self.traffic_mode == TrafficMode.Add_once:
+        if self.traffic_mode == TrafficMode.Trigger:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
                     init_state = vehicle.get_state()

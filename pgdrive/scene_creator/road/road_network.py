@@ -170,12 +170,16 @@ class RoadNetwork:
                     indexes.append((_from, _to, _id))
         self.indices = indexes
 
-    def get_closest_lane_index(self, position: np.ndarray, pg_world: PgWorld) -> LaneIndex:
+    def old_get_closest_lane_index(self, position):
+        return self._graph_helper.get(position)
+
+    def get_closest_lane_index(self, position: np.ndarray, pg_world: PgWorld) -> Tuple:
         """
         Get the index of the lane closest to a physx_world position.
 
         :param position: a physx_world position [m].
         :param pg_world: PgWorld class
+        :param node_path: node path of element containing a physics body
         :return: the index of the closest lane.
         """
         results = pg_world.physics_world.rayTestAll(Vec3(position[0], -position[1], 1.0),
@@ -188,14 +192,19 @@ class RoadNetwork:
                     lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
         if len(lane_index_dist) > 0:
             ret_index = np.argmin([d for _, _, d in lane_index_dist])
-            ret, dist = lane_index_dist[ret_index][1], lane_index_dist[ret_index][-1]
+            lane, index, dist = lane_index_dist[ret_index]
         else:
-            ret, dist = None, None
+            # fall back when some vehicle out of road
+            index, dist = self.old_get_closest_lane_index(position)
+            lane, index, dist = self.get_lane(index), index, dist
 
-        # old code
-        # ret, dist = self._graph_helper.get(position)
+            # old code
+        # o_ret, o_dist = self._graph_helper.get(position)
+        # print(o_ret == ret)
+
+        # old Old code
         # if self.debug:
-        #     # old Old code
+        #
         #     distances = []
         #     for _from, to_dict in self.graph.items():
         #         for _to, lanes in to_dict.items():
@@ -206,8 +215,7 @@ class RoadNetwork:
         #     if ret[0] != key[0] or ret[1] != key[1] or ret[2] != key[2]:
         #         if abs(dist - min(distances)) > 1e-4:
         #             raise ValueError("ERROR! Different! ", ret, key, dist, min(distances))
-
-        return ret
+        return lane, index
 
     def get_closet_lane_index_v2(self, position, current_lane):
         pass

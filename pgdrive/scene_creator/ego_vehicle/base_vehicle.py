@@ -404,9 +404,10 @@ class BaseVehicle(DynamicElement):
 
     def update_map_info(self, map):
         self.routing_localization.update(map)
-        new_l_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place), self.pg_world)
+        lane, new_l_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place),
+                                                                                              self.pg_world)
         self.lane_index = new_l_index
-        self.lane = self.routing_localization.map.road_network.get_lane(self.lane_index)
+        self.lane = lane
 
     def _state_check(self):
         """
