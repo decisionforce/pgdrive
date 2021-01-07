@@ -29,19 +29,21 @@ class Vehicle:
     """ Range for random initial speeds [m/s] """
     MAX_SPEED = 40.
     """ Maximum reachable speed [m/s] """
+
     def __init__(
-        self,
-        scene: SceneManager,
-        position: List,
-        heading: float = 0,
-        speed: float = 0,
-        np_random: np.random.RandomState = None,
+            self,
+            scene: SceneManager,
+            position: List,
+            heading: float = 0,
+            speed: float = 0,
+            np_random: np.random.RandomState = None,
     ):
         self.scene = scene
         self._position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
-        self.lane_index = self.scene.network.get_closest_lane_index(self.position) if self.scene else np.nan
+        self.lane_index = self.scene.network.get_closest_lane_index(self.position,
+                                                                    self.scene.ego_vehicle.pg_world) if self.scene else np.nan
         self.lane = self.scene.network.get_lane(self.lane_index) if self.scene else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
@@ -74,7 +76,7 @@ class Vehicle:
 
     @classmethod
     def create_random(
-        cls, scene: SceneManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
+            cls, scene: SceneManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
     ):
         """
         Create a random vehicle on the road.
@@ -153,9 +155,9 @@ class Vehicle:
             self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
     def on_state_update(self) -> None:
-        if self.scene:
-            self.lane_index = self.scene.network.get_closest_lane_index(self.position)
-            self.lane = self.scene.network.get_lane(self.lane_index)
+        new_l_index = self.scene.network.get_closest_lane_index(self.position, self.scene.ego_vehicle.pg_world)
+        self.lane_index = new_l_index
+        self.lane = self.scene.network.get_lane(self.lane_index)
 
     def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
         """
@@ -229,7 +231,7 @@ class Vehicle:
         if (self.destination != self.position).any():
             return (self.destination - self.position) / np.linalg.norm(self.destination - self.position)
         else:
-            return np.zeros((2, ))
+            return np.zeros((2,))
 
     @property
     def on_road(self) -> bool:

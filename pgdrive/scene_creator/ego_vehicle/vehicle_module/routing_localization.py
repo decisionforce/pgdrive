@@ -99,7 +99,7 @@ class RoutingLocalizationModule:
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
-        lane_index = self.map.road_network.get_closest_lane_index(position)
+        lane_index = self.map.road_network.get_closest_lane_index(position, ego_vehicle.pg_world)
         lane = self.map.road_network.get_lane(lane_index)
         self._update_target_checkpoints(lane_index)
 

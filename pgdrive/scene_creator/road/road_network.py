@@ -1,14 +1,16 @@
 import copy
 import logging
+from pgdrive.pg_config.body_name import BodyName
 from typing import List, Tuple, Dict
-
+from pgdrive.world.pg_world import PgWorld
 import numpy as np
-
+from panda3d.core import Vec3
 from pgdrive.scene_creator import get_road_bounding_box
 from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.lanes.lane import LineType, AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
+from pgdrive.scene_creator.blocks.constants import BlockDefault
 from pgdrive.utils.math_utils import get_boxes_bounding_box
 
 logger = logging.getLogger(__name__)
@@ -168,17 +170,32 @@ class RoadNetwork:
                     indexes.append((_from, _to, _id))
         self.indices = indexes
 
-    def get_closest_lane_index(self, position: np.ndarray) -> LaneIndex:
+    def get_closest_lane_index(self, position: np.ndarray, pg_world: PgWorld) -> LaneIndex:
         """
         Get the index of the lane closest to a physx_world position.
 
         :param position: a physx_world position [m].
+        :param pg_world: PgWorld class
         :return: the index of the closest lane.
         """
-        ret, dist = self._graph_helper.get(position)
+        results = pg_world.physics_world.rayTestAll(Vec3(position[0], -position[1], 1.0),
+                                                    Vec3(position[0], -position[1], -1))
+        lane_index_dist = []
+        if results.hasHits():
+            for res in results.getHits():
+                if res.getNode().getName() == BodyName.Lane:
+                    lane = res.getNode().getPythonTag(BodyName.Lane)
+                    lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
+        if len(lane_index_dist) > 0:
+            ret_index = np.argmin([d for _, _, d in lane_index_dist])
+            ret, dist = lane_index_dist[ret_index][1], lane_index_dist[ret_index][-1]
+        else:
+            ret, dist = None, None
 
+        # old code
+        # ret, dist = self._graph_helper.get(position)
         # if self.debug:
-        #     # Old code
+        #     # old Old code
         #     distances = []
         #     for _from, to_dict in self.graph.items():
         #         for _to, lanes in to_dict.items():
@@ -196,12 +213,12 @@ class RoadNetwork:
         pass
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-        np_random: np.random.RandomState = None
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+            np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -306,12 +323,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?

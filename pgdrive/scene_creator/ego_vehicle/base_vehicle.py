@@ -404,7 +404,8 @@ class BaseVehicle(DynamicElement):
 
     def update_map_info(self, map):
         self.routing_localization.update(map)
-        self.lane_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place))
+        new_l_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place), self.pg_world)
+        self.lane_index = new_l_index
         self.lane = self.routing_localization.map.road_network.get_lane(self.lane_index)
 
     def _state_check(self):
@@ -427,7 +428,7 @@ class BaseVehicle(DynamicElement):
             elif name[0] == BodyName.Side_walk:
                 self.out_of_road = True
             contacts.add(name[0])
-        self.out_of_road = self.out_of_road or out_of_road
+        # self.out_of_road = self.out_of_road or out_of_road
         if self.render:
             self.render_collision_info(contacts)
 
