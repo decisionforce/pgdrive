@@ -35,7 +35,7 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List["AbstractLan
 
 
 def block_socket_merge(
-        socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
+    socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
@@ -108,8 +108,10 @@ def get_arc_bounding_box_points(lanes, extra_lateral) -> List:
     points = []
     for lane, lateral_dir in [(lanes[0], -1), (lanes[-1], 1)]:
         pi_2 = (np.pi / 2.0)
-        points += [lane.position(0.1, lateral_dir * (lane.width / 2.0 + extra_lateral)),
-                   lane.position(lane.length - 0.1, lateral_dir * (lane.width / 2.0 + extra_lateral))]
+        points += [
+            lane.position(0.1, lateral_dir * (lane.width / 2.0 + extra_lateral)),
+            lane.position(lane.length - 0.1, lateral_dir * (lane.width / 2.0 + extra_lateral))
+        ]
         start_phase = (lane.start_phase // pi_2) * pi_2
         start_phase += pi_2 if lane.direction == 1 else 0
         for phi_index in range(4):
