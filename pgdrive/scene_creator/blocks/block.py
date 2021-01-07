@@ -10,7 +10,7 @@ from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.scene_creator.blocks.constants import BlockDefault
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
-from pgdrive.scene_creator.lanes.lane import AbstractLane, LineType
+from pgdrive.scene_creator.lanes.lane import AbstractLane, LineType, LaneNode
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
@@ -25,6 +25,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -46,6 +47,7 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -233,12 +235,11 @@ class Block(Element, BlockDefault):
         """
         self.lane_line_node_path = NodePath(RigidBodyCombiner(self._block_name + "_lane_line"))
         self.side_walk_node_path = NodePath(RigidBodyCombiner(self._block_name + "_side_walk"))
-        self.card_node_path = NodePath(RigidBodyCombiner(self._block_name + "_card"))
+        self.lane_node_path = NodePath(RigidBodyCombiner(self._block_name + "_lane"))
         graph = self.block_network.graph
         for _from, to_dict in graph.items():
             for _to, lanes in to_dict.items():
-                if self.render:
-                    self._add_land(lanes)
+                self._add_land(lanes)
                 for _id, l in enumerate(lanes):
                     line_color = l.line_color
                     self._add_lane(l, _id, line_color)
@@ -249,16 +250,16 @@ class Block(Element, BlockDefault):
         self.side_walk_node_path.node().collect()
         self.side_walk_node_path.hide(CamMask.ScreenshotCam)
 
-        self.card_node_path.flattenStrong()
-        self.card_node_path.node().collect()
-        self.card_node_path.hide(CamMask.DepthCam | CamMask.ScreenshotCam)
+        self.lane_node_path.flattenStrong()
+        self.lane_node_path.node().collect()
+        self.lane_node_path.hide(CamMask.DepthCam | CamMask.ScreenshotCam)
 
         self.node_path = NodePath(self._block_name)
         self.node_path.hide(CamMask.Shadow)
 
         self.side_walk_node_path.reparentTo(self.node_path)
         self.lane_line_node_path.reparentTo(self.node_path)
-        self.card_node_path.reparentTo(self.node_path)
+        self.lane_node_path.reparentTo(self.node_path)
 
     def _add_lane(self, lane: AbstractLane, lane_id: int, colors: List[Vec4]):
         parent_np = self.lane_line_node_path
@@ -352,14 +353,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -438,7 +439,7 @@ class Block(Element, BlockDefault):
                 theta = -numpy.arctan2(direction_v[1], direction_v[0])
                 width = lane.width_at(0) + self.SIDE_WALK_LINE_DIST * 2
                 length = lane.length
-                self._add_land2bullet(middle, width, length, theta)
+                self._add_lane2bullet(middle, width, length, theta, lane)
         else:
             for lane in lanes:
                 segment_num = int(lane.length / self.CIRCULAR_SEGMENT_LENGTH)
@@ -449,25 +450,45 @@ class Block(Element, BlockDefault):
                     theta = -numpy.arctan2(direction_v[1], direction_v[0])
                     width = lane.width_at(0) + self.SIDE_WALK_LINE_DIST * 2
                     length = lane.length
-                    self._add_land2bullet(middle, width, length * 1.3 / segment_num, theta)
+                    self._add_lane2bullet(middle, width, length * 1.3 / segment_num, theta, lane)
 
-    def _add_land2bullet(self, middle, width, length, theta):
-        cm = CardMaker('card')
-        cm.setFrame(-length / 2, length / 2, -width / 2, width / 2)
-        cm.setHasNormals(True)
-        cm.setUvRange((0, 0), (length / 20, width / 10))
-        card = self.card_node_path.attachNewNode(cm.generate())
-        card.setPos(middle[0], -middle[1], numpy.random.rand() * 0.01 - 0.01)
-
-        card.setQuat(
+    def _add_lane2bullet(self, middle, width, length, theta, lane: Union[StraightLane, CircularLane]):
+        """
+        Add lane visualization and body for it
+        :param middle: Middle point
+        :param width: Lane width
+        :param length: Segment length
+        :param theta: Rotate theta
+        :param lane: Lane info
+        :return: None
+        """
+        segment_np = NodePath(LaneNode(BodyName.Lane, lane))
+        segment_node = segment_np.node()
+        segment_node.setActive(False)
+        segment_node.setKinematic(False)
+        segment_node.setStatic(True)
+        shape = BulletBoxShape(Vec3(length / 2, 0.2, width/2))
+        segment_node.addShape(shape)
+        segment_node.setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
+        self.bullet_nodes.append(segment_node)
+        if self.render:
+            cm = CardMaker('card')
+            cm.setFrame(-length / 2, length / 2, -width / 2, width / 2)
+            cm.setHasNormals(True)
+            cm.setUvRange((0, 0), (length / 20, width / 10))
+            card = segment_np.attachNewNode(cm.generate())
+            card.setZ(numpy.random.rand() * 0.01 - 0.01)
+            card.setTransparency(TransparencyAttrib.MMultisample)
+            card.setTexture(self.ts_color, self.road_texture)
+        segment_np.setPos(middle[0], -middle[1], 0)
+        segment_np.setQuat(
             LQuaternionf(
                 numpy.cos(theta / 2) * numpy.cos(-numpy.pi / 4),
                 numpy.cos(theta / 2) * numpy.sin(-numpy.pi / 4), -numpy.sin(theta / 2) * numpy.cos(-numpy.pi / 4),
                 numpy.sin(theta / 2) * numpy.cos(-numpy.pi / 4)
             )
         )
-        card.setTransparency(TransparencyAttrib.MMultisample)
-        card.setTexture(self.ts_color, self.road_texture)
+        segment_np.reparentTo(self.lane_node_path)
 
     @staticmethod
     def create_socket_from_positive_road(road: Road) -> BlockSocket:
