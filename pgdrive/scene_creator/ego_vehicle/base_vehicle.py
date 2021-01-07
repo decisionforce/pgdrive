@@ -268,6 +268,8 @@ class BaseVehicle(DynamicElement):
                 lateral = self.position - target_lane.center
             else:
                 lateral = target_lane.center - self.position
+        else:
+            raise ValueError("Unknown target lane type: {}".format(type(target_lane)))
         lateral_norm = norm(lateral[0], lateral[1])
         forward_direction = self.heading
         # print(f"Old forward direction: {self.forward_direction}, new heading {self.heading}")
