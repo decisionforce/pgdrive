@@ -10,6 +10,7 @@ from pgdrive.utils.element import Element
 
 class Terrain(Element):
     COLLISION_MASK = 2
+    HEIGHT = -0.1
 
     def __init__(self):
         super(Terrain, self).__init__()
@@ -33,7 +34,7 @@ class Terrain(Element):
             self.ts_color = TextureStage("color")
             self.ts_normal = TextureStage("normal")
             self.ts_normal.set_mode(TextureStage.M_normal)
-            self.node_path.setPos(0, 0, 0)
+            self.node_path.setPos(0, 0, self.HEIGHT)
             cm = CardMaker('card')
             scale = 20000
             cm.setUvRange((0, 0), (scale / 10, scale / 10))
