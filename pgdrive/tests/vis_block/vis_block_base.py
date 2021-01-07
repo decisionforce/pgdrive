@@ -107,7 +107,7 @@ class TestBlock(ShowBase.ShowBase):
 
     def show_bounding_box(self, road_network):
         bound_box = road_network.get_bounding_box()
-        points = [(x, y) for x in bound_box[:2] for y in bound_box[2:]]
+        points = [(x, -y) for x in bound_box[:2] for y in bound_box[2:]]
         for k, p in enumerate(points[:-1]):
             for p_ in points[k + 1:]:
                 self.add_line((*p, 2), (*p_, 2), (1, 0., 0., 1), 2)
