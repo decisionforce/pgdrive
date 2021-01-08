@@ -7,7 +7,7 @@ from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, LineSegs
-
+from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac, setup_logger
@@ -176,7 +176,7 @@ class PgWorld(ShowBase.ShowBase):
 
         # physics world
         self.physics_world = BulletWorld()
-        self.physics_world.setGroupCollisionFlag(0, 1, True)  # detect ego car collide terrain
+        CollisionGroup.set_collision_rule(self.physics_world)
         self.physics_world.setGravity(Vec3(0, 0, -9.81))  # set gravity
 
         # for real time simulation

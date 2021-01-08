@@ -1,5 +1,5 @@
 from typing import Union
-
+from pgdrive.pg_config.collision_group import CollisionGroup
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
@@ -28,7 +28,7 @@ class PgTrafficVehicleNode(BulletRigidBodyNode):
 
 
 class PgTrafficVehicle(DynamicElement):
-    COLLISION_MASK = 4
+    COLLISION_MASK = CollisionGroup.Traffic_vehicle
     HEIGHT = 1.8
     LENGTH = 4
     WIDTH = 2

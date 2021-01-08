@@ -140,6 +140,6 @@ class LaneNode(BulletRigidBodyNode):
         :param lane_index: Lane index
         """
         BulletRigidBodyNode.__init__(self, node_name)
-        BulletGhostNode.setPythonTag(self, BodyName.Lane, self)
+        BulletRigidBodyNode.setPythonTag(self, BodyName.Lane, self)
         self.info = lane
         self.index = lane_index

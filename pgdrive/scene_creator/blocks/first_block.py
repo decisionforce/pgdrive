@@ -13,7 +13,7 @@ from pgdrive.scene_creator.road.road_network import RoadNetwork
 
 class FirstBlock(Block):
     """
-    A special Block type, only used to create the first block. One scene has only one first block!!!
+    A special Lane_line type, only used to create the first block. One scene has only one first block!!!
     """
     NODE_1 = ">"
     NODE_2 = ">>"

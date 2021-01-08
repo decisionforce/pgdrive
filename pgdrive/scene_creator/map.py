@@ -150,7 +150,7 @@ class Map:
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
         map_config = []
         for b in self.blocks:
-            assert isinstance(b, Block), "None Block type can not be saved to json file"
+            assert isinstance(b, Block), "None Lane_line type can not be saved to json file"
             b_config = b.get_config()
             json_config = {}
             for k, v in b_config._config.items():

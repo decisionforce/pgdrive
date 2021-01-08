@@ -7,7 +7,7 @@ from collections import deque
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
-
+from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.utils.basic_utils import ray_localization
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
@@ -46,7 +46,7 @@ class BaseVehicle(DynamicElement):
                     2       3
     """
     PARAMETER_SPACE = PgSpace(VehicleParameterSpace.BASE_VEHICLE)  # it will not sample config from parameter space
-    COLLISION_MASK = 1
+    COLLISION_MASK = CollisionGroup.Ego_Vehicle
     STEERING_INCREMENT = 0.05
 
     default_vehicle_config = PgConfig(
@@ -110,12 +110,6 @@ class BaseVehicle(DynamicElement):
         self.collision_info_np = self._init_collision_info_render(pg_world)
         self.collision_banners = {}  # to save time
         self.current_banner = None
-
-        # collision group
-        self.pg_world.physics_world.setGroupCollisionFlag(self.COLLISION_MASK, Block.COLLISION_MASK, True)
-        self.pg_world.physics_world.setGroupCollisionFlag(self.COLLISION_MASK, Terrain.COLLISION_MASK, True)
-        self.pg_world.physics_world.setGroupCollisionFlag(self.COLLISION_MASK, self.COLLISION_MASK, False)
-        self.pg_world.physics_world.setGroupCollisionFlag(self.COLLISION_MASK, PgTrafficVehicle.COLLISION_MASK, True)
 
         # done info
         self.crash = False

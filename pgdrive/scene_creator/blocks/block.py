@@ -34,7 +34,7 @@ class BlockSocket:
 
 class Block(Element, BlockDefault):
     """
-    Abstract class of Block,
+    Abstract class of Lane_line,
     BlockSocket: a part of previous block connecting this block
 
     <----------------------------------------------
@@ -51,7 +51,7 @@ class Block(Element, BlockDefault):
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
-        assert self.ID is not None, "Each Block must has its unique ID When define Block"
+        assert self.ID is not None, "Each Lane_line must has its unique ID When define Lane_line"
         assert self.SOCKET_NUM is not None, "The number of Socket should be specified when define a new block"
         if block_index == 0:
             from pgdrive.scene_creator.blocks import FirstBlock
@@ -223,7 +223,7 @@ class Block(Element, BlockDefault):
 
     def _try_plug_into_previous_block(self) -> bool:
         """
-        Try to plug this Block to previous block's socket, return True for success, False for road cross
+        Try to plug this Lane_line to previous block's socket, return True for success, False for road cross
         """
         raise NotImplementedError
 
@@ -350,7 +350,7 @@ class Block(Element, BlockDefault):
         body_np = parent_np.attachNewNode(body_node)
         shape = BulletBoxShape(Vec3(length / 2, Block.LANE_LINE_WIDTH / 2, Block.LANE_LINE_THICKNESS))
         body_np.node().addShape(shape)
-        body_np.node().setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
+        body_np.node().setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
         self.bullet_nodes.append(body_np.node())
 
         body_np.setPos(middle[0], -middle[1], 0)
@@ -388,7 +388,7 @@ class Block(Element, BlockDefault):
             body_np = parent_np.attachNewNode(body_node)
             shape = BulletBoxShape(Vec3(scale / 2, Block.LANE_LINE_WIDTH / 2, Block.LANE_LINE_THICKNESS))
             body_np.node().addShape(shape)
-            body_np.node().setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
+            body_np.node().setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
             self.bullet_nodes.append(body_np.node())
 
         # position and heading
@@ -413,7 +413,7 @@ class Block(Element, BlockDefault):
         side_np = self.side_walk_node_path.attachNewNode(body_node)
         shape = BulletBoxShape(Vec3(1 / 2, 1 / 2, 1 / 2))
         body_node.addShape(shape)
-        body_node.setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
+        body_node.setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
         self.bullet_nodes.append(body_node)
 
         if radius == 0:
@@ -482,7 +482,7 @@ class Block(Element, BlockDefault):
         segment_node.setStatic(True)
         shape = BulletBoxShape(Vec3(length / 2, 0.1, width / 2))
         segment_node.addShape(shape)
-        segment_node.setIntoCollideMask(BitMask32.bit(Block.COLLISION_MASK))
+        segment_node.setIntoCollideMask(BitMask32.bit(Block.LANE_SURFACE_COLLISION_MASK))
         self.bullet_nodes.append(segment_node)
         segment_np.setPos(middle[0], -middle[1], -0.1)
         segment_np.setQuat(

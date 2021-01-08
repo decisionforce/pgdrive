@@ -85,7 +85,7 @@ def CreateRoadFrom(
     toward_smaller_Lane_index: bool = True,
     ignore_start: str = None,
     ignore_end: str = None,
-    center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
+    center_line_type=LineType.CONTINUOUS,  # Identical to Lane_line.CENTER_LINE_TYPE
     detect_one_side=True,
     side_lane_line_type=LineType.SIDE,
     inner_lane_line_type=LineType.STRIPED
