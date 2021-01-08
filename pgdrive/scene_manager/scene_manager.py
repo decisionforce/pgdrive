@@ -5,11 +5,12 @@ from typing import List, Tuple
 import pandas as pd
 
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road_object.object import RoadObject
+from pgdrive.scene_manager import TrafficMode
+from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
 from pgdrive.utils import norm, get_np_random
 from pgdrive.world.pg_world import PgWorld
-from . import TrafficMode
-from .replay_record_system import PGReplayer, PGRecorder
 
 logger = logging.getLogger(__name__)
 
@@ -48,13 +49,13 @@ class SceneManager:
         self.record_system = None
 
     def reset(
-        self,
-        pg_world: PgWorld,
-        map: Map,
-        ego_vehicle,
-        traffic_density: float,
-        road_objects: List = None,
-        episode_data=None
+            self,
+            pg_world: PgWorld,
+            map: Map,
+            ego_vehicle,
+            traffic_density: float,
+            road_objects: List = None,
+            episode_data=None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -183,7 +184,7 @@ class SceneManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -192,7 +193,6 @@ class SceneManager:
         return vehicles
 
     def prepare_step(self):
-        from pgdrive.scene_creator.road.road import Road
         if self.traffic_mode == TrafficMode.Trigger:
             ego_lane_idx = self.ego_vehicle.lane_index[:-1]
             ego_road = Road(ego_lane_idx[0], ego_lane_idx[1])
