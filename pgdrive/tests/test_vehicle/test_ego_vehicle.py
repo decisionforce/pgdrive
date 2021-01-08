@@ -61,8 +61,19 @@ def test_base_vehicle(pg_env):
             np.testing.assert_almost_equal(v.position, state["position"])
             v.projection([a_x, a_y])
 
+    _nan_speed(pg_env)
+
     v.destroy()
     del v
+
+
+def _nan_speed(pg_env):
+    steering = [-np.nan, -1, 0, 1, np.nan]
+    acc_brake = [-np.nan, -1, 0, 1, np.nan]
+    pg_env.reset()
+    for s in steering:
+        for a in acc_brake:
+            pg_env.step([s, a])
 
 
 if __name__ == '__main__':
