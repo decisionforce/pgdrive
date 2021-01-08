@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
 
+from pgdrive.scene_creator.basic_utils import ray_localization
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -99,7 +100,9 @@ class RoutingLocalizationModule:
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
-        lane, lane_index = self.map.road_network.get_closest_lane_index(position, ego_vehicle.pg_world)
+        lane, lane_index = ray_localization(position, ego_vehicle.pg_world)
+        if lane is None:
+            lane, lane_index = ego_vehicle.lane, ego_vehicle.lane_index
         self._update_target_checkpoints(lane_index)
 
         target_road_1_start = self.checkpoints[self.target_checkpoints_index[0]]
@@ -213,3 +216,4 @@ class RoutingLocalizationModule:
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
+

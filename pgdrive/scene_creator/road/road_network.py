@@ -1,16 +1,12 @@
 import copy
 import logging
-from pgdrive.pg_config.body_name import BodyName
 from typing import List, Tuple, Dict
-from pgdrive.world.pg_world import PgWorld
 import numpy as np
-from panda3d.core import Vec3
 from pgdrive.scene_creator import get_road_bounding_box
 from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.lanes.lane import LineType, AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.scene_creator.blocks.constants import BlockDefault
 from pgdrive.utils.math_utils import get_boxes_bounding_box
 
 logger = logging.getLogger(__name__)
@@ -170,55 +166,8 @@ class RoadNetwork:
                     indexes.append((_from, _to, _id))
         self.indices = indexes
 
-    def old_get_closest_lane_index(self, position):
+    def get_closest_lane_index(self, position):
         return self._graph_helper.get(position)
-
-    def get_closest_lane_index(self, position: np.ndarray, pg_world: PgWorld) -> Tuple:
-        """
-        Get the index of the lane closest to a physx_world position.
-
-        :param position: a physx_world position [m].
-        :param pg_world: PgWorld class
-        :param node_path: node path of element containing a physics body
-        :return: the index of the closest lane.
-        """
-        results = pg_world.physics_world.rayTestAll(Vec3(position[0], -position[1], 1.0),
-                                                    Vec3(position[0], -position[1], -1))
-        lane_index_dist = []
-        if results.hasHits():
-            for res in results.getHits():
-                if res.getNode().getName() == BodyName.Lane:
-                    lane = res.getNode().getPythonTag(BodyName.Lane)
-                    lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
-        if len(lane_index_dist) > 0:
-            ret_index = np.argmin([d for _, _, d in lane_index_dist])
-            lane, index, dist = lane_index_dist[ret_index]
-        else:
-            # fall back when some vehicle out of road
-            index, dist = self.old_get_closest_lane_index(position)
-            lane, index, dist = self.get_lane(index), index, dist
-
-            # old code
-        # o_ret, o_dist = self._graph_helper.get(position)
-        # print(o_ret == ret)
-
-        # old Old code
-        # if self.debug:
-        #
-        #     distances = []
-        #     for _from, to_dict in self.graph.items():
-        #         for _to, lanes in to_dict.items():
-        #             for _id, l in enumerate(lanes):
-        #                 distances.append(l.distance(position))
-        #     key = int(np.argmin(distances))
-        #     key = self.indices[key]
-        #     if ret[0] != key[0] or ret[1] != key[1] or ret[2] != key[2]:
-        #         if abs(dist - min(distances)) > 1e-4:
-        #             raise ValueError("ERROR! Different! ", ret, key, dist, min(distances))
-        return lane, index
-
-    def get_closet_lane_index_v2(self, position, current_lane):
-        pass
 
     def next_lane(
             self,

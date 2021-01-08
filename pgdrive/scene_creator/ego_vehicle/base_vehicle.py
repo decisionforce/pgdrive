@@ -8,6 +8,7 @@ import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
 
+from pgdrive.scene_creator.basic_utils import ray_localization
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
@@ -403,9 +404,14 @@ class BaseVehicle(DynamicElement):
         self.routing_localization = RoutingLocalizationModule(self.pg_world, show_navi_point)
 
     def update_map_info(self, map):
+        """
+        Update map info after reset()
+        :param map: new map
+        :return: None
+        """
         self.routing_localization.update(map)
-        lane, new_l_index = self.routing_localization.map.road_network.get_closest_lane_index((self.born_place),
-                                                                                              self.pg_world)
+        lane, new_l_index = ray_localization((self.born_place), self.pg_world)
+        assert lane is not None, "Born place is not on road!"
         self.lane_index = new_l_index
         self.lane = lane
 

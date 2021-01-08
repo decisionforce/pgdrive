@@ -42,7 +42,7 @@ class Vehicle:
         self._position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
-        self.lane_index = self.scene.network._graph_helper.get(self.position)[0] if self.scene else np.nan
+        self.lane_index, _ = self.scene.network.get_closest_lane_index(self.position) if self.scene else np.nan
         self.lane = self.scene.network.get_lane(self.lane_index) if self.scene else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
@@ -158,7 +158,7 @@ class Vehicle:
             self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
     def on_state_update(self) -> None:
-        new_l_index, _ = self.scene.network.old_get_closest_lane_index(self.position)
+        new_l_index, _ = self.scene.network.get_closest_lane_index(self.position)
         self.lane_index = new_l_index
         self.lane = self.scene.network.get_lane(self.lane_index)
 

@@ -1,9 +1,14 @@
 import math
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Tuple
 
+import numpy as np
+from panda3d.core import Vec3
+
+from pgdrive.pg_config.body_name import BodyName
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.utils.math_utils import get_points_bounding_box, get_arc_bounding_box_points
+from pgdrive.world.pg_world import PgWorld
 
 if TYPE_CHECKING:
     from pgdrive.scene_creator.blocks.block import BlockSocket
@@ -90,3 +95,27 @@ def get_all_lanes(roadnet: "RoadNetwork"):
             for l in lanes:
                 res.append(l)
     return res
+
+
+def ray_localization(position: np.ndarray, pg_world: PgWorld) -> Tuple:
+    """
+    Get the index of the lane closest to a physx_world position.
+    Only used when smoething is on lane ! Otherwise fall back to use get_closest_lane()
+    :param position: a physx_world position [m].
+    :param pg_world: PgWorld class
+    :return: the index of the closest lane.
+    """
+    results = pg_world.physics_world.rayTestAll(Vec3(position[0], -position[1], 1.0),
+                                                Vec3(position[0], -position[1], -1))
+    lane_index_dist = []
+    if results.hasHits():
+        for res in results.getHits():
+            if res.getNode().getName() == BodyName.Lane:
+                lane = res.getNode().getPythonTag(BodyName.Lane)
+                lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
+    if len(lane_index_dist) > 0:
+        ret_index = np.argmin([d for _, _, d in lane_index_dist])
+        lane, index, dist = lane_index_dist[ret_index]
+    else:
+        lane, index, dist = None, None, None
+    return lane, index

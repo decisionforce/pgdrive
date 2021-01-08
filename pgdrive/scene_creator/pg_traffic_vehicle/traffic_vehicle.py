@@ -4,6 +4,7 @@ import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
 
+from pgdrive.scene_creator.basic_utils import ray_localization
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
@@ -86,7 +87,7 @@ class PgTrafficVehicle(DynamicElement):
 
     def update_state(self):
         scene_mgr = self.vehicle_node.kinematic_model.scene
-        lane, lane_index = scene_mgr.network.get_closest_lane_index(self.position, scene_mgr.ego_vehicle.pg_world)
+        lane, lane_index = ray_localization(self.position, scene_mgr.ego_vehicle.pg_world)
         if lane is not None:
             self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
         self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
