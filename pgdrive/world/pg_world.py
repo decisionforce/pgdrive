@@ -176,6 +176,8 @@ class PgWorld(ShowBase.ShowBase):
 
         # physics world
         self.physics_world = BulletWorld()
+        # this world should not execute doPhysics(), it only used to do sweepTest or rayTest, it is a static world!
+        self.static_physics_world = BulletWorld()
         CollisionGroup.set_collision_rule(self.physics_world)
         self.physics_world.setGravity(Vec3(0, 0, -9.81))  # set gravity
 
@@ -366,8 +368,12 @@ class PgWorld(ShowBase.ShowBase):
         self.physics_world.clearContactAddedCallback()
         self.physics_world.clearFilterCallback()
 
+        self.static_physics_world.clearDebugNode()
+        self.static_physics_world.clearContactAddedCallback()
+        self.static_physics_world.clearFilterCallback()
+
         # del self.physics_world  # Will cause error if del it.
-        self.physics_world = None
+        self.static_physics_world = None
 
     def toggle_help_message(self):
         if self.on_screen_message:

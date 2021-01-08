@@ -25,7 +25,10 @@ class Element:
         self.random_seed = 0 if random_seed is None else random_seed
         if self.PARAMETER_SPACE is not None:
             self.PARAMETER_SPACE.seed(self.random_seed)
-        self.bullet_nodes = []  # Temporally store bullet nodes that have to place in bullet world (not NodePath)
+        # Temporally store bullet nodes that have to place in bullet world (not NodePath)
+        self.bullet_nodes = []
+        # Nodes in this tuple didn't interact with other nodes! they only used to do rayTest or sweepTest
+        self.static_bullet_nodes = []
         self.render = False if AssetLoader.loader is None else True
         self.node_path = None  # each element has its node_path to render, physics node are child nodes of it
         if self.render:
@@ -50,6 +53,15 @@ class Element:
             self.node_path.reparentTo(parent_node_path)
         for node in self.bullet_nodes:
             pg_physics_world.attach(node)
+
+    def attach_to_pg_static_world(self, pg_static_world):
+        """
+        Special treatment for static nodes
+        :param pg_static_world: pg_world.stat
+        :return:
+        """
+        for node in self.static_bullet_nodes:
+            pg_static_world.attach(node)
 
     def detach_from_pg_world(self, pg_physics_world: BulletWorld):
         """
