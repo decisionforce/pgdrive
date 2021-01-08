@@ -153,7 +153,7 @@ class BaseVehicle(DynamicElement):
         """
         pos is a 2-d array, and heading is a float (unit degree)
         """
-        heading = -np.deg2rad(heading) - np.pi/2
+        heading = -np.deg2rad(heading) - np.pi / 2
         self.chassis_np.setPos(Vec3(*pos, 1))
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
         self.update_map_info(map)
