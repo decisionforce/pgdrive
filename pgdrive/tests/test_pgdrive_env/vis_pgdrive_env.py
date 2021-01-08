@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.5,
+                "traffic_density": 0.9,
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
@@ -25,7 +25,7 @@ class TestEnv(PGDriveEnv):
                 "rgb_clip": True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                    Map.GENERATE_PARA: 50,
+                    Map.GENERATE_PARA: 20,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }

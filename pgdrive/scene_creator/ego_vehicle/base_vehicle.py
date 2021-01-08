@@ -421,7 +421,6 @@ class BaseVehicle(DynamicElement):
         """
         result = self.pg_world.physics_world.contactTest(self.chassis_beneath_np.node(), True)
         contacts = set()
-        out_of_road = True
         for contact in result.getContacts():
             node0 = contact.getNode0()
             node1 = contact.getNode1()
@@ -429,13 +428,9 @@ class BaseVehicle(DynamicElement):
             name.remove(BodyName.Ego_vehicle)
             if name[0] == "Ground":
                 continue
-            elif name[0] == BodyName.Lane:
-                out_of_road = False
-                continue
             elif name[0] == BodyName.Side_walk:
                 self.out_of_road = True
             contacts.add(name[0])
-        # self.out_of_road = self.out_of_road or out_of_road
         if self.render:
             self.render_collision_info(contacts)
 
