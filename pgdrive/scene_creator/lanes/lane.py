@@ -131,7 +131,6 @@ class LaneNode(BulletRigidBodyNode):
     """
     It is the body of land in panda3d, which can help quickly find current lane of vehicles
     """
-
     def __init__(self, node_name, lane: AbstractLane, lane_index=(str, str, int)):
         """
         Using ray cast to query the lane information
