@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
 
-from pgdrive.scene_creator.basic_utils import ray_localization
+from pgdrive.utils.basic_utils import ray_localization
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
 from pgdrive.scene_creator.blocks.first_block import FirstBlock

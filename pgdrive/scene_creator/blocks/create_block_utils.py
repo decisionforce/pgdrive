@@ -3,7 +3,7 @@ from typing import Tuple, Union, List
 
 import numpy as np
 
-from pgdrive.scene_creator.basic_utils import check_lane_on_road
+from pgdrive.utils.basic_utils import check_lane_on_road
 from pgdrive.scene_creator.blocks.constants import BlockDefault
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import LineColor, AbstractLane, LineType
