@@ -24,7 +24,7 @@ def _assert_vehicle(vehicle):
     np.testing.assert_almost_equal(vehicle.heading_diff(vehicle.lane), 0.0, decimal=3)
 
 
-def _get_heading(heading):
+def _get_heading_deg(heading):
     return (heading * 180 / np.pi)
 
 
@@ -42,7 +42,7 @@ def test_base_vehicle(pg_env):
     for heading in [-1.0, 0.0, 1.0]:
         for pos in [[0, 0], [-100, -100], [100, 100]]:
             v.reset(map, pos=np.array(pos), heading=heading)
-            # np.testing.assert_almost_equal(_get_heading(v.heading_theta), heading, decimal=3)
+            np.testing.assert_almost_equal(_get_heading_deg(v.heading_theta), heading, decimal=3)
             v_pos = v.position
             v_pos[1] = -v_pos[1]
             assert np.all(v_pos == pos)
@@ -57,7 +57,7 @@ def test_base_vehicle(pg_env):
             _assert_vehicle(v)
             state = v.get_state()
             v.set_state(state)
-            # assert _get_heading(v.heading_theta) == state["heading"]
+            assert _get_heading_deg(v.heading_theta) == _get_heading_deg(state["heading"])
             np.testing.assert_almost_equal(v.position, state["position"])
             v.projection([a_x, a_y])
 
