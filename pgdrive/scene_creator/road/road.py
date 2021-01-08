@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from pgdrive.utils.constans import Decoration
 
 LaneIndex = Tuple[str, str, int]
 Route = List[LaneIndex]
@@ -29,7 +30,6 @@ class Road:
         return False if self.end_node.find(Road.NEGATIVE_DIR) == -1 else True
 
     def is_valid_road(self):
-        from pgdrive.utils.scene_utils import Decoration
         return False if self.start_node == Decoration.start and self.end_node == Decoration.end else True
 
     def __eq__(self, other):

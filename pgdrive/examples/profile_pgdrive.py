@@ -6,7 +6,7 @@ if __name__ == '__main__':
     env = PGDriveEnv(dict(environment_num=10))
     obs = env.reset()
     start = time.time()
-    action = [0.0, 0.0]
+    action = [0.0, 0.1]
     for s in range(10000):
         o, r, d, i = env.step(action)
         if d:

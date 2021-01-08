@@ -1,9 +1,8 @@
 import os
 import sys
 from typing import List, Tuple
-
 import numpy as np
-
+from pgdrive.utils.constans import Decoration
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
@@ -81,7 +80,6 @@ class HighwayRender:
         self.draw_map()
 
     def draw_map(self) -> pygame.Surface:
-        from pgdrive.utils.scene_utils import Decoration
         """
         :return: a big map surface, clip  and rotate to use a piece of it
         """

@@ -1,6 +1,6 @@
 from pgdrive.pg_config.parameter_space import Parameter, BlockParameterSpace
 from pgdrive.pg_config.pg_space import PgSpace
-from pgdrive.utils.scene_utils import Goal
+from pgdrive.utils.constans import Goal
 from pgdrive.scene_creator.blocks.create_block_utils import CreateRoadFrom
 from pgdrive.scene_creator.blocks.intersection import InterSection
 from pgdrive.scene_creator.lanes.lane import LineType, LineColor

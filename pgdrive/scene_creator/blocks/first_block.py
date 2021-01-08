@@ -2,7 +2,7 @@ from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
 
 from pgdrive.pg_config.pg_space import PgSpace
-from pgdrive.utils.scene_utils import Decoration
+from pgdrive.utils.constans import Decoration
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateRoadFrom, CreateAdverseRoad, ExtendStraightLane
 from pgdrive.scene_creator.lanes.lane import LineType

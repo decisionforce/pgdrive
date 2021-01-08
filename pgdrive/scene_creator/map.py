@@ -11,7 +11,7 @@ from panda3d.core import NodePath
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_blocks import PgBlock
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
-from pgdrive.utils.scene_utils import Decoration
+from pgdrive.utils.constans import Decoration
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
