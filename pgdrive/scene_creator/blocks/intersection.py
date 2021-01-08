@@ -5,7 +5,7 @@ import numpy as np
 
 from pgdrive.pg_config.parameter_space import Parameter, BlockParameterSpace
 from pgdrive.pg_config.pg_space import PgSpace
-from pgdrive.utils.basic_utils import check_lane_on_road
+from pgdrive.utils.scene_utils import check_lane_on_road
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane, \
     sharpbend

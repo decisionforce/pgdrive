@@ -2,8 +2,8 @@ import copy
 import logging
 from typing import List, Tuple, Dict
 import numpy as np
-from pgdrive.utils.basic_utils import get_road_bounding_box
-from pgdrive.utils.basic_utils import Decoration
+from pgdrive.utils.scene_utils import get_road_bounding_box
+from pgdrive.utils.scene_utils import Decoration
 from pgdrive.scene_creator.lanes.lane import LineType, AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road

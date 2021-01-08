@@ -15,7 +15,7 @@ class Road:
         self.end_node = end_node
 
     def get_lanes(self, road_network):
-        from pgdrive.utils.basic_utils import get_lanes_on_road
+        from pgdrive.utils.scene_utils import get_lanes_on_road
         return get_lanes_on_road(self, road_network)
 
     def __neg__(self):
@@ -29,7 +29,7 @@ class Road:
         return False if self.end_node.find(Road.NEGATIVE_DIR) == -1 else True
 
     def is_valid_road(self):
-        from pgdrive.utils.basic_utils import Decoration
+        from pgdrive.utils.scene_utils import Decoration
         return False if self.start_node == Decoration.start and self.end_node == Decoration.end else True
 
     def __eq__(self, other):

@@ -4,7 +4,7 @@ import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
 
-from pgdrive.utils.basic_utils import ray_localization
+from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane

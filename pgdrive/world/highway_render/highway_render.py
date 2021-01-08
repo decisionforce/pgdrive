@@ -81,7 +81,7 @@ class HighwayRender:
         self.draw_map()
 
     def draw_map(self) -> pygame.Surface:
-        from pgdrive.utils.basic_utils import Decoration
+        from pgdrive.utils.scene_utils import Decoration
         """
         :return: a big map surface, clip  and rotate to use a piece of it
         """

@@ -8,7 +8,7 @@ import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
 from pgdrive.pg_config.collision_group import CollisionGroup
-from pgdrive.utils.basic_utils import ray_localization
+from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
