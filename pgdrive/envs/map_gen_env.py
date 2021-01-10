@@ -66,8 +66,9 @@ def parameter_space_to_gym_space(para_space):
         """
         Transform the raw action into a full dict of parameters.
         """
-        act = np.asarray(act, dtype=np.float32)
-        assert np.prod(act.shape) == ret_space_size
+        act = np.asarray(act[:ret_space_size], dtype=np.float32)
+        assert act.ndim == 1
+        # assert np.prod(act.shape) == ret_space_size
         count = 0
         para_dict = dict()
         for space, func, size, name in mappings.values():
@@ -76,8 +77,8 @@ def parameter_space_to_gym_space(para_space):
             count += size
         return para_dict
 
-    ret_space = gym.spaces.Box(shape=(ret_space_size, ), low=-1, high=1, dtype=np.float32)
-    return ret_space, mappings, transform
+    ret_space = gym.spaces.Box(shape=(ret_space_size,), low=-1, high=1, dtype=np.float32)
+    return ret_space, mappings, transform, ret_space_size
 
 
 class MapGenEnv(gym.Env):
@@ -97,15 +98,25 @@ class MapGenEnv(gym.Env):
         self.env = None
         self.block_parameter_length = 10
 
-        curve_space, curve_space_mappings, curve_transform = parameter_space_to_gym_space(Curve.PARAMETER_SPACE)
-        straight_space, straight_space_mappings, straight_transform = \
+        curve_space, curve_space_mappings, curve_transform, curve_space_size = \
+            parameter_space_to_gym_space(Curve.PARAMETER_SPACE)
+        straight_space, straight_space_mappings, straight_transform, straight_space_size = \
             parameter_space_to_gym_space(Straight.PARAMETER_SPACE)
 
-        self.action_space = gym.spaces.Dict(
-            curve=curve_space,
-            straight=straight_space,
+        self.block_types = (
+            (curve_space, curve_transform, "curve"),
+            (straight_space, straight_transform, "straight"),
             # gym.spaces.Box(low=-1.0, high=1.0, shape=(self.block_parameter_length,))
         )
+        self.action_space = gym.spaces.Tuple([
+            gym.spaces.Discrete(2),
+            gym.spaces.Box(
+                low=-1.0,
+                high=1.0,
+                dtype=np.float32,
+                shape=(max(curve_space_size, straight_space_size),)
+            )
+        ])
         self.observation_space = None
 
     def step(self, action):
@@ -140,7 +151,10 @@ class MapGenEnv(gym.Env):
             self.env.close()
 
     def _parse_action(self, action):
-        block_info = None
+        block_type, transform, name = self.block_types[action[0]]
+        # For those actions in the dimension that are out of the range of this block type, there are ignored.
+        block_para = transform(action[1])
+        block_info = dict(block_name=name, block_transform=transform, block_type=action[0], block_para=block_para)
         return block_info
 
     def _create_block(self, block_info):
@@ -150,16 +164,7 @@ class MapGenEnv(gym.Env):
     def _get_obs(self):
         assert self.env is not None
         assert self.env.initialized
-
-        import matplotlib.pyplot as plt
-        plt.imshow(self.env.get_map(resolution=(512, 512)))
-        plt.show()
-
         obs = self.env.get_map(resolution=(64, 64))
-
-        plt.imshow(obs)
-        plt.show()
-
         return obs
 
     def _get_reward(self, info):
@@ -170,3 +175,31 @@ class MapGenEnv(gym.Env):
 
     def _get_info(self, info, create_info):
         return dict()
+
+
+if __name__ == '__main__':
+    """
+    Test script for development only! We should transform this script to a unit test when finish this script.
+    """
+    env = MapGenEnv()
+    o = env.reset()
+
+    raw_action = env.action_space.sample()
+    # raw_action = [block_type_index (0 or 1), block_type_para (an array)]
+
+    # Step 1: Parse input action to structural data
+    block_info = env._parse_action(raw_action)
+
+    # To quanyi (0110 13:11)
+    # Please stop here to take a look on the block info.
+    # How I request the PGDriveEnv to add a block with the given block information?
+    # Namlely, how I can implement the _create_block function below?
+    print(block_info)
+
+    # Step 2: Create / append a road block
+    create_info = env._create_block(block_info)
+
+    # Step 3: Get the return for the map-generation agent
+    obs = env._get_obs()
+
+    env.close()

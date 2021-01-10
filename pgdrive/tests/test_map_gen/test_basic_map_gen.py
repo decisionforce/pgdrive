@@ -10,10 +10,10 @@ class BasicMapGenTest(unittest.TestCase):
     def setUp(self) -> None:
         self.env = MapGenEnv()
 
-    # def test_build(self):
-    #     o = self.env.reset()
-    #     o, r, d, i = self.env.step(self.env.action_space.sample())
-    #     assert self.env.observation_space.contains(o)
+    def test_build(self):
+        o = self.env.reset()
+        o, r, d, i = self.env.step(self.env.action_space.sample())
+        assert self.env.observation_space.contains(o)
 
     def test_parameter_space_to_gym_space(self):
         config = PgSpace(
@@ -23,11 +23,12 @@ class BasicMapGenTest(unittest.TestCase):
                 "ccc": PgBoxSpace(min=-10000.0, max=10000.0)
             }
         )
-        act_space, mappings, transform = parameter_space_to_gym_space(config)
+        act_space, mappings, transform, ret_space_size = parameter_space_to_gym_space(config)
         assert len(np.unique(act_space.low)) == 1
         assert len(np.unique(act_space.high)) == 1
         assert act_space.low[0] == -1
         assert act_space.high[0] == 1
+        assert act_space.shape[0] == ret_space_size
 
         def _assert_para(para):
             assert "aaa" in para
