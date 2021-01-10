@@ -8,3 +8,14 @@ from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.scene_creator.blocks.std_intersection import StdInterSection
 from pgdrive.scene_creator.blocks.std_t_intersection import StdTInterSection
 from pgdrive.scene_creator.blocks.straight import Straight
+
+all_block_types = dict(
+    curve=Curve,
+    fork=Fork,
+    intersection=InterSection,
+    ramp=Ramp,
+    roundabout=Roundabout,
+    std_intersection=StdInterSection,
+    std_t_intersection=StdTInterSection,
+    straight=straight
+)

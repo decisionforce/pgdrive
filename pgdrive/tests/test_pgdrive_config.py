@@ -1,4 +1,20 @@
 from pgdrive import PGDriveEnv
+from pgdrive.pg_config.pg_space import PgBoxSpace, PgDiscreteSpace, PgSpace
+
+
+def test_pg_space():
+    config = {
+        "length": PgBoxSpace(min=10.0, max=80.0),
+        "angle": PgBoxSpace(min=50.0, max=360.0),
+        "goal": PgDiscreteSpace(number=3)
+    }
+    config = PgSpace(config)
+    print(config.sample())
+    config.seed(1)
+    print(config.sample())
+    print(config.sample())
+    config.seed(1)
+    print(*config.sample()["length"])
 
 
 def test_nested_config():
@@ -45,3 +61,4 @@ def test_nested_config():
 
 if __name__ == '__main__':
     test_nested_config()
+    test_pg_space()
