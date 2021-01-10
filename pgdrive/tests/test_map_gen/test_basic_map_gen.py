@@ -16,11 +16,13 @@ class BasicMapGenTest(unittest.TestCase):
     #     assert self.env.observation_space.contains(o)
 
     def test_parameter_space_to_gym_space(self):
-        config = PgSpace({
-            "aaa": PgBoxSpace(min=40.0, max=80.0),
-            "bbb": PgDiscreteSpace(2),
-            "ccc": PgBoxSpace(min=-10000.0, max=10000.0)
-        })
+        config = PgSpace(
+            {
+                "aaa": PgBoxSpace(min=40.0, max=80.0),
+                "bbb": PgDiscreteSpace(2),
+                "ccc": PgBoxSpace(min=-10000.0, max=10000.0)
+            }
+        )
         act_space, mappings, transform = parameter_space_to_gym_space(config)
         assert len(np.unique(act_space.low)) == 1
         assert len(np.unique(act_space.high)) == 1

@@ -71,12 +71,12 @@ def parameter_space_to_gym_space(para_space):
         count = 0
         para_dict = dict()
         for space, func, size, name in mappings.values():
-            para = func(act[count: count + size])
+            para = func(act[count:count + size])
             para_dict[name] = para
             count += size
         return para_dict
 
-    ret_space = gym.spaces.Box(shape=(ret_space_size,), low=-1, high=1, dtype=np.float32)
+    ret_space = gym.spaces.Box(shape=(ret_space_size, ), low=-1, high=1, dtype=np.float32)
     return ret_space, mappings, transform
 
 
