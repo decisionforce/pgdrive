@@ -1,6 +1,4 @@
 import logging
-import os
-import sys
 import time
 from typing import Optional, Union
 
@@ -9,10 +7,11 @@ from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode, BulletWorld
 from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, LineSegs
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac, setup_logger
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.world import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN
 from pgdrive.world.constants import PG_EDITION
 from pgdrive.world.force_fps import ForceFPS
@@ -22,8 +21,6 @@ from pgdrive.world.light import Light
 from pgdrive.world.onscreen_message import PgOnScreenMessage
 from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
-
-root_path = os.path.dirname(os.path.dirname(__file__))
 
 
 def _suppress_warning():
@@ -55,7 +52,6 @@ class PgWorld(ShowBase.ShowBase):
     # loadPrcFileData("", "sync-video 1")
 
     # for debug use
-    # loadPrcFileData("", "want-pstats 1")
     # loadPrcFileData("", "gl-version 3 2")
 
     def __init__(self, config: dict = None):
@@ -63,6 +59,10 @@ class PgWorld(ShowBase.ShowBase):
         self.pg_config = self.default_config()
         if config is not None:
             self.pg_config.update(config)
+        if self.pg_config["pstats"]:
+            # pstats debug provided by panda3d
+            loadPrcFileData("", "want-pstats 1")
+
         loadPrcFileData("", "win-size {} {}".format(*self.pg_config["window_size"]))
 
         # Setup onscreen render
@@ -70,9 +70,7 @@ class PgWorld(ShowBase.ShowBase):
             self.mode = RENDER_MODE_ONSCREEN
             # Warning it may cause memory leak, Pand3d Official has fixed this in their master branch.
             # You can enable it if your panda version is latest.
-            # loadPrcFileData(
-            #     "", "threading-model Cull/Draw"
-            # )  # multi-thread render, accelerate simulation when evaluate
+            loadPrcFileData("", "threading-model Cull/Draw")  # multi-thread render, accelerate simulation when evaluate
         else:
             if self.pg_config["use_image"]:
                 self.mode = RENDER_MODE_OFFSCREEN
@@ -98,6 +96,9 @@ class PgWorld(ShowBase.ShowBase):
         else:
             # only report fatal error when debug is False
             _suppress_warning()
+            # a special debug mode
+            if self.pg_config["debug_physics_world"]:
+                self.accept('1', self.toggleDebug)
 
         super(PgWorld, self).__init__(windowType=self.mode)
 
@@ -140,14 +141,13 @@ class PgWorld(ShowBase.ShowBase):
             self.disableMouse()
 
         if not self.pg_config["debug_physics_world"] and (self.mode in [RENDER_MODE_ONSCREEN, RENDER_MODE_OFFSCREEN]):
-            path = AssetLoader.windows_style2unix_style(root_path) if sys.platform == "win32" else root_path
-            AssetLoader.init_loader(self, path)
+            initialize_asset_loader(self)
             gltf.patch_loader(self.loader)
 
             # Display logo
             if self.mode == RENDER_MODE_ONSCREEN:
                 self._loading_logo = OnscreenImage(
-                    image=AssetLoader.file_path(AssetLoader.asset_path, "PGDrive-large.png"),
+                    image=AssetLoader.file_path("PGDrive-large.png"),
                     pos=(0, 0, 0),
                     scale=(self.w_scale, 1, self.h_scale)
                 )
@@ -178,6 +178,9 @@ class PgWorld(ShowBase.ShowBase):
         self.physics_world = BulletWorld()
         self.physics_world.setGroupCollisionFlag(0, 1, True)  # detect ego car collide terrain
         self.physics_world.setGravity(Vec3(0, 0, -9.81))  # set gravity
+
+        # for real time simulation
+        self.force_fps = ForceFPS(self, start=False)
 
         # init terrain
         self.terrain = Terrain()
@@ -227,12 +230,10 @@ class PgWorld(ShowBase.ShowBase):
             # ui and render property
             if self.pg_config["show_fps"]:
                 self.setFrameRateMeter(True)
-            self.force_fps = ForceFPS(
-                1 / (self.pg_config["physics_world_step_size"] * self.pg_config["decision_repeat"]), start=False
-            )
 
             # onscreen message
             self.on_screen_message = PgOnScreenMessage(
+                debug=self.DEBUG
             ) if self.mode == RENDER_MODE_ONSCREEN and self.pg_config["onscreen_message"] else None
             self._show_help_message = False
             self._episode_start_time = time.time()
@@ -259,8 +260,7 @@ class PgWorld(ShowBase.ShowBase):
             self.on_screen_message.update_data(text)
             self.on_screen_message.render()
         if self.mode == RENDER_MODE_ONSCREEN:
-            with self.force_fps:
-                self.sky_box.step()
+            self.sky_box.step()
         if self.highway_render is not None:
             self.highway_render.render()
 
@@ -305,6 +305,7 @@ class PgWorld(ShowBase.ShowBase):
                 # The following two option are exclusive. Only one can be True
                 use_image=False,  # Render the first-view image in screen or buffer
                 use_topdown=False,  # Render the top-down view image in screen or buffer
+                pstats=False
             )
         )
 

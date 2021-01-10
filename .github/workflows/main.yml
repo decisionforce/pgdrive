@@ -1,0 +1,44 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code_style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Check code style
+        run: |
+          pip install "yapf==0.30.0"
+          bash format.sh --test
+  blackbox_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Blackbox tests
+        run: |
+          pip install -e .
+          pip install pytest
+          pip install pytest-cov
+          cd pgdrive/
+          pytest --cov=./ --cov-config=.coveragerc --cov-report=xml -sv tests/
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./pgdrive/coverage.xml
+          fail_ci_if_error: true

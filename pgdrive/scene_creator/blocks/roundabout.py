@@ -2,8 +2,8 @@ import numpy as np
 
 from pgdrive.pg_config.parameter_space import Parameter, BlockParameterSpace
 from pgdrive.pg_config.pg_space import PgSpace
-from pgdrive.scene_creator.basic_utils import CreateAdverseRoad, CreateRoadFrom, sharpbend
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
+from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, sharpbend
 from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
@@ -101,7 +101,7 @@ class Roundabout(Block):
         )
 
         segment_start_node = segment_end_node
-        segment_end_node = self.add_road_node()
+        segment_end_node = self.add_road_node() if part_idx < 3 else self._pre_block_socket.negative_road.start_node
         segment_road = Road(segment_start_node, segment_end_node)
 
         none_cross = CreateRoadFrom(

@@ -1,5 +1,4 @@
 import logging
-import math
 from typing import Set
 
 import numpy as np
@@ -30,7 +29,7 @@ class Lidar:
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
         if show:
             for laser_debug in range(self.laser_num):
-                ball = AssetLoader.loader.loadModel(AssetLoader.file_path(AssetLoader.asset_path, "models", "box.egg"))
+                ball = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "box.egg"))
                 ball.setScale(0.001)
                 ball.setColor(0., 0.5, 0.5, 1)
                 shape = BulletSphereShape(0.1)

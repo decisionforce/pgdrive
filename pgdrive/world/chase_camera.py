@@ -1,4 +1,5 @@
 import queue
+
 from direct.controls.InputState import InputState
 from panda3d.core import Vec3, Camera
 

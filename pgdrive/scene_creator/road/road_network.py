@@ -4,9 +4,12 @@ from typing import List, Tuple, Dict
 
 import numpy as np
 
+from pgdrive.scene_creator import get_road_bounding_box
+from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.lanes.lane import LineType, AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
+from pgdrive.utils.math_utils import get_boxes_bounding_box
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +33,6 @@ class RoadNetwork:
         return ret
 
     def __iadd__(self, other):
-        from pgdrive.scene_creator.basic_utils import Decoration
         set_1 = set(self.graph) - {Decoration.start, Decoration.end}
         set_2 = set(other.graph) - {Decoration.start, Decoration.end}
         if len(set_1.intersection(set_2)) == 0:
@@ -43,7 +45,6 @@ class RoadNetwork:
             raise ValueError("Same start node in two road network")
 
     def __isub__(self, other):
-        from pgdrive.scene_creator.basic_utils import Decoration
         intersection = self.graph.keys() & other.graph.keys() - {Decoration.start, Decoration.end}
         if len(intersection) != 0:
             for k in intersection:
@@ -61,7 +62,6 @@ class RoadNetwork:
         return ret
 
     def get_all_decoration_lanes(self) -> List:
-        from pgdrive.scene_creator.basic_utils import Decoration
         if Decoration.start in self.graph:
             return self.graph[Decoration.start][Decoration.end]
         else:
@@ -70,7 +70,6 @@ class RoadNetwork:
     def update_decoration_lanes(self, lanes):
         if len(lanes) == 0:
             return
-        from pgdrive.scene_creator.basic_utils import Decoration
         if Decoration.start in self.graph:
             self.graph.pop(Decoration.start, None)
         self.graph[Decoration.start] = {Decoration.end: lanes}
@@ -102,8 +101,22 @@ class RoadNetwork:
                     ret.append(lanes)
         return ret
 
+    def get_bounding_box(self):
+        """
+        By using this bounding box, the edge length of x, y direction and the center of this road network can be
+        easily calculated.
+        :return: minimum x value, maximum x value, minimum y value, maximum y value
+        """
+        boxes = []
+        for _from, to_dict in self.graph.items():
+            for _to, lanes in to_dict.items():
+                if len(lanes) == 0:
+                    continue
+                boxes.append(get_road_bounding_box(lanes))
+        res_x_max, res_x_min, res_y_max, res_y_min = get_boxes_bounding_box(boxes)
+        return res_x_min, res_x_max, res_y_min, res_y_max
+
     def remove_road(self, road):
-        from pgdrive.scene_creator.road.road import Road
         assert isinstance(road, Road), "Only Road Type can be deleted"
         ret = self.graph[road.start_node].pop(road.end_node)
         if len(self.graph[road.start_node]) == 0:
@@ -111,7 +124,6 @@ class RoadNetwork:
         return ret
 
     def add_road(self, road, lanes: List):
-        from pgdrive.scene_creator.road.road import Road
         assert isinstance(road, Road), "Only Road Type can be added to road network"
         if road.start_node not in self.graph:
             self.graph[road.start_node] = {}

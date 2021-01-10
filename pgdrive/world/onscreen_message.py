@@ -12,10 +12,9 @@ class PgOnScreenMessage(OnScreenDebug.OnScreenDebug):
     """
     POS = (0.1, -0.2)
 
-    def __init__(self, refresh_plain_text=False):
+    def __init__(self, refresh_plain_text=False, debug=False):
         super(PgOnScreenMessage, self).__init__()
-        from pgdrive.world.pg_world import PgWorld
-        self.debug = PgWorld.DEBUG
+        self.debug = debug
         self.enabled = True
         self.load()
         self.plain_text = set()

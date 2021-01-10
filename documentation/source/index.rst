@@ -1,8 +1,8 @@
-#####################
+######################
 PGDrive Documentation
-#####################
+######################
 
-.. image:: ../../../pgdrive/assets/PGDrive.png
+.. image:: ../../pgdrive/assets/PGDrive.png
    :width: 300
    :align: center 
 
@@ -17,7 +17,8 @@ The key features of PGDrive includes:
 This documentation let you get familiar with the installation and basic utilization of PGDrive.
 Please go through :doc:`install` to install PGDrive and try the examples in :doc:`get_start` to enjoy PGDrive!
 
-You can also visit `our webpage <https://decisionforce.github.io/pgdrive/>`_ and `GitHub repo <https://github.com/decisionforce/pgdrive>`_! Please feel free to contact us if you have any suggestion or ideas!
+Interesting experiment results can be found in `our paper <https://arxiv.org/pdf/2012.13681>`_.
+You can also visit `our webpage <https://decisionforce.github.io/pgdrive/>`_ and `GitHub repo <https://github.com/decisionforce/pgdrive>`_! Please feel free to contact us if you have any suggestions or ideas!
 
 
 Table of Content
@@ -41,5 +42,16 @@ Table of Content
    vehicle_config.rst
    env_config.rst
 
+Citation
+########
 
+If you find this work useful in your project, please consider to cite it through:
 
+.. code-block:: latex
+
+    @article{li2020improving,
+      title={Improving the Generalization of End-to-End Driving through Procedural Generation},
+      author={Li, Quanyi and Peng, Zhenghao and Zhang, Qihang and Qiu, Cong and Liu, Chunxiao and Zhou, Bolei},
+      journal={arXiv preprint arXiv:2012.13681},
+      year={2020}
+    }

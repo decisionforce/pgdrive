@@ -1,25 +1,29 @@
-
-<img align=right width=300px  src="pgdrive/assets/PGDrive.png" />
+<img align=right width=250px  src="pgdrive/assets/PGDrive.png" />
 
 # PGDrive: an open-ended driving simulator with infinite scenes
 
+[![build](https://github.com/decisionforce/pgdrive/workflows/test/badge.svg)](http://github.com/decisionforce/pgdrive/actions)
+[![codecov](https://codecov.io/gh/decisionforce/pgdrive/branch/main/graph/badge.svg?token=1ZYN8L5397)](https://codecov.io/gh/decisionforce/pgdrive)
 [![Documentation](https://readthedocs.org/projects/pgdrive/badge/?version=latest)](https://pgdrive.readthedocs.io)
+[![GitHub license](https://img.shields.io/github/license/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/blob/main/LICENSE.txt)
+[![GitHub stars](https://img.shields.io/github/stars/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/stargazers)
 
-**[ [Website](https://decisionforce.github.io/pgdrive/) | [Github Repo](https://github.com/decisionforce/pgdrive) | [Documentation](https://pgdrive.readthedocs.io/) | [Paper](#) ]**
+
+**[  📺 [Website](https://decisionforce.github.io/pgdrive/) | 🏗 [Github Repo](https://github.com/decisionforce/pgdrive) | 📜 [Documentation](https://pgdrive.readthedocs.io/) | 🎓 [Paper](https://arxiv.org/pdf/2012.13681) ]**
 
 Welcome to PGDrive! PGDrive is an driving simulator with many key features, including:
 
-- **Lightweight**: Extremely easy to download, install and run in almost all platform.
-- **Realistic**: Accurate physics simulation and multiple sensory inputs.
-- **Efficient**: Up to 500 simulation step per second.
-- **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
+- 🎏 **Lightweight**: Extremely easy to download, install and run in almost all platforms.
+- 📷 **Realistic**: Accurate physics simulation and multiple sensory inputs.
+- 🚀 **Efficient**: Up to 500 simulation step per second and easy to parallel.
+- 🗺 **Open-ended**: Support generating infinite scenes and configuring various traffic, vehicle, and environmental settings.
 
 
-<img src="https://raw.githubusercontent.com/decisionforce/decisionforce.github.io/master/projects/pgdrive/panel.png">
+<img src="docs/images/panel.jpg">
 
 
 
-## Quick Start
+## 🛠 Quick Start
 Please install PGDrive via:
 
 ```bash
@@ -43,7 +47,7 @@ python -m pgdrive.examples.profile_pgdrive
 The above script is supposed to be runnable in all places.
 Note that please do not run the above command in the folder that has a sub-folder called `./pgdrive`.
 
-## Examples
+## 🚕 Examples
 
 Please run the following line to drive the car in the environment manually with keyboard!
 
@@ -92,7 +96,7 @@ env.close()
 We also prepare a Colab which demonstrates some basic usage of PGDrive as follows:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/decisionforce/PGDrive/blob/main/pgdrive/examples/Basic%20PGDrive%20Usages.ipynb)
 
-## Predefined environment sets
+## 📦 Predefined environment sets
 
 We also define several Gym environment names, so user can start training in the minimalist manner:
 
@@ -116,8 +120,26 @@ The following table presents some predefined environment names.
 | `PGDrive-training2-v0`  | [7000, 8000)      | 1000           | Thirds set of 1000 environments.                        |
 | ...                     |                   |                | *More map set can be added in response to the requests* |
 
-## Documentations
+## 🏫 Documentations
 
-More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io).
+More information about PGDrive can be found in [PGDrive Documentation](https://pgdrive.readthedocs.io). 
+Besides, the training code of our [paper](https://arxiv.org/pdf/2012.13681) can be found in [this repo](https://github.com/decisionforce/pgdrive-generalization-paper).
+
+## 📎 Citation
 
 
+If you find this work useful in your project, please consider to cite it through:
+
+```
+@article{li2020improving,
+  title={Improving the Generalization of End-to-End Driving through Procedural Generation},
+  author={Li, Quanyi and Peng, Zhenghao and Zhang, Qihang and Qiu, Cong and Liu, Chunxiao and Zhou, Bolei},
+  journal={arXiv preprint arXiv:2012.13681},
+  year={2020}
+}
+```
+
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2d6fabe328a644b49e1269497b741057)](https://www.codacy.com/gh/decisionforce/pgdrive/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=decisionforce/pgdrive&amp;utm_campaign=Badge_Grade)
+[![GitHub contributors](https://img.shields.io/github/contributors/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/graphs/contributors)
+[![GitHub forks](https://img.shields.io/github/forks/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/network)
+[![GitHub issues](https://img.shields.io/github/issues/decisionforce/pgdrive)](https://github.com/decisionforce/pgdrive/issues)

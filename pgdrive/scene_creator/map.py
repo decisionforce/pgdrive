@@ -2,18 +2,22 @@ import copy
 import json
 import logging
 import os
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Iterable
 
 import numpy as np
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_blocks import PgBlock
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
 from pgdrive.scene_creator.basic_utils import Decoration
 from pgdrive.scene_creator.blocks.block import Block
+from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils import AssetLoader, import_pygame
+from pgdrive.world.highway_render.highway_render import LaneGraphics
+from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_world import PgWorld
 
 pygame = import_pygame()
@@ -59,32 +63,20 @@ class Map:
     GENERATE_PARA = "config"
     GENERATE_METHOD = "type"
 
-    # draw with pygame, film size
-    DRAW_MAP_RESOLUTION = 8192  # pix
-
-    def __init__(self, pg_world: PgWorld, big_config: dict = None):
+    def __init__(self, pg_world: PgWorld, map_config: dict = None):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        self.film_size = (self.DRAW_MAP_RESOLUTION, self.DRAW_MAP_RESOLUTION)
+        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         self.config = self.default_config()
-        if big_config:
-            self.config.update(big_config)
+        if map_config:
+            self.config.update(map_config)
+        self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
         self.lane_width = self.config[self.LANE_WIDTH]
         self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
         self.road_network = RoadNetwork()
         self.blocks = []
-
-        self._generate_map(pg_world)
-
-        #  a trick to optimize performance
-        self.road_network.update_indices()
-        self.road_network.build_helper()
-        self._load_to_highway_render(pg_world)
-
-    def _generate_map(self, pg_world):
-        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         generate_type = self.config[self.GENERATE_METHOD]
         if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:
             self._big_generate(parent_node_path, pg_physics_world)
@@ -96,6 +88,11 @@ class Map:
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
 
+        #  a trick to optimize performance
+        self.road_network.update_indices()
+        self.road_network.build_helper()
+        self._load_to_highway_render(pg_world)
+
     @staticmethod
     def default_config():
         return PgConfig(
@@ -104,7 +101,8 @@ class Map:
                 Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
                 Map.LANE_WIDTH: 3.5,
                 Map.LANE_NUM: 3,
-                Map.SEED: 10
+                Map.SEED: 10,
+                "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
             }
         )
 
@@ -117,7 +115,6 @@ class Map:
 
     def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: BulletWorld):
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
-        from pgdrive.scene_creator.blocks.first_block import FirstBlock
         last_block = FirstBlock(
             self.road_network, self.lane_width, self.lane_num, parent_node_path, pg_physics_world, 1
         )
@@ -145,16 +142,12 @@ class Map:
         for block in self.blocks:
             block.detach_from_pg_world(pg_world.physics_world)
 
-    def destroy_map(self, pg_physics_world: BulletWorld):
+    def destroy(self, pg_world: PgWorld):
         for block in self.blocks:
-            block.destroy(pg_physics_world)
+            block.destroy(pg_world=pg_world)
 
     def save_map(self):
-        """
-        This func will generate a json file named 'map_name.json', in 'save_dir'
-        """
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
-        import numpy as np
         map_config = []
         for b in self.blocks:
             assert isinstance(b, Block), "None Block type can not be saved to json file"
@@ -177,6 +170,9 @@ class Map:
         return saved_data
 
     def save_map_to_json(self, map_name: str, save_dir: str = os.path.dirname(__file__)):
+        """
+        This func will generate a json file named 'map_name.json', in 'save_dir'
+        """
         data = self.save_map()
         with open(AssetLoader.file_path(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
             json.dump(data, outfile)
@@ -205,11 +201,9 @@ class Map:
             ret = self.read_map(map_config)
         return ret
 
-    def draw_map_image_on_surface(self, dest_resolution=(512, 512), simple_draw=True) -> pygame.Surface:
-        from pgdrive.world.highway_render.highway_render import LaneGraphics
-        from pgdrive.world.highway_render.world_surface import WorldSurface
+    def draw_maximum_surface(self, simple_draw=True) -> pygame.Surface:
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        b_box = self.get_map_bound_box(self.road_network)
+        b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
@@ -227,101 +221,30 @@ class Map:
                     else:
                         two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
                         LaneGraphics.display(l, surface, two_side)
-        dest_surface = pygame.Surface(dest_resolution)
-        pygame.transform.scale(surface, dest_resolution, dest_surface)
-        return dest_surface
+        return surface
 
-    @staticmethod
-    def get_map_bound_box(road_network):
-        from pgdrive.utils.math_utils import get_road_bound_box
-        res_x_max = -np.inf
-        res_x_min = np.inf
-        res_y_min = np.inf
-        res_y_max = -np.inf
-        for _from, to_dict in road_network.graph.items():
-            for _to, lanes in to_dict.items():
-                if len(lanes) == 0:
-                    continue
-                x_max, x_min, y_max, y_min = get_road_bound_box(lanes)
-                res_x_max = max(res_x_max, x_max)
-                res_x_min = min(res_x_min, x_min)
-                res_y_max = max(res_y_max, y_max)
-                res_y_min = min(res_y_min, y_min)
-        return res_x_min, res_x_max, res_y_min, res_y_max
+    def get_map_image_array(self, resolution: Iterable = (512, 512)) -> Optional[Union[np.ndarray, pygame.Surface]]:
+        import cv2
+        surface = self.draw_maximum_surface()
+        ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution, interpolation=cv2.INTER_LINEAR)
+        return ret
 
-    def get_map_image_array(
-        self,
-        resolution=(512, 512),
-        fill_hole=False,
-        only_black_white=True,
-        return_surface=False,
-        simple_draw=True
-    ) -> Optional[Union[np.ndarray, pygame.Surface]]:
-        surface = self.draw_map_image_on_surface(resolution, simple_draw=simple_draw)
-        if fill_hole:
-            surface = self.fill_hole(surface)
-        if only_black_white:
-            return np.clip(pygame.surfarray.pixels_red(surface), 0.0, 1.0)
-        if return_surface:
-            return surface
-        return pygame.surfarray.array3d(surface)
-
-    def save_map_image(self, resolution=(2048, 2048), fill_hole=False, only_black_white=False, simple_draw=True):
-        surface = self.get_map_image_array(
-            resolution=resolution,
-            fill_hole=fill_hole,
-            only_black_white=only_black_white,
-            return_surface=True,
-            simple_draw=simple_draw
-        )
-        pygame.image.save(surface, "map_{}.png".format(self.random_seed))
-
-    @staticmethod
-    def fill_hole(surface: pygame.Surface):
-        def add_count(x, y, x_size, y_size, count_a):
-            for x_1 in [-1, 0, 1]:
-                for y_1 in [-1, 0, 1]:
-                    if 0 < x + x_1 < x_size and 0 < y + y_1 < y_size:
-                        count_a[x + x_1][y + y_1] += 1
-
-        threshold = 3
-
-        res_surface = surface.copy()
-        height = surface.get_height()
-        width = surface.get_width()
-        count_a = [[0 for _ in range(width)] for _ in range(height)]
-        for i in range(height):
-            for j in range(width):
-                pix = surface.get_at((i, j))
-                if pix == (255, 255, 255, 255):
-                    add_count(i, j, height, width, count_a)
-                    continue
-                if count_a[i][j] >= threshold:
-                    res_surface.set_at((i, j), (255, 255, 255, 255))
-                    continue
-                for k_1 in [-1, 0, 1]:
-                    for k_2 in [-1, 0, 1]:
-                        if k_1 == 0 and k_2 == 0:
-                            continue
-                        if 0 < i + k_1 < height and 0 < j + k_2 < width:
-                            if surface.get_at((i + k_1, j + k_2)) == (255, 255, 255, 255):
-                                add_count(i + k_1, j + k_2, height, width, count_a)
-                        else:
-                            count_a[i][j] += 1
-                        if count_a[i][j] >= threshold:
-                            res_surface.set_at((i, j), (255, 255, 255, 255))
-                            break
-                    if count_a[i][j] >= threshold:
-                        break
-        return res_surface
-
-    def draw_map_with_navi_lines(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
+    def draw_navi_line(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
+        """
+        Use this function to draw the whole map, with a navigation line.
+        :param vehicle: ego vehicle, BaseVehicle Class
+        :param dest_resolution: image resolution
+        :param save: save this image
+        :param navi_line_color: color of navigation line
+        :return: pygame.Surface
+        """
+        self.film_size = (2 * dest_resolution[0], 2 * dest_resolution[1])
         checkpoints = vehicle.routing_localization.checkpoints
-        map_surface = self.draw_map_image_on_surface(dest_resolution=dest_resolution, simple_draw=False)
-        from pgdrive.world.highway_render.highway_render import LaneGraphics
-        from pgdrive.world.highway_render.world_surface import WorldSurface
+        max_surface = self.draw_maximum_surface(simple_draw=False)
+        map_surface = pygame.Surface(dest_resolution)
+        pygame.transform.scale(max_surface, dest_resolution, map_surface)
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        b_box = self.get_map_bound_box(self.road_network)
+        b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
@@ -340,6 +263,7 @@ class Map:
         map_surface.blit(dest_surface, (0, 0))
         if save:
             pygame.image.save(map_surface, "map_{}.png".format(self.random_seed))
+        self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
         return map_surface
 
     def __del__(self):

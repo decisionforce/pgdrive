@@ -1,19 +1,19 @@
+import logging
+import os
 import sys
 
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.utils.math_utils import safe_clip, clip, norm
 from pgdrive.utils.random import get_np_random
 
 
 def import_pygame():
-    import os
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
     import pygame
     return pygame
 
 
 def setup_logger(debug=False):
-    import logging
     logging.basicConfig(
         level=logging.DEBUG if debug else logging.WARNING,
         format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s'

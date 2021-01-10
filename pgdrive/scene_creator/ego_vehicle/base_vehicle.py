@@ -3,11 +3,11 @@ import logging
 import math
 import time
 from collections import deque
-from os import path
 
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
@@ -153,7 +153,7 @@ class BaseVehicle(DynamicElement):
         """
         pos is a 2-d array, and heading is a float (unit degree)
         """
-        heading = np.deg2rad(heading - 90)
+        heading = -np.deg2rad(heading) - np.pi / 2
         self.chassis_np.setPos(Vec3(*pos, 1))
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
         self.update_map_info(map)
@@ -176,12 +176,6 @@ class BaseVehicle(DynamicElement):
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
                 block.node_path.hide(CamMask.DepthCam)
-
-    def get_state(self):
-        pass
-
-    def set_state(self, state):
-        pass
 
     """------------------------------------------- act -------------------------------------------------"""
 
@@ -241,6 +235,10 @@ class BaseVehicle(DynamicElement):
 
     @property
     def heading_theta(self):
+        """
+        Get the heading theta of vehicle, unit [rad]
+        :return:  heading in rad
+        """
         return -(self.chassis_np.getHpr()[0] + 90) / 180 * math.pi
 
     @property
@@ -274,6 +272,8 @@ class BaseVehicle(DynamicElement):
                 lateral = self.position - target_lane.center
             else:
                 lateral = target_lane.center - self.position
+        else:
+            raise ValueError("Unknown target lane type: {}".format(type(target_lane)))
         lateral_norm = norm(lateral[0], lateral[1])
         forward_direction = self.heading
         # print(f"Old forward direction: {self.forward_direction}, new heading {self.heading}")
@@ -354,7 +354,7 @@ class BaseVehicle(DynamicElement):
 
         if self.render:
             model_path = 'models/ferra/scene.gltf'
-            self.chassis_vis = self.loader.loadModel(path.join(AssetLoader.asset_path, model_path))
+            self.chassis_vis = self.loader.loadModel(AssetLoader.file_path(model_path))
             self.chassis_vis.setZ(para[Parameter.vehicle_vis_z])
             self.chassis_vis.setY(para[Parameter.vehicle_vis_y])
             self.chassis_vis.setH(para[Parameter.vehicle_vis_h])
@@ -379,7 +379,7 @@ class BaseVehicle(DynamicElement):
         wheel_np = self.node_path.attachNewNode("wheel")
         if self.render:
             model_path = 'models/yugo/yugotireR.egg' if left else 'models/yugo/yugotireL.egg'
-            wheel_model = self.loader.loadModel(path.join(AssetLoader.asset_path, model_path))
+            wheel_model = self.loader.loadModel(AssetLoader.file_path(model_path))
             wheel_model.reparentTo(wheel_np)
             wheel_model.set_scale(1.4, radius / 0.25, radius / 0.25)
         wheel = self.system.create_wheel()
@@ -489,9 +489,9 @@ class BaseVehicle(DynamicElement):
 
     def destroy(self, _=None):
         self.bullet_nodes.remove(self.chassis_np.node())
-        super(BaseVehicle, self).destroy(self.pg_world.physics_world)
+        super(BaseVehicle, self).destroy(self.pg_world)
         self.pg_world.physics_world.clearContactAddedCallback()
-        self.routing_localization.destory()
+        self.routing_localization.destroy()
         self.routing_localization = None
         if self.lidar is not None:
             self.lidar.destroy()
@@ -503,6 +503,33 @@ class BaseVehicle(DynamicElement):
         if self.vehicle_panel is not None:
             self.vehicle_panel.destroy(self.pg_world)
         self.pg_world = None
+
+    def set_position(self, position):
+        """
+        Should only be called when restore traffic from episode data
+        :param position: 2d array or list
+        :return: None
+        """
+        self.chassis_np.setPos(Vec3(position[0], -position[1], 0.4))
+
+    def set_heading(self, heading_theta) -> None:
+        """
+        Should only be called when restore traffic from episode data
+        :param heading_theta: float in rad
+        :return: None
+        """
+        self.chassis_np.setH((-heading_theta * 180 / np.pi) - 90)
+
+    def get_state(self):
+        return {
+            "heading": self.heading_theta,
+            "position": self.position.tolist(),
+            "done": self.crash or self.out_of_road
+        }
+
+    def set_state(self, state: dict):
+        self.set_heading(state["heading"])
+        self.set_position(state["position"])
 
     def __del__(self):
         super(BaseVehicle, self).__del__()

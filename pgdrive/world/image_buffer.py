@@ -3,6 +3,7 @@ from typing import Union, List
 
 import numpy as np
 from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
+
 from pgdrive.world import RENDER_MODE_ONSCREEN
 
 
@@ -114,7 +115,7 @@ class ImageBuffer:
 
     def destroy(self, pg_world):
         if pg_world is not None:
-            if pg_world.mode == RENDER_MODE_ONSCREEN:
+            if pg_world.mode == RENDER_MODE_ONSCREEN and self.display_region:
                 pg_world.win.removeDisplayRegion(self.display_region)
             pg_world.graphicsEngine.removeWindow(self.buffer)
             self.display_region = None

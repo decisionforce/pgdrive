@@ -6,7 +6,7 @@ import numpy as np
 
 import pgdrive.utils.math_utils as utils
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
-from pgdrive.scene_manager.traffic_manager import TrafficManager, LaneIndex, Route
+from pgdrive.scene_manager.scene_manager import SceneManager, LaneIndex, Route
 from pgdrive.utils.math_utils import clip
 
 
@@ -32,7 +32,7 @@ class ControlledVehicle(Vehicle):
 
     def __init__(
         self,
-        road: TrafficManager,
+        road: SceneManager,
         position: List,
         heading: float = 0,
         speed: float = 0,
@@ -225,7 +225,7 @@ class MDPVehicle(ControlledVehicle):
 
     def __init__(
         self,
-        scene: TrafficManager,
+        scene: SceneManager,
         position: List[float],
         heading: float = 0,
         speed: float = 0,
