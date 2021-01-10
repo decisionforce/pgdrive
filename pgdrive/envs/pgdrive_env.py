@@ -540,3 +540,7 @@ class PGDriveEnv(gym.Env):
 
     def toggle_expert_take_over(self):
         self._expert_take_over = not self._expert_take_over
+
+    @property
+    def initialized(self) -> bool:
+        return self.pg_world is not None
