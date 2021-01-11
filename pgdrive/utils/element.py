@@ -46,7 +46,7 @@ class Element:
         # logging.debug("Read config to " + self.class_name)
         self._config.update(copy.copy(config))
 
-    def attach_to_pg_world(self, parent_node_path: NodePath, pg_physics_world:PgPhysicsWorld):
+    def attach_to_pg_world(self, parent_node_path: NodePath, pg_physics_world: PgPhysicsWorld):
         if self.render:
             # double check :-)
             assert isinstance(self.node_path, NodePath), "No render model on node_path in this Element"

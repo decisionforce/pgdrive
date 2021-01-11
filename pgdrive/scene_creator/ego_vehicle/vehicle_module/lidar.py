@@ -42,7 +42,7 @@ class Lidar:
                 ball.getChildren().reparentTo(laser_np)
             # self.node_path.flattenStrong()
 
-    def perceive(self, vehicle_position, heading_theta, pg_physics_world:PgPhysicsWorld):
+    def perceive(self, vehicle_position, heading_theta, pg_physics_world: PgPhysicsWorld):
         """
         Call me to update the perception info
         """

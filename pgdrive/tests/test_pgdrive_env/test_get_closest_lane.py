@@ -2,8 +2,15 @@ from pgdrive.envs.pgdrive_env import PGDriveEnv
 
 
 def test_get_lane_index(use_render=False):
-    env = PGDriveEnv({"map": "rRCXSOTCR", "environment_num": 1, "traffic_density": 0.3, "traffic_mode": "reborn",
-                      "use_render": use_render})
+    env = PGDriveEnv(
+        {
+            "map": "rRCXSOTCR",
+            "environment_num": 1,
+            "traffic_density": 0.3,
+            "traffic_mode": "reborn",
+            "use_render": use_render
+        }
+    )
 
     o = env.reset()
     for i in range(1, 1000):
