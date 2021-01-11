@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Union, List
-
+from pgdrive.world.pg_physics_world import PgPhysicsWorld
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletWorld
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
@@ -110,12 +110,16 @@ class Block(Element, BlockDefault):
         self.attach_to_pg_world(root_render_np, pg_physics_world)
         return success
 
-    def destruct_block(self, pg_physics_world: BulletWorld):
+    def destruct_block(self, pg_physics_world: PgPhysicsWorld):
         self._clear_topology()
         if len(self.dynamic_nodes) != 0:
             for node in self.dynamic_nodes:
-                pg_physics_world.remove(node)
+                pg_physics_world.dynamic_world.remove(node)
             self.dynamic_nodes.clear()
+        if len(self.static_nodes) != 0:
+            for node in self.static_nodes:
+                pg_physics_world.static_world.remove(node)
+            self.static_nodes.clear()
         if self.node_path is not None:
             self.node_path.removeNode()
             self.node_path = None
