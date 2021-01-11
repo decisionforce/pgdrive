@@ -1,12 +1,13 @@
 import copy
 import logging
 from typing import Dict
-from pgdrive.world.pg_physics_world import PgPhysicsWorld
+
 from panda3d.core import NodePath
 
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.pg_space import PgSpace
 from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.world.pg_physics_world import PgPhysicsWorld
 
 
 class Element:

@@ -1,11 +1,11 @@
 from typing import Union
-from pgdrive.pg_config.collision_group import CollisionGroup
+
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
 
-from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.pg_config.body_name import BodyName
+from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
@@ -13,6 +13,7 @@ from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import get_np_random
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
+from pgdrive.utils.scene_utils import ray_localization
 
 
 class PgTrafficVehicleNode(BulletRigidBodyNode):

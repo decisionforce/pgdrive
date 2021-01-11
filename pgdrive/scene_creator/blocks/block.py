@@ -1,8 +1,8 @@
 import logging
 from typing import Dict, Union, List
-from pgdrive.world.pg_physics_world import PgPhysicsWorld
+
 import numpy
-from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletWorld
+from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
     TransparencyAttrib, SamplerState, NodePath
 
@@ -17,6 +17,7 @@ from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import Element
 from pgdrive.utils.math_utils import norm
+from pgdrive.world.pg_physics_world import PgPhysicsWorld
 
 
 class BlockSocket:
@@ -100,7 +101,7 @@ class Block(Element, BlockDefault):
             self.side_normal = self.loader.loadTexture(AssetLoader.file_path("textures", "side_walk", "normal.png"))
             self.side_walk = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
 
-    def construct_block(self, root_render_np: NodePath, pg_physics_world: BulletWorld) -> bool:
+    def construct_block(self, root_render_np: NodePath, pg_physics_world: PgPhysicsWorld) -> bool:
         """
         Randomly Construct a block, if overlap return False
         """
@@ -136,7 +137,7 @@ class Block(Element, BlockDefault):
         self._global_network += self.block_network
         return no_cross
 
-    def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: BulletWorld):
+    def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PgPhysicsWorld):
         assert set(config.keys()) == self.PARAMETER_SPACE.parameters, \
             "Make sure the parameters' name are as same as what defined in parameter_space.py"
         self.set_config(config)

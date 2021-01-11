@@ -1,5 +1,5 @@
-from pgdrive.scene_creator.lanes.lane import LineType
 from pgdrive.pg_config.collision_group import CollisionGroup
+from pgdrive.scene_creator.lanes.lane import LineType
 
 
 class BlockDefault:

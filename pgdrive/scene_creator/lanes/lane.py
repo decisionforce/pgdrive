@@ -1,9 +1,11 @@
 import math
 from abc import ABCMeta, abstractmethod
 from typing import Tuple, Union, Sequence
-from panda3d.bullet import BulletGhostNode, BulletRigidBodyNode
-from pgdrive.pg_config.body_name import BodyName
+
 import numpy as np
+from panda3d.bullet import BulletRigidBodyNode
+
+from pgdrive.pg_config.body_name import BodyName
 
 Vector = Union[np.ndarray, Sequence[float]]
 

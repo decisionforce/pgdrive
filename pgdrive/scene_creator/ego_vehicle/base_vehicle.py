@@ -5,16 +5,15 @@ import time
 from collections import deque
 
 import numpy as np
-from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletWorld, BulletGhostNode
+from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
-from pgdrive.pg_config.collision_group import CollisionGroup
-from pgdrive.utils.scene_utils import ray_localization
+
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
+from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
 from pgdrive.pg_config.pg_space import PgSpace
-from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
@@ -22,16 +21,15 @@ from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
-from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle import PgTrafficVehicle
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world import RENDER_MODE_ONSCREEN
 from pgdrive.world.constants import COLOR, COLLISION_INFO_COLOR
 from pgdrive.world.image_buffer import ImageBuffer
-from pgdrive.world.pg_world import PgWorld
 from pgdrive.world.pg_physics_world import PgPhysicsWorld
-from pgdrive.world.terrain import Terrain
+from pgdrive.world.pg_world import PgWorld
 
 
 class BaseVehicle(DynamicElement):
