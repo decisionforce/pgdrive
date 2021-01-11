@@ -112,10 +112,10 @@ class Block(Element, BlockDefault):
 
     def destruct_block(self, pg_physics_world: BulletWorld):
         self._clear_topology()
-        if len(self.bullet_nodes) != 0:
-            for node in self.bullet_nodes:
+        if len(self.dynamic_nodes) != 0:
+            for node in self.dynamic_nodes:
                 pg_physics_world.remove(node)
-            self.bullet_nodes.clear()
+            self.dynamic_nodes.clear()
         if self.node_path is not None:
             self.node_path.removeNode()
             self.node_path = None
@@ -351,7 +351,7 @@ class Block(Element, BlockDefault):
         shape = BulletBoxShape(Vec3(length / 2, Block.LANE_LINE_WIDTH / 2, Block.LANE_LINE_THICKNESS))
         body_np.node().addShape(shape)
         body_np.node().setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
-        self.bullet_nodes.append(body_np.node())
+        self.dynamic_nodes.append(body_np.node())
 
         body_np.setPos(middle[0], -middle[1], 0)
         direction_v = lane_end - lane_start
@@ -389,7 +389,7 @@ class Block(Element, BlockDefault):
             shape = BulletBoxShape(Vec3(scale / 2, Block.LANE_LINE_WIDTH / 2, Block.LANE_LINE_THICKNESS))
             body_np.node().addShape(shape)
             body_np.node().setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
-            self.bullet_nodes.append(body_np.node())
+            self.dynamic_nodes.append(body_np.node())
 
         # position and heading
         body_np.setPos(middle[0], -middle[1], 0)
@@ -414,7 +414,7 @@ class Block(Element, BlockDefault):
         shape = BulletBoxShape(Vec3(1 / 2, 1 / 2, 1 / 2))
         body_node.addShape(shape)
         body_node.setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
-        self.bullet_nodes.append(body_node)
+        self.dynamic_nodes.append(body_node)
 
         if radius == 0:
             factor = 1
@@ -483,7 +483,7 @@ class Block(Element, BlockDefault):
         shape = BulletBoxShape(Vec3(length / 2, 0.1, width / 2))
         segment_node.addShape(shape)
         segment_node.setIntoCollideMask(BitMask32.bit(Block.LANE_SURFACE_COLLISION_MASK))
-        self.static_bullet_nodes.append(segment_node)
+        self.static_nodes.append(segment_node)
         segment_np.setPos(middle[0], -middle[1], -0.1)
         segment_np.setQuat(
             LQuaternionf(

@@ -20,7 +20,7 @@ class Terrain(Element):
         node.addShape(shape)
 
         node.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
-        self.bullet_nodes.append(node)
+        self.dynamic_nodes.append(node)
 
         self.node_path = NodePath(node)
         if self.render:

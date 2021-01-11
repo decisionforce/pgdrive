@@ -5,9 +5,8 @@ from typing import Optional, Union
 import gltf
 from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
-from panda3d.bullet import BulletDebugNode, BulletWorld
-from panda3d.core import Vec3, AntialiasAttrib, NodePath, loadPrcFileData, LineSegs
-from pgdrive.pg_config.collision_group import CollisionGroup
+from panda3d.bullet import BulletDebugNode
+from panda3d.core import AntialiasAttrib, NodePath, loadPrcFileData, LineSegs
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.utils import is_mac, setup_logger
@@ -19,6 +18,7 @@ from pgdrive.world.highway_render.highway_render import HighwayRender
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.light import Light
 from pgdrive.world.onscreen_message import PgOnScreenMessage
+from pgdrive.world.pg_physics_world import PgPhysicsWorld
 from pgdrive.world.sky_box import SkyBox
 from pgdrive.world.terrain import Terrain
 
@@ -175,11 +175,7 @@ class PgWorld(ShowBase.ShowBase):
         self.collision_info_np = None
 
         # physics world
-        self.physics_world = BulletWorld()
-        # this world should not execute doPhysics(), it only used to do sweepTest or rayTest, it is a static world!
-        self.static_physics_world = BulletWorld()
-        CollisionGroup.set_collision_rule(self.physics_world)
-        self.physics_world.setGravity(Vec3(0, 0, -9.81))  # set gravity
+        self.physics_world = PgPhysicsWorld()
 
         # for real time simulation
         self.force_fps = ForceFPS(self, start=False)
@@ -313,7 +309,7 @@ class PgWorld(ShowBase.ShowBase):
 
     def step(self):
         dt = self.pg_config["physics_world_step_size"]
-        self.physics_world.doPhysics(dt, 1, dt)
+        self.physics_world.dynamic_world.doPhysics(dt, 1, dt)
 
     def _debug_mode(self):
         debugNode = BulletDebugNode('Debug')
@@ -322,7 +318,7 @@ class PgWorld(ShowBase.ShowBase):
         debugNode.showBoundingBoxes(False)
         debugNode.showNormals(True)
         debugNP = self.render.attachNewNode(debugNode)
-        self.physics_world.setDebugNode(debugNP.node())
+        self.physics_world.dynamic_world.setDebugNode(debugNP.node())
         self.debug_node = debugNP
 
     def toggleAnalyze(self):
@@ -338,12 +334,7 @@ class PgWorld(ShowBase.ShowBase):
             self.debug_node.hide()
 
     def report_body_nums(self, task):
-        logging.debug(
-            "Body Nums: {}".format(
-                self.physics_world.getNumRigidBodies() + self.physics_world.getNumGhosts() +
-                self.physics_world.getNumVehicles()
-            )
-        )
+        logging.debug(self.physics_world.report_bodies())
         return task.done
 
     def close_world(self):
@@ -363,17 +354,8 @@ class PgWorld(ShowBase.ShowBase):
         )
         # while self.taskMgr.getAllTasks():
         #     time.sleep(0.1)
+        self.physics_world.destroy()
         self.destroy()
-        self.physics_world.clearDebugNode()
-        self.physics_world.clearContactAddedCallback()
-        self.physics_world.clearFilterCallback()
-
-        self.static_physics_world.clearDebugNode()
-        self.static_physics_world.clearContactAddedCallback()
-        self.static_physics_world.clearFilterCallback()
-
-        # del self.physics_world  # Will cause error if del it.
-        self.static_physics_world = None
 
     def toggle_help_message(self):
         if self.on_screen_message:

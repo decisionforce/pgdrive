@@ -1,6 +1,6 @@
 import logging
 from typing import Set
-
+from pgdrive.world.pg_physics_world import PgPhysicsWorld
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape
 from panda3d.core import Point3, BitMask32, Vec3, NodePath
@@ -41,7 +41,7 @@ class Lidar:
                 ball.getChildren().reparentTo(laser_np)
             # self.node_path.flattenStrong()
 
-    def perceive(self, vehicle_position, heading_theta, pg_physics_world):
+    def perceive(self, vehicle_position, heading_theta, pg_physics_world:PgPhysicsWorld):
         """
         Call me to update the perception info
         """
@@ -58,7 +58,7 @@ class Lidar:
         for laser_index in range(self.laser_num):
             # # coordinates problem here! take care
             laser_end = Point3(point_x[laser_index], -point_y[laser_index], 1.0)
-            result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
+            result = pg_physics_world.dynamic_world.rayTestClosest(pg_start_position, laser_end, mask)
             self.detection_results.append(result)
             if self.cloud_points is not None:
                 if result.hasHit():

@@ -55,7 +55,7 @@ class PgTrafficVehicle(DynamicElement):
         self.vehicle_node.setKinematic(False)
         self.vehicle_node.setStatic(True)
         self._initial_state = kinematic_model if enable_reborn else None
-        self.bullet_nodes.append(self.vehicle_node)
+        self.dynamic_nodes.append(self.vehicle_node)
         self.node_path = NodePath(self.vehicle_node)
         self.out_of_road = False
 

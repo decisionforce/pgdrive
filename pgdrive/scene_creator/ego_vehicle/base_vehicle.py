@@ -30,6 +30,7 @@ from pgdrive.world import RENDER_MODE_ONSCREEN
 from pgdrive.world.constants import COLOR, COLLISION_INFO_COLOR
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_world import PgWorld
+from pgdrive.world.pg_physics_world import PgPhysicsWorld
 from pgdrive.world.terrain import Terrain
 
 
@@ -312,7 +313,7 @@ class BaseVehicle(DynamicElement):
 
     """-------------------------------------- for vehicle making ------------------------------------------"""
 
-    def _add_chassis(self, pg_physics_world: BulletWorld):
+    def _add_chassis(self, pg_physics_world: PgPhysicsWorld):
         para = self.get_config()
         chassis = BulletRigidBodyNode(BodyName.Ego_vehicle_top)
         chassis.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
@@ -332,18 +333,18 @@ class BaseVehicle(DynamicElement):
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
         chassis.setDeactivationEnabled(False)
         chassis.notifyCollisions(True)  # advance collision check
-        self.pg_world.physics_world.setContactAddedCallback(PythonCallbackObject(self._collision_check))
-        self.bullet_nodes.append(chassis)
+        self.pg_world.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(self._collision_check))
+        self.dynamic_nodes.append(chassis)
 
         chassis_beneath = BulletGhostNode(BodyName.Ego_vehicle)
         chassis_beneath.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
         chassis_beneath.addShape(chassis_shape)
         self.chassis_beneath_np = self.chassis_np.attachNewNode(chassis_beneath)
-        self.bullet_nodes.append(chassis_beneath)
+        self.dynamic_nodes.append(chassis_beneath)
 
-        self.system = BulletVehicle(pg_physics_world, chassis)
+        self.system = BulletVehicle(pg_physics_world.dynamic_world, chassis)
         self.system.setCoordinateSystem(ZUp)
-        self.bullet_nodes.append(self.system)  # detach chassis will also detach system, so a waring will generate
+        self.dynamic_nodes.append(self.system)  # detach chassis will also detach system, so a waring will generate
         self.LENGTH = para[Parameter.vehicle_length]
         self.WIDTH = para[Parameter.vehicle_width]
 
@@ -419,7 +420,7 @@ class BaseVehicle(DynamicElement):
         """
         Check States and filter to update info
         """
-        result = self.pg_world.physics_world.contactTest(self.chassis_beneath_np.node(), True)
+        result = self.pg_world.physics_world.dynamic_world.contactTest(self.chassis_beneath_np.node(), True)
         contacts = set()
         for contact in result.getContacts():
             node0 = contact.getNode0()
@@ -490,9 +491,9 @@ class BaseVehicle(DynamicElement):
             self.current_banner = new_banner
 
     def destroy(self, _=None):
-        self.bullet_nodes.remove(self.chassis_np.node())
+        self.dynamic_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world)
-        self.pg_world.physics_world.clearContactAddedCallback()
+        self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None
         if self.lidar is not None:

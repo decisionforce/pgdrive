@@ -128,7 +128,7 @@ def ray_localization(position: np.ndarray, pg_world: PgWorld) -> Tuple:
     :param pg_world: PgWorld class
     :return: the index of the closest lane.
     """
-    results = pg_world.physics_world.rayTestAll(
+    results = pg_world.physics_world.static_world.rayTestAll(
         Vec3(position[0], -position[1], 1.0), Vec3(position[0], -position[1], -1)
     )
     lane_index_dist = []

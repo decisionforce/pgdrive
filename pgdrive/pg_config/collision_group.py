@@ -1,3 +1,6 @@
+from panda3d.bullet import BulletWorld
+
+
 class CollisionGroup:
     Terrain = 2
     Ego_Vehicle = 1
@@ -6,30 +9,30 @@ class CollisionGroup:
     Lane_surface = 5
 
     @classmethod
-    def set_collision_rule(cls, pg_physics_world):
+    def set_collision_rule(cls, dynamic_world: BulletWorld):
         # terrain collision
-        pg_physics_world.setGroupCollisionFlag(cls.Terrain, cls.Terrain, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Terrain, cls.Lane_line, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Terrain, cls.Lane_surface, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Terrain, cls.Ego_Vehicle, True)
+        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Terrain, False)
+        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Lane_line, False)
+        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Lane_surface, False)
+        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Ego_Vehicle, True)
         # change it after we design a new traffic system !
-        pg_physics_world.setGroupCollisionFlag(cls.Terrain, cls.Traffic_vehicle, False)
+        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Traffic_vehicle, False)
 
         # block collision
-        pg_physics_world.setGroupCollisionFlag(cls.Lane_line, cls.Lane_line, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Lane_line, cls.Lane_surface, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Lane_line, cls.Ego_Vehicle, True)
+        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Lane_line, False)
+        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Lane_surface, False)
+        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Ego_Vehicle, True)
         # change it after we design a new traffic system !
-        pg_physics_world.setGroupCollisionFlag(cls.Lane_line, cls.Traffic_vehicle, False)
+        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Traffic_vehicle, False)
 
         # traffic vehicles collision
-        pg_physics_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Traffic_vehicle, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Lane_surface, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Ego_Vehicle, True)
+        dynamic_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Traffic_vehicle, False)
+        dynamic_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Lane_surface, False)
+        dynamic_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Ego_Vehicle, True)
 
         # ego vehicle collision
-        pg_physics_world.setGroupCollisionFlag(cls.Ego_Vehicle, cls.Ego_Vehicle, False)
-        pg_physics_world.setGroupCollisionFlag(cls.Ego_Vehicle, cls.Lane_surface, False)
+        dynamic_world.setGroupCollisionFlag(cls.Ego_Vehicle, cls.Ego_Vehicle, False)
+        dynamic_world.setGroupCollisionFlag(cls.Ego_Vehicle, cls.Lane_surface, False)
 
         # lane surface
-        pg_physics_world.setGroupCollisionFlag(cls.Lane_surface, cls.Lane_surface, False)
+        dynamic_world.setGroupCollisionFlag(cls.Lane_surface, cls.Lane_surface, False)
