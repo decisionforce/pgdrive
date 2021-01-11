@@ -11,7 +11,7 @@ from pgdrive.utils.element import Element
 
 class Terrain(Element):
     COLLISION_MASK = CollisionGroup.Terrain
-    HEIGHT = -0.1
+    HEIGHT = 0.0
 
     def __init__(self):
         super(Terrain, self).__init__()
