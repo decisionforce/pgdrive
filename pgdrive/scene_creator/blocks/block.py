@@ -26,6 +26,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -47,6 +48,7 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -74,6 +76,9 @@ class Block(Element, BlockDefault):
         # used to connect previous blocks, save its info here
         self._pre_block_socket = pre_block_socket
         self.pre_block_socket_index = pre_block_socket.index
+
+        # a bounding box used to improve efficiency x_min, x_max, y_min, y_max
+        self.bounding_box = None
 
         # used to create this block, but for first block it is nonsense
         if block_index != 0:
@@ -270,6 +275,8 @@ class Block(Element, BlockDefault):
         self.lane_node_path.reparentTo(self.node_path)
         self.lane_vis_node_path.reparentTo(self.node_path)
 
+        self.bounding_box = self.block_network.get_bounding_box()
+
     def _add_lane(self, lane: AbstractLane, lane_id: int, colors: List[Vec4]):
         parent_np = self.lane_line_node_path
         lane_width = lane.width_at(0)
@@ -362,14 +369,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
