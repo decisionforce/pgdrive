@@ -120,7 +120,6 @@ class SceneManager:
         """
         Create vehicles on one lane
         :param lane: Straight lane or Circular lane
-        :param start_index: vehicle start index
         :param is_reborn_lane: Vehicles will be reborn when set to True
         :return: None
         """
