@@ -49,13 +49,13 @@ class SceneManager:
         self.record_system = None
 
     def reset(
-            self,
-            pg_world: PgWorld,
-            map: Map,
-            ego_vehicle,
-            traffic_density: float,
-            road_objects: List = None,
-            episode_data=None
+        self,
+        pg_world: PgWorld,
+        map: Map,
+        ego_vehicle,
+        traffic_density: float,
+        road_objects: List = None,
+        episode_data=None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -185,7 +185,7 @@ class SceneManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
