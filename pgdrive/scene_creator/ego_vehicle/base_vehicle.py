@@ -24,6 +24,7 @@ from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world import RENDER_MODE_ONSCREEN
 from pgdrive.world.constants import COLOR, COLLISION_INFO_COLOR
@@ -45,7 +46,7 @@ class BaseVehicle(DynamicElement):
                     2       3
     """
     PARAMETER_SPACE = PgSpace(VehicleParameterSpace.BASE_VEHICLE)  # it will not sample config from parameter space
-    COLLISION_MASK = CollisionGroup.Ego_Vehicle
+    COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
     default_vehicle_config = PgConfig(
@@ -210,8 +211,7 @@ class BaseVehicle(DynamicElement):
 
     @property
     def position(self):
-        pos_3d = self.chassis_np.getPos()
-        return np.array([pos_3d[0], -pos_3d[1]])
+        return pgdrive_position(self.chassis_np.getPos())
 
     @property
     def speed(self):
@@ -233,7 +233,7 @@ class BaseVehicle(DynamicElement):
         Get the heading theta of vehicle, unit [rad]
         :return:  heading in rad
         """
-        return -(self.chassis_np.getHpr()[0] + 90) / 180 * math.pi
+        return (pgdrive_heading(self.chassis_np.getH()) - 90) / 180 * math.pi
 
     @property
     def velocity(self) -> np.ndarray:
@@ -276,8 +276,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -511,7 +511,7 @@ class BaseVehicle(DynamicElement):
         :param position: 2d array or list
         :return: None
         """
-        self.chassis_np.setPos(Vec3(position[0], -position[1], 0.4))
+        self.chassis_np.setPos(panda_position(position, 0.4))
 
     def set_heading(self, heading_theta) -> None:
         """
@@ -519,7 +519,7 @@ class BaseVehicle(DynamicElement):
         :param heading_theta: float in rad
         :return: None
         """
-        self.chassis_np.setH((-heading_theta * 180 / np.pi) - 90)
+        self.chassis_np.setH((panda_heading(heading_theta) * 180 / np.pi) - 90)
 
     def get_state(self):
         return {

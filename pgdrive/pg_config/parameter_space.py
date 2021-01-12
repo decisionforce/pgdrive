@@ -3,7 +3,7 @@ from pgdrive.pg_config.pg_space import PgBoxSpace, PgDiscreteSpace, PgConstantSp
 
 class Parameter:
     """
-    Lane_line parameters and vehicle parameters
+    Block parameters and vehicle parameters
     """
     # block
     length = "length"

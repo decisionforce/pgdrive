@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Union, List
-
+from pgdrive.utils.coordinates_shift import panda_heading, panda_position
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
@@ -26,6 +26,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -34,7 +35,7 @@ class BlockSocket:
 
 class Block(Element, BlockDefault):
     """
-    Abstract class of Lane_line,
+    Abstract class of Block,
     BlockSocket: a part of previous block connecting this block
 
     <----------------------------------------------
@@ -47,10 +48,11 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
-        assert self.ID is not None, "Each Lane_line must has its unique ID When define Lane_line"
+        assert self.ID is not None, "Each Block must has its unique ID When define Block"
         assert self.SOCKET_NUM is not None, "The number of Socket should be specified when define a new block"
         if block_index == 0:
             from pgdrive.scene_creator.blocks import FirstBlock
@@ -226,7 +228,7 @@ class Block(Element, BlockDefault):
 
     def _try_plug_into_previous_block(self) -> bool:
         """
-        Try to plug this Lane_line to previous block's socket, return True for success, False for road cross
+        Try to plug this Block to previous block's socket, return True for success, False for road cross
         """
         raise NotImplementedError
 
@@ -356,20 +358,20 @@ class Block(Element, BlockDefault):
         body_np.node().setIntoCollideMask(BitMask32.bit(Block.LANE_LINE_COLLISION_MASK))
         self.dynamic_nodes.append(body_np.node())
 
-        body_np.setPos(middle[0], -middle[1], 0)
+        body_np.setPos(panda_position(middle, 0))
         direction_v = lane_end - lane_start
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -395,7 +397,7 @@ class Block(Element, BlockDefault):
             self.dynamic_nodes.append(body_np.node())
 
         # position and heading
-        body_np.setPos(middle[0], -middle[1], 0)
+        body_np.setPos(panda_position(middle, 0))
         direction_v = lane_end - lane_start
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
@@ -429,7 +431,7 @@ class Block(Element, BlockDefault):
         direction_v = lane_end - lane_start
         vertical_v = (-direction_v[1], direction_v[0]) / numpy.linalg.norm(direction_v)
         middle += vertical_v * (self.SIDE_WALK_WIDTH / 2 + self.SIDE_WALK_LINE_DIST)
-        side_np.setPos(middle[0], -middle[1], 0)
+        side_np.setPos(panda_position(middle, 0))
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         side_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
         side_np.setScale(
@@ -485,9 +487,8 @@ class Block(Element, BlockDefault):
         segment_node.setStatic(True)
         shape = BulletBoxShape(Vec3(length / 2, 0.1, width / 2))
         segment_node.addShape(shape)
-        segment_node.setIntoCollideMask(BitMask32.bit(Block.LANE_SURFACE_COLLISION_MASK))
         self.static_nodes.append(segment_node)
-        segment_np.setPos(middle[0], -middle[1], -0.1)
+        segment_np.setPos(panda_position(middle, -0.1))
         segment_np.setQuat(
             LQuaternionf(
                 numpy.cos(theta / 2) * numpy.cos(-numpy.pi / 4),
@@ -502,7 +503,7 @@ class Block(Element, BlockDefault):
             cm.setHasNormals(True)
             cm.setUvRange((0, 0), (length / 20, width / 10))
             card = self.lane_vis_node_path.attachNewNode(cm.generate())
-            card.setPos(middle[0], -middle[1], numpy.random.rand() * 0.01 - 0.01)
+            card.setPos(panda_position(middle, numpy.random.rand() * 0.01 - 0.01))
 
             card.setQuat(
                 LQuaternionf(

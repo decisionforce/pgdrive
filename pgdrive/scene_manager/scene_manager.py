@@ -49,13 +49,13 @@ class SceneManager:
         self.record_system = None
 
     def reset(
-        self,
-        pg_world: PgWorld,
-        map: Map,
-        ego_vehicle,
-        traffic_density: float,
-        road_objects: List = None,
-        episode_data=None
+            self,
+            pg_world: PgWorld,
+            map: Map,
+            ego_vehicle,
+            traffic_density: float,
+            road_objects: List = None,
+            episode_data=None
     ):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -72,8 +72,10 @@ class SceneManager:
         self.vehicles = [ego_vehicle]  # it is used to perform IDM and bicycle model based motion
         if self.replay_system is not None:
             self.replay_system.destroy(pg_world)
+            self.replay_system = None
         if self.record_system is not None:
             self.record_system.destroy(pg_world)
+            self.record_system = None
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self.objects = road_objects or []
         self.random_seed = random_seed
@@ -184,7 +186,7 @@ class SceneManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -228,11 +230,12 @@ class SceneManager:
             self.vehicles.remove(v.vehicle_node.kinematic_model)
             v.destroy(pg_world)
 
-        if self.record_system is not None:
-            self.record_system.record_frame(self.get_global_states())
-
         if self.replay_system is not None:
             self.replay_system.replay_frame(self.ego_vehicle, pg_world)
+        elif self.record_system is not None:
+            # didn't record while replay
+            self.record_system.record_frame(self.get_global_states())
+
         return False
 
     def neighbour_vehicles(self, vehicle, lane_index: LaneIndex = None) -> Tuple:

@@ -3,36 +3,43 @@ from panda3d.bullet import BulletWorld
 
 class CollisionGroup:
     Terrain = 2
-    Ego_Vehicle = 1
-    Lane_line = 3
-    Traffic_vehicle = 4
-    Lane_surface = 5
+    EgoVehicle = 1
+    LaneLine = 3
+    TrafficVehicle = 4
+    LaneSurface = 5  # useless now, since it is in another physics world
+
+    @classmethod
+    def collision_rules(cls):
+        return [
+            # terrain collision
+            (cls.Terrain, cls.Terrain, False),
+            (cls.Terrain, cls.LaneLine, False),
+            (cls.Terrain, cls.LaneSurface, False),
+            (cls.Terrain, cls.EgoVehicle, True),
+            # change it after we design a new traffic system !
+            (cls.Terrain, cls.TrafficVehicle, False),
+
+            # block collision
+            (cls.LaneLine, cls.LaneLine, False),
+            (cls.LaneLine, cls.LaneSurface, False),
+            (cls.LaneLine, cls.EgoVehicle, True),
+            # change it after we design a new traffic system !
+            (cls.LaneLine, cls.TrafficVehicle, False),
+
+            # traffic vehicles collision
+            (cls.TrafficVehicle, cls.TrafficVehicle, False),
+            (cls.TrafficVehicle, cls.LaneSurface, False),
+            (cls.TrafficVehicle, cls.EgoVehicle, True),
+
+            # ego vehicle collision
+            (cls.EgoVehicle, cls.EgoVehicle, False),
+            (cls.EgoVehicle, cls.LaneSurface, False),
+
+            # lane surface
+            (cls.LaneSurface, cls.LaneSurface, False),
+        ]
 
     @classmethod
     def set_collision_rule(cls, dynamic_world: BulletWorld):
-        # terrain collision
-        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Terrain, False)
-        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Lane_line, False)
-        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Lane_surface, False)
-        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Ego_Vehicle, True)
-        # change it after we design a new traffic system !
-        dynamic_world.setGroupCollisionFlag(cls.Terrain, cls.Traffic_vehicle, False)
-
-        # block collision
-        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Lane_line, False)
-        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Lane_surface, False)
-        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Ego_Vehicle, True)
-        # change it after we design a new traffic system !
-        dynamic_world.setGroupCollisionFlag(cls.Lane_line, cls.Traffic_vehicle, False)
-
-        # traffic vehicles collision
-        dynamic_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Traffic_vehicle, False)
-        dynamic_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Lane_surface, False)
-        dynamic_world.setGroupCollisionFlag(cls.Traffic_vehicle, cls.Ego_Vehicle, True)
-
-        # ego vehicle collision
-        dynamic_world.setGroupCollisionFlag(cls.Ego_Vehicle, cls.Ego_Vehicle, False)
-        dynamic_world.setGroupCollisionFlag(cls.Ego_Vehicle, cls.Lane_surface, False)
-
-        # lane surface
-        dynamic_world.setGroupCollisionFlag(cls.Lane_surface, cls.Lane_surface, False)
+        for rule in cls.collision_rules():
+            dynamic_world.setGroupCollisionFlag(*rule)

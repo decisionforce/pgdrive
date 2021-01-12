@@ -25,8 +25,7 @@ class BlockDefault:
     NAVI_COLOR = (0.709, 0.09, 0, 1)
 
     # lane line collision group
-    LANE_LINE_COLLISION_MASK = CollisionGroup.Lane_line
-    LANE_SURFACE_COLLISION_MASK = CollisionGroup.Lane_surface
+    LANE_LINE_COLLISION_MASK = CollisionGroup.LaneLine
 
     # for creating complex block, for example Intersection and roundabout consist of 4 part, which contain several road
     PART_IDX = 0

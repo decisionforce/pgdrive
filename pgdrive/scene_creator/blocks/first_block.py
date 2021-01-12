@@ -13,7 +13,7 @@ from pgdrive.world.pg_physics_world import PgPhysicsWorld
 
 class FirstBlock(Block):
     """
-    A special Lane_line type, only used to create the first block. One scene has only one first block!!!
+    A special Set, only used to create the first block. One scene has only one first block!!!
     """
     NODE_1 = ">"
     NODE_2 = ">>"

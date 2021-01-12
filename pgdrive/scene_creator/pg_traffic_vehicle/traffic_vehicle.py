@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
-
+from pgdrive.utils.coordinates_shift import panda_position, panda_heading, pgdrive_heading
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
@@ -29,7 +29,7 @@ class PgTrafficVehicleNode(BulletRigidBodyNode):
 
 
 class PgTrafficVehicle(DynamicElement):
-    COLLISION_MASK = CollisionGroup.Traffic_vehicle
+    COLLISION_MASK = CollisionGroup.TrafficVehicle
     HEIGHT = 1.8
     LENGTH = 4
     WIDTH = 2
@@ -81,9 +81,9 @@ class PgTrafficVehicle(DynamicElement):
 
     def step(self, dt):
         self.vehicle_node.kinematic_model.step(dt)
-        position = (self.vehicle_node.kinematic_model.position[0], -self.vehicle_node.kinematic_model.position[1], 0)
+        position = panda_position(self.vehicle_node.kinematic_model.position, 0)
         self.node_path.setPos(position)
-        heading = np.rad2deg(-self.vehicle_node.kinematic_model.heading)
+        heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
         self.node_path.setH(heading)
 
     def update_state(self):
@@ -118,7 +118,7 @@ class PgTrafficVehicle(DynamicElement):
         :param position: 2d array or list
         :return: None
         """
-        self.node_path.setPos(Vec3(position[0], -position[1], 0))
+        self.node_path.setPos(panda_position(position, 0))
 
     def set_heading(self, heading_theta) -> None:
         """
@@ -126,7 +126,7 @@ class PgTrafficVehicle(DynamicElement):
         :param heading_theta: float in rad
         :return: None
         """
-        self.node_path.setH((-heading_theta * 180 / np.pi))
+        self.node_path.setH(panda_heading(heading_theta * 180 / np.pi))
 
     def get_state(self):
         return {"heading": self.heading, "position": self.position, "done": self.out_of_road}
@@ -145,14 +145,14 @@ class PgTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        scene_mgr: SceneManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        seed=None,
-        enable_lane_change: bool = True,
-        enable_reborn=False
+            cls,
+            index: int,
+            scene_mgr: SceneManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            seed=None,
+            enable_lane_change: bool = True,
+            enable_reborn=False
     ):
         v = IDMVehicle.create_random(scene_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change
