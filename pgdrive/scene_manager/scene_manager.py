@@ -258,6 +258,9 @@ class SceneManager:
         s_front = s_rear = None
         v_front = v_rear = None
         for v in self.vehicles + self.objects:
+            if norm(v.position[0] - vehicle.position[0], v.position[1] - vehicle.position[1]) > 100:
+                # coarse filter
+                continue
             if v is not vehicle and not isinstance(v, RoadObject):  # self.network.is_connected_road(v.lane_index,
                 # lane_index, same_lane=True):
                 s_v, lat_v = lane.local_coordinates(v.position)
