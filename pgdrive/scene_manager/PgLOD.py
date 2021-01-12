@@ -17,10 +17,8 @@ class PgLOD:
                     pos[1] < block.bounding_box[3] + cls.LOD_DIST:
                 if not block.node_path.hasParent():
                     block.node_path.reparentTo(pg_world.worldNP)
-                    for node in block.dynamic_nodes:
-                        pg_world.physics_world.dynamic_world.attach(node)
+                block.dynamic_nodes.attach_to_physics_world(pg_world.physics_world.dynamic_world)
             else:
                 if block.node_path.hasParent():
                     block.node_path.detachNode()
-                    for node in block.dynamic_nodes:
-                        pg_world.physics_world.dynamic_world.remove(node)
+                block.dynamic_nodes.detach_from_physics_world(pg_world.physics_world.dynamic_world)

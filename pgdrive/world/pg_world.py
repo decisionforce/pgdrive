@@ -33,7 +33,7 @@ def _suppress_warning():
 
 def _free_warning():
     loadPrcFileData("", "notify-level-glgsg debug")
-    loadPrcFileData("", "notify-level-pgraph debug")  # press 4 to use toggle analyze to do this
+    # loadPrcFileData("", "notify-level-pgraph debug")  # press 4 to use toggle analyze to do this
     loadPrcFileData("", "notify-level-pnmimage debug")
     loadPrcFileData("", "notify-level-thread debug")
 
@@ -324,6 +324,7 @@ class PgWorld(ShowBase.ShowBase):
 
     def toggleAnalyze(self):
         self.worldNP.analyze()
+        print(self.physics_world.report_bodies())
         # self.worldNP.ls()
 
     def toggleDebug(self):

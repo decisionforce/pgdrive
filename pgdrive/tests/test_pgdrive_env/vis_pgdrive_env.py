@@ -9,13 +9,14 @@ class TestEnv(PGDriveEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             {
-                "environment_num": 1,
-                "traffic_density": 0.1,
+                "environment_num": 5,
+                "traffic_density": 0.3,
                 "traffic_mode": "reborn",
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
-                    # "debug_physics_world":True
+                    # "debug_physics_world":True,
+                    "pstats":True
                 },
                 "image_source": "mini_map",
                 "manual_control": True,
