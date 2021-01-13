@@ -7,6 +7,9 @@ setup_logger(True)
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
+        """
+        TODO a small bug exists in scene 9 (30 blocks)
+        """
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
