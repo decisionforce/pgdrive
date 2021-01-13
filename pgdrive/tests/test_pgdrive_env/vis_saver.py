@@ -13,7 +13,7 @@ class TestEnv(PGDriveEnv):
                 "traffic_density": 0.1,
                 "traffic_mode": "reborn",
                 "start_seed": 5,
-                "controller": "joystick",
+                # "controller": "joystick",
                 "manual_control": True,
                 "use_render": True,
                 "use_saver": True,
