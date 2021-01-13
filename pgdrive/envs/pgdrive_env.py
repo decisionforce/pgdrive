@@ -82,6 +82,7 @@ class PGDriveEnv(gym.Env):
             use_increment_steering=False,
             action_check=False,
             record_episode=False,
+            use_saver=False
         )
         config = PgConfig(env_config)
         config.register_type("map", str, int)
@@ -97,7 +98,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -133,6 +134,7 @@ class PGDriveEnv(gym.Env):
         self.current_map = None
         self.vehicle = None  # Ego vehicle
         self.done = False
+        self.save_mode = False
 
     def lazy_init(self):
         # It is the true init() func to create the main vehicle and its module
@@ -288,7 +290,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -535,8 +537,30 @@ class PGDriveEnv(gym.Env):
         if self._expert_take_over:
             from pgdrive.examples.ppo_expert import expert
             return expert(self.observation.observe(self.vehicle))
+        elif self.config["use_saver"]:
+            return self.saver(action)
         else:
             return action
+
+    def saver(self, action):
+        obs = self.observation.observe(self.vehicle)
+        f = 1
+        steering = action[0]
+        throttle = action[1]
+        from pgdrive.examples.ppo_expert import expert
+        saver_a = expert(obs, deterministic=False)
+        self.save_mode = False
+        if obs[0] < 0.1 * f or obs[1] < 0.1 * f:
+            steering = saver_a[0]
+            throttle = saver_a[1]
+            self.save_mode = True
+        elif action[1] >= 0 and saver_a[1] <= 0:
+            throttle = saver_a[1]
+            self.save_mode = True
+        if throttle == saver_a[1] and self.vehicle.speed < 5 and throttle < 0:
+            throttle = 0.5
+            self.save_mode = True
+        return steering, throttle
 
     def toggle_expert_take_over(self):
         self._expert_take_over = not self._expert_take_over
