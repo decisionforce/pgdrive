@@ -6,7 +6,7 @@ import gltf
 from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode
-from panda3d.core import AntialiasAttrib, NodePath, loadPrcFileData, LineSegs
+from panda3d.core import AntialiasAttrib, NodePath, loadPrcFileData, LineSegs, Fog
 
 from pgdrive.pg_config import PgConfig
 from pgdrive.pg_config.cam_mask import CamMask

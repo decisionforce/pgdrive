@@ -9,7 +9,7 @@ class TestEnv(PGDriveEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             {
-                "environment_num": 5,
+                "environment_num": 1,
                 "traffic_density": 0.3,
                 "traffic_mode": "reborn",
                 "start_seed": 5,
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render()
-        if d:
-            print("Reset")
-            env.reset()
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()

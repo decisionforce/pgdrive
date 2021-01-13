@@ -216,6 +216,7 @@ class SceneManager:
     def update_state(self, pg_world: PgWorld) -> bool:
         # cull distant objects
         PgLOD.cull_distant_blocks(self.blocks, self.ego_vehicle.position, pg_world)
+        PgLOD.cull_distant_traffic_vehicles(self.traffic_vehicles, self.ego_vehicle.position, pg_world)
 
         vehicles_to_remove = []
         for v in self.traffic_vehicles:
