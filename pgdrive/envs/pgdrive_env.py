@@ -544,20 +544,19 @@ class PGDriveEnv(gym.Env):
 
     def saver(self, action):
         obs = self.observation.observe(self.vehicle)
-        f = 1
+        f = 1 + abs(self.vehicle.heading_diff(self.vehicle.lane)-0.5)*5
         steering = action[0]
         throttle = action[1]
         from pgdrive.examples.ppo_expert import expert
         saver_a = expert(obs, deterministic=False)
-        self.save_mode = False
         # for out of road
         if obs[0] < 0.1 * f or obs[1] < 0.1 * f:
-            self.save_mode = True
             steering = saver_a[0]
             throttle = saver_a[1]
         if throttle == saver_a[1] and self.vehicle.speed < 5 and throttle < 0:
             throttle = 0.5
-            self.save_mode = True
+        if saver_a[1] * self.vehicle.speed < -50 and action[1] > 0:
+            throttle = saver_a[1]
 
         # for collision
         lidar_p = self.vehicle.lidar.get_cloud_points()
@@ -565,12 +564,11 @@ class PGDriveEnv(gym.Env):
         right = int(self.vehicle.lidar.laser_num / 4 * 3)
         if min(lidar_p[left - 4:left + 6]) < 0.04 or min(lidar_p[right - 4:right + 6]) < 0.04:
             # lateral safe distance 2.0m
-            self.save_mode = True
             steering = saver_a[0]
         if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < 0.3:
             # longitude safe distance 15 m
             throttle = saver_a[1]
-            self.save_mode = True
+        self.save_mode = True if action[0] != steering or action[1] != throttle else False
         return steering, throttle
 
     def toggle_expert_take_over(self):

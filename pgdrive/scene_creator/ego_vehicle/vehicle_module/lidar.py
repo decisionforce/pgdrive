@@ -16,7 +16,7 @@ from pgdrive.utils.coordinates_shift import panda_position
 
 class Lidar:
     Lidar_point_cloud_obs_dim = 240
-    enable_show = True
+    enable_show = False
 
     def __init__(self, parent_node_np: NodePath, laser_num: int = 240, distance: float = 50):
         show = self.enable_show and (AssetLoader.loader is not None)
