@@ -98,7 +98,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -290,7 +290,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -550,19 +550,27 @@ class PGDriveEnv(gym.Env):
         from pgdrive.examples.ppo_expert import expert
         saver_a = expert(obs, deterministic=False)
         self.save_mode = False
+        # for out of road
         if obs[0] < 0.1 * f or obs[1] < 0.1 * f:
             self.save_mode = True
-            steering=saver_a[0]
-            throttle=saver_a[1]
-        if action[1] >= 0 and saver_a[1] <= 0:
+            steering = saver_a[0]
             throttle = saver_a[1]
-            self.save_mode = True
         if throttle == saver_a[1] and self.vehicle.speed < 5 and throttle < 0:
             throttle = 0.5
             self.save_mode = True
-        if min(self.vehicle.lidar.get_cloud_points()) < 0.08:
-            self.save_mode =True
+
+        # for collision
+        lidar_p = self.vehicle.lidar.get_cloud_points()
+        left = int(self.vehicle.lidar.laser_num / 4)
+        right = int(self.vehicle.lidar.laser_num / 4 * 3)
+        if min(lidar_p[left - 2:left + 3]) < 0.04 or min(lidar_p[right - 2:right + 3]) < 0.04:
+            # lateral safe distance 2.0m
+            self.save_mode = True
             steering = saver_a[0]
+        if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:4]), min(lidar_p[-4:])) < 0.3:
+            # longitude safe distance 15 m
+            throttle = saver_a[1]
+            self.save_mode = True
         return steering, throttle
 
     def toggle_expert_take_over(self):
