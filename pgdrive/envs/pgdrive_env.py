@@ -563,11 +563,11 @@ class PGDriveEnv(gym.Env):
         lidar_p = self.vehicle.lidar.get_cloud_points()
         left = int(self.vehicle.lidar.laser_num / 4)
         right = int(self.vehicle.lidar.laser_num / 4 * 3)
-        if min(lidar_p[left - 2:left + 3]) < 0.04 or min(lidar_p[right - 2:right + 3]) < 0.04:
+        if min(lidar_p[left - 4:left + 6]) < 0.04 or min(lidar_p[right - 4:right + 6]) < 0.04:
             # lateral safe distance 2.0m
             self.save_mode = True
             steering = saver_a[0]
-        if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:4]), min(lidar_p[-4:])) < 0.3:
+        if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < 0.3:
             # longitude safe distance 15 m
             throttle = saver_a[1]
             self.save_mode = True

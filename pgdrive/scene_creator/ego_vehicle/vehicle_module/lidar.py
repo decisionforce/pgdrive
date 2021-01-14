@@ -16,7 +16,7 @@ from pgdrive.utils.coordinates_shift import panda_position
 
 class Lidar:
     Lidar_point_cloud_obs_dim = 240
-    enable_show = False
+    enable_show = True
 
     def __init__(self, parent_node_np: NodePath, laser_num: int = 240, distance: float = 50):
         show = self.enable_show and (AssetLoader.loader is not None)
@@ -67,6 +67,8 @@ class Lidar:
                     curpos = result.getHitPos()
                 else:
                     curpos = laser_end
+                # if 0<=laser_index < 10 or 230 <= laser_index <=239:
+                #     self.cloud_points[laser_index].setColor(1,0,0)
                 self.cloud_points[laser_index].setPos(curpos)
 
     def _get_surrounding_vehicles(self) -> Set[IDMVehicle]:
