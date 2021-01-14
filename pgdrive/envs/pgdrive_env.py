@@ -552,7 +552,9 @@ class PGDriveEnv(gym.Env):
         self.save_mode = False
         if obs[0] < 0.1 * f or obs[1] < 0.1 * f:
             self.save_mode = True
-            return saver_a
+            steering=saver_a[0]
+            throttle=saver_a[1]
+            self.save_mode =True
         if action[1] >= 0 and saver_a[1] <= 0:
             throttle = saver_a[1]
             self.save_mode = True
