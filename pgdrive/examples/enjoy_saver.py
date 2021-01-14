@@ -11,7 +11,7 @@ if __name__ == "__main__":
             "manual_control": True,
             "use_render": True,
             "use_saver": True,
-            "map": 30
+            "map": 16
         }
     )
 
