@@ -554,7 +554,6 @@ class PGDriveEnv(gym.Env):
             self.save_mode = True
             steering=saver_a[0]
             throttle=saver_a[1]
-            self.save_mode =True
         if action[1] >= 0 and saver_a[1] <= 0:
             throttle = saver_a[1]
             self.save_mode = True
@@ -562,6 +561,7 @@ class PGDriveEnv(gym.Env):
             throttle = 0.5
             self.save_mode = True
         if min(self.vehicle.lidar.get_cloud_points()) < 0.08:
+            self.save_mode =True
             steering = saver_a[0]
         return steering, throttle
 
