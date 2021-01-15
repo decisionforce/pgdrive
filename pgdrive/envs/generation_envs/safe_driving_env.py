@@ -31,6 +31,8 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def _done_episode(self) -> (float, dict):
         reward, info = super(SafeDrivingEnv, self)._done_episode()
+        if not self.config["use_saver"]:
+            return reward, info
         if info["out_of_road"] and not info["crash"] and not info["arrive_dest"] and not self.vehicle.crash_side_walk:
             # episode will not be done when out of road, since expert can save it
             self.done = False
