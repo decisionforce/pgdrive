@@ -24,7 +24,6 @@ class RoutingLocalizationModule:
     PRE_NOTIFY_DIST = 40
     MARK_COLOR = COLLISION_INFO_COLOR["green"][1]
     MIN_ALPHA = 0.15
-    SHOW_NAVI_POINT = False
     FORCE_CALCULATE = False
 
     def __init__(self, pg_world, show_navi_point: False):
@@ -142,7 +141,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -201,13 +200,13 @@ class RoutingLocalizationModule:
             return
 
         # arrive to second checkpoint
-        if current_road_start_point == self.checkpoints[self.target_checkpoints_index[1]]:
-            last_checkpoint_idx = self.target_checkpoints_index.pop(0)
-            next_checkpoint_idx = last_checkpoint_idx + 2
-            if next_checkpoint_idx == len(self.checkpoints) - 1:
-                self.target_checkpoints_index.append(next_checkpoint_idx - 1)
+        if current_road_start_point in self.checkpoints[self.target_checkpoints_index[1]:]:
+            idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1],-1)
+            self.target_checkpoints_index = [idx]
+            if idx + 1 == len(self.checkpoints) - 1:
+                self.target_checkpoints_index.append(idx)
             else:
-                self.target_checkpoints_index.append(next_checkpoint_idx)
+                self.target_checkpoints_index.append(idx + 1)
             # print(self.target_checkpoints_index)
 
     def get_navi_info(self):

@@ -180,11 +180,15 @@ class PGDriveEnv(gym.Env):
                 action, self.action_space
             )
 
-        # prepare step
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
             action = self.expert_take_over(action)
 
+        if self.config["use_saver"] and not self._expert_take_over:
+            # saver can be used for human or another AI
+            action = self.saver(action)
+
+        # prepare step
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
         self.vehicle.prepare_step(action)
@@ -276,6 +280,11 @@ class PGDriveEnv(gym.Env):
         return o
 
     def reward(self, action):
+        """
+        Override this func to get a new reward function
+        :param action: [steering, throttle/brake]
+        :return: reward
+        """
         # Reward for moving forward in current lane
         current_lane = self.vehicle.lane
         long_last, _ = current_lane.local_coordinates(self.vehicle.last_position)
@@ -537,12 +546,15 @@ class PGDriveEnv(gym.Env):
         if self._expert_take_over:
             from pgdrive.examples.ppo_expert import expert
             return expert(self.observation.observe(self.vehicle))
-        elif self.config["use_saver"]:
-            return self.saver(action)
         else:
             return action
 
     def saver(self, action):
+        """
+        Rule to enable saver
+        :param action: original action
+        :return: a new action to override original action
+        """
         obs = self.observation.observe(self.vehicle)
         f = 1
         steering = action[0]
