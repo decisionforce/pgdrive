@@ -103,6 +103,7 @@ class RoutingLocalizationModule:
         lane, lane_index = ray_localization(position, ego_vehicle.pg_world)
         if lane is None:
             lane, lane_index = ego_vehicle.lane, ego_vehicle.lane_index
+            ego_vehicle.on_lane = False
             if self.FORCE_CALCULATE:
                 lane_index, _ = self.map.road_network.get_closest_lane_index(position)
                 lane = self.map.road_network.get_lane(lane_index)
@@ -201,7 +202,7 @@ class RoutingLocalizationModule:
 
         # arrive to second checkpoint
         if current_road_start_point in self.checkpoints[self.target_checkpoints_index[1]:]:
-            idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1],-1)
+            idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1], -1)
             self.target_checkpoints_index = [idx]
             if idx + 1 == len(self.checkpoints) - 1:
                 self.target_checkpoints_index.append(idx)

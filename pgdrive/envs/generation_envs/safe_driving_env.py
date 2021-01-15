@@ -1,5 +1,6 @@
 from pgdrive.envs import PGDriveEnv
 from pgdrive.pg_config import PgConfig
+import logging
 
 
 class SafeDrivingEnv(PGDriveEnv):
@@ -7,6 +8,10 @@ class SafeDrivingEnv(PGDriveEnv):
     def default_config(self) -> PgConfig:
         config = super(SafeDrivingEnv, self).default_config()
         config["use_saver"] = True
+        config["out_of_road_penalty"] = 3
+        config["map"] = "CCCCC"
+        config["traffic_density"] = 0.2
+        config["environment_num"] = 1
         return config
 
     def reward(self, action):
@@ -24,3 +29,11 @@ class SafeDrivingEnv(PGDriveEnv):
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
         return reward
 
+    def _done_episode(self) -> (float, dict):
+        reward, info = super(SafeDrivingEnv, self)._done_episode()
+        if info["out_of_road"] and not info["crash"] and not info["arrive_dest"] and not self.vehicle.crash_side_walk:
+            # episode will not be done when out of road
+            self.done = False
+        if self.vehicle.lane_index[0] not in self.vehicle.routing_localization.checkpoints:
+            self.done = True
+        return reward, info

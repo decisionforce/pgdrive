@@ -334,7 +334,7 @@ class PGDriveEnv(gym.Env):
             reward_ -= self.config["crash_penalty"]
             logging.info("Episode ended! Reason: crash. ")
             done_info["crash"] = True
-        elif self.vehicle.out_of_road or self.vehicle.out_of_road:
+        elif self.vehicle.out_of_route or not self.vehicle.on_lane:
             self.done = True
             reward_ -= self.config["out_of_road_penalty"]
             logging.info("Episode ended! Reason: out_of_road.")
