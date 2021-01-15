@@ -9,7 +9,7 @@ class SafeDrivingEnv(PGDriveEnv):
         config = super(SafeDrivingEnv, self).default_config()
         config["use_saver"] = True
         config["out_of_road_penalty"] = 3
-        config["map"] = "CCCCC"
+        config["map"] = "rXCORCTS"
         config["traffic_density"] = 0.2
         config["environment_num"] = 1
         return config
@@ -32,8 +32,6 @@ class SafeDrivingEnv(PGDriveEnv):
     def _done_episode(self) -> (float, dict):
         reward, info = super(SafeDrivingEnv, self)._done_episode()
         if info["out_of_road"] and not info["crash"] and not info["arrive_dest"] and not self.vehicle.crash_side_walk:
-            # episode will not be done when out of road
+            # episode will not be done when out of road, since expert can save it
             self.done = False
-        if self.vehicle.lane_index[0] not in self.vehicle.routing_localization.checkpoints:
-            self.done = True
         return reward, info

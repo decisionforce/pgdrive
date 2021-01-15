@@ -4,13 +4,14 @@ if __name__ == "__main__":
     env = SafeDrivingEnv(
         {
             # "environment_num": 1,
-            "traffic_density": 0.,
+            # "traffic_density": 0.,
             # "traffic_mode": "reborn",
             # "start_seed": 5,
             # "controller": "joystick",
             "manual_control": True,
             "use_render": True,
-            "map": "Crrrrrrrrrr"
+            # "use_saver":False,
+            # "map": "Crrrrrrrrrr"
         }
     )
 
