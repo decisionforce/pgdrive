@@ -189,6 +189,7 @@ class PGDriveEnv(gym.Env):
         if self.config["use_saver"] and not self._expert_take_over:
             # saver can be used for human or another AI
             action = self.saver(action)
+            action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
         # prepare step
         self.vehicle.prepare_step(action)
