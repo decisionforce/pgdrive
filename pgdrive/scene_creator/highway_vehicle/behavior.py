@@ -19,13 +19,13 @@ class IDMVehicle(ControlledVehicle):
     """
 
     # Longitudinal policy parameters
-    ACC_MAX = 10.0  # [m/s2]
+    ACC_MAX = 20.0  # [m/s2]
     """Maximum acceleration."""
 
-    COMFORT_ACC_MAX = 5.0  # [m/s2]
+    COMFORT_ACC_MAX = 10.0  # [m/s2]
     """Desired maximum acceleration."""
 
-    COMFORT_ACC_MIN = -5.0  # [m/s2]
+    COMFORT_ACC_MIN = -10.0  # [m/s2]
     """Desired maximum deceleration."""
 
     DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m]
@@ -126,6 +126,8 @@ class IDMVehicle(ControlledVehicle):
         :param dt: timestep
         """
         self.timer += dt
+        if self.action['acceleration'] < 0 and self.speed <= 0:
+            self.action['acceleration'] = -self.speed / dt
         super().step(dt)
 
     def acceleration(
