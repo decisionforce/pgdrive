@@ -180,6 +180,8 @@ class PGDriveEnv(gym.Env):
                 action, self.action_space
             )
 
+        # protect agent from nan error
+        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
             action = self.expert_take_over(action)
@@ -189,8 +191,6 @@ class PGDriveEnv(gym.Env):
             action = self.saver(action)
 
         # prepare step
-        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
-
         self.vehicle.prepare_step(action)
         self.scene_manager.prepare_step()
 
