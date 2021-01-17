@@ -223,7 +223,9 @@ class PGDriveEnv(gym.Env):
             "velocity": float(self.vehicle.speed),
             "steering": float(self.vehicle.steering),
             "acceleration": float(self.vehicle.throttle_brake),
-            "step_reward": float(step_reward)
+            "step_reward": float(step_reward),
+            "save": self.save_mode,
+            "save_action": (action[0], action[1])
         }
 
         info.update(done_info)
@@ -258,6 +260,7 @@ class PGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.done = False
+        self.save_mode = False
 
         # clear world and traffic manager
         self.pg_world.clear_world()
@@ -556,7 +559,7 @@ class PGDriveEnv(gym.Env):
         :return: a new action to override original action
         """
         obs = self.observation.observe(self.vehicle)
-        f = 1 + abs(self.vehicle.heading_diff(self.vehicle.lane)-0.5)*5
+        f = 1 + abs(self.vehicle.heading_diff(self.vehicle.lane) - 0.5) * 5
         steering = action[0]
         throttle = action[1]
         from pgdrive.examples.ppo_expert import expert
