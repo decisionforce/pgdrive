@@ -41,7 +41,7 @@ def expert(obs, deterministic=False):
     std = np.exp(log_std)
     action = np.random.normal(mean, std)
     ret = action
-    ret = np.clip(ret, -1.0, 1.0)
+    # ret = np.clip(ret, -1.0, 1.0) all clip should be implemented in env!
     return ret
 
 

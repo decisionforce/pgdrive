@@ -16,9 +16,13 @@ if __name__ == "__main__":
     )
 
     o = env.reset()
+    max_s = 0
+    max_t = 0
     for i in range(1, 100000000):
         o, r, d, info = env.step([0, 1])
-        text = {"save": env.save_mode}
+        max_s = max(max_s, info["raw_action"][0])
+        max_t = max(max_t, info["raw_action"][1])
+        text = {"save": env.save_mode, "max_action":(max_s, max_t)}
         env.render(text=text)
         if d:
             env.reset()
