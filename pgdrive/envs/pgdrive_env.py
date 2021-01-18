@@ -180,8 +180,6 @@ class PGDriveEnv(gym.Env):
                 action, self.action_space
             )
 
-        # protect agent from nan error
-        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
             action = self.expert_take_over(action)
@@ -189,8 +187,12 @@ class PGDriveEnv(gym.Env):
         if self.config["use_saver"] and not self._expert_take_over:
             # saver can be used for human or another AI
             action = self.saver(action)
-            action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
+        # action before clipping
+        raw_action = (action[0], action[1])
+
+        # protect agent from nan error
+        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         # prepare step
         self.vehicle.prepare_step(action)
         self.scene_manager.prepare_step()
@@ -225,8 +227,8 @@ class PGDriveEnv(gym.Env):
             "steering": float(self.vehicle.steering),
             "acceleration": float(self.vehicle.throttle_brake),
             "step_reward": float(step_reward),
-            "save": self.save_mode,
-            "save_action": (action[0], action[1])
+            "save_mode": self.save_mode,
+            "raw_action": raw_action
         }
 
         info.update(done_info)
