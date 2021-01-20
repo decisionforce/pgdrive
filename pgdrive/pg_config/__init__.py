@@ -36,6 +36,7 @@ class PgConfig:
     For these <key, value> items, use PgConfig["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
+
     def __init__(self, config: dict):
         self._config = config
         self._types = dict()
@@ -87,3 +88,11 @@ class PgConfig:
 
     def get_dict(self):
         return self._config
+
+    def extend_config(self, extra_config: dict) -> None:
+        """
+        This method will merge a new dict to PgConfig without checking the type and existence
+        :param extra_config: extra configs
+        :return: None
+        """
+        self._config.update(extra_config)

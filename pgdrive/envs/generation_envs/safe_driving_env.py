@@ -1,6 +1,7 @@
 from pgdrive.envs import PGDriveEnv
 from pgdrive.pg_config import PgConfig
 
+
 class SafeDrivingEnv(PGDriveEnv):
 
     def default_config(self) -> PgConfig:
@@ -10,7 +11,7 @@ class SafeDrivingEnv(PGDriveEnv):
         config["map"] = "rXCORCTS"
         config["traffic_density"] = 0.2
         config["environment_num"] = 1
-        config["takeover_penalty"] = 1  # takeover penalty
+        config.extend_config(dict(takeover_penalty=1))  # takeover penalty
         return config
 
     def reward(self, action):
