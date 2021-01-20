@@ -1,7 +1,5 @@
 from pgdrive.envs import PGDriveEnv
 from pgdrive.pg_config import PgConfig
-import logging
-
 
 class SafeDrivingEnv(PGDriveEnv):
 
@@ -12,6 +10,7 @@ class SafeDrivingEnv(PGDriveEnv):
         config["map"] = "rXCORCTS"
         config["traffic_density"] = 0.2
         config["environment_num"] = 1
+        config["takeover_penalty"] = 1  # takeover penalty
         return config
 
     def reward(self, action):
@@ -27,6 +26,9 @@ class SafeDrivingEnv(PGDriveEnv):
             reward -= self.config["low_speed_penalty"]  # encourage car
         reward -= self.config["general_penalty"]
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
+        if self.save_mode:
+            # takeover means the situation is dangerous, so give a penalty
+            reward -= self.config["takeover_penalty"]
         return reward
 
     # def _done_episode(self) -> (float, dict):
