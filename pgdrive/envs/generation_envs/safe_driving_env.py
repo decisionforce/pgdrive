@@ -11,7 +11,7 @@ class SafeDrivingEnv(PGDriveEnv):
         config["map"] = "rXCORCTS"
         config["traffic_density"] = 0.2
         config["environment_num"] = 1
-        config.extend_config(dict(takeover_penalty=1))  # takeover penalty
+        config.extend_config(dict(takeover_penalty=1.0))  # takeover penalty
         return config
 
     def reward(self, action):

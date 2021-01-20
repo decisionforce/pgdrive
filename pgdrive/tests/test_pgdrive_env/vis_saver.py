@@ -10,7 +10,8 @@ if __name__ == "__main__":
             # "controller": "joystick",
             "manual_control": True,
             "use_render": True,
-            "save_level":0.3
+            "save_level":0.3,
+            "takeover_penalty":0.5
             # "use_saver":False,
             # "map": "Crrrrrrrrrr"
         }
