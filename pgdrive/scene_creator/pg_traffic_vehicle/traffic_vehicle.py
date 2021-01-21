@@ -1,5 +1,5 @@
 from typing import Union
-
+from pgdrive.world.pg_world import PGWorld
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
@@ -93,9 +93,8 @@ class PGTrafficVehicle(DynamicElement):
         heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
         self.node_path.setH(heading)
 
-    def update_state(self):
-        traffic_mgr = self.vehicle_node.kinematic_model.traffic_mgr
-        lane, lane_index = ray_localization(self.position, traffic_mgr.ego_vehicle.pg_world)
+    def update_state(self, pg_world:PGWorld):
+        lane, lane_index = ray_localization(self.position, pg_world)
         if lane is not None:
             self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
         self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(

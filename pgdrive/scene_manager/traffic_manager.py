@@ -1,6 +1,6 @@
 import logging
 from collections import namedtuple, deque
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.map import Map
@@ -33,6 +33,7 @@ class TrafficManager:
 
         # traffic vehicle list
         self.ego_vehicle = None
+        self.controllable_vehicles = None
         self.vehicles = None
         self.traffic_vehicles = None
         self.block_triggered_vehicles = None
@@ -46,12 +47,12 @@ class TrafficManager:
         self.random_seed = None
         self.np_random = None
 
-    def generate(self, pg_world: PGWorld, map: Map, ego_vehicle, traffic_density: float):
+    def generate(self, pg_world: PGWorld, map: Map, controllable_vehicles: List, traffic_density: float):
         """
         Generate traffic on map
         :param pg_world: World
         :param map: The map class containing block list and road network
-        :param ego_vehicle: Ego vehicle
+        :param controllable_vehicles: vehicles for a multi-agent environment support
         :param traffic_density: Traffic density defined by: number of vehicles per meter
         :return: List of Traffic vehicles
         """
@@ -61,14 +62,17 @@ class TrafficManager:
         # clear traffic in last episdoe
         self.clear_traffic(pg_world)
 
+        # single agent env
+        self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
+        # TODO multi-agent env support
+        self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
         # update global info
-        self.ego_vehicle = ego_vehicle
         self.map = map
         self.density = traffic_density
 
         # update vehicle list
         self.block_triggered_vehicles = [] if self.mode == TrafficMode.Trigger else None
-        self.vehicles = [ego_vehicle]  # it is used to perform IDM and bicycle model based motion
+        self.vehicles = [*controllable_vehicles]  # it is used to perform IDM and bicycle model based motion
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
         if abs(traffic_density - 0.0) < 1e-2:
@@ -127,7 +131,7 @@ class TrafficManager:
                 if remove:
                     vehicles_to_remove.append(v)
             else:
-                v.update_state()
+                v.update_state(pg_world)
 
         # remove vehicles out of road
         for v in vehicles_to_remove:
@@ -302,7 +306,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
