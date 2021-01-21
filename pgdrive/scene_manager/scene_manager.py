@@ -43,7 +43,7 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            self.traffic.generate(pg_world, map, ego_vehicle, traffic_density)
+            self.traffic.generate(pg_world, map, [ego_vehicle], traffic_density)
         else:
             self.replay_system = PGReplayer(self.traffic, map, episode_data, pg_world)
 
