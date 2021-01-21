@@ -93,7 +93,7 @@ class PGTrafficVehicle(DynamicElement):
         heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
         self.node_path.setH(heading)
 
-    def update_state(self, pg_world:PGWorld):
+    def update_state(self, pg_world: PGWorld):
         lane, lane_index = ray_localization(self.position, pg_world)
         if lane is not None:
             self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
