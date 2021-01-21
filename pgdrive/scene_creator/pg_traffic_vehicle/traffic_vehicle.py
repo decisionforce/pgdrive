@@ -1,16 +1,19 @@
 from typing import Union
+
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
-from pgdrive.utils.coordinates_shift import panda_position, panda_heading, pgdrive_heading
+
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
+from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random
 from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.scene_utils import ray_localization
 
@@ -75,8 +78,13 @@ class PGTrafficVehicle(DynamicElement):
         self.step(1e-1)
         # self.carNP.setQuat(LQuaternionf(np.cos(-1 * np.pi / 4), 0, 0, np.sin(-1 * np.pi / 4)))
 
-    def prepare_step(self):
-        self.vehicle_node.kinematic_model.act()
+    def prepare_step(self, scene_mgr: SceneManager) -> None:
+        """
+        Determine the action according to the elements in scene
+        :param scene_mgr: scene
+        :return: None
+        """
+        self.vehicle_node.kinematic_model.act(scene_mgr=scene_mgr)
 
     def step(self, dt):
         self.vehicle_node.kinematic_model.step(dt)

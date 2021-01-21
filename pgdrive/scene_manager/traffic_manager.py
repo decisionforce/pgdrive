@@ -85,9 +85,10 @@ class TrafficManager:
         else:
             self._create_vehicles_once(pg_world, map, traffic_density)
 
-    def prepare_step(self):
+    def prepare_step(self, scene_mgr):
         """
         All traffic vehicles make driving decision here
+        :param scene_mgr: access other elements in scene
         :return: None
         """
         if self.mode == TrafficMode.Trigger:

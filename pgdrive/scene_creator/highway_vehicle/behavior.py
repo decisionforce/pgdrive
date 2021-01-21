@@ -1,7 +1,7 @@
 from typing import Tuple, Union, List
 
 import numpy as np
-
+from pgdrive.scene_manager.scene_manager import SceneManager
 import pgdrive.utils.math_utils as utils
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
@@ -90,7 +90,7 @@ class IDMVehicle(ControlledVehicle):
         )
         return v
 
-    def act(self, action: Union[dict, str] = None):
+    def act(self, action: Union[dict, str] = None, scene_mgr: SceneManager = None):
         """
         Execute an action.
 
@@ -98,6 +98,7 @@ class IDMVehicle(ControlledVehicle):
         of acceleration and lane changes on its own, based on the IDM and MOBIL models.
 
         :param action: the action
+        :param scene_mgr: access other elements in scene
         """
         if self.crashed:
             return

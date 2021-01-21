@@ -60,7 +60,7 @@ class SceneManager:
         Entities make decision here, and prepare for step
         :return:
         """
-        self.traffic.prepare_step()
+        self.traffic.prepare_step(self)
 
     def step(self, dt: float) -> None:
         """
