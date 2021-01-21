@@ -2,12 +2,12 @@ import copy
 import logging
 
 from pgdrive.scene_creator.map import Map
-from pgdrive.world.pg_world import PgWorld
-from . import TrafficMode
+from pgdrive.world.pg_world import PGWorld
+from ..scene_creator.traffic import TrafficMode
 
 
 class PGReplayer:
-    def __init__(self, scene_mgr, current_map: Map, episode_data: dict, pg_world: PgWorld):
+    def __init__(self, scene_mgr, current_map: Map, episode_data: dict, pg_world: PGWorld):
         self.restore_traffic_mode = episode_data["traffic_mode"]
         self.restore_episode_info = episode_data["frame"]
         self.restore_episode_info.reverse()
@@ -15,7 +15,7 @@ class PGReplayer:
         self.current_map = current_map
         self._recover_vehicles_from_data(scene_mgr, episode_data, pg_world)
 
-    def _recover_vehicles_from_data(self, scene_mgr, episode_data: dict, pg_world: PgWorld):
+    def _recover_vehicles_from_data(self, scene_mgr, episode_data: dict, pg_world: PGWorld):
         assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
         import pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type as v_types
         traffics = episode_data["init_traffic"]
@@ -25,7 +25,7 @@ class PGReplayer:
             self.restore_vehicles[name] = car
             car.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
-    def replay_frame(self, ego_vehicle, pg_world: PgWorld):
+    def replay_frame(self, ego_vehicle, pg_world: PGWorld):
         assert self.restore_episode_info is not None, "Not frame data in episode info"
         if len(self.restore_episode_info) == 0:
             return True
@@ -67,7 +67,7 @@ class PGRecorder:
     def dump_episode(self):
         return copy.deepcopy(self.episode_info)
 
-    def destroy(self, pg_world: PgWorld):
+    def destroy(self, pg_world: PGWorld):
         self.episode_info.clear()
 
     def __del__(self):

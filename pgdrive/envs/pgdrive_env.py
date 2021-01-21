@@ -10,26 +10,26 @@ import gym
 import numpy as np
 
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
-from pgdrive.pg_config import PgConfig
+from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
-from pgdrive.scene_manager import TrafficMode
+from pgdrive.scene_creator.traffic import TrafficMode
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import recursive_equal, safe_clip, clip, get_np_random
 from pgdrive.world import RENDER_MODE_NONE
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
-from pgdrive.world.pg_world import PgWorld
+from pgdrive.world.pg_world import PGWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
 
 class PGDriveEnv(gym.Env):
     @staticmethod
-    def default_config() -> PgConfig:
+    def default_config() -> PGConfig:
         env_config = dict(
 
             # ===== Rendering =====
@@ -84,7 +84,7 @@ class PGDriveEnv(gym.Env):
             record_episode=False,
             use_saver=False
         )
-        config = PgConfig(env_config)
+        config = PGConfig(env_config)
         config.register_type("map", str, int)
         return config
 
@@ -142,7 +142,7 @@ class PGDriveEnv(gym.Env):
             return
 
         # init world
-        self.pg_world = PgWorld(self.pg_world_config)
+        self.pg_world = PGWorld(self.pg_world_config)
         self.pg_world.accept("r", self.reset)
         self.pg_world.accept("escape", sys.exit)
 
