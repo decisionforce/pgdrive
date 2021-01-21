@@ -14,7 +14,7 @@ class TestEnv(PGDriveEnv):
             {
                 "environment_num": 1,
                 "traffic_density": 0.3,
-                "traffic_mode": "reborn",
+                "traffic_mode": "trigger",
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,

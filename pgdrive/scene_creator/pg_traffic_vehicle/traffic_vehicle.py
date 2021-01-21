@@ -113,6 +113,7 @@ class PGTrafficVehicle(DynamicElement):
             return True
 
     def destroy(self, pg_world):
+        self.vehicle_node.kinematic_model.destroy(pg_world)
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
         super(PGTrafficVehicle, self).destroy(pg_world)
 
