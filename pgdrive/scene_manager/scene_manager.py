@@ -15,6 +15,7 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(self, traffic_mode=TrafficMode.Trigger, random_traffic: bool = False, record_episode: bool = False):
         """
         :param traffic_mode: reborn/trigger mode
@@ -58,7 +59,8 @@ class SceneManager:
     def prepare_step(self):
         """
         Entities make decision here, and prepare for step
-        :return:
+        All entities can access this global manager to query or interact with others
+        :return: None
         """
         self.traffic.prepare_step(self)
 

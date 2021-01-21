@@ -341,10 +341,10 @@ class LinearVehicle(IDMVehicle):
         self.data = data if data is not None else {}
         self.collecting_data = True
 
-    def act(self, action: Union[dict, str] = None):
+    def act(self, action: Union[dict, str] = None, scene_mgr: SceneManager = None):
         if self.collecting_data:
             self.collect_data()
-        super().act(action)
+        super().act(action, scene_mgr)
 
     def randomize_behavior(self):
         ua = self.traffic_mgr.np_random.uniform(size=np.shape(self.ACCELERATION_PARAMETERS))
