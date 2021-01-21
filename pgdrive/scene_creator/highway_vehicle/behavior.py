@@ -6,7 +6,9 @@ import pgdrive.utils.math_utils as utils
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.road_object.object import RoadObject
-from pgdrive.scene_manager.scene_manager import SceneManager, Route, LaneIndex
+from pgdrive.scene_manager.scene_manager import Route, LaneIndex
+from pgdrive.scene_manager.traffic_manager import TrafficManager
+
 from pgdrive.utils.math_utils import clip
 
 
@@ -45,7 +47,7 @@ class IDMVehicle(ControlledVehicle):
 
     def __init__(
         self,
-        scene_mgr: SceneManager,
+        traffic_mgr: TrafficManager,
         position: List,
         heading: float = 0,
         speed: float = 0,
@@ -57,7 +59,7 @@ class IDMVehicle(ControlledVehicle):
         np_random: np.random.RandomState = None,
     ):
         super().__init__(
-            scene_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
+            traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
         )
         self.enable_lane_change = enable_lane_change
         self.timer = timer or (np.sum(self.position) * np.pi) % self.LANE_CHANGE_DELAY
@@ -76,7 +78,7 @@ class IDMVehicle(ControlledVehicle):
         :return: a new vehicle at the same dynamical state
         """
         v = cls(
-            vehicle.scene,
+            vehicle.traffic_mgr,
             vehicle.position,
             heading=vehicle.heading,
             speed=vehicle.speed,
@@ -100,7 +102,7 @@ class IDMVehicle(ControlledVehicle):
         if self.crashed:
             return
         action = {}
-        front_vehicle, rear_vehicle = self.scene.neighbour_vehicles(self)
+        front_vehicle, rear_vehicle = self.traffic_mgr.neighbour_vehicles(self)
         # Lateral: MOBIL
         self.follow_road()
         if self.enable_lane_change:
@@ -212,7 +214,7 @@ class IDMVehicle(ControlledVehicle):
         if self.lane_index != self.target_lane_index:
             # If we are on correct route but bad lane: abort it if someone else is already changing into the same lane
             if self.lane_index[:2] == self.target_lane_index[:2]:
-                for v in self.scene.vehicles:
+                for v in self.traffic_mgr.vehicles:
                     if v is not self \
                             and v.lane_index != self.target_lane_index \
                             and isinstance(v, ControlledVehicle) \
@@ -230,9 +232,9 @@ class IDMVehicle(ControlledVehicle):
         self.timer = 0
 
         # decide to make a lane change
-        for lane_index in self.scene.network.side_lanes(self.lane_index):
+        for lane_index in self.traffic_mgr.map.road_network.side_lanes(self.lane_index):
             # Is the candidate lane close enough?
-            if not self.scene.network.get_lane(lane_index).is_reachable_from(self.position):
+            if not self.traffic_mgr.map.road_network.get_lane(lane_index).is_reachable_from(self.position):
                 continue
             # Does the MOBIL model recommend a lane change?
             if self.mobil(lane_index):
@@ -250,14 +252,14 @@ class IDMVehicle(ControlledVehicle):
         :return: whether the lane change should be performed
         """
         # Is the maneuver unsafe for the new following vehicle?
-        new_preceding, new_following = self.scene.neighbour_vehicles(self, lane_index)
+        new_preceding, new_following = self.traffic_mgr.neighbour_vehicles(self, lane_index)
         new_following_a = self.acceleration(ego_vehicle=new_following, front_vehicle=new_preceding)
         new_following_pred_a = self.acceleration(ego_vehicle=new_following, front_vehicle=self)
         if new_following_pred_a < -self.LANE_CHANGE_MAX_BRAKING_IMPOSED:
             return False
 
         # Do I have a planned route for a specific lane which is safe for me to access?
-        old_preceding, old_following = self.scene.neighbour_vehicles(self)
+        old_preceding, old_following = self.traffic_mgr.neighbour_vehicles(self)
         self_pred_a = self.acceleration(ego_vehicle=self, front_vehicle=new_preceding)
         if self.route and self.route[0][2]:
             # Wrong direction
@@ -293,8 +295,8 @@ class IDMVehicle(ControlledVehicle):
         safe_distance = 200
         # Is the vehicle stopped on the wrong lane?
         if self.target_lane_index != self.lane_index and self.speed < stopped_speed:
-            _, rear = self.scene.neighbour_vehicles(self)
-            _, new_rear = self.scene.neighbour_vehicles(self, self.scene.network.get_lane(self.target_lane_index))
+            _, rear = self.traffic_mgr.neighbour_vehicles(self)
+            _, new_rear = self.traffic_mgr.neighbour_vehicles(self, self.traffic_mgr.map.road_network.get_lane(self.target_lane_index))
             # Check for free room behind on both lanes
             if (not rear or rear.lane_distance_to(self) > safe_distance) and \
                     (not new_rear or new_rear.lane_distance_to(self) > safe_distance):
@@ -319,7 +321,7 @@ class LinearVehicle(IDMVehicle):
 
     def __init__(
         self,
-        road: SceneManager,
+        road: TrafficManager,
         position: List,
         heading: float = 0,
         speed: float = 0,
@@ -342,10 +344,10 @@ class LinearVehicle(IDMVehicle):
         super().act(action)
 
     def randomize_behavior(self):
-        ua = self.scene.np_random.uniform(size=np.shape(self.ACCELERATION_PARAMETERS))
+        ua = self.traffic_mgr.np_random.uniform(size=np.shape(self.ACCELERATION_PARAMETERS))
         self.ACCELERATION_PARAMETERS = self.ACCELERATION_RANGE[
             0] + ua * (self.ACCELERATION_RANGE[1] - self.ACCELERATION_RANGE[0])
-        ub = self.scene.np_random.uniform(size=np.shape(self.STEERING_PARAMETERS))
+        ub = self.traffic_mgr.np_random.uniform(size=np.shape(self.STEERING_PARAMETERS))
         self.STEERING_PARAMETERS = self.STEERING_RANGE[0] + ub * (self.STEERING_RANGE[1] - self.STEERING_RANGE[0])
 
     def acceleration(
@@ -404,7 +406,7 @@ class LinearVehicle(IDMVehicle):
         :param target_lane_index: index of the lane to follow
         :return: a array of features
         """
-        lane = self.scene.network.get_lane(target_lane_index)
+        lane = self.traffic_mgr.map.road_network.get_lane(target_lane_index)
         lane_coords = lane.local_coordinates(self.position)
         lane_next_coords = lane_coords[0] + self.speed * self.PURSUIT_TAU
         lane_future_heading = lane.heading_at(lane_next_coords)
@@ -426,7 +428,7 @@ class LinearVehicle(IDMVehicle):
         # Front position control
         phi2 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [-1, 1, -self.TIME_WANTED, 0], [0, 0, 0, 0]])
         # Disable speed control
-        front_vehicle, _ = self.scene.neighbour_vehicles(self)
+        front_vehicle, _ = self.traffic_mgr.neighbour_vehicles(self)
         if not front_vehicle or self.speed < front_vehicle.speed:
             phi1 *= 0
 
@@ -454,7 +456,7 @@ class LinearVehicle(IDMVehicle):
 
     def add_features(self, data, lane_index, output_lane=None):
 
-        front_vehicle, rear_vehicle = self.scene.neighbour_vehicles(self)
+        front_vehicle, rear_vehicle = self.traffic_mgr.neighbour_vehicles(self)
         features = self.acceleration_features(self, front_vehicle, rear_vehicle)
         output = np.dot(self.ACCELERATION_PARAMETERS, features)
         if "longitudinal" not in data:

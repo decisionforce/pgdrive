@@ -16,7 +16,7 @@ from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthC
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
-from pgdrive.scene_creator.traffic import TrafficMode
+from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import recursive_equal, safe_clip, clip, get_np_random
 from pgdrive.world import RENDER_MODE_NONE

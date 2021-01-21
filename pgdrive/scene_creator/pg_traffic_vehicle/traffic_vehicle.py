@@ -1,5 +1,4 @@
 from typing import Union
-
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
@@ -9,7 +8,7 @@ from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
-from pgdrive.scene_manager.scene_manager import SceneManager
+from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement
@@ -87,8 +86,8 @@ class PGTrafficVehicle(DynamicElement):
         self.node_path.setH(heading)
 
     def update_state(self):
-        scene_mgr = self.vehicle_node.kinematic_model.scene
-        lane, lane_index = ray_localization(self.position, scene_mgr.ego_vehicle.pg_world)
+        traffic_mgr = self.vehicle_node.kinematic_model.traffic_mgr
+        lane, lane_index = ray_localization(self.position, traffic_mgr.ego_vehicle.pg_world)
         if lane is not None:
             self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
         self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
@@ -147,20 +146,20 @@ class PGTrafficVehicle(DynamicElement):
     def create_random_traffic_vehicle(
             cls,
             index: int,
-            scene_mgr: SceneManager,
+            traffic_mgr: TrafficManager,
             lane: Union[StraightLane, CircularLane],
             longitude: float,
             seed=None,
             enable_lane_change: bool = True,
             enable_reborn=False
     ):
-        v = IDMVehicle.create_random(scene_mgr, lane, longitude, random_seed=seed)
+        v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change
         return cls(index, v, enable_reborn, np_random=v.np_random)
 
     @classmethod
-    def create_traffic_vehicle_from_config(cls, scene_mgr: SceneManager, config: dict):
-        v = IDMVehicle(scene_mgr, config["position"], config["heading"], np_random=None)
+    def create_traffic_vehicle_from_config(cls, traffic_mgr: TrafficManager, config: dict):
+        v = IDMVehicle(traffic_mgr, config["position"], config["heading"], np_random=None)
         return cls(config["index"], v)
 
     def __del__(self):
