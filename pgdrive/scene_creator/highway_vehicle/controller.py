@@ -100,12 +100,18 @@ class ControlledVehicle(Vehicle):
             self.target_speed -= self.DELTA_SPEED
         elif action == "LANE_RIGHT":
             _from, _to, _id = self.target_lane_index
-            target_lane_index = _from, _to, clip(_id + 1, 0, len(self.traffic_mgr.map.road_network.graph[_from][_to]) - 1)
+            target_lane_index = _from, _to, clip(
+                _id + 1, 0,
+                len(self.traffic_mgr.map.road_network.graph[_from][_to]) - 1
+            )
             if self.traffic_mgr.map.road_network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
         elif action == "LANE_LEFT":
             _from, _to, _id = self.target_lane_index
-            target_lane_index = _from, _to, clip(_id - 1, 0, len(self.traffic_mgr.map.road_network.graph[_from][_to]) - 1)
+            target_lane_index = _from, _to, clip(
+                _id - 1, 0,
+                len(self.traffic_mgr.map.road_network.graph[_from][_to]) - 1
+            )
             if self.traffic_mgr.map.road_network.get_lane(target_lane_index).is_reachable_from(self.position):
                 self.target_lane_index = target_lane_index
 
@@ -210,8 +216,8 @@ class ControlledVehicle(Vehicle):
         return tuple(
             zip(
                 *[
-                    self.traffic_mgr.map.road_network.position_heading_along_route(route, coordinates[0] + self.speed * t, 0)
-                    for t in times
+                    self.traffic_mgr.map.road_network.
+                    position_heading_along_route(route, coordinates[0] + self.speed * t, 0) for t in times
                 ]
             )
         )

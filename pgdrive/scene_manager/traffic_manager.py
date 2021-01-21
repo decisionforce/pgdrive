@@ -46,11 +46,7 @@ class TrafficManager:
         self.random_seed = None
         self.np_random = None
 
-    def generate(self,
-                 pg_world: PGWorld,
-                 map: Map,
-                 ego_vehicle,
-                 traffic_density: float):
+    def generate(self, pg_world: PGWorld, map: Map, ego_vehicle, traffic_density: float):
         """
         Generate traffic on map
         :param pg_world: World
@@ -214,9 +210,7 @@ class TrafficManager:
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def _create_vehicles_on_lane(self, traffic_density: float,
-                                 lane: AbstractLane,
-                                 is_reborn_lane):
+    def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_reborn_lane):
         """
         Create vehicles on a lane
         :param traffic_density: traffic density according to num of vehicles per meter
@@ -307,7 +301,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

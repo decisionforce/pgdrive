@@ -296,7 +296,9 @@ class IDMVehicle(ControlledVehicle):
         # Is the vehicle stopped on the wrong lane?
         if self.target_lane_index != self.lane_index and self.speed < stopped_speed:
             _, rear = self.traffic_mgr.neighbour_vehicles(self)
-            _, new_rear = self.traffic_mgr.neighbour_vehicles(self, self.traffic_mgr.map.road_network.get_lane(self.target_lane_index))
+            _, new_rear = self.traffic_mgr.neighbour_vehicles(
+                self, self.traffic_mgr.map.road_network.get_lane(self.target_lane_index)
+            )
             # Check for free room behind on both lanes
             if (not rear or rear.lane_distance_to(self) > safe_distance) and \
                     (not new_rear or new_rear.lane_distance_to(self) > safe_distance):

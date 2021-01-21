@@ -15,7 +15,6 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
     def __init__(self, traffic_mode=TrafficMode.Trigger, random_traffic: bool = False, record_episode: bool = False):
         """
         :param traffic_mode: reborn/trigger mode
@@ -30,14 +29,7 @@ class SceneManager:
         self.replay_system = None
         self.record_system = None
 
-    def reset(
-            self,
-            pg_world: PGWorld,
-            map: Map,
-            ego_vehicle,
-            traffic_density: float,
-            episode_data=None
-    ):
+    def reset(self, pg_world: PGWorld, map: Map, ego_vehicle, traffic_density: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """

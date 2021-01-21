@@ -6,7 +6,7 @@ import numpy as np
 import pgdrive.utils.math_utils as utils
 from pgdrive.scene_creator.lanes.lane import AbstractLane
 from pgdrive.scene_creator.road_object.object import Landmark, Obstacle, RoadObject
-from pgdrive.scene_manager.scene_manager import  LaneIndex
+from pgdrive.scene_manager.scene_manager import LaneIndex
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random
 
@@ -42,7 +42,9 @@ class Vehicle:
         self._position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
-        self.lane_index, _ = self.traffic_mgr.map.road_network.get_closest_lane_index(self.position) if self.traffic_mgr else np.nan
+        self.lane_index, _ = self.traffic_mgr.map.road_network.get_closest_lane_index(
+            self.position
+        ) if self.traffic_mgr else np.nan
         self.lane = self.traffic_mgr.map.road_network.get_lane(self.lane_index) if self.traffic_mgr else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False

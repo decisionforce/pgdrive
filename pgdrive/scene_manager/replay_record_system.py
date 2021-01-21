@@ -8,7 +8,7 @@ from pgdrive.scene_manager.traffic_manager import TrafficManager
 
 
 class PGReplayer:
-    def __init__(self, traffic_mgr:TrafficManager, current_map: Map, episode_data: dict, pg_world: PGWorld):
+    def __init__(self, traffic_mgr: TrafficManager, current_map: Map, episode_data: dict, pg_world: PGWorld):
         self.restore_traffic_mode = episode_data["traffic_mode"]
         self.restore_episode_info = episode_data["frame"]
         self.restore_episode_info.reverse()
@@ -16,7 +16,7 @@ class PGReplayer:
         self.current_map = current_map
         self._recover_vehicles_from_data(traffic_mgr, episode_data, pg_world)
 
-    def _recover_vehicles_from_data(self, traffic_mgr:TrafficManager, episode_data: dict, pg_world: PGWorld):
+    def _recover_vehicles_from_data(self, traffic_mgr: TrafficManager, episode_data: dict, pg_world: PGWorld):
         assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
         import pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type as v_types
         traffics = episode_data["init_traffic"]
