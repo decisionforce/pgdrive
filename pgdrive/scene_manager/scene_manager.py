@@ -15,12 +15,13 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
-    def __init__(self,
-                 pg_world: PGWorld,
-                 traffic_mode=TrafficMode.Trigger,
-                 random_traffic: bool = False,
-                 record_episode: bool = False):
+    def __init__(
+        self,
+        pg_world: PGWorld,
+        traffic_mode=TrafficMode.Trigger,
+        random_traffic: bool = False,
+        record_episode: bool = False
+    ):
         """
         :param traffic_mode: reborn/trigger mode
         :param random_traffic: if True, map seed is different with traffic manager seed
