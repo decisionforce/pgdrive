@@ -194,8 +194,8 @@ class PGDriveEnv(gym.Env):
             # saver can be used for human or another AI
             action = self.saver(action)
 
-        # action before clipping
-        raw_action = (action[0], action[1])
+        # add custom metric in info
+        self.step_info = {"raw_action": (action[0], action[1])}
 
         # protect agent from nan error
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
@@ -212,7 +212,6 @@ class PGDriveEnv(gym.Env):
         obs = self.observation.observe(self.vehicle)
 
         # update rl info
-        self.step_info = {}
         self.done = self.done or done
         step_reward = self.reward(action)
         done_reward = self._done_episode()
@@ -227,7 +226,6 @@ class PGDriveEnv(gym.Env):
             "acceleration": float(self.vehicle.throttle_brake),
             "step_reward": float(step_reward),
             "save_mode": self.save_mode,
-            "raw_action": raw_action
         })
         return obs, step_reward + done_reward, self.done, self.step_info
 
