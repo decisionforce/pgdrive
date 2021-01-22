@@ -10,8 +10,8 @@ if __name__ == "__main__":
             # "controller": "joystick",
             "manual_control": True,
             "use_render": True,
-            "save_level":0.3,
-            "takeover_penalty":0.5
+            # "save_level":0.3,
+            # "takeover_penalty":0.5
             # "use_saver":False,
             # "map": "Crrrrrrrrrr"
         }
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         max_t = max(max_t, info["raw_action"][1])
         text = {"save": env.save_mode, "max_action":(max_s, max_t)}
         env.render(text=text)
-        # if d:
-        #     print(info)
-        #     env.reset()
+        if d:
+            print(info)
+            env.reset()
     env.close()

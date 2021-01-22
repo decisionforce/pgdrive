@@ -5,12 +5,20 @@ from pgdrive.pg_config import PGConfig
 class SafeDrivingEnv(PGDriveEnv):
 
     def default_config(self) -> PGConfig:
+        """
+        6 block with 0.1 density hybrid traffic
+        Train/Test set both containing 10 maps
+        :return: PGConfig
+        """
         config = super(SafeDrivingEnv, self).default_config()
         config.extend_config_with_unknown_keys(dict(takeover_penalty=0.5,
                                                     start_seed=1000,
                                                     environment_num=100,
                                                     traffic_density=0.2,
+                                                    traffic_mode="hybrid",
+                                                    map=5,
                                                     save_level=0.5,
+                                                    use_saver=True,
                                                     out_of_road_penalty=3))
         return config
 
