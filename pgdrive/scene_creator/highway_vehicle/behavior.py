@@ -116,8 +116,7 @@ class IDMVehicle(ControlledVehicle):
             ego_vehicle=self, front_vehicle=front_vehicle, rear_vehicle=rear_vehicle
         )
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
-        # action['acceleration'] = np.clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
-        action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
+        action['acceleration'] = clip(action['acceleration'], -1e2, self.ACC_MAX)
         Vehicle.act(self, action)  # Skip ControlledVehicle.act(), or the command will be override.
 
     def step(self, dt: float):
@@ -157,8 +156,8 @@ class IDMVehicle(ControlledVehicle):
             d = ego_vehicle.lane_distance_to(front_vehicle)
             acceleration -= self.COMFORT_ACC_MAX * \
                             np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
-        if acceleration < 0 and self.speed + acceleration * 0.2 < 0:
-            acceleration = self.speed / 0.2
+        if acceleration < 0 and self.speed < 0:
+            acceleration = -self.speed / 0.2
         return acceleration
 
     def desired_gap(self, ego_vehicle: Vehicle, front_vehicle: Vehicle = None) -> float:
