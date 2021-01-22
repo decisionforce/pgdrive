@@ -27,7 +27,7 @@ class SafeDrivingEnv(PGDriveEnv):
             reward -= self.config["low_speed_penalty"]  # encourage car
         reward -= self.config["general_penalty"]
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
-        self.step_info["raw_reward"] = reward
+        self.step_info["raw_step_reward"] = reward
         if self.save_mode:
             # takeover means the situation is dangerous, so give a penalty
             reward -= self.config["takeover_penalty"]
