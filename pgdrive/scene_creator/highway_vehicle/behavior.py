@@ -46,17 +46,17 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_DELAY = 1.0  # [s]
 
     def __init__(
-        self,
-        traffic_mgr: TrafficManager,
-        position: List,
-        heading: float = 0,
-        speed: float = 0,
-        target_lane_index: int = None,
-        target_speed: float = None,
-        route: Route = None,
-        enable_lane_change: bool = True,
-        timer: float = None,
-        np_random: np.random.RandomState = None,
+            self,
+            traffic_mgr: TrafficManager,
+            position: List,
+            heading: float = 0,
+            speed: float = 0,
+            target_lane_index: int = None,
+            target_speed: float = None,
+            route: Route = None,
+            enable_lane_change: bool = True,
+            timer: float = None,
+            np_random: np.random.RandomState = None,
     ):
         super().__init__(
             traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
@@ -132,7 +132,7 @@ class IDMVehicle(ControlledVehicle):
         super().step(dt)
 
     def acceleration(
-        self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+            self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -157,6 +157,8 @@ class IDMVehicle(ControlledVehicle):
             d = ego_vehicle.lane_distance_to(front_vehicle)
             acceleration -= self.COMFORT_ACC_MAX * \
                             np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
+        if acceleration < 0 and self.speed + acceleration * 0.2 < 0:
+            acceleration = self.speed / 0.2
         return acceleration
 
     def desired_gap(self, ego_vehicle: Vehicle, front_vehicle: Vehicle = None) -> float:
@@ -193,7 +195,7 @@ class IDMVehicle(ControlledVehicle):
         tau = self.TIME_WANTED
         d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.LENGTH / 2 - d0, 0)
         v1_0 = front_vehicle.speed
-        delta = 4 * (a0 * a1 * tau)**2 + 8 * a0 * (a1**2) * d + 4 * a0 * a1 * v1_0**2
+        delta = 4 * (a0 * a1 * tau) ** 2 + 8 * a0 * (a1 ** 2) * d + 4 * a0 * a1 * v1_0 ** 2
         v_max = -a0 * tau + np.sqrt(delta) / (2 * a1)
 
         # Speed control
@@ -277,7 +279,7 @@ class IDMVehicle(ControlledVehicle):
             old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (
-                new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
+                    new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
             )
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
                 return False
@@ -323,38 +325,37 @@ class LinearVehicle(IDMVehicle):
     TIME_WANTED = 2.5
 
     def __init__(
-        self,
-        road: TrafficManager,
-        position: List,
-        heading: float = 0,
-        speed: float = 0,
-        target_lane_index: int = None,
-        target_speed: float = None,
-        route: Route = None,
-        enable_lane_change: bool = True,
-        timer: float = None,
-        data: dict = None
+            self,
+            traffic_mgr: TrafficManager,
+            position: List,
+            heading: float = 0,
+            speed: float = 0,
+            target_lane_index: int = None,
+            target_speed: float = None,
+            route: Route = None,
+            enable_lane_change: bool = True,
+            timer: float = None,
+            data: dict = None,
+            np_random=None
     ):
         super().__init__(
-            road, position, heading, speed, target_lane_index, target_speed, route, enable_lane_change, timer
+            traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, enable_lane_change, timer,
+            np_random
         )
         self.data = data if data is not None else {}
-        self.collecting_data = True
 
     def act(self, action: Union[dict, str] = None, scene_mgr: SceneManager = None):
-        if self.collecting_data:
-            self.collect_data()
         super().act(action, scene_mgr)
 
     def randomize_behavior(self):
         ua = self.traffic_mgr.np_random.uniform(size=np.shape(self.ACCELERATION_PARAMETERS))
         self.ACCELERATION_PARAMETERS = self.ACCELERATION_RANGE[
-            0] + ua * (self.ACCELERATION_RANGE[1] - self.ACCELERATION_RANGE[0])
+                                           0] + ua * (self.ACCELERATION_RANGE[1] - self.ACCELERATION_RANGE[0])
         ub = self.traffic_mgr.np_random.uniform(size=np.shape(self.STEERING_PARAMETERS))
         self.STEERING_PARAMETERS = self.STEERING_RANGE[0] + ub * (self.STEERING_RANGE[1] - self.STEERING_RANGE[0])
 
     def acceleration(
-        self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+            self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
     ) -> float:
         """
         Compute an acceleration command with a Linear Model.
@@ -376,10 +377,10 @@ class LinearVehicle(IDMVehicle):
         )
 
     def acceleration_features(
-        self,
-        ego_vehicle: ControlledVehicle,
-        front_vehicle: Vehicle = None,
-        rear_vehicle: Vehicle = None
+            self,
+            ego_vehicle: ControlledVehicle,
+            front_vehicle: Vehicle = None,
+            rear_vehicle: Vehicle = None
     ) -> np.ndarray:
         vt, dv, dp = 0, 0, 0
         if ego_vehicle:
@@ -416,66 +417,10 @@ class LinearVehicle(IDMVehicle):
         features = np.array(
             [
                 utils.wrap_to_pi(lane_future_heading - self.heading) * self.LENGTH / utils.not_zero(self.speed),
-                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed) ** 2)
             ]
         )
         return features
-
-    def longitudinal_structure(self):
-        # Nominal dynamics: integrate speed
-        A = np.array([[0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0]])
-        # Target speed dynamics
-        phi0 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
-        # Front speed control
-        phi1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, -1, 1], [0, 0, 0, 0]])
-        # Front position control
-        phi2 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [-1, 1, -self.TIME_WANTED, 0], [0, 0, 0, 0]])
-        # Disable speed control
-        front_vehicle, _ = self.traffic_mgr.neighbour_vehicles(self)
-        if not front_vehicle or self.speed < front_vehicle.speed:
-            phi1 *= 0
-
-        # Disable front position control
-        if front_vehicle:
-            d = self.lane_distance_to(front_vehicle)
-            if d != self.DISTANCE_WANTED + self.TIME_WANTED * self.speed:
-                phi2 *= 0
-        else:
-            phi2 *= 0
-
-        phi = np.array([phi0, phi1, phi2])
-        return A, phi
-
-    def lateral_structure(self):
-        A = np.array([[0, 1], [0, 0]])
-        phi0 = np.array([[0, 0], [0, -1]])
-        phi1 = np.array([[0, 0], [-1, 0]])
-        phi = np.array([phi0, phi1])
-        return A, phi
-
-    def collect_data(self):
-        """Store features and outputs for parameter regression."""
-        self.add_features(self.data, self.target_lane_index)
-
-    def add_features(self, data, lane_index, output_lane=None):
-
-        front_vehicle, rear_vehicle = self.traffic_mgr.neighbour_vehicles(self)
-        features = self.acceleration_features(self, front_vehicle, rear_vehicle)
-        output = np.dot(self.ACCELERATION_PARAMETERS, features)
-        if "longitudinal" not in data:
-            data["longitudinal"] = {"features": [], "outputs": []}
-        data["longitudinal"]["features"].append(features)
-        data["longitudinal"]["outputs"].append(output)
-
-        if output_lane is None:
-            output_lane = lane_index
-        features = self.steering_features(lane_index)
-        out_features = self.steering_features(output_lane)
-        output = np.dot(self.STEERING_PARAMETERS, out_features)
-        if "lateral" not in data:
-            data["lateral"] = {"features": [], "outputs": []}
-        data["lateral"]["features"].append(features)
-        data["lateral"]["outputs"].append(output)
 
 
 class AggressiveVehicle(LinearVehicle):

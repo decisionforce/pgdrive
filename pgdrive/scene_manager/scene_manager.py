@@ -15,12 +15,13 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(
-        self,
-        pg_world: PGWorld,
-        traffic_mode=TrafficMode.Trigger,
-        random_traffic: bool = False,
-        record_episode: bool = False
+            self,
+            pg_world: PGWorld,
+            traffic_mode=TrafficMode.Trigger,
+            random_traffic: bool = False,
+            record_episode: bool = False
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -29,6 +30,7 @@ class SceneManager:
         # scene manager control all movements in pg_world
         self.pg_world = pg_world
 
+        # TODO more manager will be added in the future to manager traffic light/pedestrian/objects
         self.traffic = TrafficManager(traffic_mode, random_traffic)
         self.ego_vehicle = None
         self.map = None

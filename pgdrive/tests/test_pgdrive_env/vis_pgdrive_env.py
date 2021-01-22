@@ -44,6 +44,7 @@ if __name__ == "__main__":
     env = TestEnv()
 
     o = env.reset()
+    print("vehicle num", len(env.scene_manager.traffic.vehicles))
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render()
