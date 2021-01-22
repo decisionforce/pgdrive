@@ -20,7 +20,7 @@ class TrafficMode:
     Trigger = "trigger"
 
     # Hybrid, some vehicles are triggered once on map and disappear when arriving at destination, others exist all time
-    Hybrid = "Hybrid"
+    Hybrid = "hybrid"
 
 
 class TrafficManager:
@@ -46,6 +46,7 @@ class TrafficManager:
         self.mode = traffic_mode
         self.random_traffic = random_traffic
         self.density = 0
+        self.reborn_lanes = None
 
         # control randomness of traffic
         self.random_seed = None
@@ -82,20 +83,19 @@ class TrafficManager:
         if abs(traffic_density - 0.0) < 1e-2:
             return
 
+        self.reborn_lanes = None
         if self.mode == TrafficMode.Reborn:
             # add reborn vehicle
-            reborn_lanes = self._get_available_reborn_lanes(map)
-            for lane in reborn_lanes:
-                self.traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
-            for vehicle in self.traffic_vehicles:
-                vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
-            logging.debug("Init {} Traffic Vehicles".format(len(self.traffic_vehicles)))
+            self._create_reborn_vehicles(pg_world, map, traffic_density)
         elif self.mode == TrafficMode.Trigger:
             self._create_vehicles_once(pg_world, map, traffic_density)
         elif self.mode == TrafficMode.Hybrid:
-            pass
+            # vehicles will be reborn after arriving destination
+            self.reborn_lanes = self._get_available_reborn_lanes(map)
+            self._create_vehicles_once(pg_world, map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
+        logging.debug("Init {} Traffic Vehicles".format(len(self.traffic_vehicles)))
 
     def prepare_step(self, scene_mgr, pg_world: PGWorld):
         """
@@ -148,6 +148,13 @@ class TrafficManager:
             self.traffic_vehicles.remove(v)
             self.vehicles.remove(v.vehicle_node.kinematic_model)
             v.destroy(pg_world)
+
+            if self.mode == TrafficMode.Hybrid:
+                # create a new one
+                lane = self.np_random.choice(self.reborn_lanes)
+                random_v = self._create_one_vehicle(lane, self.np_random.rand() * lane.length / 2, True)
+                self.traffic_vehicles.append(random_v)
+
         return False
 
     def clear_traffic(self, pg_world: PGWorld) -> None:
@@ -227,6 +234,22 @@ class TrafficManager:
                     vehicles[vehicle.index] = init_state
         return vehicles
 
+    def _create_one_vehicle(self, lane: AbstractLane, long: float, enable_reborn: bool):
+        """
+        Create one vehicle on lane and a specific place
+        :param lane: Straight Lane or Circular Lane
+        :param long: longitude position on lane
+        :param enable_reborn: Reborn or not
+        :return: PGTrafficVehicle
+        """
+        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import car_type
+        vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
+        random_v = vehicle_type.create_random_traffic_vehicle(
+            len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=enable_reborn
+        )
+        self.vehicles.append(random_v.vehicle_node.kinematic_model)
+        return random_v
+
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_reborn_lane):
         """
         Create vehicles on a lane
@@ -235,23 +258,26 @@ class TrafficManager:
         :param is_reborn_lane: Whether vehicles should be reborn on this lane or not
         :return: List of vehicles
         """
-        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import car_type
+
         from pgdrive.scene_creator.blocks.ramp import InRampOnStraight
         traffic_vehicles = []
         total_num = int(lane.length / self.VEHICLE_GAP)
         vehicle_longs = [i * self.VEHICLE_GAP for i in range(total_num)]
         self.np_random.shuffle(vehicle_longs)
-        for i, long in enumerate(vehicle_longs):
+        for long in vehicle_longs:
             if self.np_random.rand() > traffic_density and abs(lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
-            vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
-            random_v = vehicle_type.create_random_traffic_vehicle(
-                len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=is_reborn_lane
-            )
-            self.vehicles.append(random_v.vehicle_node.kinematic_model)
+            random_v = self._create_one_vehicle(lane, long, is_reborn_lane)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
+
+    def _create_reborn_vehicles(self, pg_world: PGWorld, map: Map, traffic_density: float):
+        reborn_lanes = self._get_available_reborn_lanes(map)
+        for lane in reborn_lanes:
+            self.traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
+        for vehicle in self.traffic_vehicles:
+            vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
     def _create_vehicles_once(self, pg_world: PGWorld, map: Map, traffic_density: float) -> None:
         """

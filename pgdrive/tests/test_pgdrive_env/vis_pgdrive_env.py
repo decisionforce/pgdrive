@@ -13,8 +13,8 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.1,
-                "traffic_mode": "trigger",
+                "traffic_density": 0.3,
+                "traffic_mode": "hybrid",
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
@@ -32,7 +32,7 @@ class TestEnv(PGDriveEnv):
                 # "debug":True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                    Map.GENERATE_PARA: 30,
+                    Map.GENERATE_PARA: 3,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print("vehicle num", len(env.scene_manager.traffic.vehicles))
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
-        env.render()
+        env.render(text={"vehicle_num":len(env.scene_manager.traffic.traffic_vehicles)})
         # if d:
         #     print("Reset")
         #     env.reset()

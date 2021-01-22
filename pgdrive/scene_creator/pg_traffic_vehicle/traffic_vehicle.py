@@ -6,7 +6,7 @@ from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
 
 from pgdrive.pg_config.body_name import BodyName
 from pgdrive.pg_config.collision_group import CollisionGroup
-from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle, LinearVehicle
+from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lanes.circular_lane import CircularLane
 from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_manager.scene_manager import SceneManager
