@@ -188,12 +188,12 @@ class PGDriveEnv(gym.Env):
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
         self.vehicle.prepare_step(action)
-        self.scene_manager.prepare_step()
+        self.scene_manager.prepare_step(self.pg_world)
 
         # ego vehicle/ traffic step
         for i in range(self.config["decision_repeat"]):
             # traffic vehicles step
-            self.scene_manager.step(self.pg_world.pg_config["physics_world_step_size"])
+            self.scene_manager.step(self.pg_world)
             self.pg_world.step()
             if self.pg_world.force_fps.real_time_simulation and i < self.config["decision_repeat"] - 1:
                 # insert frame to render in min step_size

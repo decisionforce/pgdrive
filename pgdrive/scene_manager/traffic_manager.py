@@ -89,10 +89,11 @@ class TrafficManager:
         else:
             self._create_vehicles_once(pg_world, map, traffic_density)
 
-    def prepare_step(self, scene_mgr):
+    def prepare_step(self, scene_mgr, pg_world: PGWorld):
         """
         All traffic vehicles make driving decision here
         :param scene_mgr: access other elements in scene
+        :param pg_world: World
         :return: None
         """
         if self.mode == TrafficMode.Trigger:
@@ -114,9 +115,10 @@ class TrafficManager:
         for v in self.traffic_vehicles:
             v.step(dt)
 
-    def update_state(self, pg_world: PGWorld) -> bool:
+    def update_state(self, scene_mgr, pg_world: PGWorld) -> bool:
         """
         Update all traffic vehicles' states,
+        :param scene_mgr: Access other entities in the scene to determine the new state
         :param pg_world: World
         :return: if this episode should be done
         """

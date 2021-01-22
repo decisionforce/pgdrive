@@ -30,14 +30,13 @@ class Vehicle:
     """ Range for random initial speeds [m/s] """
     MAX_SPEED = 40.
     """ Maximum reachable speed [m/s] """
-
     def __init__(
-            self,
-            traffic_mgr: TrafficManager,
-            position: List,
-            heading: float = 0,
-            speed: float = 0,
-            np_random: np.random.RandomState = None,
+        self,
+        traffic_mgr: TrafficManager,
+        position: List,
+        heading: float = 0,
+        speed: float = 0,
+        np_random: np.random.RandomState = None,
     ):
         self.traffic_mgr = traffic_mgr
         self._position = np.array(position).astype('float')
@@ -82,8 +81,7 @@ class Vehicle:
 
     @classmethod
     def create_random(
-            cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None,
-            random_seed=None
+        cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
     ):
         """
         Create a random vehicle on the road.
@@ -238,7 +236,7 @@ class Vehicle:
         if (self.destination != self.position).any():
             return (self.destination - self.position) / np.linalg.norm(self.destination - self.position)
         else:
-            return np.zeros((2,))
+            return np.zeros((2, ))
 
     @property
     def on_road(self) -> bool:

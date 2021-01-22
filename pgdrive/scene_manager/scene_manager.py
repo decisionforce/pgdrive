@@ -55,20 +55,21 @@ class SceneManager:
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
-    def prepare_step(self):
+    def prepare_step(self, pg_world: PGWorld):
         """
         Entities make decision here, and prepare for step
         All entities can access this global manager to query or interact with others
+        :param pg_world: World
         :return: None
         """
-        self.traffic.prepare_step(self)
+        self.traffic.prepare_step(self, pg_world)
 
-    def step(self, dt: float) -> None:
+    def step(self, pg_world: PGWorld) -> None:
         """
         Step the dynamics of each entity on the road.
-
-        :param dt: timestep [s]
+        :param pg_world: World
         """
+        dt = pg_world.pg_config["physics_world_step_size"]
         self.traffic.step(dt)
 
     def update_state(self, pg_world: PGWorld) -> bool:
@@ -78,7 +79,7 @@ class SceneManager:
         :return: if this episode is done
         """
         done = False
-        done = self.traffic.update_state(pg_world) or done
+        done = self.traffic.update_state(self, pg_world) or done
 
         if self.replay_system is not None:
             self.replay_system.replay_frame(self.ego_vehicle, pg_world)
