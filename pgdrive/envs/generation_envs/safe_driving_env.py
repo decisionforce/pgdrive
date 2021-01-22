@@ -10,6 +10,7 @@ class SafeDrivingEnv(PGDriveEnv):
                                                     start_seed=1000,
                                                     environment_num=100,
                                                     traffic_density=0.2,
+                                                    save_level=0.5,
                                                     out_of_road_penalty=3))
         return config
 
