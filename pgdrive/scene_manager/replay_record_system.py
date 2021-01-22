@@ -9,7 +9,6 @@ from pgdrive.scene_manager.traffic_manager import TrafficManager
 
 class PGReplayer:
     def __init__(self, traffic_mgr: TrafficManager, current_map: Map, episode_data: dict, pg_world: PGWorld):
-        self.restore_traffic_mode = episode_data["traffic_mode"]
         self.restore_episode_info = episode_data["frame"]
         self.restore_episode_info.reverse()
         self.restore_vehicles = {}
@@ -35,7 +34,7 @@ class PGReplayer:
         for index, state in frame.items():
             vehicle = self.restore_vehicles[index] if index != "ego" else ego_vehicle
             vehicle.set_state(state)
-            if index != "ego" and state["done"] and self.restore_traffic_mode == TrafficMode.Trigger:
+            if index != "ego" and state["done"] and not vehicle.enable_reborn:
                 vehicles_to_remove.append(vehicle)
         for v in vehicles_to_remove:
             v.destroy(pg_world)
@@ -50,14 +49,13 @@ class PGReplayer:
 
 
 class PGRecorder:
-    def __init__(self, map: Map, init_vehicle_states: dict, traffic_mode: TrafficMode):
+    def __init__(self, map: Map, init_vehicle_states: dict):
         map_data = dict()
         map_data[map.random_seed] = map.save_map()
         init_vehicle_state = init_vehicle_states
         self.episode_info = dict(
             map_config=map.config.get_dict(),
             init_traffic=init_vehicle_state,
-            traffic_mode=traffic_mode,
             map_data=copy.deepcopy(map_data),
             frame=[]
         )

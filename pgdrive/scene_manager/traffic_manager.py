@@ -15,8 +15,12 @@ BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 class TrafficMode:
     # Traffic vehicles will be reborn, once they arrive at the destinations
     Reborn = "reborn"
+
     # Traffic vehicles will be triggered only once
     Trigger = "trigger"
+
+    # Hybrid, some vehicles are triggered once on map and disappear when arriving at destination, others exist all time
+    Hybrid = "Hybrid"
 
 
 class TrafficManager:
@@ -71,7 +75,7 @@ class TrafficManager:
         self.density = traffic_density
 
         # update vehicle list
-        self.block_triggered_vehicles = [] if self.mode == TrafficMode.Trigger else None
+        self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
         self.vehicles = [*controllable_vehicles]  # it is used to perform IDM and bicycle model based motion
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
@@ -86,8 +90,12 @@ class TrafficManager:
             for vehicle in self.traffic_vehicles:
                 vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
             logging.debug("Init {} Traffic Vehicles".format(len(self.traffic_vehicles)))
-        else:
+        elif self.mode == TrafficMode.Trigger:
             self._create_vehicles_once(pg_world, map, traffic_density)
+        elif self.mode == TrafficMode.Hybrid:
+            pass
+        else:
+            raise ValueError("No such mode named {}".format(self.mode))
 
     def prepare_step(self, scene_mgr, pg_world: PGWorld):
         """
@@ -96,7 +104,7 @@ class TrafficManager:
         :param pg_world: World
         :return: None
         """
-        if self.mode == TrafficMode.Trigger:
+        if self.mode != TrafficMode.Reborn:
             ego_lane_idx = self.ego_vehicle.lane_index[:-1]
             ego_road = Road(ego_lane_idx[0], ego_lane_idx[1])
             if len(self.block_triggered_vehicles) > 0 and ego_road == self.block_triggered_vehicles[-1].trigger_road:
@@ -187,7 +195,7 @@ class TrafficManager:
             states[vehicle.index] = vehicle.get_state()
 
         # collect other vehicles
-        if self.mode == TrafficMode.Trigger:
+        if self.mode != TrafficMode.Reborn:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
                     states[vehicle.index] = vehicle.get_state()
@@ -205,15 +213,17 @@ class TrafficManager:
             init_state = vehicle.get_state()
             init_state["index"] = vehicle.index
             init_state["type"] = vehicle.class_name
+            init_state["enable_reborn"] = vehicle.enable_reborn
             vehicles[vehicle.index] = init_state
 
         # collect other vehicles
-        if self.mode == TrafficMode.Trigger:
+        if self.mode != TrafficMode.Reborn:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
                     init_state = vehicle.get_state()
                     init_state["type"] = vehicle.class_name
                     init_state["index"] = vehicle.index
+                    init_state["enable_reborn"] = vehicle.enable_reborn
                     vehicles[vehicle.index] = init_state
         return vehicles
 
@@ -308,7 +318,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

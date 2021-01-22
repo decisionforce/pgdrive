@@ -57,6 +57,7 @@ class PGTrafficVehicle(DynamicElement):
         self.vehicle_node.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
         self.vehicle_node.setKinematic(False)
         self.vehicle_node.setStatic(True)
+        self.enable_reborn = enable_reborn
         self._initial_state = kinematic_model if enable_reborn else None
         self.dynamic_nodes.append(self.vehicle_node)
         self.node_path = NodePath(self.vehicle_node)
@@ -152,14 +153,14 @@ class PGTrafficVehicle(DynamicElement):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        seed=None,
-        enable_lane_change: bool = True,
-        enable_reborn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            seed=None,
+            enable_lane_change: bool = True,
+            enable_reborn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=seed)
         v.enable_lane_change = enable_lane_change
@@ -168,7 +169,7 @@ class PGTrafficVehicle(DynamicElement):
     @classmethod
     def create_traffic_vehicle_from_config(cls, traffic_mgr: TrafficManager, config: dict):
         v = IDMVehicle(traffic_mgr, config["position"], config["heading"], np_random=None)
-        return cls(config["index"], v)
+        return cls(config["index"], v, config["enable_reborn"])
 
     def __del__(self):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)

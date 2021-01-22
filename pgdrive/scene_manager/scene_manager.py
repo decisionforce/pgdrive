@@ -63,7 +63,7 @@ class SceneManager:
             pg_world.highway_render.set_scene_mgr(self)
         if self.record_episode:
             if episode_data is None:
-                self.record_system = PGRecorder(map, self.traffic.get_global_init_states(), self.traffic.mode)
+                self.record_system = PGRecorder(map, self.traffic.get_global_init_states())
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
