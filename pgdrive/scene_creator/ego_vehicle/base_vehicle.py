@@ -125,7 +125,7 @@ class BaseVehicle(DynamicElement):
 
     def prepare_step(self, action):
         """
-        Save info before action
+        Save info and make decision before action
         """
         self.last_position = self.position
         self.last_heading_dir = self.heading

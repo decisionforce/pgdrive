@@ -1,6 +1,6 @@
 import logging
 from typing import List, Tuple
-
+import numpy as np
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
@@ -15,11 +15,19 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-    def __init__(self, traffic_mode=TrafficMode.Trigger, random_traffic: bool = False, record_episode: bool = False):
+
+    def __init__(self,
+                 pg_world: PGWorld,
+                 traffic_mode=TrafficMode.Trigger,
+                 random_traffic: bool = False,
+                 record_episode: bool = False):
         """
         :param traffic_mode: reborn/trigger mode
         :param random_traffic: if True, map seed is different with traffic manager seed
         """
+        # scene manager control all movements in pg_world
+        self.pg_world = pg_world
+
         self.traffic = TrafficManager(traffic_mode, random_traffic)
         self.ego_vehicle = None
         self.map = None
@@ -29,10 +37,11 @@ class SceneManager:
         self.replay_system = None
         self.record_system = None
 
-    def reset(self, pg_world: PGWorld, map: Map, ego_vehicle, traffic_density: float, episode_data=None):
+    def reset(self, map: Map, ego_vehicle, traffic_density: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
+        pg_world = self.pg_world
         self.ego_vehicle = ego_vehicle
 
         if self.replay_system is not None:
@@ -55,37 +64,51 @@ class SceneManager:
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
-    def prepare_step(self, pg_world: PGWorld):
+    def prepare_step(self, ego_vehicle_action: np.array):
         """
         Entities make decision here, and prepare for step
         All entities can access this global manager to query or interact with others
         :param pg_world: World
+        :param ego_vehicle_action: Ego_vehicle action
         :return: None
         """
-        self.traffic.prepare_step(self, pg_world)
+        self.ego_vehicle.prepare_step(ego_vehicle_action)
+        self.traffic.prepare_step(self, self.pg_world)
 
-    def step(self, pg_world: PGWorld) -> None:
+    def step(self, step_num: int = 1) -> None:
         """
         Step the dynamics of each entity on the road.
         :param pg_world: World
+        :param step_num: Decision of all entities will repeat *step_num* times
         """
+        pg_world = self.pg_world
         dt = pg_world.pg_config["physics_world_step_size"]
-        self.traffic.step(dt)
+        for i in range(step_num):
+            # traffic vehicles step
+            self.traffic.step(dt)
+            pg_world.step()
+            if pg_world.force_fps.real_time_simulation and i < step_num - 1:
+                # insert frame to render in min step_size
+                pg_world.taskMgr.step()
 
-    def update_state(self, pg_world: PGWorld) -> bool:
+        #  panda3d render and garbage collecting loop
+        pg_world.taskMgr.step()
+
+    def update_state(self) -> bool:
         """
         Update states after finishing movement
         :param pg_world: World
         :return: if this episode is done
         """
         done = False
-        done = self.traffic.update_state(self, pg_world) or done
+        done = self.traffic.update_state(self, self.pg_world) or done
 
         if self.replay_system is not None:
-            self.replay_system.replay_frame(self.ego_vehicle, pg_world)
+            self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         elif self.record_system is not None:
             # didn't record while replay
             self.record_system.record_frame(self.traffic.get_global_states())
+        self.ego_vehicle.update_state()
         return done
 
     def dump_episode(self) -> None:
@@ -93,7 +116,8 @@ class SceneManager:
         assert self.record_system is not None
         return self.record_system.dump_episode()
 
-    def destroy(self, pg_world: PGWorld):
+    def destroy(self, pg_world: PGWorld = None):
+        pg_world = self.pg_world if pg_world is None else pg_world
         self.traffic.destroy(pg_world)
         self.traffic = None
         self.map = None

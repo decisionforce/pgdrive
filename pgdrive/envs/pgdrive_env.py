@@ -98,7 +98,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -137,6 +137,10 @@ class PGDriveEnv(gym.Env):
         self.save_mode = False
 
     def lazy_init(self):
+        """
+        Only init once in runtime, variable here exists till the close_env is called
+        :return: None
+        """
         # It is the true init() func to create the main vehicle and its module
         if self.pg_world is not None:
             return
@@ -150,9 +154,9 @@ class PGDriveEnv(gym.Env):
         self.pg_world.accept("t", self.toggle_expert_take_over)
 
         # init traffic manager
-        self.scene_manager = SceneManager(
-            self.config["traffic_mode"], self.config["random_traffic"], self.config["record_episode"]
-        )
+        self.scene_manager = SceneManager(self.pg_world,
+                                          self.config["traffic_mode"], self.config["random_traffic"],
+                                          self.config["record_episode"])
 
         if self.config["manual_control"]:
             if self.config["controller"] == "keyboard":
@@ -187,26 +191,17 @@ class PGDriveEnv(gym.Env):
 
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
 
-        self.vehicle.prepare_step(action)
-        self.scene_manager.prepare_step(self.pg_world)
+        # preprocess
+        self.scene_manager.prepare_step(action)
 
-        # ego vehicle/ traffic step
-        for i in range(self.config["decision_repeat"]):
-            # traffic vehicles step
-            self.scene_manager.step(self.pg_world)
-            self.pg_world.step()
-            if self.pg_world.force_fps.real_time_simulation and i < self.config["decision_repeat"] - 1:
-                # insert frame to render in min step_size
-                self.pg_world.taskMgr.step()
+        # step all entities
+        self.scene_manager.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
-        self.vehicle.update_state()
-        done = self.scene_manager.update_state(self.pg_world)
+        done = self.scene_manager.update_state()
+
+        # update rl info
         self.done = self.done or done
-
-        #  panda3d render and garbage collecting loop
-        self.pg_world.taskMgr.step()
-
         obs = self.observation.observe(self.vehicle)
         step_reward = self.reward(action)
         done_reward, done_info = self._done_episode()
@@ -257,6 +252,7 @@ class PGDriveEnv(gym.Env):
 
         # clear world and traffic manager
         self.pg_world.clear_world()
+
         # select_map
         self.update_map(episode_data)
 
@@ -290,7 +286,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
