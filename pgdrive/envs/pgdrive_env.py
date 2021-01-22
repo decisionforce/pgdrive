@@ -136,6 +136,7 @@ class PGDriveEnv(gym.Env):
         self.vehicle = None  # Ego vehicle
         self.done = False
         self.save_mode = False
+        self.step_info = None
 
     def lazy_init(self):
         """
@@ -207,16 +208,19 @@ class PGDriveEnv(gym.Env):
         # update states, if restore from episode data, position and heading will be force set in update_state() function
         done = self.scene_manager.update_state()
 
-        # update rl info
-        self.done = self.done or done
+        # update obs
         obs = self.observation.observe(self.vehicle)
+
+        # update rl info
+        self.step_info = {}
+        self.done = self.done or done
         step_reward = self.reward(action)
-        done_reward, done_info = self._done_episode()
+        done_reward = self._done_episode()
 
         if self.done:
             step_reward = 0
 
-        info = {
+        self.step_info.update({
             "cost": float(0),
             "velocity": float(self.vehicle.speed),
             "steering": float(self.vehicle.steering),
@@ -224,10 +228,8 @@ class PGDriveEnv(gym.Env):
             "step_reward": float(step_reward),
             "save_mode": self.save_mode,
             "raw_action": raw_action
-        }
-
-        info.update(done_info)
-        return obs, step_reward + done_reward, self.done, info
+        })
+        return obs, step_reward + done_reward, self.done, self.step_info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE or self.pg_world.highway_render is not None, (
@@ -342,7 +344,8 @@ class PGDriveEnv(gym.Env):
             logging.info("Episode ended! Reason: out_of_road.")
             done_info["out_of_road"] = True
 
-        return reward_, done_info
+        self.step_info.update(done_info)
+        return reward_
 
     def close(self):
         if self.pg_world is not None:
@@ -566,8 +569,9 @@ class PGDriveEnv(gym.Env):
         from pgdrive.examples.ppo_expert import expert
         saver_a = expert(obs, deterministic=False)
         # for out of road
-        if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[0] <= 1e-3 or obs[
-            1] <= 1e-3:
+        if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[0] <= 1e-3 or \
+                obs[
+                    1] <= 1e-3:
             steering = saver_a[0]
             throttle = saver_a[1]
         if throttle == saver_a[1] and self.vehicle.speed < 5:
