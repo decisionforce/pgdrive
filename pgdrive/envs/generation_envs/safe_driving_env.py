@@ -11,7 +11,7 @@ class SafeDrivingEnv(PGDriveEnv):
         :return: PGConfig
         """
         config = super(SafeDrivingEnv, self).default_config()
-        config.extend_config_with_unknown_keys(dict(takeover_penalty=0.5,
+        config.extend_config_with_unknown_keys(dict(takeover_penalty=10,
                                                     start_seed=1000,
                                                     environment_num=100,
                                                     traffic_density=0.2,
@@ -36,7 +36,7 @@ class SafeDrivingEnv(PGDriveEnv):
         reward -= self.config["general_penalty"]
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
         self.step_info["raw_step_reward"] = reward
-        if self.save_mode:
+        if self.step_info["save_current"]:
             # takeover means the situation is dangerous, so give a penalty
             reward -= self.config["takeover_penalty"]
         return reward

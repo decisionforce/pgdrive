@@ -181,6 +181,9 @@ class PGDriveEnv(gym.Env):
         self.add_modules_for_vehicle()
 
     def step(self, action: np.ndarray):
+        # add custom metric in info
+        self.step_info = {"raw_action": (action[0], action[1])}
+
         if self.config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
                 action, self.action_space
@@ -193,9 +196,6 @@ class PGDriveEnv(gym.Env):
         if self.config["use_saver"] and not self._expert_take_over:
             # saver can be used for human or another AI
             action = self.saver(action)
-
-        # add custom metric in info
-        self.step_info = {"raw_action": (action[0], action[1])}
 
         # protect agent from nan error
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
@@ -588,7 +588,11 @@ class PGDriveEnv(gym.Env):
         if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
             # longitude safe distance 15 m
             throttle = saver_a[1]
+        pre_save = self.save_mode
         self.save_mode = True if action[0] != steering or action[1] != throttle else False
+
+        # indicate if current frame is takeover step
+        self.step_info["save_current"] = True if not pre_save and self.save_mode else False
         return steering, throttle
 
     def toggle_expert_take_over(self):
