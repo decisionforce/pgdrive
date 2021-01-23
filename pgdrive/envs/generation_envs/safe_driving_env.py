@@ -7,19 +7,18 @@ class SafeDrivingEnv(PGDriveEnv):
     def default_config(self) -> PGConfig:
         """
         6 block with 0.1 density hybrid traffic
-        Train/Test set both containing 10 maps
+        Currently, Train/Test set both contain 10 maps
         :return: PGConfig
         """
         config = super(SafeDrivingEnv, self).default_config()
         config.extend_config_with_unknown_keys(dict(takeover_penalty=10,
                                                     start_seed=1000,
-                                                    environment_num=100,
+                                                    environment_num=10,
                                                     traffic_density=0.2,
                                                     traffic_mode="hybrid",
-                                                    map=5,
+                                                    map=6,
                                                     save_level=0.5,
-                                                    use_saver=True,
-                                                    out_of_road_penalty=3))
+                                                    use_saver=True))
         return config
 
     def reward(self, action):
