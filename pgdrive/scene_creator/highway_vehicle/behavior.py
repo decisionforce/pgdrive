@@ -116,7 +116,7 @@ class IDMVehicle(ControlledVehicle):
             ego_vehicle=self, front_vehicle=front_vehicle, rear_vehicle=rear_vehicle
         )
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
-        action['acceleration'] = clip(action['acceleration'], -1e2, self.ACC_MAX)
+        action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
         Vehicle.act(self, action)  # Skip ControlledVehicle.act(), or the command will be override.
 
     def step(self, dt: float):
