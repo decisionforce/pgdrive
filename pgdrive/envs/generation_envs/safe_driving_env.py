@@ -14,9 +14,11 @@ class SafeDrivingEnv(PGDriveEnv):
         config = super(SafeDrivingEnv, self).default_config()
         config.extend_config_with_unknown_keys(dict(environment_num=1,
                                                     # start_seed=0,
+                                                    # random_traffic=True,
                                                     traffic_density=0.2,
                                                     traffic_mode="trigger",
-                                                    # random_traffic=True,
+                                                    use_general_takeover_penalty=False,
+                                                    takeover_penalty=0.5,
                                                     map="rXCORCTS",
                                                     save_level=0.5,
                                                     use_saver=True))
@@ -37,11 +39,9 @@ class SafeDrivingEnv(PGDriveEnv):
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
         self.step_info["raw_step_reward"] = reward
 
-        # this penalty should be added to last step, so I did this in postprocess
-
-        # if self.step_info["save_current"]:
-        #     # takeover means the situation is dangerous, so give a penalty
-        #     reward -= self.config["takeover_penalty"]
+        if self.save_mode and self.config["use_general_takeover_penalty"]:
+            # takeover means the situation is dangerous, so give a penalty in every takeover step
+            reward -= self.config["takeover_penalty"]
         return reward
 
     # def _done_episode(self) -> (float, dict):
