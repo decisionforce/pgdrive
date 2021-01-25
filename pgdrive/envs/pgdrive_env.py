@@ -215,6 +215,8 @@ class PGDriveEnv(gym.Env):
         step_reward = self.reward(action)
         done_reward = self._done_episode()
 
+        self.custom_info_callback()
+
         if self.done:
             step_reward = 0
 
@@ -373,6 +375,13 @@ class PGDriveEnv(gym.Env):
         self.current_map = None
         del self.restored_maps
         self.restored_maps = dict()
+
+    def custom_info_callback(self):
+        """
+        Override it to add custom infomation
+        :return: None
+        """
+        pass
 
     def update_map(self, episode_data: dict = None):
         if episode_data is not None:

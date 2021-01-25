@@ -1,4 +1,5 @@
 from pgdrive.envs import PGDriveEnv
+from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.pg_config import PGConfig
 
 
@@ -68,3 +69,6 @@ class SafeDrivingEnv(PGDriveEnv):
         if self.step_info["crash"] and not self.config["crash_constrain"] and not self.step_info["arrive_dest"]:
             self.done = False
         return done_reward
+
+    def custom_info_callback(self):
+        self.step_info["high_speed"] = True if self.vehicle.speed >= IDMVehicle.MAX_SPEED else False
