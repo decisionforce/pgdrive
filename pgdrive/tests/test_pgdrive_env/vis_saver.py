@@ -27,7 +27,7 @@ if __name__ == "__main__":
         max_s = max(max_s, info["raw_action"][0])
         max_t = max(max_t, info["raw_action"][1])
         text = {"save": env.save_mode, "max_action":(max_s, max_t), "raw_reward":env.step_info["raw_step_reward"],
-                "reward":r, "speed":env.vehicle.speed}
+                "reward":r, "speed":env.vehicle.speed, "high_speed":info["high_speed"]}
         env.render(text=text)
         if d:
             print(info)
