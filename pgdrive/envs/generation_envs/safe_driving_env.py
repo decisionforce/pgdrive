@@ -30,7 +30,7 @@ class SafeDrivingEnv(PGDriveEnv):
                                                     use_saver=True,
                                                     out_of_road_constrain=True,
                                                     crash_constrain=True,
-                                                    save_level=0.5))
+                                                    save_level=0.4))
         return config
 
     def reward(self, action):
@@ -65,8 +65,6 @@ class SafeDrivingEnv(PGDriveEnv):
                 not self.step_info["arrive_dest"]:
             # episode will not be done when out of road, since expert can save it
             self.done = False
-            done_reward = 0
         if self.step_info["crash"] and not self.config["crash_constrain"] and not self.step_info["arrive_dest"]:
             self.done = False
-            done_reward = 0
         return done_reward

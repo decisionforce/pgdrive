@@ -148,6 +148,9 @@ class BaseVehicle(DynamicElement):
         if self.vehicle_panel is not None:
             self.vehicle_panel.renew_2d_car_para_visualization(self)
 
+        # init done info before each step
+        self.init_done_info()
+
     def update_state(self, pg_world=None):
         if self.lidar is not None:
             self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world)
