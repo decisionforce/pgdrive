@@ -573,10 +573,10 @@ class PGDriveEnv(gym.Env):
                         1] <= 1e-3:
                 steering = saver_a[0]
                 throttle = saver_a[1]
-            if throttle == saver_a[1] and self.vehicle.speed < 5:
-                throttle = 0.5
-            if saver_a[1] * self.vehicle.speed < -40 and action[1] > 0:
-                throttle = saver_a[1]
+                if self.vehicle.speed < 5:
+                    throttle = 0.5
+            # if saver_a[1] * self.vehicle.speed < -40 and action[1] > 0:
+            #     throttle = saver_a[1]
 
             # for collision
             lidar_p = self.vehicle.lidar.get_cloud_points()

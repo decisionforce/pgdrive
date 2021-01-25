@@ -6,22 +6,31 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def default_config(self) -> PGConfig:
         """
+        Now we construct a simple scene to verify ideas quickly
         TODO
-        6 block with 0.1 density hybrid traffic
         Train/Test set both contain 10 maps
         :return: PGConfig
         """
         config = super(SafeDrivingEnv, self).default_config()
         config.extend_config_with_unknown_keys(dict(environment_num=1,
-                                                    # start_seed=0,
-                                                    # random_traffic=True,
-                                                    traffic_density=0.2,
+                                                    start_seed=1,
+                                                    map="rCCXC",
+
+                                                    # traffic setting
+                                                    random_traffic=False,
+                                                    traffic_density=0.15,
                                                     traffic_mode="trigger",
+
+                                                    # reward setting under saver mode
                                                     use_general_takeover_penalty=False,
                                                     takeover_penalty=0.5,
-                                                    map="rXCORCTS",
-                                                    save_level=0.5,
-                                                    use_saver=True))
+                                                    speed_reward=0.5,
+
+                                                    # saver config
+                                                    use_saver=True,
+                                                    out_of_road_constrain=True,
+                                                    crash_constrain=True,
+                                                    save_level=0.5))
         return config
 
     def reward(self, action):
@@ -30,13 +39,16 @@ class SafeDrivingEnv(PGDriveEnv):
         long_now, lateral_now = current_lane.local_coordinates(self.vehicle.position)
 
         reward = 0.0
-        reward += self.config["driving_reward"] * (long_now - long_last)
+        if abs(lateral_now) <= self.current_map.lane_width / 2:
+            # Out of road will get no reward
+            reward += self.config["driving_reward"] * (long_now - long_last)
+            reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
 
         # Penalty for waiting
         if self.vehicle.speed < 1:
             reward -= self.config["low_speed_penalty"]  # encourage car
         reward -= self.config["general_penalty"]
-        reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
+
         self.step_info["raw_step_reward"] = reward
 
         if self.save_mode and self.config["use_general_takeover_penalty"]:
@@ -44,11 +56,17 @@ class SafeDrivingEnv(PGDriveEnv):
             reward -= self.config["takeover_penalty"]
         return reward
 
-    # def _done_episode(self) -> (float, dict):
-    #     reward, info = super(SafeDrivingEnv, self)._done_episode()
-    #     if not self.config["use_saver"]:
-    #         return reward, info
-    #     if info["out_of_road"] and not info["crash"] and not info["arrive_dest"] and not self.vehicle.crash_side_walk:
-    #         # episode will not be done when out of road, since expert can save it
-    #         self.done = False
-    #     return reward, info
+    def _done_episode(self) -> (float, dict):
+        done_reward = super(SafeDrivingEnv, self)._done_episode()
+        if not self.config["use_saver"]:
+            return done_reward
+
+        if self.step_info["out_of_road"] and not self.config["out_of_road_constrain"] and \
+                not self.step_info["arrive_dest"]:
+            # episode will not be done when out of road, since expert can save it
+            self.done = False
+            done_reward = 0
+        if self.step_info["crash"] and not self.config["crash_constrain"] and not self.step_info["arrive_dest"]:
+            self.done = False
+            done_reward = 0
+        return done_reward
