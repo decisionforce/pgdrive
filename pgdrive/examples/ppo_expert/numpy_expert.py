@@ -19,7 +19,7 @@ import os.path as osp
 
 import numpy as np
 
-ckpt_path = osp.join(osp.dirname(__file__), "baseline.npz")
+ckpt_path = osp.join(osp.dirname(__file__), "expert_weights.npz")
 _expert_weights = None
 
 
