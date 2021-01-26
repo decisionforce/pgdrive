@@ -20,7 +20,7 @@ if __name__ == "__main__":
         }
     )
     baseline_weights = load_weights("../../examples/ppo_expert/baseline.npz")
-    no_gae_saver_weights = load_weights("../../examples/ppo_expert/no_gae.npz")
+    saver_weights = load_weights("../../examples/ppo_expert/saver_weights.npz")
 
     o = env.reset()
     max_s = 0
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         max_t = max(max_t, info["raw_action"][1])
 
         baseline_value=value(o_to_evaluate, baseline_weights)
-        saver_value=value(o_to_evaluate, no_gae_saver_weights)
+        saver_value=value(o_to_evaluate, saver_weights)
 
         text = {"save": env.save_mode,
                 # "max_action": (max_s, max_t),
@@ -41,8 +41,8 @@ if __name__ == "__main__":
                 # "reward": r,
                 # "speed": env.vehicle.speed,
                 # "high_speed": info["high_speed"]
-                "baseline_value":baseline_value,
-                "no_gae_value":saver_value,
+                # "baseline_value":baseline_value,
+                "saver_value":saver_value,
                 "diff":baseline_value-saver_value
                 }
         env.render(text=text)
