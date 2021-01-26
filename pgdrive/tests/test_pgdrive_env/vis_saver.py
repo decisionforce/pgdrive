@@ -15,7 +15,7 @@ if __name__ == "__main__":
             # "crash_constrain":False,
             # "save_level":0.2,
             # "takeover_penalty":0.5
-            "use_saver":False,
+            # "use_saver":False,
             # "map": "Crrrrrrrrrr"
         }
     )
@@ -41,13 +41,13 @@ if __name__ == "__main__":
                 # "reward": r,
                 # "speed": env.vehicle.speed,
                 # "high_speed": info["high_speed"]
-                # "baseline_value":baseline_value,
+                "baseline_value":baseline_value,
                 "saver_value":saver_value,
                 "diff":baseline_value-saver_value
                 }
         env.render(text=text)
-        if d:
-            print("episode_len:", i - start)
-            env.reset()
-            start = i
+        # if d:
+        #     print("episode_len:", i - start)
+        #     env.reset()
+        #     start = i
     env.close()

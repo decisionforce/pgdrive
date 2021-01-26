@@ -51,7 +51,12 @@ def load_weights(path: str):
     :param path: weights file path path
     :return: NN weights object
     """
-    return np.load(path)
+    try:
+        model = np.load(path)
+        return model
+    except FileNotFoundError:
+        print("Can not find {}, didn't load anything".format(path))
+        return None
 
 
 def value(obs, weights):
@@ -61,6 +66,8 @@ def value(obs, weights):
     :param weights: variable weights of NN
     :return: value
     """
+    if weights is None:
+        return 0
     obs = obs.reshape(1, -1)
     x = np.matmul(obs, weights["default_policy/fc_value_1/kernel"]) + weights["default_policy/fc_value_1/bias"]
     x = np.tanh(x)
