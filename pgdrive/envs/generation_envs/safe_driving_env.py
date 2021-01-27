@@ -34,6 +34,12 @@ class SafeDrivingEnv(PGDriveEnv):
                                                     save_level=0.4))
         return config
 
+    def _get_reset_return(self):
+        # pre set
+        if self.config["save_level"] > 0.9:
+            self.save_mode = True
+        return super(SafeDrivingEnv, self)._get_reset_return()
+
     def reward(self, action):
         current_lane = self.vehicle.lane
         long_last, _ = current_lane.local_coordinates(self.vehicle.last_position)

@@ -10,10 +10,10 @@ if __name__ == "__main__":
             # "start_seed": 5,
             # "controller": "joystick",
             "manual_control": True,
-            "use_render": True,
+            # "use_render": True,
             # "out_of_road_constrain":False,
             # "crash_constrain":False,
-            # "save_level":0.2,
+            "save_level":1.0,
             # "takeover_penalty":0.5
             # "use_saver":False,
             # "map": "Crrrrrrrrrr"
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
         baseline_value=value(o_to_evaluate, baseline_weights)
         saver_value=value(o_to_evaluate, saver_weights)
-
+        assert not info["save_current"]
         text = {"save": env.save_mode,
                 # "max_action": (max_s, max_t),
                 # "raw_reward": env.step_info["raw_step_reward"],
@@ -45,9 +45,9 @@ if __name__ == "__main__":
                 "saver_value":saver_value,
                 "diff":baseline_value-saver_value
                 }
-        env.render(text=text)
-        # if d:
-        #     print("episode_len:", i - start)
-        #     env.reset()
-        #     start = i
+        # env.render(text=text)
+        if d:
+            print("episode_len:", i - start)
+            env.reset()
+            start = i
     env.close()
