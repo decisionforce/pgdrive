@@ -577,11 +577,12 @@ class PGDriveEnv(gym.Env):
             if save_level > 0.9:
                 steering = saver_a[0]
                 throttle = saver_a[1]
-            else:
+            elif save_level > 1e-3:
                 heading_diff = self.vehicle.heading_diff(self.vehicle.lane) - 0.5
                 f = min(1 + abs(heading_diff) * self.vehicle.speed * self.vehicle.max_speed, save_level * 10)
                 # for out of road
-                if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[0] <= 1e-3 or \
+                if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
+                    0] <= 1e-3 or \
                         obs[
                             1] <= 1e-3:
                     steering = saver_a[0]
