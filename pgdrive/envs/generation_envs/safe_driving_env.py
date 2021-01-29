@@ -27,6 +27,9 @@ class SafeDrivingEnv(PGDriveEnv):
                                                     takeover_penalty=0.5,
                                                     speed_reward=0.5,
 
+                                                    # cost setting, it will be written in info by default for safe rl
+                                                    takeover_cost=5,
+
                                                     # saver config
                                                     use_saver=True,
                                                     out_of_road_constrain=True,
@@ -36,7 +39,8 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def _get_reset_return(self):
         # pre set
-        if self.config["save_level"] > 0.9:
+        if self.config["save_level"] > 0.99:
+            # 1.0 full takeover
             self.save_mode = True
         return super(SafeDrivingEnv, self)._get_reset_return()
 
@@ -78,3 +82,4 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def custom_info_callback(self):
         self.step_info["high_speed"] = True if self.vehicle.speed >= IDMVehicle.MAX_SPEED else False
+        self.step_info["cost"] = self.config["takeover_cost"] if self.step_info["save_current"] else 0
