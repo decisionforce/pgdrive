@@ -215,19 +215,20 @@ class PGDriveEnv(gym.Env):
         step_reward = self.reward(action)
         done_reward = self._done_episode()
 
-        self.custom_info_callback()
-
         if self.done:
             step_reward = 0
 
+        # update info
         self.step_info.update({
-            "cost": float(0),
+            "cost": float(0),  # it may be overwritten in callback func
             "velocity": float(self.vehicle.speed),
             "steering": float(self.vehicle.steering),
             "acceleration": float(self.vehicle.throttle_brake),
             "step_reward": float(step_reward),
             "save_mode": self.save_mode,
         })
+        self.custom_info_callback()
+
         return obs, step_reward + done_reward, self.done, self.step_info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
