@@ -34,6 +34,7 @@ class InterSection(Block):
     """
 
     ID = "X"
+    EXTRA_PART = "extra"
     PARAMETER_SPACE = PGSpace(BlockParameterSpace.INTERSECTION)
     SOCKET_NUM = 3
     ANGLE = 90  # may support other angle in the future
@@ -86,16 +87,7 @@ class InterSection(Block):
         attach_left_lane = attach_lanes[0]
         # first left part
         assert isinstance(attach_left_lane, StraightLane), "Can't create a intersection following a circular lane"
-        left_turn_radius = radius + lane_num * attach_left_lane.width_at(0)
-        left_bend, _ = sharpbend(
-            attach_left_lane, self.EXIT_PART_LENGTH, left_turn_radius, np.deg2rad(self.ANGLE), False,
-            attach_left_lane.width_at(0), (LineType.NONE, LineType.NONE)
-        )
-        left_road_start = intersect_nodes[2]
-        CreateRoadFrom(left_bend, self.positive_lane_num, Road(attach_road.end_node, left_road_start),
-                       self.block_network, self._global_network, toward_smaller_lane_index=False,
-                       side_lane_line_type=LineType.NONE,
-                       inner_lane_line_type=LineType.NONE)
+        self._create_left_turn(radius, lane_num, attach_left_lane, attach_road, intersect_nodes, part_idx)
 
         # go forward part
         lanes_on_road = copy.deepcopy(attach_lanes)
@@ -114,11 +106,12 @@ class InterSection(Block):
         )
 
         non_cross = (not check_lane_on_road(self._global_network, right_bend, 1)) and non_cross
-        CreateRoadFrom(right_bend, self.positive_lane_num, Road(attach_road.end_node, intersect_nodes[0]),
+        CreateRoadFrom(right_bend, min(self.positive_lane_num, self.lane_num_intersect),
+                       Road(attach_road.end_node, intersect_nodes[0]),
                        self.block_network, self._global_network, toward_smaller_lane_index=True,
                        side_lane_line_type=LineType.SIDE,
                        inner_lane_line_type=LineType.NONE,
-                       center_line_type=LineType.STRIPED if lane_num == 1 else LineType.NONE)
+                       center_line_type=LineType.NONE)
 
         intersect_nodes.rotate(-1)
         return right_straight, non_cross
@@ -127,3 +120,41 @@ class InterSection(Block):
         socket = super(InterSection, self).get_socket(index)
         self._reborn_roads.remove(socket.negative_road)
         return socket
+
+    def _create_left_turn(self, radius, lane_num, attach_left_lane, attach_road, intersect_nodes, part_idx):
+        left_turn_radius = radius + lane_num * attach_left_lane.width_at(0)
+        diff = self.lane_num_intersect - self.positive_lane_num  # increase lane num
+        if ((part_idx == 1 or part_idx == 3) and diff > 0) or ((part_idx == 0 or part_idx == 2) and diff < 0):
+            diff = abs(diff)
+            left_bend, extra_part = sharpbend(
+                attach_left_lane, self.lane_width * diff, left_turn_radius, np.deg2rad(self.ANGLE), False,
+                attach_left_lane.width_at(0), (LineType.NONE, LineType.NONE)
+            )
+            left_road_start = intersect_nodes[2]
+            pre_left_road_start = left_road_start + self.EXTRA_PART
+            CreateRoadFrom(left_bend, min(self.positive_lane_num, self.lane_num_intersect),
+                           Road(attach_road.end_node, pre_left_road_start),
+                           self.block_network, self._global_network, toward_smaller_lane_index=False,
+                           center_line_type=LineType.NONE,
+                           side_lane_line_type=LineType.NONE,
+                           inner_lane_line_type=LineType.NONE)
+
+            CreateRoadFrom(extra_part, min(self.positive_lane_num, self.lane_num_intersect),
+                           Road(pre_left_road_start, left_road_start),
+                           self.block_network, self._global_network, toward_smaller_lane_index=False,
+                           center_line_type=LineType.NONE,
+                           side_lane_line_type=LineType.NONE,
+                           inner_lane_line_type=LineType.NONE)
+
+        else:
+            left_bend, _ = sharpbend(
+                attach_left_lane, self.EXIT_PART_LENGTH, left_turn_radius, np.deg2rad(self.ANGLE), False,
+                attach_left_lane.width_at(0), (LineType.NONE, LineType.NONE)
+            )
+            left_road_start = intersect_nodes[2]
+            CreateRoadFrom(left_bend, min(self.positive_lane_num, self.lane_num_intersect),
+                           Road(attach_road.end_node, left_road_start),
+                           self.block_network, self._global_network, toward_smaller_lane_index=False,
+                           center_line_type=LineType.NONE,
+                           side_lane_line_type=LineType.NONE,
+                           inner_lane_line_type=LineType.NONE)

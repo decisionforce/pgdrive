@@ -4,7 +4,6 @@ from pgdrive.scene_creator.blocks.intersection import InterSection
 from pgdrive.scene_creator.blocks.std_intersection import StdInterSection
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.tests.vis_block.vis_block_base import TestBlock
-from pgdrive.scene_creator.lanes.lane import LineType
 
 if __name__ == "__main__":
     test = TestBlock()
@@ -24,7 +23,7 @@ if __name__ == "__main__":
         block.construct_block(test.render, test.world)
         id += 1
 
-    intersection = StdInterSection(id, block.get_socket(0), global_network, 1)
+    intersection = InterSection(id, block.get_socket(0), global_network, 1)
     intersection.construct_block(test.render, test.world)
 
     test.show_bounding_box(global_network)
