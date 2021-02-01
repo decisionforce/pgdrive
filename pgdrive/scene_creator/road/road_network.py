@@ -116,6 +116,21 @@ class RoadNetwork:
         res_x_max, res_x_min, res_y_max, res_y_min = get_boxes_bounding_box(boxes)
         return res_x_min, res_x_max, res_y_min, res_y_max
 
+    def remove_all_roads(self, start_node: str, end_node: str):
+        """
+        Remove all road between two road nodes
+        :param start_node: start node name
+        :param end_node: end node name
+        :return: roads removed
+        """
+        ret = []
+        paths = self.bfs_paths(start_node, end_node)
+        for path in paths:
+            for next_idx, node in enumerate(path[:-1], 1):
+                road_removed = self.remove_road(Road(node, path[next_idx]))
+                ret+=road_removed
+        return ret
+
     def remove_road(self, road):
         assert isinstance(road, Road), "Only Road Type can be deleted"
         ret = self.graph[road.start_node].pop(road.end_node)
@@ -172,12 +187,12 @@ class RoadNetwork:
         return self._graph_helper.get(position)
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-        np_random: np.random.RandomState = None
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+            np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -282,12 +297,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?
