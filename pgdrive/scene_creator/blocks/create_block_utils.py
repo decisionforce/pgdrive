@@ -119,7 +119,7 @@ def CreateRoadFrom(
             else:
                 radius2 = radius1 + lane_width if clockwise else radius1 - lane_width
             side_lane.radius = radius2
-            side_lane.update_length()
+            side_lane.update_properties()
         if i == 1:
             side_lane.line_types = [center_line_type, inner_lane_line_type] if toward_smaller_lane_index else \
                 [inner_lane_line_type, side_lane_line_type]
@@ -158,7 +158,7 @@ def ExtendStraightLane(lane: "StraightLane", extend_length: float, line_types: (
     new_lane.start = start_point
     new_lane.end = end_point
     new_lane.line_types = line_types
-    new_lane.update_length()
+    new_lane.update_properties()
     return new_lane
 
 
