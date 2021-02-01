@@ -92,12 +92,13 @@ class InterSection(Block):
             attach_left_lane.width_at(0), (LineType.NONE, LineType.NONE)
         )
         left_road_start = intersect_nodes[2]
-        self.block_network.add_lane(attach_road.end_node, left_road_start, left_bend)
+        CreateRoadFrom(left_bend, self.positive_lane_num, Road(attach_road.end_node, left_road_start),
+                       self.block_network, self._global_network, toward_smaller_lane_index=False,
+                       side_lane_line_type=LineType.NONE,
+                       inner_lane_line_type=LineType.NONE)
 
         # go forward part
-        # left turn lane can be used to go straight
         lanes_on_road = copy.deepcopy(attach_lanes)
-        lane_num = self.lane_num_intersect if part_idx == 0 or part_idx == 2 else self.positive_lane_num
         straight_lane_len = 2 * radius + (2 * lane_num - 1) * lanes_on_road[0].width_at(0)
         for l in lanes_on_road:
             next_lane = ExtendStraightLane(l, straight_lane_len, (LineType.NONE, LineType.NONE))
@@ -113,10 +114,12 @@ class InterSection(Block):
         )
 
         non_cross = (not check_lane_on_road(self._global_network, right_bend, 1)) and non_cross
-        self.block_network.add_lane(attach_road.end_node, intersect_nodes[0], right_bend)
+        CreateRoadFrom(right_bend, self.positive_lane_num, Road(attach_road.end_node, intersect_nodes[0]),
+                       self.block_network, self._global_network, toward_smaller_lane_index=True,
+                       side_lane_line_type=LineType.SIDE,
+                       inner_lane_line_type=LineType.NONE,
+                       center_line_type=LineType.STRIPED if lane_num == 1 else LineType.NONE)
 
-        right_straight.line_types = [LineType.NONE, LineType.SIDE
-                                     ] if lane_num == 1 else [LineType.STRIPED, LineType.SIDE]
         intersect_nodes.rotate(-1)
         return right_straight, non_cross
 

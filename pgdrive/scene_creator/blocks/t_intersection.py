@@ -75,28 +75,10 @@ class TInterSection(InterSection):
                 p_road = Road(_start_node, exit_node)
                 lanes_on_p = self.block_network.remove_road(p_road)
                 lane_p = lanes_on_p[0]
-                CreateRoadFrom(
-                    lane_p,
-                    self.positive_lane_num,
-                    p_road,
-                    self.block_network,
-                    self._global_network,
-                    inner_lane_line_type=LineType.NONE,
-                    center_line_type=LineType.NONE
-                )
 
                 n_road = Road(entry_node, _end_node)
                 lanes_on_n = self.block_network.remove_road(n_road)
                 lane_n = lanes_on_n[0]
-                CreateRoadFrom(
-                    lane_n,
-                    self.positive_lane_num,
-                    n_road,
-                    self.block_network,
-                    self._global_network,
-                    inner_lane_line_type=LineType.NONE,
-                    center_line_type=LineType.NONE
-                )
         self._change_vis(t_type)
         self._sockets.pop(-1)
         socket = self._sockets.pop(t_type)
