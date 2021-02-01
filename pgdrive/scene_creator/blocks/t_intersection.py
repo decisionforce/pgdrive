@@ -65,15 +65,17 @@ class TInterSection(InterSection):
             entry_node = self._sockets[i].negative_road.end_node if i != Goal.ADVERSE else self._sockets[
                 i].positive_road.end_node
             neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
-            if (i + 2) % 4 == t_type:
-                # for vis only, solve a bug existing in a corner case,
-                for lane in neg_lanes:
-                    lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
-                self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
 
-                for lane in pos_lanes:
-                    lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
-                self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
+            # TODO it may raise a bug. Without it, an error may occur when intersection decrease lane num to 1.
+            # if (i + 2) % 4 == t_type:
+            #     # for vis only, solve a bug existing in a corner case,
+            #     for lane in neg_lanes:
+            #         lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
+            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
+            #
+            #     for lane in pos_lanes:
+            #         lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
+            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
 
         self._change_vis(t_type)
         self._sockets.pop(-1)
