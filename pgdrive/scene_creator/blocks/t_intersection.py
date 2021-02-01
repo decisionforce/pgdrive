@@ -65,20 +65,6 @@ class TInterSection(InterSection):
             entry_node = self._sockets[i].negative_road.end_node if i != Goal.ADVERSE else self._sockets[
                 i].positive_road.end_node
             self.block_network.remove_road(Road(entry_node, end_node))
-            if i == (t_type + 2) % 4:
-                last_scokect = self._sockets[(t_type + 1) % 4]
-                next_scokect = self._sockets[(t_type + 3) % 4]
-                _start_node = last_scokect.negative_road.end_node if last_scokect is not self._pre_block_socket else \
-                    self._pre_block_socket.positive_road.end_node
-                _end_node = next_scokect.negative_road.start_node if next_scokect is self._pre_block_socket else \
-                    next_scokect.positive_road.start_node
-                p_road = Road(_start_node, exit_node)
-                lanes_on_p = self.block_network.remove_road(p_road)
-                lane_p = lanes_on_p[0]
-
-                n_road = Road(entry_node, _end_node)
-                lanes_on_n = self.block_network.remove_road(n_road)
-                lane_n = lanes_on_n[0]
         self._change_vis(t_type)
         self._sockets.pop(-1)
         socket = self._sockets.pop(t_type)
