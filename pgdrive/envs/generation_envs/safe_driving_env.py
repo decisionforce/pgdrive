@@ -82,4 +82,4 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def custom_info_callback(self):
         self.step_info["high_speed"] = True if self.vehicle.speed >= IDMVehicle.MAX_SPEED else False
-        self.step_info["cost"] = self.config["takeover_cost"] if self.step_info["save_current"] else 0
+        self.step_info["cost"] = self.config["takeover_cost"] if self.step_info["takeover_start"] else 0

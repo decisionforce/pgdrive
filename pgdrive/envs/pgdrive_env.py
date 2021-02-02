@@ -608,7 +608,8 @@ class PGDriveEnv(gym.Env):
         # indicate if current frame is takeover step
         pre_save = self.save_mode
         self.save_mode = True if action[0] != steering or action[1] != throttle else False
-        self.step_info["save_current"] = True if not pre_save and self.save_mode else False
+        self.step_info["takeover_start"] = True if not pre_save and self.save_mode else False
+        self.step_info["takeover_end"] = True if pre_save and not self.save_mode else False
         return steering, throttle
 
     def toggle_expert_take_over(self):

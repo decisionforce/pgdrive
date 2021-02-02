@@ -35,20 +35,20 @@ if __name__ == "__main__":
         baseline_value = value(o_to_evaluate, baseline_weights)
         saver_value = value(o_to_evaluate, saver_weights)
 
-        # assert not info["save_current"]
+        # assert not info["takeover_start"]
         text = {"save": env.save_mode,
                 # "max_action": (max_s, max_t),
                 # "raw_reward": env.step_info["raw_step_reward"],
                 # "reward": r,
                 # "speed": env.vehicle.speed,
                 # "high_speed": info["high_speed"]
-                "save_current":info["save_current"],
+                "takeover_start":info["takeover_start"],
 
                 "baseline_value": baseline_value,
                 "saver_value": saver_value,
                 "diff": baseline_value - saver_value
                 }
-        if info["save_current"]:
+        if info["takeover_start"]:
             text["cost"]=info["cost"]
         env.render(text=text)
         if d:
