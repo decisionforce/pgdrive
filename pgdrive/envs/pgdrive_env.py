@@ -135,7 +135,7 @@ class PGDriveEnv(gym.Env):
         self.current_map = None
         self.vehicle = None  # Ego vehicle
         self.done = False
-        self.save_mode = False
+        self.takeover = False
         self.step_info = None
 
     def lazy_init(self):
@@ -225,7 +225,7 @@ class PGDriveEnv(gym.Env):
             "steering": float(self.vehicle.steering),
             "acceleration": float(self.vehicle.throttle_brake),
             "step_reward": float(step_reward),
-            "save_mode": self.save_mode,
+            "takeover": self.takeover,
         })
         self.custom_info_callback()
 
@@ -260,7 +260,7 @@ class PGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.done = False
-        self.save_mode = False
+        self.takeover = False
 
         # clear world and traffic manager
         self.pg_world.clear_world()
@@ -606,10 +606,10 @@ class PGDriveEnv(gym.Env):
                     throttle = saver_a[1]
 
         # indicate if current frame is takeover step
-        pre_save = self.save_mode
-        self.save_mode = True if action[0] != steering or action[1] != throttle else False
-        self.step_info["takeover_start"] = True if not pre_save and self.save_mode else False
-        self.step_info["takeover_end"] = True if pre_save and not self.save_mode else False
+        pre_save = self.takeover
+        self.takeover = True if action[0] != steering or action[1] != throttle else False
+        self.step_info["takeover_start"] = True if not pre_save and self.takeover else False
+        self.step_info["takeover_end"] = True if pre_save and not self.takeover else False
         return steering, throttle
 
     def toggle_expert_take_over(self):

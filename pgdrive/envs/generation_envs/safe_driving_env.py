@@ -41,7 +41,7 @@ class SafeDrivingEnv(PGDriveEnv):
         # pre set
         if self.config["save_level"] > 0.99:
             # 1.0 full takeover
-            self.save_mode = True
+            self.takeover_start = True
         return super(SafeDrivingEnv, self)._get_reset_return()
 
     def reward(self, action):
@@ -62,7 +62,7 @@ class SafeDrivingEnv(PGDriveEnv):
 
         self.step_info["raw_step_reward"] = reward
 
-        if self.save_mode and self.config["use_general_takeover_penalty"]:
+        if self.takeover and self.config["use_general_takeover_penalty"]:
             # takeover means the situation is dangerous, so give a penalty in every takeover step
             reward -= self.config["takeover_penalty"]
         return reward

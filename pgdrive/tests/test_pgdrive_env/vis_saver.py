@@ -36,13 +36,14 @@ if __name__ == "__main__":
         saver_value = value(o_to_evaluate, saver_weights)
 
         # assert not info["takeover_start"]
-        text = {"save": env.save_mode,
+        text = {"save": env.takeover,
                 # "max_action": (max_s, max_t),
                 # "raw_reward": env.step_info["raw_step_reward"],
                 # "reward": r,
                 # "speed": env.vehicle.speed,
                 # "high_speed": info["high_speed"]
                 "takeover_start":info["takeover_start"],
+                "takeover_end":info["takeover_end"],
 
                 "baseline_value": baseline_value,
                 "saver_value": saver_value,
