@@ -63,7 +63,7 @@ class StraightLane(AbstractLane):
         lateral = delta_x * self.direction_lateral[0] + delta_y * self.direction_lateral[1]
         return float(longitudinal), float(lateral)
 
-    def reset_start_end(self, start:Vector, end:Vector):
+    def reset_start_end(self, start: Vector, end: Vector):
         self.start = start
         self.end = end
         self.update_properties()

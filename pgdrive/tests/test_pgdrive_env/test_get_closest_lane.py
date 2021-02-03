@@ -17,7 +17,7 @@ def test_get_lane_index(use_render=False):
         o, r, d, info = env.step([0, 0])
         for v in env.scene_manager.traffic.vehicles:
             old = env.current_map.road_network.get_closest_lane_index(v.position)
-            if  v.lane_index != old[0]:
+            if v.lane_index != old[0]:
                 raise ValueError
     env.close()
 

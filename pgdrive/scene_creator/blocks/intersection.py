@@ -106,12 +106,17 @@ class InterSection(Block):
         )
 
         non_cross = (not check_lane_on_road(self._global_network, right_bend, 1)) and non_cross
-        CreateRoadFrom(right_bend, min(self.positive_lane_num, self.lane_num_intersect),
-                       Road(attach_road.end_node, intersect_nodes[0]),
-                       self.block_network, self._global_network, toward_smaller_lane_index=True,
-                       side_lane_line_type=LineType.SIDE,
-                       inner_lane_line_type=LineType.NONE,
-                       center_line_type=LineType.NONE)
+        CreateRoadFrom(
+            right_bend,
+            min(self.positive_lane_num, self.lane_num_intersect),
+            Road(attach_road.end_node, intersect_nodes[0]),
+            self.block_network,
+            self._global_network,
+            toward_smaller_lane_index=True,
+            side_lane_line_type=LineType.SIDE,
+            inner_lane_line_type=LineType.NONE,
+            center_line_type=LineType.NONE
+        )
 
         intersect_nodes.rotate(-1)
         return right_straight, non_cross
@@ -132,19 +137,29 @@ class InterSection(Block):
             )
             left_road_start = intersect_nodes[2]
             pre_left_road_start = left_road_start + self.EXTRA_PART
-            CreateRoadFrom(left_bend, min(self.positive_lane_num, self.lane_num_intersect),
-                           Road(attach_road.end_node, pre_left_road_start),
-                           self.block_network, self._global_network, toward_smaller_lane_index=False,
-                           center_line_type=LineType.NONE,
-                           side_lane_line_type=LineType.NONE,
-                           inner_lane_line_type=LineType.NONE)
+            CreateRoadFrom(
+                left_bend,
+                min(self.positive_lane_num, self.lane_num_intersect),
+                Road(attach_road.end_node, pre_left_road_start),
+                self.block_network,
+                self._global_network,
+                toward_smaller_lane_index=False,
+                center_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE
+            )
 
-            CreateRoadFrom(extra_part, min(self.positive_lane_num, self.lane_num_intersect),
-                           Road(pre_left_road_start, left_road_start),
-                           self.block_network, self._global_network, toward_smaller_lane_index=False,
-                           center_line_type=LineType.NONE,
-                           side_lane_line_type=LineType.NONE,
-                           inner_lane_line_type=LineType.NONE)
+            CreateRoadFrom(
+                extra_part,
+                min(self.positive_lane_num, self.lane_num_intersect),
+                Road(pre_left_road_start, left_road_start),
+                self.block_network,
+                self._global_network,
+                toward_smaller_lane_index=False,
+                center_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE
+            )
 
         else:
             left_bend, _ = sharpbend(
@@ -152,9 +167,14 @@ class InterSection(Block):
                 attach_left_lane.width_at(0), (LineType.NONE, LineType.NONE)
             )
             left_road_start = intersect_nodes[2]
-            CreateRoadFrom(left_bend, min(self.positive_lane_num, self.lane_num_intersect),
-                           Road(attach_road.end_node, left_road_start),
-                           self.block_network, self._global_network, toward_smaller_lane_index=False,
-                           center_line_type=LineType.NONE,
-                           side_lane_line_type=LineType.NONE,
-                           inner_lane_line_type=LineType.NONE)
+            CreateRoadFrom(
+                left_bend,
+                min(self.positive_lane_num, self.lane_num_intersect),
+                Road(attach_road.end_node, left_road_start),
+                self.block_network,
+                self._global_network,
+                toward_smaller_lane_index=False,
+                center_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE
+            )

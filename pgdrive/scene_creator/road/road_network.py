@@ -187,12 +187,12 @@ class RoadNetwork:
         return self._graph_helper.get(position)
 
     def next_lane(
-            self,
-            current_index: LaneIndex,
-            route: Route = None,
-            position: np.ndarray = None,
-            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-            np_random: np.random.RandomState = None
+        self,
+        current_index: LaneIndex,
+        route: Route = None,
+        position: np.ndarray = None,
+        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+        np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -297,12 +297,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-            self,
-            lane_index_1: LaneIndex,
-            lane_index_2: LaneIndex,
-            route: Route = None,
-            same_lane: bool = False,
-            depth: int = 0
+        self,
+        lane_index_1: LaneIndex,
+        lane_index_2: LaneIndex,
+        route: Route = None,
+        same_lane: bool = False,
+        depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?

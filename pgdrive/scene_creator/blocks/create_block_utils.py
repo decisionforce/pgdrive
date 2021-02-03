@@ -14,16 +14,16 @@ from pgdrive.utils.scene_utils import check_lane_on_road
 
 
 def sharpbend(
-        previous_lane: "StraightLane",
-        following_lane_length,
-        radius: float,
-        angle: float,
-        clockwise: bool = True,
-        width: float = AbstractLane.DEFAULT_WIDTH,
-        line_types: Tuple[LineType, LineType] = None,
-        forbidden: bool = False,
-        speed_limit: float = 20,
-        priority: int = 0
+    previous_lane: "StraightLane",
+    following_lane_length,
+    radius: float,
+    angle: float,
+    clockwise: bool = True,
+    width: float = AbstractLane.DEFAULT_WIDTH,
+    line_types: Tuple[LineType, LineType] = None,
+    forbidden: bool = False,
+    speed_limit: float = 20,
+    priority: int = 0
 ):
     bend_direction = 1 if clockwise else -1
     center = previous_lane.position(previous_lane.length, bend_direction * radius)
@@ -60,18 +60,18 @@ def sharpbend(
 
 
 def CreateRoadFrom(
-        lane: Union["AbstractLane", "StraightLane", "CircularLane"],
-        lane_num: int,
-        road: "Road",
-        roadnet_to_add_lanes: "RoadNetwork",  # mostly, block network
-        roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global_network
-        toward_smaller_lane_index: bool = True,
-        ignore_start: str = None,
-        ignore_end: str = None,
-        center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
-        detect_one_side=True,
-        side_lane_line_type=LineType.SIDE,
-        inner_lane_line_type=LineType.STRIPED
+    lane: Union["AbstractLane", "StraightLane", "CircularLane"],
+    lane_num: int,
+    road: "Road",
+    roadnet_to_add_lanes: "RoadNetwork",  # mostly, block network
+    roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global_network
+    toward_smaller_lane_index: bool = True,
+    ignore_start: str = None,
+    ignore_end: str = None,
+    center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
+    detect_one_side=True,
+    side_lane_line_type=LineType.SIDE,
+    inner_lane_line_type=LineType.STRIPED
 ) -> bool:
     """
         | | | |
@@ -122,8 +122,8 @@ def CreateRoadFrom(
     if not detect_one_side:
         # Because of side walk, the width of side walk should be consider
         no_cross = not (
-                check_lane_on_road(roadnet_to_check_cross, origin_lane, factor, ignore)
-                or check_lane_on_road(roadnet_to_check_cross, lanes[0], -0.95, ignore)
+            check_lane_on_road(roadnet_to_check_cross, origin_lane, factor, ignore)
+            or check_lane_on_road(roadnet_to_check_cross, lanes[0], -0.95, ignore)
         )
     else:
         no_cross = not check_lane_on_road(roadnet_to_check_cross, origin_lane, factor, ignore)
@@ -150,11 +150,11 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List[AbstractLane
 
 
 def CreateAdverseRoad(
-        positive_road: "Road",
-        roadnet_to_get_road: "RoadNetwork",  # mostly, block network
-        roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global network
-        ignore_start: str = None,
-        ignore_end: str = None
+    positive_road: "Road",
+    roadnet_to_get_road: "RoadNetwork",  # mostly, block network
+    roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global network
+    ignore_start: str = None,
+    ignore_end: str = None
 ) -> (str, str, bool):
     adverse_road = -positive_road
     lanes = get_lanes_on_road(positive_road, roadnet_to_get_road)
@@ -198,7 +198,7 @@ def CreateAdverseRoad(
 
 
 def block_socket_merge(
-        socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
+    socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
