@@ -83,7 +83,10 @@ class PGDriveEnv(gym.Env):
             action_check=False,
             record_episode=False,
             use_saver=False,
-            save_level=0.5
+            save_level=0.5,
+
+            # ===== stat =====
+            overtake_stat=False
         )
         config = PGConfig(env_config)
         config.register_type("map", str, int)
@@ -137,6 +140,8 @@ class PGDriveEnv(gym.Env):
         self.done = False
         self.takeover = False
         self.step_info = None
+        self.front_vehicles = None
+        self.back_vehicles = None
 
     def lazy_init(self):
         """
@@ -275,6 +280,9 @@ class PGDriveEnv(gym.Env):
         self.scene_manager.reset(
             self.current_map, self.vehicle, self.config["traffic_density"], episode_data=episode_data
         )
+
+        self.front_vehicles = set()
+        self.back_vehicles = set()
         return self._get_reset_return()
 
     def _get_reset_return(self):
@@ -382,7 +390,24 @@ class PGDriveEnv(gym.Env):
         Override it to add custom infomation
         :return: None
         """
-        pass
+        if self.config["overtake_stat"]:
+            # use it only when evaluation
+            self._overtake_stat()
+        self.step_info["overtake_vehicle_num"] = len(self.front_vehicles.intersection(self.back_vehicles))
+
+    def _overtake_stat(self):
+        surrounding_vs = self.vehicle.lidar.get_surrounding_vehicles()
+        routing = self.vehicle.routing_localization
+        ckpt_idx = routing.target_checkpoints_index
+        for surrounding_v in surrounding_vs:
+            if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]]):
+                if self.vehicle.lane.local_coordinates(self.vehicle.position)[0] - \
+                        self.vehicle.lane.local_coordinates(surrounding_v.position)[0] < 0:
+                    self.front_vehicles.add(surrounding_v)
+                    if surrounding_v in self.back_vehicles:
+                        self.back_vehicles.remove(surrounding_v)
+                else:
+                    self.back_vehicles.add(surrounding_v)
 
     def update_map(self, episode_data: dict = None):
         if episode_data is not None:

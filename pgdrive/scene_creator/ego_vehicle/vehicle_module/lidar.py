@@ -71,7 +71,7 @@ class Lidar:
                 #     self.cloud_points[laser_index].setColor(1,0,0)
                 self.cloud_points[laser_index].setPos(curpos)
 
-    def _get_surrounding_vehicles(self) -> Set[IDMVehicle]:
+    def get_surrounding_vehicles(self) -> Set[IDMVehicle]:
         vehicles = set()
         for ret in self.detection_results:
             if ret.hasHit():
@@ -80,7 +80,7 @@ class Lidar:
 
     def get_surrounding_vehicles_info(self, ego_vehicle, max_v_num: int = 4):
         from pgdrive.utils.math_utils import norm, clip
-        surrounding_vehicles = list(self._get_surrounding_vehicles())
+        surrounding_vehicles = list(self.get_surrounding_vehicles())
         surrounding_vehicles.sort(
             key=lambda v: norm(ego_vehicle.position[0] - v.position[0], ego_vehicle.position[1] - v.position[1])
         )

@@ -11,8 +11,10 @@ if __name__ == "__main__":
             # "controller": "joystick",
             "manual_control": True,
             "use_render": True,
+            # "map":"XXX",
             # "out_of_road_constrain":False,
             # "crash_constrain":False,
+            "overtake_stat":True,
             "save_level": 0.1,
             # "takeover_penalty":0.5
             # "use_saver":False,
@@ -42,12 +44,13 @@ if __name__ == "__main__":
                 # "reward": r,
                 # "speed": env.vehicle.speed,
                 # "high_speed": info["high_speed"]
-                "takeover_start":info["takeover_start"],
-                "takeover_end":info["takeover_end"],
-
-                "baseline_value": baseline_value,
-                "saver_value": saver_value,
-                "diff": baseline_value - saver_value
+                # "takeover_start":info["takeover_start"],
+                # "takeover_end":info["takeover_end"],
+                #
+                # "baseline_value": baseline_value,
+                # "saver_value": saver_value,
+                # "diff": baseline_value - saver_value
+                "overtake_num":info["overtake_vehicle_num"]
                 }
         if info["takeover_start"]:
             text["cost"]=info["cost"]
