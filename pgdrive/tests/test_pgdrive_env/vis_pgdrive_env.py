@@ -2,7 +2,7 @@ from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
 
-# setup_logger(True)
+setup_logger(True)
 
 
 class TestEnv(PGDriveEnv):
@@ -47,9 +47,7 @@ if __name__ == "__main__":
     print("vehicle num", len(env.scene_manager.traffic.vehicles))
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
-        env.render(text={"vehicle_num": len(env.scene_manager.traffic.traffic_vehicles),
-                         "lane_idx": env.vehicle.lane_index,
-                         "old_calculate":env.current_map.road_network.get_closest_lane_index(env.vehicle.position)})
+        env.render(text={"vehicle_num": len(env.scene_manager.traffic.traffic_vehicles)})
         # if d:
         #     print("Reset")
         #     env.reset()

@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, Union, List
-from pgdrive.utils.coordinates_shift import panda_heading, panda_position
+from pgdrive.utils.constans import Decoration
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
@@ -15,6 +15,7 @@ from pgdrive.scene_creator.lanes.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.element import Element
 from pgdrive.utils.math_utils import norm
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
@@ -26,6 +27,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -47,6 +49,7 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -360,14 +363,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -445,6 +448,9 @@ class Block(Element, BlockDefault):
         :param lanes: All lanes of this road
         :return: None
         """
+
+        # decoration only has vis properties
+        need_body = False if (from_, to_) == (Decoration.start, Decoration.end) else True
         if isinstance(lanes[0], StraightLane):
             for index, lane in enumerate(lanes):
                 middle = lane.position(lane.length / 2, 0)

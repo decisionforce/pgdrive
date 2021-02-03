@@ -66,15 +66,17 @@ class TInterSection(InterSection):
                 i].positive_road.end_node
             neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
 
-            if (i + 2) % 4 == t_type:
-                # for vis only, solve a bug existing in a corner case,
-                for lane in neg_lanes:
-                    lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
-                self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
-
-                for lane in pos_lanes:
-                    lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
-                self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
+            # TODO small vis bug may raise in a corner case,
+            #  these code can fix it but will introduce a new get_closest_lane_index bug
+            # if (i + 2) % 4 == t_type:
+            #     # for vis only, solve a bug existing in a corner case,
+            #     for lane in neg_lanes:
+            #         lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
+            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
+            #
+            #     for lane in pos_lanes:
+            #         lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
+            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
 
         self._change_vis(t_type)
         self._sockets.pop(-1)
