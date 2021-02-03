@@ -2,7 +2,7 @@ from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
 
-setup_logger(True)
+# setup_logger(True)
 
 
 class TestEnv(PGDriveEnv):
@@ -31,8 +31,8 @@ class TestEnv(PGDriveEnv):
                 "rgb_clip": True,
                 # "debug":True,
                 "map_config": {
-                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                    Map.GENERATE_PARA: 30,
+                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                    Map.GENERATE_PARA: "XTX",
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 }
@@ -47,7 +47,9 @@ if __name__ == "__main__":
     print("vehicle num", len(env.scene_manager.traffic.vehicles))
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
-        env.render(text={"vehicle_num": len(env.scene_manager.traffic.traffic_vehicles)})
+        env.render(text={"vehicle_num": len(env.scene_manager.traffic.traffic_vehicles),
+                         "lane_idx": env.vehicle.lane_index,
+                         "old_calculate":env.current_map.road_network.get_closest_lane_index(env.vehicle.position)})
         # if d:
         #     print("Reset")
         #     env.reset()

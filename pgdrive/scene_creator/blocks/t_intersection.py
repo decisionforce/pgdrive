@@ -1,6 +1,6 @@
 from pgdrive.pg_config.parameter_space import Parameter, BlockParameterSpace
 from pgdrive.pg_config.pg_space import PGSpace
-from pgdrive.scene_creator.blocks.create_block_utils import Decoration
+from pgdrive.utils.constans import Decoration
 from pgdrive.scene_creator.blocks.intersection import InterSection
 from pgdrive.scene_creator.lanes.lane import LineType, LineColor
 from pgdrive.scene_creator.road.road import Road
@@ -66,16 +66,15 @@ class TInterSection(InterSection):
                 i].positive_road.end_node
             neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
 
-            # TODO it may raise a bug. Without it, an error may occur when intersection decrease lane num to 1.
-            # if (i + 2) % 4 == t_type:
-            #     # for vis only, solve a bug existing in a corner case,
-            #     for lane in neg_lanes:
-            #         lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
-            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
-            #
-            #     for lane in pos_lanes:
-            #         lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
-            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
+            if (i + 2) % 4 == t_type:
+                # for vis only, solve a bug existing in a corner case,
+                for lane in neg_lanes:
+                    lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
+                self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
+
+                for lane in pos_lanes:
+                    lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
+                self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
 
         self._change_vis(t_type)
         self._sockets.pop(-1)

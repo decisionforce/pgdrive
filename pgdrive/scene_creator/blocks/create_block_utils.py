@@ -13,23 +13,6 @@ from pgdrive.utils.math_utils import get_vertical_vector
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 
-class Decoration:
-    start = "decoration"
-    end = "decoration_"
-
-
-class Goal:
-    """
-    Goal at intersection
-    The keywords 0, 1, 2 should be reserved, and only be used in roundabout and intersection
-    """
-
-    RIGHT = 0
-    STRAIGHT = 1
-    LEFT = 2
-    ADVERSE = 3  # Useless now
-
-
 def sharpbend(
         previous_lane: "StraightLane",
         following_lane_length,
