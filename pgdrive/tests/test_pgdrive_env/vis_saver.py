@@ -12,8 +12,7 @@ if __name__ == "__main__":
             "manual_control": True,
             "use_render": True,
             # "map":"XXX",
-            # "out_of_road_constrain":False,
-            # "crash_constrain":False,
+            "safe_rl_env":True,
             "overtake_stat":True,
             "save_level": 0.1,
             # "takeover_penalty":0.5

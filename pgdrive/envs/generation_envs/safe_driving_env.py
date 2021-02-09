@@ -16,6 +16,7 @@ class SafeDrivingEnv(PGDriveEnv):
         config.extend_config_with_unknown_keys(dict(environment_num=1,
                                                     start_seed=1,
                                                     map="rCCXC",
+                                                    safe_rl_env=False,
 
                                                     # traffic setting
                                                     random_traffic=False,
@@ -32,8 +33,6 @@ class SafeDrivingEnv(PGDriveEnv):
 
                                                     # saver config
                                                     use_saver=True,
-                                                    out_of_road_constrain=True,
-                                                    crash_constrain=True,
                                                     save_level=0.4))
         return config
 
@@ -72,11 +71,11 @@ class SafeDrivingEnv(PGDriveEnv):
         if not self.config["use_saver"]:
             return done_reward
 
-        if self.step_info["out_of_road"] and not self.config["out_of_road_constrain"] and \
+        if self.step_info["out_of_road"] and self.config["safe_rl_env"] and \
                 not self.step_info["arrive_dest"]:
             # episode will not be done when out of road, since expert can save it
             self.done = False
-        if self.step_info["crash"] and not self.config["crash_constrain"] and not self.step_info["arrive_dest"]:
+        if self.step_info["crash"] and self.config["safe_rl_env"] and not self.step_info["arrive_dest"]:
             self.done = False
         return done_reward
 
