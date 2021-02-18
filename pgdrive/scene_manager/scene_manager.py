@@ -81,8 +81,10 @@ class SceneManager:
         :param ego_vehicle_action: Ego_vehicle action
         :return: None
         """
-        self.ego_vehicle.prepare_step(ego_vehicle_action)
-        self.traffic_mgr.prepare_step(self, self.pg_world)
+        if self.replay_system is None:
+            # not in replay mode
+            self.ego_vehicle.prepare_step(ego_vehicle_action)
+            self.traffic_mgr.prepare_step(self, self.pg_world)
 
     def step(self, step_num: int = 1) -> None:
         """
@@ -93,9 +95,10 @@ class SceneManager:
         pg_world = self.pg_world
         dt = pg_world.pg_config["physics_world_step_size"]
         for i in range(step_num):
-            # traffic vehicles step
-            self.traffic_mgr.step(dt)
-            pg_world.step()
+            if self.replay_system is None:
+                # not in replay mode
+                self.traffic_mgr.step(dt)
+                pg_world.step()
             if pg_world.force_fps.real_time_simulation and i < step_num - 1:
                 # insert frame to render in min step_size
                 pg_world.taskMgr.step()
@@ -106,15 +109,14 @@ class SceneManager:
     def update_state(self) -> bool:
         """
         Update states after finishing movement
-        :param pg_world: World
         :return: if this episode is done
         """
         done = False
-        done = self.traffic_mgr.update_state(self, self.pg_world) or done
-
         if self.replay_system is not None:
             self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
-        elif self.record_system is not None:
+        else:
+            done = self.traffic_mgr.update_state(self, self.pg_world) or done
+        if self.record_system is not None:
             # didn't record while replay
             self.record_system.record_frame(self.traffic_mgr.get_global_states())
         self.ego_vehicle.update_state()

@@ -95,7 +95,7 @@ class TrafficManager:
             self._create_vehicles_once(pg_world, map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
-        logging.debug("Init {} Traffic Vehicles".format(len(self.traffic_vehicles)))
+        logging.debug("Init {} Traffic Vehicles".format(len(self.vehicles) - 1))
 
     def prepare_step(self, scene_mgr, pg_world: PGWorld):
         """
@@ -309,7 +309,6 @@ class TrafficManager:
             block_vehicles = BlockVehicles(trigger_road=trigger_road, vehicles=vehicles_on_block)
             self.block_triggered_vehicles.append(block_vehicles)
             vehicle_num += len(vehicles_on_block)
-        logging.debug("Init {} Traffic Vehicles".format(vehicle_num))
         self.block_triggered_vehicles.reverse()
 
     @staticmethod
