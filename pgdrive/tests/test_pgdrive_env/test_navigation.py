@@ -78,7 +78,7 @@ def test_navigation(vis=False):
                     }
                 )
             if i == 500:
-                env.pg_world.on_screen_message.data.clear_traffic()
+                env.pg_world.on_screen_message.data.clear()
             else:
                 env.render()
         if d:

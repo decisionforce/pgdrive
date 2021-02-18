@@ -117,8 +117,8 @@ class Block(Element, BlockDefault):
         self._clear_topology()
         self.detach_from_pg_world(pg_physics_world)
         self.node_path.removeNode()
-        self.dynamic_nodes.clear_traffic()
-        self.static_nodes.clear_traffic()
+        self.dynamic_nodes.clear()
+        self.static_nodes.clear()
 
     def _sample_topology(self) -> bool:
         """
