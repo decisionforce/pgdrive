@@ -29,7 +29,7 @@ COLLISION_INFO_COLOR = dict(
 COLOR = {
     BodyName.Side_walk: "red",
     BodyName.Continuous_line: "orange",
-    BodyName.Stripped_line: "yellow",
+    BodyName.Broken_line: "yellow",
     BodyName.Traffic_vehicle: "red"
 }
 

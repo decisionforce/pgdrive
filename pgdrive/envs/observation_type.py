@@ -5,7 +5,7 @@ import numpy as np
 
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.scene_creator.lanes.circular_lane import CircularLane
+from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.utils.math_utils import clip
 from pgdrive.world.image_buffer import ImageBuffer
 

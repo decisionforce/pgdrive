@@ -2,7 +2,7 @@ import logging
 from collections import namedtuple, deque
 from typing import Tuple, Dict, List
 
-from pgdrive.scene_creator.lanes.lane import AbstractLane
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import norm, get_np_random
@@ -152,7 +152,7 @@ class TrafficManager:
             if self.mode == TrafficMode.Hybrid:
                 # create a new one
                 lane = self.np_random.choice(self.reborn_lanes)
-                random_v = self._create_one_vehicle(lane, self.np_random.rand() * lane.length / 2, True)
+                random_v = self.spawn_one_vehicle(lane, self.np_random.rand() * lane.length / 2, True)
                 self.traffic_vehicles.append(random_v)
 
         return False
@@ -234,7 +234,7 @@ class TrafficManager:
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def _create_one_vehicle(self, lane: AbstractLane, long: float, enable_reborn: bool):
+    def spawn_one_vehicle(self, lane: AbstractLane, long: float, enable_reborn: bool):
         """
         Create one vehicle on lane and a specific place
         :param lane: Straight Lane or Circular Lane
@@ -242,8 +242,8 @@ class TrafficManager:
         :param enable_reborn: Reborn or not
         :return: PGTrafficVehicle
         """
-        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import car_type
-        vehicle_type = car_type[self.np_random.choice(list(car_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
+        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import vehicle_type
+        vehicle_type = vehicle_type[self.np_random.choice(list(vehicle_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=enable_reborn
         )
@@ -268,7 +268,7 @@ class TrafficManager:
             if self.np_random.rand() > traffic_density and abs(lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
-            random_v = self._create_one_vehicle(lane, long, is_reborn_lane)
+            random_v = self.spawn_one_vehicle(lane, long, is_reborn_lane)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
 
@@ -290,7 +290,7 @@ class TrafficManager:
         vehicle_num = 0
         for block in map.blocks[1:]:
             vehicles_on_block = []
-            trigger_road = block._pre_block_socket.positive_road
+            trigger_road = block.pre_block_socket.positive_road
 
             # trigger lanes is a two dimension array [[]], the first dim represent road consisting of lanes.
             trigger_lanes = block.block_network.get_positive_lanes()

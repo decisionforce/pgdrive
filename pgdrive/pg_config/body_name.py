@@ -1,6 +1,6 @@
 class BodyName:
     Continuous_line = "Continuous Line"
-    Stripped_line = "Stripped Line"
+    Broken_line = "Broken Line"
     Side_walk = "Side Walk"
     Ground = "Ground"
     Ego_vehicle = "Ego Vehicle"

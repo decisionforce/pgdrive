@@ -17,9 +17,9 @@ from pgdrive.pg_config.pg_space import PGSpace
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.scene_creator.lanes.circular_lane import CircularLane
-from pgdrive.scene_creator.lanes.lane import AbstractLane
-from pgdrive.scene_creator.lanes.straight_lane import StraightLane
+from pgdrive.scene_creator.lane.circular_lane import CircularLane
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
+from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.element import DynamicElement

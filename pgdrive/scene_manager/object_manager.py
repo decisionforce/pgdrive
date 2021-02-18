@@ -1,0 +1,36 @@
+from pgdrive.scene_creator.object.abs_object import Object
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
+from pgdrive.world.pg_world import PGWorld
+
+
+class ObjectsManager:
+    """
+    This class is used to manager all static object, such as traffic cones, warning tripod.
+    """
+    def __init__(self):
+        self.objects = []
+
+    def clear_objects(self, pg_world: PGWorld):
+        """
+        Clear all objects in th scene
+        """
+        for obj in self.objects:
+            obj.destroy(pg_world=pg_world)
+
+        self.objects = []
+
+    def spawn_one_object(self, object_type: str, lane: AbstractLane, longitude: float, lateral: float) -> None:
+        """
+        Spawn an object by assigning its type and position on the lane
+        :param object_type: object name or the class name of the object
+        :param lane: object will be spawned on this lane
+        :param longitude: longitude position on this lane
+        :param lateral: lateral position on  this lane
+        :return: None
+        """
+        for t in Object.type():
+            if t.__name__ == object_type or t.NAME == object_type:
+                obj = t.make_on_lane(lane, longitude, lateral)
+                self.objects.append(obj)
+                return
+        raise ValueError("No object named {}, so it can not be spawned".format(object_type))
