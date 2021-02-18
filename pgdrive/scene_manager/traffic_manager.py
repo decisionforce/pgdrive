@@ -152,8 +152,10 @@ class TrafficManager:
             if self.mode == TrafficMode.Hybrid:
                 # create a new one
                 lane = self.np_random.choice(self.reborn_lanes)
-                random_v = self.spawn_one_vehicle(lane, self.np_random.rand() * lane.length / 2, True)
+                vehicle_type = self.random_vehicle_type()
+                random_v = self.spawn_one_vehicle(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
                 self.traffic_vehicles.append(random_v)
+                self.vehicles.append(random_v.vehicle_node.kinematic_model)
 
         return False
 
@@ -234,20 +236,18 @@ class TrafficManager:
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def spawn_one_vehicle(self, lane: AbstractLane, long: float, enable_reborn: bool):
+    def spawn_one_vehicle(self, vehicle_type, lane: AbstractLane, long: float, enable_reborn: bool):
         """
         Create one vehicle on lane and a specific place
+        :param vehicle_type: PGTrafficVehicle type (s,m,l,xl)
         :param lane: Straight Lane or Circular Lane
         :param long: longitude position on lane
         :param enable_reborn: Reborn or not
         :return: PGTrafficVehicle
         """
-        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import vehicle_type
-        vehicle_type = vehicle_type[self.np_random.choice(list(vehicle_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=enable_reborn
         )
-        self.vehicles.append(random_v.vehicle_node.kinematic_model)
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_reborn_lane):
@@ -268,7 +268,9 @@ class TrafficManager:
             if self.np_random.rand() > traffic_density and abs(lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
-            random_v = self.spawn_one_vehicle(lane, long, is_reborn_lane)
+            vehicle_type = self.random_vehicle_type()
+            random_v = self.spawn_one_vehicle(vehicle_type, lane, long, is_reborn_lane)
+            self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
 
@@ -343,7 +345,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -383,6 +385,11 @@ class TrafficManager:
                     s_rear = s_v
                     v_rear = v
         return v_front, v_rear
+
+    def random_vehicle_type(self):
+        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import vehicle_type
+        vehicle_type = vehicle_type[self.np_random.choice(list(vehicle_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
+        return vehicle_type
 
     def destroy(self, pg_world: PGWorld) -> None:
         """

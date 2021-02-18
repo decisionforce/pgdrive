@@ -98,7 +98,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -122,8 +122,8 @@ class PGDriveEnv(gym.Env):
         self.pg_world_config = pg_world_config
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pg_world = None
-        self.scene_manager = None
+        self.pg_world: Optional[PGWorld] = None
+        self.scene_manager: Optional[SceneManager] = None
         self.main_camera = None
         self.controller = None
         self._expert_take_over = False
@@ -221,6 +221,12 @@ class PGDriveEnv(gym.Env):
         return obs, step_reward + done_reward, self.done, info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
+        """
+        This is a pseudo-render function, only used to update onscreen message when using panda3d backend
+        :param mode: 'rgb'/'human'
+        :param text:text to show
+        :return: when mode is 'rgb', image array is returned
+        """
         assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE or self.pg_world.highway_render is not None, (
             "render is off now, can not render"
         )
