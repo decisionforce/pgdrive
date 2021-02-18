@@ -1,6 +1,7 @@
 import logging
 import pathlib
 import sys
+import os
 
 
 class AssetLoader:
@@ -47,6 +48,8 @@ class AssetLoader:
 
 
 def initialize_asset_loader(pg_world):
+    # load model file in utf-8
+    os.environ["PYTHONUTF8"] = "on"
     if AssetLoader.initialized():
         logging.warning(
             "AssetLoader is initialize to root path: {}! But you are initializing again!".format(
