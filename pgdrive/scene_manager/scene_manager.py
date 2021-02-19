@@ -1,6 +1,6 @@
 import logging
 from pgdrive.scene_manager.PGLOD import PGLOD
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import numpy as np
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.traffic_manager import TrafficManager
@@ -41,8 +41,8 @@ class SceneManager:
 
         # for recovering, they can not exist together
         self.record_episode = record_episode
-        self.replay_system = None
-        self.record_system = None
+        self.replay_system: Optional[PGReplayer] = None
+        self.record_system: Optional[PGRecorder] = None
 
     def reset(self, map: Map, ego_vehicle, traffic_density: float, episode_data=None):
         """
@@ -125,7 +125,9 @@ class SceneManager:
 
         # cull distant objects
         PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
-        PGLOD.cull_distant_traffic_vehicles(self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world)
+        vehicles_to_cull = self.traffic_mgr.traffic_vehicles if self.replay_system is None \
+            else self.replay_system.restore_vehicles.values()
+        PGLOD.cull_distant_traffic_vehicles(vehicles_to_cull, self.ego_vehicle.position, self.pg_world)
         PGLOD.cull_distant_traffic_vehicles(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
         return done
 
