@@ -39,6 +39,11 @@ class AssetLoader:
 
     @staticmethod
     def file_path(*path_string):
+        """
+        Usage is the same as path.join(dir_1,dir_2,file_name)
+        :param path_string: a tuple
+        :return: file path used to load asset
+        """
         path = AssetLoader.asset_path.joinpath(*path_string)
         return AssetLoader.windows_style2unix_style(path) if sys.platform.startswith("win") else str(path)
 

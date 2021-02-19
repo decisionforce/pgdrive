@@ -7,7 +7,6 @@ from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import norm, get_np_random
 from pgdrive.world.pg_world import PGWorld
-from pgdrive.scene_manager.PGLOD import PGLOD
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 
@@ -132,9 +131,6 @@ class TrafficManager:
         :param pg_world: World
         :return: if this episode should be done
         """
-        # cull distant objects
-        PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, pg_world)
-        PGLOD.cull_distant_traffic_vehicles(self.traffic_vehicles, self.ego_vehicle.position, pg_world)
 
         vehicles_to_remove = []
         for v in self.traffic_vehicles:

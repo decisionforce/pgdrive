@@ -1,4 +1,5 @@
 import logging
+from pgdrive.scene_manager.PGLOD import PGLOD
 from typing import List, Tuple
 import numpy as np
 from pgdrive.scene_creator.map import Map
@@ -49,6 +50,7 @@ class SceneManager:
         """
         pg_world = self.pg_world
         self.ego_vehicle = ego_vehicle
+        self.map = map
 
         self.traffic_mgr.clear_traffic(pg_world)
         self.objects_mgr.clear_objects(pg_world)
@@ -120,6 +122,11 @@ class SceneManager:
             # didn't record while replay
             self.record_system.record_frame(self.traffic_mgr.get_global_states())
         self.ego_vehicle.update_state()
+
+        # cull distant objects
+        PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
+        PGLOD.cull_distant_traffic_vehicles(self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world)
+        PGLOD.cull_distant_traffic_vehicles(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
         return done
 
     def dump_episode(self) -> None:

@@ -13,7 +13,7 @@ class ObjectTestEnv(PGDriveEnv):
             "pg_world_config": {
                 "debug_physics_world": False,
             },
-            "debug": True,
+            "debug": False,
             "map": "CS"
         }
         if extra_config is not None:
@@ -24,12 +24,13 @@ class ObjectTestEnv(PGDriveEnv):
 
     def reset(self, episode_data: dict = None):
         ret = super(ObjectTestEnv, self).reset(episode_data)
+        lane = env.current_map.road_network.graph[">>>"]["1C0_0_"][0]
         self.breakdown_vehicle = env.scene_manager.traffic_mgr.spawn_one_vehicle(
-            env.scene_manager.traffic_mgr.random_vehicle_type(), env.vehicle.lane, 30, False
+            env.scene_manager.traffic_mgr.random_vehicle_type(), lane, 30, False
         )
         self.breakdown_vehicle.attach_to_pg_world(env.pg_world.pbr_worldNP, env.pg_world.physics_world)
-        self.alert = env.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", env.vehicle.lane, 20, 0)
-        self.alert.attach_to_pg_world(env.pg_world.worldNP, env.pg_world.physics_world)
+        self.alert = env.scene_manager.objects_mgr.spawn_one_object("Traffic Triangle", lane, 20, 0)
+        self.alert.attach_to_pg_world(env.pg_world.pbr_worldNP, env.pg_world.physics_world)
         return ret
 
 
