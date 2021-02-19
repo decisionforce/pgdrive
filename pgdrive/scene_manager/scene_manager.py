@@ -125,10 +125,14 @@ class SceneManager:
 
         # cull distant objects
         PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
-        vehicles_to_cull = self.traffic_mgr.traffic_vehicles if self.replay_system is None \
-            else self.replay_system.restore_vehicles.values()
-        PGLOD.cull_distant_traffic_vehicles(vehicles_to_cull, self.ego_vehicle.position, self.pg_world)
-        PGLOD.cull_distant_traffic_vehicles(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
+        if self.replay_system is None:
+            # TODO add objects to replay system and add new cull method
+            PGLOD.cull_distant_traffic_vehicles(
+                self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
+            )
+            PGLOD.cull_distant_traffic_vehicles(
+                self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world
+            )
         return done
 
     def dump_episode(self) -> None:
