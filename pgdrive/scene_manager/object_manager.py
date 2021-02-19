@@ -8,16 +8,15 @@ class ObjectsManager:
     This class is used to manager all static object, such as traffic cones, warning tripod.
     """
     def __init__(self):
-        self.objects = []
+        self.spawned_objects = []
 
     def clear_objects(self, pg_world: PGWorld):
         """
         Clear all objects in th scene
         """
-        for obj in self.objects:
+        for obj in self.spawned_objects:
             obj.destroy(pg_world=pg_world)
-
-        self.objects = []
+        self.spawned_objects = []
 
     def spawn_one_object(self, object_type: str, lane: AbstractLane, longitude: float, lateral: float) -> None:
         """
@@ -31,6 +30,6 @@ class ObjectsManager:
         for t in Object.type():
             if t.__name__ == object_type or t.NAME == object_type:
                 obj = t.make_on_lane(lane, longitude, lateral)
-                self.objects.append(obj)
-                return
+                self.spawned_objects.append(obj)
+                return obj
         raise ValueError("No object named {}, so it can not be spawned".format(object_type))

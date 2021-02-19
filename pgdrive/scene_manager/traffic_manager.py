@@ -41,6 +41,7 @@ class TrafficManager:
         self.vehicles = None
         self.traffic_vehicles = None
         self.block_triggered_vehicles = None
+        self.spawned_vehicles = []
 
         # traffic property
         self.mode = traffic_mode
@@ -79,6 +80,7 @@ class TrafficManager:
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
         self.vehicles = [*controllable_vehicles]  # it is used to perform IDM and bicycle model based motion
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
+        self.spawned_vehicles = []
 
         if abs(traffic_density - 0.0) < 1e-2:
             return
@@ -165,16 +167,14 @@ class TrafficManager:
         :param pg_world: World
         :return: None
         """
-        if self.traffic_vehicles is not None:
-            for v in self.traffic_vehicles:
+        if self.spawned_vehicles is not None:
+            for v in self.spawned_vehicles:
                 v.destroy(pg_world)
-        if self.block_triggered_vehicles is not None:
-            for block_vs in self.block_triggered_vehicles:
-                for v in block_vs.vehicles:
-                    v.destroy(pg_world)
+
         self.traffic_vehicles = None
         self.vehicles = None
         self.block_triggered_vehicles = None
+        self.spawned_vehicles = None
 
     def update_random_seed(self, random_seed: int):
         """
@@ -248,6 +248,7 @@ class TrafficManager:
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=enable_reborn
         )
+        self.spawned_vehicles.append(random_v)
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_reborn_lane):

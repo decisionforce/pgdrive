@@ -1,7 +1,6 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import setup_logger
 
-
 # setup_logger(True)
 
 
@@ -12,7 +11,7 @@ class ObjectTestEnv(PGDriveEnv):
             "traffic_density": 0.0,
             "start_seed": 5,
             "pg_world_config": {
-                "debug_physics_world": True,
+                "debug_physics_world": False,
             },
             "debug": True,
             "map": "CS"
@@ -25,15 +24,12 @@ class ObjectTestEnv(PGDriveEnv):
 
     def reset(self, episode_data: dict = None):
         ret = super(ObjectTestEnv, self).reset(episode_data)
-        if self.breakdown_vehicle is not None:
-            self.breakdown_vehicle.destroy(self.pg_world)
-        if self.alert is not None:
-            self.alert.destory(self.pg_world)
         self.breakdown_vehicle = env.scene_manager.traffic_mgr.spawn_one_vehicle(
             env.scene_manager.traffic_mgr.random_vehicle_type(), env.vehicle.lane, 30, False
         )
         self.breakdown_vehicle.attach_to_pg_world(env.pg_world.pbr_worldNP, env.pg_world.physics_world)
-        self.alert = env.scene_manager.objects_mgr.spawn_one_object("traffic_triangle", env.vehicle.lane, 30, 10)
+        self.alert = env.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", env.vehicle.lane, 20, 0)
+        self.alert.attach_to_pg_world(env.pg_world.worldNP, env.pg_world.physics_world)
         return ret
 
 
