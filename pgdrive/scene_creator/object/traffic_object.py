@@ -56,12 +56,12 @@ class TrafficCone(Object):
         self.node_path: NodePath = NodePath(body_node)
         self.node_path.setPos(panda_position(self.position, self.HEIGHT / 2))
         self.dynamic_nodes.append(body_node)
-        model = self.loader.loadModel(AssetLoader.file_path("models", "traffic_cone", "scene.gltf"))
-        model.setScale(0.02)
-        model.setPos(0, 0, -self.HEIGHT / 2)
-        model.reparentTo(self.node_path)
-
         self.node_path.setH(panda_heading(self.heading))
+        if self.render:
+            model = self.loader.loadModel(AssetLoader.file_path("models", "traffic_cone", "scene.gltf"))
+            model.setScale(0.02)
+            model.setPos(0, 0, -self.HEIGHT / 2)
+            model.reparentTo(self.node_path)
 
 
 class TrafficTriangle(Object):
@@ -76,10 +76,10 @@ class TrafficTriangle(Object):
         self.node_path: NodePath = NodePath(body_node)
         self.node_path.setPos(panda_position(self.position, self.HEIGHT / 2))
         self.dynamic_nodes.append(body_node)
-        model = self.loader.loadModel(AssetLoader.file_path("models", "warning", "warning.gltf"))
-        model.setScale(0.02)
-        model.setH(-90)
-        model.setPos(0, 0, -self.HEIGHT / 2)
-        model.reparentTo(self.node_path)
-
         self.node_path.setH(panda_heading(self.heading))
+        if self.render:
+            model = self.loader.loadModel(AssetLoader.file_path("models", "warning", "warning.gltf"))
+            model.setScale(0.02)
+            model.setH(-90)
+            model.setPos(0, 0, -self.HEIGHT / 2)
+            model.reparentTo(self.node_path)
