@@ -9,9 +9,9 @@ class Object(Element):
     """
     Common interface for objects that appear on the road, beside vehicles.
     """
+
     def __init__(self, position: Sequence[float], speed: float = 0., heading: float = 0.):
         """
-        :param road: the road instance where the object is placed in
         :param position: cartesian position of object in the surface
         :param speed: cartesian speed of object in the surface
         :param heading: the angle from positive direction of horizontal axis
@@ -20,8 +20,6 @@ class Object(Element):
         self.position = np.array(position, dtype=np.float)
         self.speed = speed
         self.heading = heading
-        # store whether object is hit by any vehicle
-        self.hit = False
 
     @classmethod
     def make_on_lane(cls, lane, longitudinal: float, lateral: float):
@@ -38,3 +36,15 @@ class Object(Element):
     @classmethod
     def type(cls):
         return cls.__subclasses__()
+
+
+class TrafficCone(Object):
+    """Placed near the construction section to indicate that traffic is prohibited"""
+
+    NAME = "traffic_cone"
+
+
+class TrafficTriangle(Object):
+    """Placed behind the vehicle when it breaks down"""
+
+    NAME = "traffic_triangle"
