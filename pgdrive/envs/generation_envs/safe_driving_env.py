@@ -66,6 +66,7 @@ class SafeDrivingEnv(PGDriveEnv):
         if not self.config["use_saver"]:
             return done_reward
 
+        self.step_info["native_cost"] = 0
         if self.step_info["out_of_road"] and self.config["safe_rl_env"] and \
                 not self.step_info["arrive_dest"]:
             # episode will not be done when out of road, since expert can save it
