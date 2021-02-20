@@ -63,19 +63,20 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def _done_episode(self) -> (float, dict):
         done_reward = super(SafeDrivingEnv, self)._done_episode()
-        if not self.config["use_saver"]:
-            return done_reward
 
         self.step_info["native_cost"] = 0
-        if self.step_info["out_of_road"] and self.config["safe_rl_env"] and \
-                not self.step_info["arrive_dest"]:
-            # episode will not be done when out of road, since expert can save it
-            self.done = False
+        if self.step_info["out_of_road"] and not self.step_info["arrive_dest"]:
             self.step_info["native_cost"] = self.config["out_of_road_cost"]
-        if self.step_info["crash"] and self.config["safe_rl_env"] and not self.step_info["arrive_dest"]:
-            # only max_step will terminate the whole episode in safe_rl_env
-            self.done = False
+
+            if self.config["safe_rl_env"]:
+                # episode will not be done when out of road, since expert can save it
+                self.done = False
+        if self.step_info["crash"] and not self.step_info["arrive_dest"]:
             self.step_info["native_cost"] = self.config["crash_cost"]
+
+            if self.config["safe_rl_env"]:
+                # only max_step will terminate the whole episode in safe_rl_env
+                self.done = False
         return done_reward
 
     def custom_info_callback(self):
