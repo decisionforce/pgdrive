@@ -7,8 +7,6 @@ class SafeDrivingEnv(PGDriveEnv):
 
     def default_config(self) -> PGConfig:
         """
-        Now we construct a simple scene to verify ideas quickly
-        TODO
         Train/Test set both contain 10 maps
         :return: PGConfig
         """
@@ -23,15 +21,15 @@ class SafeDrivingEnv(PGDriveEnv):
                                                     traffic_density=0.15,
                                                     traffic_mode="trigger",
 
-                                                    # reward setting under saver mode
-                                                    use_general_takeover_penalty=False,
-                                                    takeover_penalty=0.5,
+                                                    # general reward setting
                                                     speed_reward=0.5,
 
                                                     # cost setting, it will be written in info by default for safe rl
                                                     takeover_cost=5,
+                                                    crash_cost=5,
+                                                    out_of_road_cost=1,
 
-                                                    # saver config
+                                                    # saver config, save_level:0 = use_saver:False, save_level:1=expert
                                                     use_saver=True,
                                                     save_level=0.4))
         return config
@@ -61,9 +59,6 @@ class SafeDrivingEnv(PGDriveEnv):
 
         self.step_info["raw_step_reward"] = reward
 
-        if self.takeover and self.config["use_general_takeover_penalty"]:
-            # takeover means the situation is dangerous, so give a penalty in every takeover step
-            reward -= self.config["takeover_penalty"]
         return reward
 
     def _done_episode(self) -> (float, dict):
@@ -75,11 +70,14 @@ class SafeDrivingEnv(PGDriveEnv):
                 not self.step_info["arrive_dest"]:
             # episode will not be done when out of road, since expert can save it
             self.done = False
+            self.step_info["native_cost"] = self.config["out_of_road_cost"]
         if self.step_info["crash"] and self.config["safe_rl_env"] and not self.step_info["arrive_dest"]:
+            # only max_step will terminate the whole episode in safe_rl_env
             self.done = False
+            self.step_info["native_cost"] = self.config["crash_cost"]
         return done_reward
 
     def custom_info_callback(self):
         super(SafeDrivingEnv, self).custom_info_callback()
         self.step_info["high_speed"] = True if self.vehicle.speed >= IDMVehicle.MAX_SPEED else False
-        self.step_info["cost"] = self.config["takeover_cost"] if self.step_info["takeover_start"] else 0
+        self.step_info["takeover_cost"] = self.config["takeover_cost"] if self.step_info["takeover_start"] else 0
