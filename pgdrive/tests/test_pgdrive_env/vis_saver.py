@@ -14,7 +14,7 @@ if __name__ == "__main__":
             # "map":"XXX",
             "safe_rl_env":True,
             "overtake_stat":True,
-            "save_level": 0.1,
+            "save_level": 0.2,
             # "use_saver":False,
             # "map": "Crrrrrrrrrr"
         }

@@ -11,10 +11,10 @@ class SafeDrivingEnv(PGDriveEnv):
         :return: PGConfig
         """
         config = super(SafeDrivingEnv, self).default_config()
-        config.extend_config_with_unknown_keys(dict(environment_num=1,
-                                                    start_seed=1,
-                                                    map="rCCXC",
+        config.extend_config_with_unknown_keys(dict(environment_num=100,
+                                                    start_seed=100,
                                                     safe_rl_env=False,
+                                                    map=5,
 
                                                     # traffic setting
                                                     random_traffic=False,
