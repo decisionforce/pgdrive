@@ -8,7 +8,6 @@ class ObjectsManager:
     """
     This class is used to manager all static object, such as traffic cones, warning tripod.
     """
-
     def __init__(self):
         self.spawned_objects = []
 
@@ -20,8 +19,9 @@ class ObjectsManager:
             obj.destroy(pg_world=pg_world)
         self.spawned_objects = []
 
-    def spawn_one_object(self, object_type: str, lane: AbstractLane, lane_index: LaneIndex, longitude: float,
-                         lateral: float) -> None:
+    def spawn_one_object(
+        self, object_type: str, lane: AbstractLane, lane_index: LaneIndex, longitude: float, lateral: float
+    ) -> None:
         """
         Spawn an object by assigning its type and position on the lane
         :param object_type: object name or the class name of the object

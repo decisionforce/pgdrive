@@ -29,8 +29,9 @@ class SidePassEnv(PGDriveEnv):
         )
         self.breakdown_vehicle.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
         self.scene_manager.traffic_mgr.vehicles.append(self.breakdown_vehicle.vehicle_node.kinematic_model)
-        self.alert = self.scene_manager.objects_mgr.spawn_one_object("Traffic Triangle", lane, (">>>", "1C0_0_", 0), 22,
-                                                                     0)
+        self.alert = self.scene_manager.objects_mgr.spawn_one_object(
+            "Traffic Triangle", lane, (">>>", "1C0_0_", 0), 22, 0
+        )
         self.alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
         # part 1
@@ -43,8 +44,9 @@ class SidePassEnv(PGDriveEnv):
         ]
 
         for p in pos:
-            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0],
-                                                                   p[1] * 2 / 3)
+            cone = self.scene_manager.objects_mgr.spawn_one_object(
+                "Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0], p[1] * 2 / 3
+            )
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
 
@@ -77,23 +79,22 @@ class SidePassEnv(PGDriveEnv):
             )
             v.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
-        alert = self.scene_manager.objects_mgr.spawn_one_object("Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0),
-                                                                     -35,0)
+        alert = self.scene_manager.objects_mgr.spawn_one_object(
+            "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -35, 0
+        )
         alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
         # part 3
         lane = self.current_map.road_network.graph["4C0_0_"]["4C0_1_"][2]
         pos = [
-            (-12.1, 0), (-8.7, -lane.width / 4),
-            (-4.2, -lane.width / 2), (-0.7, -lane.width * 3 / 4), (4.1, -lane.width), (7.3, -lane.width),
-            (11.5, -lane.width), (15.5, -lane.width), (20.0, -lane.width), (23.2, -lane.width), (29.1, -lane.width),
-            (32.9, -lane.width / 2), (37.0, 0), (40.0, lane.width / 2)
+            (-12.1, 0), (-8.7, -lane.width / 4), (-4.2, -lane.width / 2), (-0.7, -lane.width * 3 / 4),
+            (4.1, -lane.width), (7.3, -lane.width), (11.5, -lane.width), (15.5, -lane.width), (20.0, -lane.width),
+            (23.2, -lane.width), (29.1, -lane.width), (32.9, -lane.width / 2), (37.0, 0), (40.0, lane.width / 2)
         ]
 
         for p in pos:
             p_ = (p[0] + 5, p[1] * 3.5 / 3)
-            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("4C0_0_", "4C0_1_", 2),
-                                                                   *p_)
+            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("4C0_0_", "4C0_1_", 2), *p_)
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
 
@@ -106,18 +107,12 @@ class SidePassEnv(PGDriveEnv):
 
         # part 4
         lane = self.current_map.road_network.graph["4C0_1_"]["5R0_0_"][0]
-        pos = [
-            (-12, lane.width / 4), (-8.1, 0), (-4, -lane.width / 4),
-            (-0.1, -lane.width / 2), (4, -lane.width)
-        ]
+        pos = [(-12, lane.width / 4), (-8.1, 0), (-4, -lane.width / 4), (-0.1, -lane.width / 2), (4, -lane.width)]
 
         for p in pos:
-            p_ = (p[0]+60, -p[1] * 3.5 / 3)
-            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("4C0_1_", "5R0_0_", 0),
-                                                                   *p_)
+            p_ = (p[0] + 60, -p[1] * 3.5 / 3)
+            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("4C0_1_", "5R0_0_", 0), *p_)
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
-
-
 
         return ret

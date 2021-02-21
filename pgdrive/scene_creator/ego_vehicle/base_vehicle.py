@@ -441,7 +441,7 @@ class BaseVehicle(DynamicElement):
         node1 = contact.getNode1().getName()
         name = [node0, node1]
         name.remove(BodyName.Ego_vehicle_top)
-        if name[0] == BodyName.Traffic_vehicle:
+        if name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle, BodyName.Traffic_vehicle]:
             self.crash = True
             logging.debug("Crash with {}".format(name[0]))
 
