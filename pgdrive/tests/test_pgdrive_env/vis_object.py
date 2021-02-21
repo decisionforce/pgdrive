@@ -8,6 +8,6 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render()
-        if d:
-            env.reset()
+        # if d:
+        #     env.reset()
     env.close()
