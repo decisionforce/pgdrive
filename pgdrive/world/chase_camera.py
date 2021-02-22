@@ -19,7 +19,7 @@ class ChaseCamera:
     FOLLOW_LANE = False
 
     def __init__(
-            self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PGWorld
+        self, camera: Camera, vehicle: BaseVehicle, camera_height: float, camera_dist: float, pg_world: PGWorld
     ):
         self.camera = camera
         self.camera_queue = None
@@ -54,7 +54,9 @@ class ChaseCamera:
             self.camera.lookAt(current_pos)
         else:
             self.camera.setH(
-                self._heading_of_lane(vehicle.routing_localization.current_ref_lanes[0], vehicle.position)/np.pi*180 - 90)
+                self._heading_of_lane(vehicle.routing_localization.current_ref_lanes[0], vehicle.position) / np.pi *
+                180 - 90
+            )
 
         if self.light is not None:
             self.light.step(current_pos)
