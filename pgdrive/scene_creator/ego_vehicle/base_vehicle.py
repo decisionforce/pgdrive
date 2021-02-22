@@ -3,7 +3,7 @@ import logging
 import math
 import time
 from collections import deque
-
+from typing import Optional
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
@@ -92,9 +92,9 @@ class BaseVehicle(DynamicElement):
 
         # modules
         self.image_sensors = {}
-        self.lidar = None
-        self.routing_localization = None
-        self.lane = None
+        self.lidar: Optional[Lidar] = None
+        self.routing_localization: Optional[RoutingLocalizationModule] = None
+        self.lane: Optional[AbstractLane] = None
         self.lane_index = None
 
         self.vehicle_panel = VehiclePanel(self.pg_world) if (self.pg_world.mode == RENDER_MODE_ONSCREEN) else None
@@ -276,8 +276,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
