@@ -114,17 +114,41 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
     @property
     def observation_space(self):
-        # lidar + other scalar obs
+        # Navi info + Other states
         shape = BaseVehicle.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim
-
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
+        """
+        Ego states: [
+                    Distance to left yellow Continuous line,
+                    Distance to right Side Walk,
+                    Difference of heading between ego vehicle and current lane,
+                    Current speed,
+                    Current steering,
+                    Throttle/brake of last frame,
+                    Steering of last frame,
+                    Yaw Rate,
+                    Lateral Position on current lane.
+                    ], dim = 9
+        Navi info: [
+                    Projection of distance between ego vehicle and checkpoint on ego vehicle's heading direction,
+                    Projection of distance between ego vehicle and checkpoint on ego vehicle's side direction,
+                    Radius of the lane whose end node is the checkpoint (0 if this lane is straight),
+                    Clockwise (1) or anticlockwise (0) (0 if lane is straight),
+                    Angle of the lane (0 if lane is straight)
+                   ] * 2, dim = 10
+        Since agent observes current lane info and next lane info, and two checkpoints exist, the dimension of navi info
+        is 10.
+        :param vehicle: BaseVehicle
+        :return: Vehicle State + Navigation information
+        """
         navi_info = vehicle.routing_localization.get_navi_info()
         ego_state = self.vehicle_state(vehicle)
         return np.asarray(ego_state + navi_info, dtype=np.float32)
@@ -144,7 +168,7 @@ class ImageObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE, )
+        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
@@ -172,6 +196,21 @@ class LidarStateObservation(ObservationType):
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe(self, vehicle):
+        """
+        State observation + Navi info + 4 * closest vehicle info + Lidar points ,
+        Definition of State Observation and Navi information can be found in **class StateObservation**
+        Other vehicles' info: [
+                              Projection of distance between ego and another vehicle on ego vehicle's heading direction,
+                              Projection of distance between ego and another vehicle on ego vehicle's side direction,
+                              Projection of speed between ego and another vehicle on ego vehicle's heading direction,
+                              Projection of speed between ego and another vehicle on ego vehicle's side direction,
+                              ] * 4, dim = 16
+
+        Lidar points: 240 lidar points surrounding vehicle, starting from the vehicle head in clockwise direction
+
+        :param vehicle: BaseVehicle
+        :return: observation in 9 + 10 + 16 + 240 dim
+        """
         state = self.state_obs.observe(vehicle)
         other_v_info = []
         other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"][2])
