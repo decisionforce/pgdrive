@@ -27,7 +27,7 @@ class SafeDrivingEnv(PGDriveEnv):
                                                     # cost setting, it will be written in info by default for safe rl
                                                     takeover_cost=5,
                                                     crash_cost=5,
-                                                    out_of_road_cost=1,
+                                                    out_of_road_cost=2,
 
                                                     # saver config, save_level:0 = use_saver:False, save_level:1=expert
                                                     use_saver=True,
@@ -67,10 +67,11 @@ class SafeDrivingEnv(PGDriveEnv):
         self.step_info["native_cost"] = 0
         if self.step_info["out_of_road"] and not self.step_info["arrive_dest"]:
             self.step_info["native_cost"] = self.config["out_of_road_cost"]
+            # out of road will be done now
 
-            if self.config["safe_rl_env"]:
-                # episode will not be done when out of road, since expert can save it
-                self.done = False
+            # if self.config["safe_rl_env"]:
+            #     # episode will not be done when out of road, since expert can save it
+            #     self.done = False
         if self.step_info["crash"] and not self.step_info["arrive_dest"]:
             self.step_info["native_cost"] = self.config["crash_cost"]
 

@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 "overtake_num":info["overtake_vehicle_num"]
                 }
         if info["takeover_start"]:
-            text["cost"]=info["cost"]
+            text["cost"]=info["native_cost"]
         env.render(text=text)
         if d:
             print("episode_len:", i - start)
