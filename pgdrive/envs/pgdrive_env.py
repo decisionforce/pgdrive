@@ -128,7 +128,7 @@ class PGDriveEnv(gym.Env):
         # lazy initialization, create the main vehicle in the lazy_init() func
         self.pg_world = None
         self.scene_manager = None
-        self.main_camera = None
+        self.main_camera:Optional[ChaseCamera] = None
         self.controller = None
         self._expert_take_over = False
         self.restored_maps = dict()
