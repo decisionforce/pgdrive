@@ -26,9 +26,11 @@ if __name__ == "__main__":
     max_s = 0
     max_t = 0
     start = 0
+    total_r = 0
     for i in range(1, 100000000):
         o_to_evaluate = o
         o, r, d, info = env.step([0, 1])
+        total_r += r
         max_s = max(max_s, info["raw_action"][0])
         max_t = max(max_t, info["raw_action"][1])
 
@@ -52,8 +54,10 @@ if __name__ == "__main__":
                 }
         if info["takeover_start"]:
             text["cost"]=info["native_cost"]
+        text["Reward"]=total_r
         env.render(text=text)
         if d:
+            total_r = 0
             print("episode_len:", i - start)
             env.reset()
             start = i
