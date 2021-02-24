@@ -28,4 +28,4 @@ def test_lidar(render=False):
 
 
 if __name__ == "__main__":
-    test_lidar(True)
+    test_lidar(render=True)
