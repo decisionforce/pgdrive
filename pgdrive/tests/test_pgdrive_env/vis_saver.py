@@ -1,64 +1,37 @@
-from pgdrive.envs.generation_envs.safe_driving_env import SafeDrivingEnv
-from pgdrive.examples.ppo_expert.numpy_expert import value, load_weights
+from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.scene_creator.map import Map, MapGenerateMethod
+from pgdrive.utils import setup_logger
+
+# setup_logger(True)
+
+
+class TestEnv(PGDriveEnv):
+    def __init__(self):
+        super(TestEnv, self).__init__(
+            {
+                "environment_num": 5,
+                "traffic_density": 0.1,
+                "traffic_mode": "reborn",
+                "start_seed": 5,
+                # "controller": "joystick",
+                "manual_control": True,
+                "use_render": True,
+                "use_saver": True,
+                "map": 30
+            }
+        )
+
 
 if __name__ == "__main__":
-    env = SafeDrivingEnv(
-        {
-            # "environment_num": 1,
-            # "traffic_density": 0.,
-            # "traffic_mode": "reborn",
-            # "start_seed": 5,
-            # "controller": "joystick",
-            "manual_control": True,
-            "use_render": True,
-            # "map":"XXX",
-            "safe_rl_env":True,
-            "overtake_stat":True,
-            "save_level": 0.2,
-            # "use_saver":False,
-            # "map": "Crrrrrrrrrr"
-        }
-    )
-    baseline_weights = load_weights("../../examples/ppo_expert/baseline.npz")
-    saver_weights = load_weights("../../examples/ppo_expert/saver_weights.npz")
+    env = TestEnv()
 
     o = env.reset()
-    max_s = 0
-    max_t = 0
-    start = 0
-    total_r = 0
-    for i in range(1, 100000000):
-        o_to_evaluate = o
+    # env.pg_world.force_fps.toggle()
+    for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
-        total_r += r
-        max_s = max(max_s, info["raw_action"][0])
-        max_t = max(max_t, info["raw_action"][1])
-
-        baseline_value = value(o_to_evaluate, baseline_weights)
-        saver_value = value(o_to_evaluate, saver_weights)
-
-        # assert not info["takeover_start"]
-        text = {"save": env.takeover,
-                # "max_action": (max_s, max_t),
-                # "raw_reward": env.step_info["raw_step_reward"],
-                # "reward": r,
-                # "speed": env.vehicle.speed,
-                # "high_speed": info["high_speed"]
-                # "takeover_start":info["takeover_start"],
-                # "takeover_end":info["takeover_end"],
-                #
-                # "baseline_value": baseline_value,
-                # "saver_value": saver_value,
-                # "diff": baseline_value - saver_value
-                "overtake_num":info["overtake_vehicle_num"]
-                }
-        if info["takeover_start"]:
-            text["cost"]=info["native_cost"]
-        text["Reward"]=total_r
+        text = {"save": env.save_mode}
         env.render(text=text)
-        if d:
-            total_r = 0
-            print("episode_len:", i - start)
-            env.reset()
-            start = i
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()
