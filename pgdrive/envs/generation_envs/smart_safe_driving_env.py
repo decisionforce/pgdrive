@@ -13,7 +13,7 @@ class SmartSafeDrivingEnv(SafeDrivingEnv):
     def saver(self, action):
         steering = action[0]
         throttle = action[1]
-        take_over = action[2] > 0.0  # In scale [-1, 1]
+        take_over = action[2] > 0.0 and self.config["use_saver"]  # In scale [-1, 1]
 
         if take_over:
             obs = self.observation.observe(self.vehicle)
