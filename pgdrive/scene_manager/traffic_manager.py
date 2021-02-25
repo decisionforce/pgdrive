@@ -98,7 +98,7 @@ class TrafficManager:
             raise ValueError("No such mode named {}".format(self.mode))
         logging.debug("Init {} Traffic Vehicles".format(len(self.vehicles) - 1))
 
-    def prepare_step(self, scene_mgr, pg_world: PGWorld):
+    def prepare_step(self, scene_mgr):
         """
         All traffic vehicles make driving decision here
         :param scene_mgr: access other elements in scene

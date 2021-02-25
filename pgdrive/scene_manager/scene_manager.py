@@ -16,13 +16,14 @@ Route = List[LaneIndex]
 
 
 class SceneManager:
-    """Manage all traffic vehicles, and all runtime elements (in the future)"""
+    """Manage all traffic vehicles, and all runtime elements"""
+
     def __init__(
-        self,
-        pg_world: PGWorld,
-        traffic_mode=TrafficMode.Trigger,
-        random_traffic: bool = False,
-        record_episode: bool = False
+            self,
+            pg_world: PGWorld,
+            traffic_mode=TrafficMode.Trigger,
+            random_traffic: bool = False,
+            record_episode: bool = False
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -86,7 +87,7 @@ class SceneManager:
         if self.replay_system is None:
             # not in replay mode
             self.ego_vehicle.prepare_step(ego_vehicle_action)
-            self.traffic_mgr.prepare_step(self, self.pg_world)
+            self.traffic_mgr.prepare_step(self)
 
     def step(self, step_num: int = 1) -> None:
         """
@@ -126,7 +127,6 @@ class SceneManager:
         # cull distant objects
         PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
         if self.replay_system is None:
-            # TODO add objects to replay system and add new cull method
             PGLOD.cull_distant_traffic_vehicles(
                 self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
             )
