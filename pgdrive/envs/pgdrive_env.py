@@ -102,7 +102,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -203,6 +203,7 @@ class PGDriveEnv(gym.Env):
 
         # protect agent from nan error
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
+
         # preprocess
         self.scene_manager.prepare_step(action)
 
@@ -224,14 +225,16 @@ class PGDriveEnv(gym.Env):
             step_reward = 0
 
         # update info
-        self.step_info.update({
-            "cost": float(0),  # it may be overwritten in callback func
-            "velocity": float(self.vehicle.speed),
-            "steering": float(self.vehicle.steering),
-            "acceleration": float(self.vehicle.throttle_brake),
-            "step_reward": float(step_reward),
-            "takeover": self.takeover,
-        })
+        self.step_info.update(
+            {
+                "cost": float(0),  # it may be overwritten in callback func
+                "velocity": float(self.vehicle.speed),
+                "steering": float(self.vehicle.steering),
+                "acceleration": float(self.vehicle.throttle_brake),
+                "step_reward": float(step_reward),
+                "takeover": self.takeover,
+            }
+        )
         self.custom_info_callback()
 
         return obs, step_reward + done_reward, self.done, self.step_info
@@ -317,7 +320,7 @@ class PGDriveEnv(gym.Env):
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -628,8 +631,8 @@ class PGDriveEnv(gym.Env):
                 lidar_p = self.vehicle.lidar.get_cloud_points()
                 left = int(self.vehicle.lidar.laser_num / 4)
                 right = int(self.vehicle.lidar.laser_num / 4 * 3)
-                if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(
-                        lidar_p[right - 4:right + 6]) < (save_level + 0.1) / 10:
+                if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
+                                                                                    ) < (save_level + 0.1) / 10:
                     # lateral safe distance 2.0m
                     steering = saver_a[0]
                 if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:

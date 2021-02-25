@@ -81,5 +81,5 @@ def value(obs, weights):
 if __name__ == '__main__':
     for i in range(100):
         print("Weights? ", type(_expert_weights))
-        ret = expert(np.clip(np.random.normal(0.5, 1, size=(275,)), 0.0, 1.0))
+        ret = expert(np.clip(np.random.normal(0.5, 1, size=(275, )), 0.0, 1.0))
         print("Return: ", ret)

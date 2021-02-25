@@ -227,21 +227,11 @@ class BaseVehicle(DynamicElement):
 
     def update_dist_to_left_right(self):
         current_reference_lane = self.routing_localization.current_ref_lanes[-1]
-        lane_num = len(self.routing_localization.current_ref_lanes)
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
 
-        if isinstance(current_reference_lane, CircularLane) \
-                and lane_num == 1 and current_reference_lane.direction == -1:
-
-            lateral_to_right = abs(lateral_to_reference) + self.routing_localization.map.lane_width * (
-                    self.routing_localization.map.lane_num - 0.5) if lateral_to_reference < 0 \
-                else self.routing_localization.map.lane_width * self.routing_localization.map.lane_num - \
-                     self.routing_localization.map.lane_width / 2 - lateral_to_reference
-
-        else:
-            lateral_to_right = abs(
-                lateral_to_reference) + self.routing_localization.map.lane_width / 2 if lateral_to_reference < 0 \
-                else self.routing_localization.map.lane_width / 2 - abs(lateral_to_reference)
+        lateral_to_right = abs(
+            lateral_to_reference) + self.routing_localization.map.lane_width / 2 if lateral_to_reference < 0 \
+            else self.routing_localization.map.lane_width / 2 - abs(lateral_to_reference)
 
         lateral_to_left = self.routing_localization.map.lane_width * self.routing_localization.map.lane_num - lateral_to_right
         self.dist_to_left, self.dist_to_right = lateral_to_left, lateral_to_right

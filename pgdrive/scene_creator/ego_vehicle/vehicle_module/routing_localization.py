@@ -122,9 +122,6 @@ class RoutingLocalizationModule:
         for lanes_id, lanes in enumerate([target_lanes_1, target_lanes_2]):
             ref_lane = lanes[0]
             later_middle = (float(self.map.lane_num) / 2 - 0.5) * self.map.lane_width
-            if isinstance(ref_lane, CircularLane) and ref_lane.direction == 1:
-                ref_lane = lanes[-1]
-                later_middle *= -1
             check_point = ref_lane.position(ref_lane.length, later_middle)
             if lanes_id == 0:
                 # calculate ego v lane heading
@@ -142,7 +139,7 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                        BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
                 )
                 dir = ref_lane.direction
                 if dir == 1:
