@@ -369,6 +369,10 @@ class PGDriveEnv(gym.Env):
             done_info["out_of_road"] = True
 
         self.step_info.update(done_info)
+
+        # ===== for old version compatibility =====
+        # crash almost equals to crashing with vehicles
+        self.step_info["crash"] = self.step_info["crash_vehicle"]
         return reward_
 
     def close(self):
