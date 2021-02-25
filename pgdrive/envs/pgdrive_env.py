@@ -51,7 +51,7 @@ class PGDriveEnv(gym.Env):
 
             # ===== Observation =====
             use_image=False,  # Use first view
-            use_topdown=False,  # Use topdown view
+            use_topdown=False,  # Use top-down view
             rgb_clip=True,
             vehicle_config=dict(),  # use default vehicle modules see more in BaseVehicle
             image_source="rgb_cam",  # mini_map or rgb_cam or depth cam

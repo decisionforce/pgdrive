@@ -3,6 +3,10 @@ from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 
 
 class SidePassEnv(PGDriveEnv):
+    """
+    now for test use and demo use only
+    """
+
     def __init__(self, extra_config=None):
         config = {
             "environment_num": 1,

@@ -40,7 +40,7 @@ class TrafficManager(RandomEngine):
         self.vehicles = None
         self.traffic_vehicles = None
         self.block_triggered_vehicles = None
-        self.spawned_vehicles = []
+        self._spawned_vehicles = []  # auto-destroy
 
         # traffic property
         self.mode = traffic_mode
@@ -80,7 +80,7 @@ class TrafficManager(RandomEngine):
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
         self.vehicles = [*controllable_vehicles]  # it is used to perform IDM and bicycle model based motion
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
-        self.spawned_vehicles = []
+        self._spawned_vehicles = []
 
         if abs(traffic_density - 0.0) < 1e-2:
             return
@@ -154,7 +154,6 @@ class TrafficManager(RandomEngine):
                 vehicle_type = self.random_vehicle_type()
                 random_v = self.spawn_one_vehicle(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
                 self.traffic_vehicles.append(random_v)
-                self.vehicles.append(random_v.vehicle_node.kinematic_model)
 
         return False
 
@@ -164,14 +163,14 @@ class TrafficManager(RandomEngine):
         :param pg_world: World
         :return: None
         """
-        if self.spawned_vehicles is not None:
-            for v in self.spawned_vehicles:
+        if self._spawned_vehicles is not None:
+            for v in self._spawned_vehicles:
                 v.destroy(pg_world)
 
         self.traffic_vehicles = None
         self.vehicles = None
         self.block_triggered_vehicles = None
-        self.spawned_vehicles = None
+        self._spawned_vehicles = None
 
     def get_vehicle_num(self):
         """
@@ -236,7 +235,8 @@ class TrafficManager(RandomEngine):
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=enable_reborn
         )
-        self.spawned_vehicles.append(random_v)
+        self._spawned_vehicles.append(random_v)
+        self.vehicles.append(random_v.vehicle_node.kinematic_model)
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_reborn_lane):
@@ -259,7 +259,6 @@ class TrafficManager(RandomEngine):
                 continue
             vehicle_type = self.random_vehicle_type()
             random_v = self.spawn_one_vehicle(vehicle_type, lane, long, is_reborn_lane)
-            self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
 

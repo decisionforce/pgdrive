@@ -64,7 +64,7 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            self.objects_mgr.generate(pg_world, map, accident_prob)
+            self.objects_mgr.generate(self, pg_world, map, accident_prob)
             self.traffic_mgr.generate(pg_world, map, [ego_vehicle], traffic_density)
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
@@ -131,7 +131,7 @@ class SceneManager:
             PGLOD.cull_distant_traffic_vehicles(
                 self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
             )
-            PGLOD.cull_distant_objects(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
+            PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, self.ego_vehicle.position, self.pg_world)
         return done
 
     def dump_episode(self) -> None:
