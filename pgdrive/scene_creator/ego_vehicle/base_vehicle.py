@@ -115,15 +115,17 @@ class BaseVehicle(DynamicElement):
         self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
         # done info
-        self.crash = None
+        self.crash_vehicle = None
+        self.crash_object = None
         self.out_of_route = None
         self.crash_side_walk = None
         self.on_lane = None
         self.init_done_info()
 
     def init_done_info(self):
-        # done info
-        self.crash = False
+        # done info will be initialized every frame
+        self.crash_vehicle = False
+        self.crash_object = False
         self.crash_side_walk = False
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
@@ -303,8 +305,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -468,9 +470,11 @@ class BaseVehicle(DynamicElement):
         node1 = contact.getNode1().getName()
         name = [node0, node1]
         name.remove(BodyName.Ego_vehicle_top)
-        if name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle, BodyName.Traffic_vehicle]:
-            self.crash = True
-            logging.debug("Crash with {}".format(name[0]))
+        if name[0] in [BodyName.Traffic_vehicle]:
+            self.crash_vehicle = True
+        elif name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
+            self.crash_object = True
+        logging.debug("Crash with {}".format(name[0]))
 
     @staticmethod
     def _init_collision_info_render(pg_world):
@@ -553,7 +557,7 @@ class BaseVehicle(DynamicElement):
         return {
             "heading": self.heading_theta,
             "position": self.position.tolist(),
-            "done": self.crash or self.out_of_route or self.crash_side_walk or not self.on_lane
+            "done": self.crash_vehicle or self.out_of_route or self.crash_side_walk or not self.on_lane
         }
 
     def set_state(self, state: dict):

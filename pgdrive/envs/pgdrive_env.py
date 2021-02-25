@@ -46,6 +46,10 @@ class PGDriveEnv(gym.Env):
             traffic_mode=TrafficMode.Trigger,
             random_traffic=False,  # Traffic is randomized at default.
 
+            # ===== Object =====
+            traffic_accident=False,  # traffic cone and warning sign will be added if turn this to True
+            accident_porb=0.5,  # accident may happen on each block with this probability, except multi-exits block
+
             # ===== Observation =====
             use_image=False,  # Use first view
             use_topdown=False,  # Use topdown view
@@ -69,7 +73,8 @@ class PGDriveEnv(gym.Env):
             # ===== Reward Scheme =====
             success_reward=20,
             out_of_road_penalty=5,
-            crash_penalty=10,
+            crash_vehicle_penalty=10,
+            crash_object_penalty=2,
             acceleration_penalty=0.0,
             steering_penalty=0.1,
             low_speed_penalty=0.0,
@@ -102,7 +107,7 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -311,6 +316,7 @@ class PGDriveEnv(gym.Env):
         long_last, _ = current_lane.local_coordinates(self.vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(self.vehicle.position)
 
+        # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
         reward = 0.0
         lateral_factor = clip(1 - 2 * abs(lateral_now) / self.current_map.lane_width, 0.0, 1.0)
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
@@ -319,8 +325,9 @@ class PGDriveEnv(gym.Env):
         steering_change = abs(self.vehicle.last_current_action[0][0] - self.vehicle.last_current_action[1][0])
         steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
         reward -= steering_penalty
+
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -328,19 +335,19 @@ class PGDriveEnv(gym.Env):
         if self.vehicle.speed < 1:
             low_speed_penalty = self.config["low_speed_penalty"]  # encourage car
         reward -= low_speed_penalty
-
         reward -= self.config["general_penalty"]
-
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
 
-        # if reward > 3.0:
-        #     print("Stop here.")
-
+        # Penalty for crash object
+        self.step_info["crash_object"] = False
+        if self.vehicle.crash_object:
+            reward -= self.config["crash_object_penalty"]
+            self.step_info["crash_object"] = True
         return reward
 
     def _done_episode(self) -> (float, dict):
         reward_ = 0
-        done_info = dict(crash=False, out_of_road=False, arrive_dest=False)
+        done_info = dict(crash_vehicle=False, out_of_road=False, arrive_dest=False)
         long, lat = self.vehicle.routing_localization.final_lane.local_coordinates(self.vehicle.position)
 
         if self.vehicle.routing_localization.final_lane.length - 5 < long < self.vehicle.routing_localization.final_lane.length + 5 \
@@ -350,11 +357,11 @@ class PGDriveEnv(gym.Env):
             reward_ += self.config["success_reward"]
             logging.info("Episode ended! Reason: arrive_dest.")
             done_info["arrive_dest"] = True
-        elif self.vehicle.crash:
+        elif self.vehicle.crash_vehicle:
             self.done = True
-            reward_ -= self.config["crash_penalty"]
-            logging.info("Episode ended! Reason: crash. ")
-            done_info["crash"] = True
+            reward_ -= self.config["crash_vehicle_penalty"]
+            logging.info("Episode ended! Reason: crash vehicle")
+            done_info["crash_vehicle"] = True
         elif self.vehicle.out_of_route or not self.vehicle.on_lane or self.vehicle.crash_side_walk:
             self.done = True
             reward_ -= self.config["out_of_road_penalty"]

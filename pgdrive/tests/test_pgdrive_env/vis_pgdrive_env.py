@@ -8,7 +8,7 @@ setup_logger(True)
 class TestEnv(PGDriveEnv):
     def __init__(self):
         """
-        TODO a small bug exists in scene 9 (30 blocks)
+        TODO a small bug exists in scene 9 (30 blocks), traffic density > 0, reborn mode
         """
         super(TestEnv, self).__init__(
             {
