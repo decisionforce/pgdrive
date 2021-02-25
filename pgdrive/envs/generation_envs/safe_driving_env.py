@@ -23,6 +23,7 @@ class SafeDrivingEnv(PGDriveEnv):
 
                                                     # general reward setting
                                                     speed_reward=0.5,
+                                                    crash_penalty=0,  # crash will give cost instead of - reward
 
                                                     # cost setting, it will be written in info by default for safe rl
                                                     takeover_cost=5,
