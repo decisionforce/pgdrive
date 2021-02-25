@@ -45,7 +45,7 @@ class SceneManager:
         self.replay_system: Optional[PGReplayer] = None
         self.record_system: Optional[PGRecorder] = None
 
-    def reset(self, map: Map, ego_vehicle, traffic_density: float, episode_data=None):
+    def reset(self, map: Map, ego_vehicle, traffic_density: float, accident_prob: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
@@ -64,6 +64,7 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
+            self.objects_mgr.generate(pg_world, map, accident_prob)
             self.traffic_mgr.generate(pg_world, map, [ego_vehicle], traffic_density)
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)

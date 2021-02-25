@@ -5,7 +5,7 @@ from typing import Tuple, Dict, List
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils import norm, get_np_random
+from pgdrive.utils import norm, RandomEngine
 from pgdrive.world.pg_world import PGWorld
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
@@ -22,7 +22,7 @@ class TrafficMode:
     Hybrid = "hybrid"
 
 
-class TrafficManager:
+class TrafficManager(RandomEngine):
     VEHICLE_GAP = 10  # m
 
     def __init__(self, traffic_mode: TrafficMode, random_traffic: bool):
@@ -49,8 +49,7 @@ class TrafficManager:
         self.reborn_lanes = None
 
         # control randomness of traffic
-        self.random_seed = None
-        self.np_random = None
+        super(TrafficManager, self).__init__()
 
     def generate(self, pg_world: PGWorld, map: Map, controllable_vehicles: List, traffic_density: float):
         """
@@ -63,6 +62,8 @@ class TrafficManager:
         """
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.update_random_seed(map.random_seed)
+        if self.random_traffic:
+            self.random_seed = None
 
         # clear traffic in last episdoe
         self.clear_traffic(pg_world)
@@ -172,15 +173,6 @@ class TrafficManager:
         self.block_triggered_vehicles = None
         self.spawned_vehicles = None
 
-    def update_random_seed(self, random_seed: int):
-        """
-        Update the random seed and random engine of traffic
-        :param random_seed: int, random seed
-        :return: None
-        """
-        self.random_seed = random_seed if not self.random_traffic else None
-        self.np_random = get_np_random(self.random_seed)
-
     def get_vehicle_num(self):
         """
         Get the vehicles on road
@@ -288,6 +280,8 @@ class TrafficManager:
         """
         vehicle_num = 0
         for block in map.blocks[1:]:
+            if block.PROHIBIT_TRAFFIC_GENERATION:
+                continue
             vehicles_on_block = []
             trigger_road = block.pre_block_socket.positive_road
 
@@ -342,7 +336,7 @@ class TrafficManager:
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

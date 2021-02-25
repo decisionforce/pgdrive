@@ -47,8 +47,7 @@ class PGDriveEnv(gym.Env):
             random_traffic=False,  # Traffic is randomized at default.
 
             # ===== Object =====
-            traffic_accident=False,  # traffic cone and warning sign will be added if turn this to True
-            accident_porb=0.5,  # accident may happen on each block with this probability, except multi-exits block
+            accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
 
             # ===== Observation =====
             use_image=False,  # Use first view
@@ -292,8 +291,11 @@ class PGDriveEnv(gym.Env):
 
         # generate new traffic according to the map
         self.scene_manager.reset(
-            self.current_map, self.vehicle, self.config["traffic_density"], episode_data=episode_data
-        )
+            self.current_map,
+            self.vehicle,
+            self.config["traffic_density"],
+            self.config["accident_prob"],
+            episode_data=episode_data)
 
         self.front_vehicles = set()
         self.back_vehicles = set()
@@ -338,16 +340,11 @@ class PGDriveEnv(gym.Env):
         reward -= self.config["general_penalty"]
         reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
 
-        # Penalty for crash object
-        self.step_info["crash_object"] = False
-        if self.vehicle.crash_object:
-            reward -= self.config["crash_object_penalty"]
-            self.step_info["crash_object"] = True
         return reward
 
     def _done_episode(self) -> (float, dict):
         reward_ = 0
-        done_info = dict(crash_vehicle=False, out_of_road=False, arrive_dest=False)
+        done_info = dict(crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
         long, lat = self.vehicle.routing_localization.final_lane.local_coordinates(self.vehicle.position)
 
         if self.vehicle.routing_localization.final_lane.length - 5 < long < self.vehicle.routing_localization.final_lane.length + 5 \
@@ -367,12 +364,16 @@ class PGDriveEnv(gym.Env):
             reward_ -= self.config["out_of_road_penalty"]
             logging.info("Episode ended! Reason: out_of_road.")
             done_info["out_of_road"] = True
+        elif self.vehicle.crash_object:
+            self.done = True
+            reward_ -= self.config["crash_object_penalty"]
+            done_info["crash_object"] = True
 
         self.step_info.update(done_info)
 
         # ===== for old version compatibility =====
         # crash almost equals to crashing with vehicles
-        self.step_info["crash"] = self.step_info["crash_vehicle"]
+        self.step_info["crash"] = self.step_info["crash_vehicle"] or self.step_info["crash_object"]
         return reward_
 
     def close(self):

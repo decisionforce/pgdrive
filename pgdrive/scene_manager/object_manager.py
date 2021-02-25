@@ -1,15 +1,24 @@
 from pgdrive.scene_creator.object.traffic_object import Object
+from pgdrive.scene_creator.blocks.straight import Straight
+from pgdrive.scene_creator.blocks.curve import Curve
+from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraight
+from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road_network import LaneIndex
+from pgdrive.utils import RandomEngine
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.world.pg_world import PGWorld
 
 
-class ObjectsManager:
+class ObjectsManager(RandomEngine):
     """
     This class is used to manager all static object, such as traffic cones, warning tripod.
     """
+
     def __init__(self):
         self.spawned_objects = []
+
+        # init random engine
+        super(ObjectsManager, self).__init__()
 
     def clear_objects(self, pg_world: PGWorld):
         """
@@ -20,13 +29,13 @@ class ObjectsManager:
         self.spawned_objects = []
 
     def spawn_one_object(
-        self,
-        object_type: str,
-        lane: AbstractLane,
-        lane_index: LaneIndex,
-        longitude: float,
-        lateral: float,
-        static: bool = False
+            self,
+            object_type: str,
+            lane: AbstractLane,
+            lane_index: LaneIndex,
+            longitude: float,
+            lateral: float,
+            static: bool = False
     ) -> None:
         """
         Spawn an object by assigning its type and position on the lane
@@ -45,3 +54,20 @@ class ObjectsManager:
                 self.spawned_objects.append(obj)
                 return obj
         raise ValueError("No object named {}, so it can not be spawned".format(object_type))
+
+    def generate(self, pg_world: PGWorld, map: Map, accident_prob: float):
+        """
+        Generate an accident scene or construction scene on block
+        :param pg_world: PGWorld class
+        :param map: Map class, containing road network and blocks
+        :param accident_prob: Objects will be generated on each block with this probability
+        :return: None
+        """
+        self.update_random_seed(map.random_seed)
+        if abs(accident_prob - 0.0) < 1e-2:
+            return
+        for block in map.blocks:
+            if type(block) not in [Straight, Curve, InRampOnStraight, OutRampOnStraight]:
+                # blocks with exists do not generate accident scene
+                continue
+            break
