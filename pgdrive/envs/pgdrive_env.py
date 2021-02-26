@@ -36,6 +36,7 @@ class PGDriveEnv(gym.Env):
             use_render=False,  # pop a window to render or not
             # force_fps=None,
             debug=False,
+            cull_scene=True,  # only for debug use
             manual_control=False,
             controller="keyboard",  # "joystick" or "keyboard"
             use_chase_camera=True,
@@ -166,8 +167,8 @@ class PGDriveEnv(gym.Env):
 
         # init traffic manager
         self.scene_manager = SceneManager(
-            self.pg_world, self.config["traffic_mode"], self.config["random_traffic"], self.config["record_episode"]
-        )
+            self.pg_world, self.config["traffic_mode"], self.config["random_traffic"], self.config["record_episode"],
+            self.config["cull_scene"])
 
         if self.config["manual_control"]:
             if self.config["controller"] == "keyboard":

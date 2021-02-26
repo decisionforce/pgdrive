@@ -23,7 +23,8 @@ class SceneManager:
             pg_world: PGWorld,
             traffic_mode=TrafficMode.Trigger,
             random_traffic: bool = False,
-            record_episode: bool = False
+            record_episode: bool = False,
+            cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -44,6 +45,9 @@ class SceneManager:
         self.record_episode = record_episode
         self.replay_system: Optional[PGReplayer] = None
         self.record_system: Optional[PGRecorder] = None
+
+        # cull scene
+        self.cull_scene = cull_scene
 
     def reset(self, map: Map, ego_vehicle, traffic_density: float, accident_prob: float, episode_data=None):
         """
@@ -126,12 +130,12 @@ class SceneManager:
         self.ego_vehicle.update_state()
 
         # cull distant objects
-        PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
-        if self.replay_system is None:
-            PGLOD.cull_distant_traffic_vehicles(
-                self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
-            )
-            PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, self.ego_vehicle.position, self.pg_world)
+        if self.cull_scene:
+            PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
+            if self.replay_system is None:
+                PGLOD.cull_distant_traffic_vehicles(
+                    self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world)
+                PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, self.ego_vehicle.position, self.pg_world)
         return done
 
     def dump_episode(self) -> None:

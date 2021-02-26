@@ -25,7 +25,7 @@ class SafePGDriveEnv(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    env = SafePGDriveEnv({"manual_control": True, "use_render": True, "environment_num":10})
+    env = SafePGDriveEnv({"manual_control": True, "use_render": True, "environment_num":10, "debug":True, "cull_scene":True})
 
     o = env.reset()
     total_cost = 0
