@@ -3,13 +3,14 @@ from pgdrive.pg_config import PGConfig
 
 
 class SafePGDriveEnv(PGDriveEnv):
-
     def default_config(self) -> PGConfig:
-        extra_config = {"accident_prob": 0.5,
-                        "crash_vehicle_cost": 5,
-                        "crash_object_cost": 2,
-                        "crash_vehicle_penalty": 0.,
-                        "crash_object_penalty": 0.}
+        extra_config = {
+            "accident_prob": 0.5,
+            "crash_vehicle_cost": 5,
+            "crash_object_cost": 2,
+            "crash_vehicle_penalty": 0.,
+            "crash_object_penalty": 0.
+        }
         config = super(SafePGDriveEnv, self).default_config()
         config.extend_config_with_unknown_keys(extra_config)
         return config
@@ -25,14 +26,22 @@ class SafePGDriveEnv(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    env = SafePGDriveEnv({"manual_control": True, "use_render": True, "environment_num":10, "debug":True, "cull_scene":True})
+    env = SafePGDriveEnv(
+        {
+            "manual_control": True,
+            "use_render": True,
+            "environment_num": 10,
+            "debug": True,
+            "cull_scene": True
+        }
+    )
 
     o = env.reset()
     total_cost = 0
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         total_cost += info["cost"]
-        env.render(text={"cost":total_cost})
+        env.render(text={"cost": total_cost})
         if d:
             total_cost = 0
             print("Reset")

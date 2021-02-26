@@ -17,14 +17,13 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements"""
-
     def __init__(
-            self,
-            pg_world: PGWorld,
-            traffic_mode=TrafficMode.Trigger,
-            random_traffic: bool = False,
-            record_episode: bool = False,
-            cull_scene: bool = True,
+        self,
+        pg_world: PGWorld,
+        traffic_mode=TrafficMode.Trigger,
+        random_traffic: bool = False,
+        record_episode: bool = False,
+        cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -134,7 +133,8 @@ class SceneManager:
             PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
             if self.replay_system is None:
                 PGLOD.cull_distant_traffic_vehicles(
-                    self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world)
+                    self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
+                )
                 PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, self.ego_vehicle.position, self.pg_world)
         return done
 

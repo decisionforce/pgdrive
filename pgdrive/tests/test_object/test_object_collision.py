@@ -1,6 +1,5 @@
 from pgdrive.envs.generation_envs.side_pass_env import SidePassEnv
 
-
 # setup_logger(True)
 
 

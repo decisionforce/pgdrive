@@ -7,13 +7,7 @@ setup_logger(True)
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
-        super(TestEnv, self).__init__(
-            {
-                "use_render": True,
-                "manual_control": True,
-                "environment_num": 100
-            }
-        )
+        super(TestEnv, self).__init__({"use_render": True, "manual_control": True, "environment_num": 100})
 
 
 if __name__ == "__main__":

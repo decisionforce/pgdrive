@@ -29,8 +29,8 @@ matplotlib.rcParams['ps.fonttype'] = 42
 
 class DrivingCallbacks(DefaultCallbacks):
     def on_episode_start(
-            self, *, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
-            env_index: int, **kwargs
+        self, *, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
+        env_index: int, **kwargs
     ):
         episode.user_data["velocity"] = []
         episode.user_data["steering"] = []
@@ -38,7 +38,7 @@ class DrivingCallbacks(DefaultCallbacks):
         episode.user_data["acceleration"] = []
 
     def on_episode_step(
-            self, *, worker: RolloutWorker, base_env: BaseEnv, episode: MultiAgentEpisode, env_index: int, **kwargs
+        self, *, worker: RolloutWorker, base_env: BaseEnv, episode: MultiAgentEpisode, env_index: int, **kwargs
     ):
         info = episode.last_info_for()
         if info is not None:
@@ -48,8 +48,8 @@ class DrivingCallbacks(DefaultCallbacks):
             episode.user_data["acceleration"].append(info["acceleration"])
 
     def on_episode_end(
-            self, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
-            **kwargs
+        self, worker: RolloutWorker, base_env: BaseEnv, policies: Dict[str, Policy], episode: MultiAgentEpisode,
+        **kwargs
     ):
         arrive_dest = episode.last_info_for()["arrive_dest"]
         crash_vehicle = episode.last_info_for()["crash_vehicle"]
