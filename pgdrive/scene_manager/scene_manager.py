@@ -53,8 +53,8 @@ class SceneManager:
         self.ego_vehicle = ego_vehicle
         self.map = map
 
-        self.traffic_mgr.clear_traffic(pg_world)
-        self.objects_mgr.clear_objects(pg_world)
+        self.traffic_mgr.reset(pg_world, map, [ego_vehicle], traffic_density)
+        self.objects_mgr.reset(pg_world, map, accident_prob)
 
         if self.replay_system is not None:
             self.replay_system.destroy(pg_world)
@@ -64,8 +64,8 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            self.objects_mgr.generate(self, pg_world, map, accident_prob)
-            self.traffic_mgr.generate(pg_world, map, [ego_vehicle], traffic_density)
+            self.objects_mgr.generate(self, pg_world)
+            self.traffic_mgr.generate(pg_world)
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
 

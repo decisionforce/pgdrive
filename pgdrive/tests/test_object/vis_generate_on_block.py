@@ -10,19 +10,14 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.3,
+                # "traffic_density": 0.,
                 "traffic_mode": "hybrid",
-                "start_seed": 5,
+                "start_seed": 3,
                 "use_render":True,
-                "accident_prob":0.5,
+                "accident_prob":1.0,
                 # "controller":"joystick",
                 "manual_control": True,
-                "map_config": {
-                    Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_PARA: "CRrCrrrRRRR",
-                    Map.LANE_WIDTH: 3.5,
-                    Map.LANE_NUM: 3,
-                }
+                "map":7
             }
         )
 

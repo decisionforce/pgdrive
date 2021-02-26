@@ -31,7 +31,7 @@ class TrafficManager(RandomEngine):
         :param traffic_mode: Reborn mode or Trigger mode
         :param random_traffic: the distribution of vehicles will be different in different episdoes
         """
-        # current map
+        # current map TODO maintain one map in scene_mgr
         self.map = None
 
         # traffic vehicle list
@@ -51,40 +51,16 @@ class TrafficManager(RandomEngine):
         # control randomness of traffic
         super(TrafficManager, self).__init__()
 
-    def generate(self, pg_world: PGWorld, map: Map, controllable_vehicles: List, traffic_density: float):
+    def generate(self, pg_world: PGWorld):
         """
-        Generate traffic on map
+        Generate traffic on map, according to the mode and density
         :param pg_world: World
-        :param map: The map class containing block list and road network
-        :param controllable_vehicles: vehicles for a multi-agent environment support
-        :param traffic_density: Traffic density defined by: number of vehicles per meter
         :return: List of Traffic vehicles
         """
-        logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-        self.update_random_seed(map.random_seed)
-        if self.random_traffic:
-            self.random_seed = None
-
-        # clear traffic in last episdoe
-        self.clear_traffic(pg_world)
-
-        # single agent env
-        self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
-        # TODO multi-agent env support
-        self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
-        # update global info
-        self.map = map
-        self.density = traffic_density
-
-        # update vehicle list
-        self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
-        self.vehicles = [*controllable_vehicles]  # it is used to perform IDM and bicycle model based motion
-        self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
-        self._spawned_vehicles = []
-
+        traffic_density = self.density
         if abs(traffic_density - 0.0) < 1e-2:
             return
-
+        map = self.map
         self.reborn_lanes = None
         if self.mode == TrafficMode.Reborn:
             # add reborn vehicle
@@ -97,7 +73,7 @@ class TrafficManager(RandomEngine):
             self._create_vehicles_once(pg_world, map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
-        logging.debug("Init {} Traffic Vehicles".format(len(self.vehicles) - 1))
+        logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_vehicles)))
 
     def prepare_step(self, scene_mgr):
         """
@@ -157,20 +133,39 @@ class TrafficManager(RandomEngine):
 
         return False
 
-    def clear_traffic(self, pg_world: PGWorld) -> None:
+    def reset(self, pg_world: PGWorld, map: Map, controllable_vehicles: List, traffic_density: float) -> None:
         """
-        Clear all traffic vehicles in map
-        :param pg_world: World
+        Clear the scene and then reset the scene to empty
+        :param pg_world: PGWorld class
+        :param map: Map class containing road_network
+        :param controllable_vehicles: a list of controllable vehicles
+        :param traffic_density: the density of traffic in this episode
         :return: None
         """
         if self._spawned_vehicles is not None:
             for v in self._spawned_vehicles:
                 v.destroy(pg_world)
 
-        self.traffic_vehicles = None
-        self.vehicles = None
-        self.block_triggered_vehicles = None
-        self._spawned_vehicles = None
+        self.vehicles = []
+        self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
+        self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
+        self._spawned_vehicles = []
+
+        logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
+        self.update_random_seed(map.random_seed)
+        if self.random_traffic:
+            self.random_seed = None
+
+        # single agent env
+        self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
+        # TODO multi-agent env support
+        self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
+        # update global info
+        self.map = map
+        self.density = traffic_density
+
+        # update vehicle list
+        self.vehicles.append(*controllable_vehicles)  # it is used to perform IDM and bicycle model based motion
 
     def get_vehicle_num(self):
         """
