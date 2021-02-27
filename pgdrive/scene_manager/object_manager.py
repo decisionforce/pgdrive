@@ -54,7 +54,7 @@ class ObjectsManager(RandomEngine):
         lane_index: LaneIndex,
         longitude: float,
         lateral: float,
-        static: bool = False
+        static: bool = True
     ) -> Object:
         """
         Spawn an object by assigning its type and position on the lane
