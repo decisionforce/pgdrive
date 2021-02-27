@@ -38,11 +38,14 @@ class ObjectsManager(RandomEngine):
         """
         Clear all objects in th scene
         """
+        self._clear_objects(pg_world)
+        self.update_random_seed(map.random_seed)
+        self.accident_prob = accident_prob
+
+    def _clear_objects(self, pg_world: PGWorld):
         for obj in self._spawned_objects:
             obj.destroy(pg_world=pg_world)
         self._spawned_objects = []
-        self.update_random_seed(map.random_seed)
-        self.accident_prob = accident_prob
 
     def spawn_one_object(
         self,
@@ -166,3 +169,7 @@ class ObjectsManager(RandomEngine):
             cone.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
             # TODO refactor traffic and traffic system to make it compatible
             scene_mgr.traffic_mgr.vehicles.append(cone)
+
+    def destroy(self, pg_world: PGWorld):
+        self._clear_objects(pg_world)
+        self._spawned_objects = None

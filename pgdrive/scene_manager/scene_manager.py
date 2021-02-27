@@ -147,6 +147,10 @@ class SceneManager:
         pg_world = self.pg_world if pg_world is None else pg_world
         self.traffic_mgr.destroy(pg_world)
         self.traffic_mgr = None
+
+        self.objects_mgr.destroy(pg_world)
+        self.objects_mgr = None
+
         self.map = None
         if self.record_system is not None:
             self.record_system.destroy(pg_world)

@@ -133,6 +133,11 @@ class TrafficManager(RandomEngine):
 
         return False
 
+    def _clear_traffic(self, pg_world: PGWorld):
+        if self._spawned_vehicles is not None:
+            for v in self._spawned_vehicles:
+                v.destroy(pg_world)
+
     def reset(self, pg_world: PGWorld, map: Map, controllable_vehicles: List, traffic_density: float) -> None:
         """
         Clear the scene and then reset the scene to empty
@@ -142,9 +147,7 @@ class TrafficManager(RandomEngine):
         :param traffic_density: the density of traffic in this episode
         :return: None
         """
-        if self._spawned_vehicles is not None:
-            for v in self._spawned_vehicles:
-                v.destroy(pg_world)
+        self._clear_traffic(pg_world)
 
         self.vehicles = []
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
@@ -382,7 +385,7 @@ class TrafficManager(RandomEngine):
         :param pg_world: World
         :return: None
         """
-        self.clear_traffic(pg_world)
+        self._clear_traffic(pg_world)
         # current map
         self.map = None
 
