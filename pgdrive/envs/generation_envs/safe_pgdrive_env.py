@@ -6,12 +6,9 @@ class SafePGDriveEnv(PGDriveEnv):
     def default_config(self) -> PGConfig:
         extra_config = {
             "accident_prob": 0.5,
-            "crash_vehicle_cost": 1,
-            "crash_object_cost": 1,
             "crash_vehicle_penalty": 0.,
             "crash_object_penalty": 0.,
             "out_of_road_penalty": 0.,
-            "out_of_road_cost": 1.,
         }
         config = super(SafePGDriveEnv, self).default_config()
         config.extend_config_with_unknown_keys(extra_config)
