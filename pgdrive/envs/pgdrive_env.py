@@ -198,7 +198,7 @@ class PGDriveEnv(gym.Env):
 
     def step(self, action: np.ndarray):
         # add custom metric in info
-        self.step_info = {"raw_action": (action[0], action[1])}
+        self.step_info = {"raw_action": (action[0], action[1]), "cost": 0}
 
         if self.config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
@@ -238,7 +238,6 @@ class PGDriveEnv(gym.Env):
         # update info
         self.step_info.update(
             {
-                "cost": float(0),  # it may be overwritten in callback func
                 "velocity": float(self.vehicle.speed),
                 "steering": float(self.vehicle.steering),
                 "acceleration": float(self.vehicle.throttle_brake),
