@@ -5,7 +5,7 @@ from pgdrive.pg_config import PGConfig
 class SafePGDriveEnv(PGDriveEnv):
     def default_config(self) -> PGConfig:
         extra_config = {
-            "accident_prob": 0.5,
+            "accident_prob": 0.0,
             "crash_vehicle_penalty": 0.,
             "crash_object_penalty": 0.,
             "out_of_road_penalty": 0.,
