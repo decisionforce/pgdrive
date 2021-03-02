@@ -69,6 +69,9 @@ class HighwayRender:
             #     self.clock.tick(self.FPS)
             pygame.display.flip()
 
+    def get_screenshot(self, name="screenshot.jpg"):
+        pygame.image.save(self.screen, name)
+
     def set_scene_mgr(self, scene_mgr):
         self.scene_mgr = scene_mgr
 
@@ -141,10 +144,10 @@ class HighwayRender:
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -229,12 +232,12 @@ class VehicleGraphics(object):
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image

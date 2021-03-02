@@ -483,7 +483,7 @@ class PGDriveEnv(gym.Env):
         self.vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         if not self.config["use_image"]:
             # TODO visualize lidar
-            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
+            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1], vehicle_config["show_lidar"])
 
             if self.config["use_render"]:
                 rgb_cam_config = vehicle_config["rgb_cam"]
