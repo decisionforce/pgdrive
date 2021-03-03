@@ -123,6 +123,9 @@ class BaseVehicle(DynamicElement):
         self.on_lane = None
         self.init_done_info()
 
+        # others
+        self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
+
     def init_done_info(self):
         # done info will be initialized every frame
         self.crash_vehicle = False
@@ -141,6 +144,8 @@ class BaseVehicle(DynamicElement):
         """
         Save info and make decision before action
         """
+        self._frame_objects_crashed = []
+
         self.last_position = self.position
         self.last_heading_dir = self.heading
         self.last_current_action.append(action)  # the real step of physics world is implemented in taskMgr.step()
@@ -155,6 +160,11 @@ class BaseVehicle(DynamicElement):
         self.init_done_info()
 
     def update_state(self, pg_world=None):
+        # callback
+        for obj in self._frame_objects_crashed:
+            if obj.COST_ONCE:
+                obj.crashed = True
+        # lidar
         if self.lidar is not None:
             self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world)
         if self.routing_localization is not None:
@@ -474,7 +484,9 @@ class BaseVehicle(DynamicElement):
         if name[0] in [BodyName.Traffic_vehicle]:
             self.crash_vehicle = True
         elif name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
-            self.crash_object = True
+            node = contact.getNode0() if contact.getNode0().hasPythonTag(name[0]) else contact.getNode1()
+            self.crash_object = True if not node.getPythonTag(name[0]).crashed else False
+            self._frame_objects_crashed.append(node.getPythonTag(name[0]))
         logging.debug("Crash with {}".format(name[0]))
 
     @staticmethod

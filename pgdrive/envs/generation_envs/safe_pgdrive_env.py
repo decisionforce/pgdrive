@@ -6,10 +6,11 @@ class SafePGDriveEnv(PGDriveEnv):
     def default_config(self) -> PGConfig:
         extra_config = {
             "accident_prob": 0.5,
-            "crash_vehicle_cost": 5,
-            "crash_object_cost": 2,
+            "crash_vehicle_cost": 1,
+            "crash_object_cost": 1,
             "crash_vehicle_penalty": 0.,
-            "crash_object_penalty": 0.
+            "crash_object_penalty": 0.,
+            "traffic_density":0.3,
         }
         config = super(SafePGDriveEnv, self).default_config()
         config.extend_config_with_unknown_keys(extra_config)
@@ -26,13 +27,33 @@ class SafePGDriveEnv(PGDriveEnv):
         elif self.step_info["out_of_road"]:
             self.step_info["cost"] = self.config["out_of_road_cost"]
 
+    def reward(self, action):
+        current_lane = self.vehicle.lane
+        long_last, _ = current_lane.local_coordinates(self.vehicle.last_position)
+        long_now, lateral_now = current_lane.local_coordinates(self.vehicle.position)
+
+        reward = 0.0
+        if abs(lateral_now) <= self.current_map.lane_width / 2:
+            # Out of road will get no reward
+            reward += self.config["driving_reward"] * (long_now - long_last)
+            reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
+
+        # Penalty for waiting
+        if self.vehicle.speed < 1:
+            reward -= self.config["low_speed_penalty"]  # encourage car
+        reward -= self.config["general_penalty"]
+
+        self.step_info["raw_step_reward"] = reward
+
+        return reward
+
 
 if __name__ == "__main__":
     env = SafePGDriveEnv(
         {
             "manual_control": True,
             "use_render": True,
-            "environment_num": 10,
+            "environment_num": 100,
             "debug": True,
             "cull_scene": True
         }
