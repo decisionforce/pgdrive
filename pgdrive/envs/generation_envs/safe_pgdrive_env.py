@@ -5,12 +5,12 @@ from pgdrive.pg_config import PGConfig
 class SafePGDriveEnv(PGDriveEnv):
     def default_config(self) -> PGConfig:
         extra_config = {
-            "accident_prob": 0.5,
-            "crash_vehicle_cost": 1,
+            "accident_prob": 1.0,
+            "crash_vehicle_cost": 5,
             "crash_object_cost": 1,
             "crash_vehicle_penalty": 0.,
             "crash_object_penalty": 0.,
-            "traffic_density":0.3,
+            "traffic_density": 0.,
         }
         config = super(SafePGDriveEnv, self).default_config()
         config.extend_config_with_unknown_keys(extra_config)
@@ -54,8 +54,12 @@ if __name__ == "__main__":
             "manual_control": True,
             "use_render": True,
             "environment_num": 100,
+            "start_seed":75,
             "debug": True,
-            "cull_scene": True
+            "cull_scene": True,
+            "pg_world_config":{
+                "pstats":True
+            }
         }
     )
 
@@ -64,7 +68,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         total_cost += info["cost"]
-        env.render(text={"cost": total_cost})
+        env.render(text={"cost": total_cost, "seed":env.current_map.random_seed})
         if d:
             total_cost = 0
             print("Reset")

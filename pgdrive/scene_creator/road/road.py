@@ -36,6 +36,9 @@ class Road:
     def lane_index(self, index: int) -> LaneIndex:
         return self.start_node, self.end_node, index
 
+    def lane_num(self, road_network):
+        return len(self.get_lanes(road_network))
+
     def __eq__(self, other):
         return True if self.start_node == other.start_node and self.end_node == other.end_node else False
 

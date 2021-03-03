@@ -1,6 +1,7 @@
 from pgdrive.scene_creator.blocks.curve import Curve
 from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraight
+from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.object.traffic_object import Object
@@ -48,13 +49,13 @@ class ObjectsManager(RandomEngine):
         self._spawned_objects = []
 
     def spawn_one_object(
-        self,
-        object_type: str,
-        lane: AbstractLane,
-        lane_index: LaneIndex,
-        longitude: float,
-        lateral: float,
-        static: bool = False
+            self,
+            object_type: str,
+            lane: AbstractLane,
+            lane_index: LaneIndex,
+            longitude: float,
+            lateral: float,
+            static: bool = False
     ) -> Object:
         """
         Spawn an object by assigning its type and position on the lane
@@ -79,52 +80,56 @@ class ObjectsManager(RandomEngine):
         Generate an accident scene or construction scene on block
         :param scene_mgr: SceneManager used to access other managers
         :param pg_world: PGWorld class
-        :param map: Map class, containing road network and blocks
-        :param accident_prob: Objects will be generated on each block with this probability
         :return: None
         """
         accident_prob = self.accident_prob
         if abs(accident_prob - 0.0) < 1e-2:
             return
-        for block in scene_mgr.map.blocks:
-            if type(block) not in [Straight, Curve, InRampOnStraight, OutRampOnStraight]:
-                # blocks with exists do not generate accident scene
-                continue
+        for block in scene_mgr.map.blocks[1:]:
             if self.np_random.rand() > accident_prob:
                 # prob filter
                 continue
 
-            road_1 = Road(block.pre_block_socket.positive_road.end_node, block.road_node(0, 0))
-            road_2 = Road(block.road_node(0, 0), block.road_node(0, 1)) if not isinstance(block, Straight) else None
-            accident_road = self.np_random.choice([road_1, road_2]) if not isinstance(block, Curve) else road_2
-            accident_road = road_1 if accident_road is None else accident_road
-            is_ramp = isinstance(block, InRampOnStraight) or isinstance(block, OutRampOnStraight)
-            on_left = True if self.np_random.rand() > 0.5 or (accident_road is road_2 and is_ramp) else False
-            accident_lane_idx = 0 if on_left else -1
-
-            lane = accident_road.get_lanes(scene_mgr.map.road_network)[accident_lane_idx]
-            longitude = lane.length - self.ACCIDENT_AREA_LEN
-
-            if lane.length < self.ACCIDENT_LANE_MIN_LEN:
-                continue
-
-            # generate scene
-            block.PROHIBIT_TRAFFIC_GENERATION = True
+            # if lane.length < self.ACCIDENT_LANE_MIN_LEN:
+            #     continue
             lateral_len = scene_mgr.map.lane_width
+            block.PROHIBIT_TRAFFIC_GENERATION = True
 
-            if self.np_random.rand() > 0.5:
-                self.prohibit_scene(
-                    scene_mgr, pg_world, accident_road.lane_index(accident_lane_idx), longitude, lateral_len, on_left
-                )
+            if type(block) in [Straight, Curve, InRampOnStraight, OutRampOnStraight] and self.np_random.rand() > 0.5:
+                # blocks with exists do not generate accident scene
+
+                road_1 = Road(block.pre_block_socket.positive_road.end_node, block.road_node(0, 0))
+                road_2 = Road(block.road_node(0, 0), block.road_node(0, 1)) if not isinstance(block,
+                                                                                              Straight) else None
+                accident_road = self.np_random.choice([road_1, road_2]) if not isinstance(block, Curve) else road_2
+                accident_road = road_1 if accident_road is None else accident_road
+                is_ramp = isinstance(block, InRampOnStraight) or isinstance(block, OutRampOnStraight)
+                on_left = True if self.np_random.rand() > 0.5 or (accident_road is road_2 and is_ramp) else False
+                accident_lane_idx = 0 if on_left else -1
+
+                lane = accident_road.get_lanes(scene_mgr.map.road_network)[accident_lane_idx]
+                longitude = lane.length - self.ACCIDENT_AREA_LEN
+                lane_index = accident_road.lane_index(accident_lane_idx)
+                lane = scene_mgr.map.road_network.get_lane(lane_index)
+                self.prohibit_scene(scene_mgr, pg_world, lane, lane_index, longitude, lateral_len, on_left)
             else:
-                self.break_down_scene(scene_mgr, pg_world, accident_road.lane_index(accident_lane_idx), longitude)
+                prob = self.accident_prob/2 if isinstance(block, Roundabout) else self.accident_prob
+                roads = block.block_network.get_roads(direction="positive", lane_num=block.positive_lane_num)
+                if len(roads) == 0:
+                    continue
+                for road in roads:
+                    if self.np_random.rand() < prob:
+                        accident_lane_idx = self.np_random.randint(road.lane_num(scene_mgr.map.road_network))
+                        lane_index = road.lane_index(accident_lane_idx)
+                        lane = scene_mgr.map.road_network.get_lane(lane_index)
+                        self.break_down_scene(scene_mgr, pg_world, lane, lane_index,
+                                              longitude=lane.length * self.np_random.rand())
 
-    def break_down_scene(self, scene_mgr, pg_world: PGWorld, lane_index: LaneIndex, longitude: float):
-        lane = scene_mgr.map.road_network.get_lane(lane_index)
+    def break_down_scene(self, scene_mgr, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex,
+                         longitude: float):
 
         breakdown_vehicle = scene_mgr.traffic_mgr.spawn_one_vehicle(
-            scene_mgr.traffic_mgr.random_vehicle_type(), lane, longitude, False
-        )
+            scene_mgr.traffic_mgr.random_vehicle_type(), lane, longitude, False)
         breakdown_vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
         alert = self.spawn_one_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
@@ -132,25 +137,26 @@ class ObjectsManager(RandomEngine):
         scene_mgr.traffic_mgr.vehicles.append(alert)
 
     def prohibit_scene(
-        self,
-        scene_mgr,
-        pg_world: PGWorld,
-        lane_index: LaneIndex,
-        longitude_position: float,
-        lateral_len: float,
-        on_left=False
+            self,
+            scene_mgr,
+            pg_world: PGWorld,
+            lane: AbstractLane,
+            lane_index: LaneIndex,
+            longitude_position: float,
+            lateral_len: float,
+            on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane
         :param scene_mgr: SceneManager class
         :param pg_world: PGWorld class
+        :param lane lane object
         :param lane_index: lane index used to find the lane in map
         :param longitude_position: longitude position of the accident on the lane
         :param lateral_len: the distance that traffic cones extend on lateral direction
         :param on_left: on left or right side
         :return: None
         """
-        lane = scene_mgr.map.road_network.get_lane(lane_index)
         lat_num = int(lateral_len / self.CONE_LATERAL)
         longitude_num = int(self.ACCIDENT_AREA_LEN / self.CONE_LONGITUDE)
         lat_1 = [lat * self.CONE_LATERAL for lat in range(lat_num)]
