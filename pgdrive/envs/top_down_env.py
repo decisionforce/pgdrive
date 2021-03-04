@@ -19,12 +19,11 @@ class TopDownPGDriveEnv(PGDriveEnv):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-
     env = TopDownPGDriveEnv(dict(environment_num=100))
-    # env.reset()
-    for _ in range(10):
-        env.reset()
-        o, *_ = env.step(env.action_space.sample())
+    env.reset()
+    for _ in range(100):
+        # env.reset()
+        o, *_ = env.step([-1, 1])
         plt.imshow(o)
         plt.show()
         print(o)
