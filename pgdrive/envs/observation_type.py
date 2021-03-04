@@ -2,10 +2,9 @@ from abc import ABC
 
 import gym
 import numpy as np
-
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.scene_creator.lane.circular_lane import CircularLane
+from pgdrive.utils import import_pygame
 from pgdrive.utils.math_utils import clip
 from pgdrive.world.image_buffer import ImageBuffer
 
@@ -13,8 +12,9 @@ PERCEIVE_DIST = 50
 
 
 class ObservationType(ABC):
-    def __init__(self, config):
+    def __init__(self, config, env=None):
         self.config = config
+        self.env = env
 
     @property
     def observation_space(self):
@@ -90,6 +90,7 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -97,7 +98,7 @@ class StateObservation(ObservationType):
     def observation_space(self):
         # Navi info + Other states
         shape = BaseVehicle.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         """
@@ -143,7 +144,7 @@ class ImageObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE, )
+        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
@@ -218,3 +219,31 @@ class ImageStateObservation(ObservationType):
     def observe(self, vehicle: BaseVehicle):
         image_buffer = vehicle.image_sensors[self.img_obs.image_source]
         return {self.IMAGE: self.img_obs.observe(image_buffer), self.STATE: self.state_obs.observe(vehicle)}
+
+
+class TopDownObservation(ObservationType):
+    def __init__(self, config, env, clip_rgb: bool):
+        super(TopDownObservation, self).__init__(config, env)
+        self.rgb_clip = clip_rgb
+        self.num_stacks = 3
+        self.obs_shape = (64, 64)
+
+        self.pygame = import_pygame()
+
+    @property
+    def observation_space(self):
+        shape = self.obs_shape + (self.num_stacks,)
+        if self.rgb_clip:
+            return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
+        else:
+            return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
+
+    def observe(self, vehicle: BaseVehicle):
+        self.env.pg_world.highway_render.render()
+        surface = self.env.pg_world.highway_render.frame_surface
+        img = self.pygame.surfarray.array3d(surface)
+        if self.rgb_clip:
+            img = img.astype(np.float32) / 255
+        else:
+            img = img.astype(np.uint8)
+        return np.transpose(img, (1, 0, 2))
