@@ -6,6 +6,7 @@ class SidePassEnv(PGDriveEnv):
     """
     now for test use and demo use only
     """
+
     def __init__(self, extra_config=None):
         config = {
             "environment_num": 1,
@@ -119,3 +120,27 @@ class SidePassEnv(PGDriveEnv):
             self.scene_manager.traffic_mgr.vehicles.append(cone)
 
         return ret
+
+
+if __name__ == "__main__":
+    env = SidePassEnv(
+        {
+            "manual_control": True,
+            "use_render": True,
+            "vehicle_config": {
+                "show_navi_mark": False,
+            }
+        }
+    )
+
+    o = env.reset()
+    total_cost = 0
+    for i in range(1, 100000):
+        o, r, d, info = env.step([0, 1])
+        total_cost += info["cost"]
+        env.render(text={"cost": total_cost})
+        if d:
+            total_cost = 0
+            print("Reset")
+            # env.reset()
+    env.close()

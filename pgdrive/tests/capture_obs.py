@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from panda3d.core import PNMImage
+
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.utils import setup_logger
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
@@ -51,23 +51,10 @@ class TestEnv(PGDriveEnv):
             }
         )
 
-    def capture(self):
-        img = PNMImage()
-        self.pg_world.win.getScreenshot(img)
-        img.write("main.jpg")
-
-        for name, sensor in self.vehicle.image_sensors.items():
-            if name == "mini_map":
-                name = "lidar"
-            sensor.save_image("{}.jpg".format(name))
-
-        self.pg_world.highway_render.get_screenshot("top_down.jpg")
-
 
 if __name__ == "__main__":
     env = TestEnv()
     o = env.reset()
-    env.pg_world.accept("p", env.capture)
 
     depth_cam = env.config["vehicle_config"]["depth_cam"]
     depth_cam = DepthCamera(*depth_cam, chassis_np=env.vehicle.chassis_np, pg_world=env.pg_world)

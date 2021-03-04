@@ -1,4 +1,5 @@
 import copy
+from panda3d.core import PNMImage
 import json
 import logging
 import os.path as osp
@@ -169,6 +170,9 @@ class PGDriveEnv(gym.Env):
 
         # Press t can let expert take over. But this function is still experimental.
         self.pg_world.accept("t", self.toggle_expert_take_over)
+
+        # capture all figs
+        self.pg_world.accept("p", self.capture)
 
         # init traffic manager
         self.scene_manager = SceneManager(
@@ -667,3 +671,15 @@ class PGDriveEnv(gym.Env):
 
     def toggle_expert_take_over(self):
         self._expert_take_over = not self._expert_take_over
+
+    def capture(self):
+        img = PNMImage()
+        self.pg_world.win.getScreenshot(img)
+        img.write("main.jpg")
+
+        for name, sensor in self.vehicle.image_sensors.items():
+            if name == "mini_map":
+                name = "lidar"
+            sensor.save_image("{}.jpg".format(name))
+        if self.pg_world.highway_render is not None:
+            self.pg_world.highway_render.get_screenshot("top_down.jpg")
