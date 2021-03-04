@@ -53,11 +53,13 @@ class SidePassEnv(PGDriveEnv):
             )
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
-
+        from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import SVehicle, XLVehicle
         v_pos = [8, 14]
-        for v_long in v_pos:
+        v_type = [SVehicle, XLVehicle]
+        for v_long, v_t in zip(v_pos, v_type):
+
             v = self.scene_manager.traffic_mgr.spawn_one_vehicle(
-                self.scene_manager.traffic_mgr.random_vehicle_type(), lane, v_long, False
+                v_t, lane, v_long, False
             )
             v.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
@@ -85,6 +87,12 @@ class SidePassEnv(PGDriveEnv):
 
         alert = self.scene_manager.objects_mgr.spawn_one_object(
             "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -35, 0
+        )
+        alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
+        self.scene_manager.traffic_mgr.vehicles.append(alert)
+
+        alert = self.scene_manager.objects_mgr.spawn_one_object(
+            "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -60, 0
         )
         alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
@@ -137,10 +145,10 @@ if __name__ == "__main__":
     total_cost = 0
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
-        total_cost += info["cost"]
+        total_cost += 1 if info["crash_object"] else 0
         env.render(text={"cost": total_cost})
         if d:
-            total_cost = 0
+            # total_cost = 0
             print("Reset")
             # env.reset()
     env.close()
