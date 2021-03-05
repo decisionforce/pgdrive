@@ -1,5 +1,5 @@
 from pgdrive import PGDriveEnv
-from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
+from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type import XLVehicle, LVehicle
 
 
 class SidePassEnv(PGDriveEnv):
@@ -27,11 +27,17 @@ class SidePassEnv(PGDriveEnv):
 
     def reset(self, episode_data: dict = None):
         ret = super(SidePassEnv, self).reset(episode_data)
+        self.vehicle.max_speed = 60
         lane = self.current_map.road_network.graph[">>>"]["1C0_0_"][0]
         self.breakdown_vehicle = self.scene_manager.traffic_mgr.spawn_one_vehicle(
             self.scene_manager.traffic_mgr.random_vehicle_type(), lane, 30, False
         )
         self.breakdown_vehicle.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
+
+        lane_ = self.current_map.road_network.graph[">>>"]["1C0_0_"][1]
+        breakdown_vehicle = self.scene_manager.traffic_mgr.spawn_one_vehicle(LVehicle, lane_, 30, False)
+        breakdown_vehicle.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
+
         self.scene_manager.traffic_mgr.vehicles.append(self.breakdown_vehicle.vehicle_node.kinematic_model)
         self.alert = self.scene_manager.objects_mgr.spawn_one_object(
             "Traffic Triangle", lane, (">>>", "1C0_0_", 0), 22, 0
