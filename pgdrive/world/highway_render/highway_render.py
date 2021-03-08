@@ -126,11 +126,11 @@ class HighwayRender:
         self.canvas_runtime.blit(self.canvas_background, (0, 0))
 
         # Set the active area that can be modify
-        pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
-        width = self.RESOLUTION[0]  # Maybe we should enlarge width and height!
-        height = self.RESOLUTION[1]
-        width = 1000
-        height = 1000
+        # pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
+        # width = self.RESOLUTION[0]  # Maybe we should enlarge width and height!
+        # height = self.RESOLUTION[1]
+        # width = 1000
+        # height = 1000
         # self.canvas.set_clip((pos[0] - width) / 2, (pos[1] - height) / 2, width, height)
         # TODO(PZH) this sentence can be added to accelerate!!! But I don't really sure what the
         #  width and height should be in this function!
@@ -146,8 +146,8 @@ class HighwayRender:
             # TODO(PZH) or, we can prepared for multi-agent scenario and create a larger bounding box!
             VehicleGraphics.display(v, self.canvas_runtime)
 
-        width = self.RESOLUTION[0] / 2
-        height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
+        # width = self.RESOLUTION[0] / 2
+        # height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
 
         # FIXME! Do not initialize new instance here!!
         # scale_surface = pygame.Surface((width, height))
@@ -167,14 +167,34 @@ class HighwayRender:
         rotation = np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
 
         # scale = self.MAP_RESOLUTION[1] / self.MAX_RANGE
+
         width = int(self.RESOLUTION[0] * 2)
         height = int(self.RESOLUTION[1] * 2)
-        self.canvas_rotate.blit(self.canvas_runtime, (0, 0), (pos[0] - width / 2, pos[1] - height / 2, width, height))
-        # scale = 1.0
-        # canvas = self.canvas_rotate
-        canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 0.5)  # Already rotated!
 
-        self.canvas_display = canvas
+        # width = self.canvas_runtime.pix(self.MAX_RANGE)
+        # height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
+
+        pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
+
+        self.canvas_rotate.blit(
+            self.canvas_runtime,
+            (0, 0),
+            (
+                pos[0],pos[1],self.RESOLUTION[0], self.RESOLUTION[1]
+                # pos[0] - self.RESOLUTION[0] / 2,
+                # pos[1] - self.RESOLUTION[1] / 2,
+                # self.RESOLUTION[0],
+                # self.RESOLUTION[1]
+            )
+            # (pos[0] * 2 - width / 2, pos[1] * 2 - height / 2, width, height)
+        )
+        self.canvas_display = self.canvas_rotate
+        # canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1.0)  # Already rotated!
+        # self.canvas_display.blit(
+        #     canvas,
+        #     (0, 0),
+        #     (self.RESOLUTION[0] / 2, self.RESOLUTION[1] / 2, self.RESOLUTION[0], self.RESOLUTION[1])
+        # )
 
         # final_cut_surface = pygame.Surface((width / 2, height / 2))
         # final_cut_surface.blit(
@@ -254,6 +274,7 @@ class VehicleGraphics:
             surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
             surface.pix(v.WIDTH)
         )
+        # TODO(pzh) remove the dependency here and pass in the color you like as input argument!
         pygame.draw.rect(vehicle_surface, cls.BLUE if not isinstance(vehicle, BaseVehicle) else cls.GREEN, rect, 0)
 
         # FIXME PZH: @LQY what this sentence used for?
