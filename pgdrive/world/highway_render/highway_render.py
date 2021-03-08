@@ -21,6 +21,7 @@ class HighwayRender:
     """
     RESOLUTION = (200, 200)  # pix x pix
     MAP_RESOLUTION = (2000, 2000)  # pix x pix
+    MAX_RANGE = 50
 
     # CAM_REGION = 100  # 50m x (50m * HEIGHT/WIDTH)
     # FPS = 60
@@ -28,10 +29,12 @@ class HighwayRender:
 
     def __init__(self, onscreen: bool, main_window_position=None):
         self.resolution = self.RESOLUTION
-        self.frame_surface = None
-        self._scaling = None  # automatically change, don't set the value
-        self._center_pos = None  # automatically change, don't set the value
         self.onscreen = onscreen
+
+        # self._scaling = None  # automatically change, don't set the value
+        self._center_pos = None  # automatically change, don't set the value
+        self._should_draw_map = True
+        self._canvas_to_display_scaling = 0.0
 
         # scene
         self.road_network = None
@@ -46,22 +49,10 @@ class HighwayRender:
         self.screen = pygame.display.set_mode(self.resolution) if onscreen else None  # Used for display only!
 
         # canvas
-        self.surface = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        self.frame_surface = pygame.Surface(self.RESOLUTION)
-        self.background = None
-
-    def render(self) -> np.ndarray:
-        if self.onscreen:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sys.exit()
-
-        self.draw_scene()
-        if self.onscreen:
-            self.screen.fill(pygame.Color("black"))
-            self.screen.blit(self.frame_surface, (0, 0))
-            pygame.display.flip()
+        self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_display = pygame.Surface(self.RESOLUTION)
+        self.canvas_rotate = pygame.Surface((int(self.RESOLUTION[0] * 2), int(self.RESOLUTION[1] * 2)))
 
     def set_scene_mgr(self, scene_mgr):
         self.scene_mgr = scene_mgr
@@ -73,24 +64,50 @@ class HighwayRender:
         :return: None
         """
         self.road_network = map.road_network
-        self.draw_map()
+        self._should_draw_map = True
+
+    def render(self) -> np.ndarray:
+        if self.onscreen:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        sys.exit()
+
+        if self._should_draw_map:
+            self.draw_map()
+
+        self.draw_scene()
+
+        if self.onscreen:
+            self.screen.fill(pygame.Color("black"))
+            self.screen.blit(self.canvas_display, (0, 0))
+            pygame.display.flip()
 
     def draw_map(self) -> pygame.Surface:
         """
         :return: a big map surface, clip  and rotate to use a piece of it
         """
-        surface = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        surface.set_colorkey(surface.BLACK)
+        surface = self.canvas_background
+
+        # TODO(PZH) should we fill surface with black here? Origianl it is create a new WorldSurface!
+
+        # Setup the maximize size of the canvas
+        # scaling and center can be easily found by bounding box
         b_box = self.road_network.get_bounding_box()
+        self.canvas_background.set_colorkey(self.canvas_background.BLACK)
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
-        # scaling and center can be easily found by bounding box
         scaling = self.MAP_RESOLUTION[1] / max_len - 0.1
-        surface.scaling = scaling
-        self._scaling = scaling
+        assert scaling > 0
+
+        # real-world distance * scaling = pixel in canvas
+        self.canvas_background.scaling = scaling
+        # self._scaling = scaling
+
         centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
         self._center_pos = centering_pos
+
         surface.move_display_window_to(centering_pos)
         for _from in self.road_network.graph.keys():
             decoration = True if _from == Decoration.start else False
@@ -98,49 +115,81 @@ class HighwayRender:
                 for l in self.road_network.graph[_from][_to]:
                     two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
                     LaneGraphics.LANE_LINE_WIDTH = 0.5
-                    LaneGraphics.display(l, surface, two_side)
-        self.background = surface
+                    LaneGraphics.display(l, self.canvas_background, two_side)
+        self._should_draw_map = False
 
     def draw_scene(self):
-        self.surface.fill(pygame.Color("black"))
-        surface = self.surface
-        surface.scaling = self._scaling
-        surface.move_display_window_to(self._center_pos)
-        surface.blit(self.background, (0, 0))
-        VehicleGraphics.display(self.scene_mgr.ego_vehicle, surface)
+        # Setup background
+        self.canvas_runtime.fill(pygame.Color("black"))
+        self.canvas_runtime.scaling = self.canvas_background.scaling
+        self.canvas_runtime.move_display_window_to(self._center_pos)
+        self.canvas_runtime.blit(self.canvas_background, (0, 0))
+
+        # Set the active area that can be modify
+        pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
+        width = self.RESOLUTION[0]  # Maybe we should enlarge width and height!
+        height = self.RESOLUTION[1]
+        width = 1000
+        height = 1000
+        # self.canvas.set_clip((pos[0] - width) / 2, (pos[1] - height) / 2, width, height)
+        # TODO(PZH) this sentence can be added to accelerate!!! But I don't really sure what the
+        #  width and height should be in this function!
+        # self.canvas.set_clip(pos[0], pos[1], 50, 50)
+
+        # Draw vehicles
+        VehicleGraphics.display(self.scene_mgr.ego_vehicle, self.canvas_runtime)
         for v in self.scene_mgr.traffic_mgr.vehicles:
             if v is self.scene_mgr.ego_vehicle:
-                print('sss')
                 continue
             # FIXME We don't need to update every vehicle right?
-            VehicleGraphics.display(v, surface)
-        pos = surface.pos2pix(*self.scene_mgr.ego_vehicle.position)
-        width = self.MAP_RESOLUTION[0] / 2
+            # TODO(PZH) we can filter out those unnecessary vehicles!
+            # TODO(PZH) or, we can prepared for multi-agent scenario and create a larger bounding box!
+            VehicleGraphics.display(v, self.canvas_runtime)
+
+        width = self.RESOLUTION[0] / 2
         height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
 
-        scale_surface = pygame.Surface((width, height))
-        scale_surface.blit(surface, (0, 0), (pos[0] - width / 2, pos[1] - height / 2, width, height))
-        #  scale the frame surface to window size
-        rotate_surface = pygame.Surface((width, height))
-        self.blit_rotate(
-            rotate_surface,
-            scale_surface, (width / 2, height / 2),
-            angle=np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
-        )
+        # FIXME! Do not initialize new instance here!!
+        # scale_surface = pygame.Surface((width, height))
+        # scale_surface.blit(canvas, (0, 0), (pos[0] - width / 2, pos[1] - height / 2, width, height))
 
-        final_cut_surface = pygame.Surface((width / 2, height / 2))
-        final_cut_surface.blit(
-            rotate_surface, (0, 0),
-            (rotate_surface.get_width() / 4, rotate_surface.get_height() / 4, width / 2, height / 2)
-        )
-        pygame.transform.scale(final_cut_surface, self.RESOLUTION, self.frame_surface)
+        #  scale the frame surface to window size
+        # rotate_surface = pygame.Surface((width, height))
+
+        # self.blit_rotate(
+        #     rotate_surface,
+        #     scale_surface, (width / 2, height / 2),
+        #     angle=np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
+        # )
+
+        # TODO(pzh) If we can make sure the image is always heading to ego vehicle's heading,
+        #  then why shouldn't we just draw a static rectangle in the display canvas?
+        rotation = np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
+
+        # scale = self.MAP_RESOLUTION[1] / self.MAX_RANGE
+        width = int(self.RESOLUTION[0] * 2)
+        height = int(self.RESOLUTION[1] * 2)
+        self.canvas_rotate.blit(self.canvas_runtime, (0, 0), (pos[0] - width / 2, pos[1] - height / 2, width, height))
+        # scale = 1.0
+        # canvas = self.canvas_rotate
+        canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 0.5)  # Already rotated!
+
+        self.canvas_display = canvas
+
+        # final_cut_surface = pygame.Surface((width / 2, height / 2))
+        # final_cut_surface.blit(
+        #     rotate_surface, (0, 0),
+        #     (rotate_surface.get_width() / 4, rotate_surface.get_height() / 4, width / 2, height / 2)
+        # )
+
+        # pygame.transform.scale(final_cut_surface, self.RESOLUTION, self.display_region)
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -228,12 +277,12 @@ class VehicleGraphics:
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image

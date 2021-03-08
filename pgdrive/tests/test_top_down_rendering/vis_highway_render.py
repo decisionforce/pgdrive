@@ -14,6 +14,7 @@ def vis_highway_render_with_panda_render():
             "use_render": True,
             "use_image": False,
             "use_topdown": True,
+            "traffic_mode": "reborn"
         }
     )
     o = env.reset()
@@ -21,8 +22,8 @@ def vis_highway_render_with_panda_render():
     for i in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())
         env.render()
-        if d:
-            env.reset()
+        # if d:
+        #     env.reset()
         if i % 1000 == 0:
             print("Steps: {}, Time: {}".format(i, time.time() - s))
     env.close()

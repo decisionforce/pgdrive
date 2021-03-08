@@ -19,12 +19,17 @@ class TopDownPGDriveEnv(PGDriveEnv):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    env = TopDownPGDriveEnv(dict(environment_num=100))
+
+    env = TopDownPGDriveEnv(dict(environment_num=1, map="C"))
     env.reset()
-    for _ in range(100):
+    for _ in range(10):
+        o, *_ = env.step([0, 1])
         # env.reset()
-        o, *_ = env.step([-1, 1])
+    for _ in range(10):
+        o, *_ = env.step([-0.05, 1])
+    for _ in range(1000):
+        o, *_ = env.step([0.5, 1])
         plt.imshow(o)
         plt.show()
-        print(o)
+        print(o.mean())
     env.close()

@@ -12,7 +12,7 @@ def test_top_down_rendering():
             env.render(mode="human")
             env.render(mode="rgb_array")
     finally:
-        pygame.image.save(env.pg_world.highway_render.frame_surface, "save_offscreen.jpg")
+        pygame.image.save(env.pg_world.highway_render.canvas_display, "save_offscreen.jpg")
         env.close()
 
 
