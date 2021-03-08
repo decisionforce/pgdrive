@@ -40,7 +40,11 @@ class InFork(Fork):
         )
         extend_road = Road(self.pre_block_socket.positive_road.end_node, self.add_road_node())
         no_cross = CreateRoadFrom(
-            extend_lane, self.positive_lane_num, extend_road, self.block_network, self._global_network,
+            extend_lane,
+            self.positive_lane_num,
+            extend_road,
+            self.block_network,
+            self._global_network,
             side_lane_line_type=LineType.CONTINUOUS
         ) and no_cross
         no_cross = CreateAdverseRoad(extend_road, self.block_network, self._global_network) and no_cross
@@ -103,11 +107,21 @@ class InFork(Fork):
         acc_road = Road(self.road_node(0, 0), self.road_node(0, 1))
         self.block_network.add_lane(bend_2_road.start_node, bend_2_road.end_node, bend_2)
         no_cross = CreateRoadFrom(
-            bend_2, fork_lane_num, bend_2_road, self.block_network, self._global_network, False,
+            bend_2,
+            fork_lane_num,
+            bend_2_road,
+            self.block_network,
+            self._global_network,
+            False,
             inner_lane_line_type=LineType.BROKEN
         ) and no_cross
         no_cross = CreateRoadFrom(
-            acc_lane, fork_lane_num, acc_road, self.block_network, self._global_network, False,
+            acc_lane,
+            fork_lane_num,
+            acc_road,
+            self.block_network,
+            self._global_network,
+            False,
             inner_lane_line_type=LineType.BROKEN,
         ) and no_cross
         self.add_sockets(Block.create_socket_from_positive_road(acc_road))

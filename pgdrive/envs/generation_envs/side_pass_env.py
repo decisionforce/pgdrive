@@ -6,7 +6,6 @@ class SidePassEnv(PGDriveEnv):
     """
     now for test use and demo use only
     """
-
     def __init__(self, extra_config=None):
         config = {
             "environment_num": 1,
@@ -64,9 +63,7 @@ class SidePassEnv(PGDriveEnv):
         v_type = [SVehicle, XLVehicle]
         for v_long, v_t in zip(v_pos, v_type):
 
-            v = self.scene_manager.traffic_mgr.spawn_one_vehicle(
-                v_t, lane, v_long, False
-            )
+            v = self.scene_manager.traffic_mgr.spawn_one_vehicle(v_t, lane, v_long, False)
             v.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
         # part 2
@@ -137,15 +134,13 @@ class SidePassEnv(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    env = SidePassEnv(
-        {
-            "manual_control": True,
-            "use_render": True,
-            "vehicle_config": {
-                "show_navi_mark": False,
-            }
+    env = SidePassEnv({
+        "manual_control": True,
+        "use_render": True,
+        "vehicle_config": {
+            "show_navi_mark": False,
         }
-    )
+    })
 
     o = env.reset()
     total_cost = 0

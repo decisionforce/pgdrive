@@ -49,13 +49,13 @@ class ObjectsManager(RandomEngine):
         self._spawned_objects = []
 
     def spawn_one_object(
-            self,
-            object_type: str,
-            lane: AbstractLane,
-            lane_index: LaneIndex,
-            longitude: float,
-            lateral: float,
-            static: bool = False
+        self,
+        object_type: str,
+        lane: AbstractLane,
+        lane_index: LaneIndex,
+        longitude: float,
+        lateral: float,
+        static: bool = False
     ) -> Object:
         """
         Spawn an object by assigning its type and position on the lane
@@ -114,16 +114,19 @@ class ObjectsManager(RandomEngine):
             if self.np_random.rand() > 0.5:
                 self.prohibit_scene(
                     scene_mgr, pg_world, lane, accident_road.lane_index(accident_lane_idx), longitude, lateral_len,
-                    on_left)
+                    on_left
+                )
             else:
                 accident_lane_idx = self.np_random.randint(scene_mgr.map.lane_num)
                 self.break_down_scene(scene_mgr, pg_world, lane, accident_road.lane_index(accident_lane_idx), longitude)
 
-    def break_down_scene(self, scene_mgr, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex,
-                         longitude: float):
+    def break_down_scene(
+        self, scene_mgr, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex, longitude: float
+    ):
 
         breakdown_vehicle = scene_mgr.traffic_mgr.spawn_one_vehicle(
-            scene_mgr.traffic_mgr.random_vehicle_type(), lane, longitude, False)
+            scene_mgr.traffic_mgr.random_vehicle_type(), lane, longitude, False
+        )
         breakdown_vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
         alert = self.spawn_one_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
@@ -131,14 +134,14 @@ class ObjectsManager(RandomEngine):
         scene_mgr.traffic_mgr.vehicles.append(alert)
 
     def prohibit_scene(
-            self,
-            scene_mgr,
-            pg_world: PGWorld,
-            lane: AbstractLane,
-            lane_index: LaneIndex,
-            longitude_position: float,
-            lateral_len: float,
-            on_left=False
+        self,
+        scene_mgr,
+        pg_world: PGWorld,
+        lane: AbstractLane,
+        lane_index: LaneIndex,
+        longitude_position: float,
+        lateral_len: float,
+        on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane
