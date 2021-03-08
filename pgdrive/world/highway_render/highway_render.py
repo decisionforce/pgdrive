@@ -19,55 +19,70 @@ class ObservationWindow:
     def __init__(self, max_range, resolution):
         self.max_range = max_range
         self.resolution = resolution
+        self.receptive_field = None
+        self.receptive_field_double = None
 
         self.canvas_rotate = None
+        self.canvas_unscaled = None
         self.canvas_display = pygame.Surface(self.resolution)
-        self.canvas_display_double = pygame.Surface((self.resolution[0] * 2, self.resolution[1] * 2))
 
     def reset(self, canvas_runtime):
-        self.canvas_rotate = pygame.Surface((
+        # Assume max_range is only the radius!
+        self.receptive_field_double = (
+            int(canvas_runtime.pix(self.max_range[0] * 2 * np.sqrt(2))),
+            int(canvas_runtime.pix(self.max_range[1] * 2 * np.sqrt(2)))
+        )
+        self.receptive_field = (
             int(canvas_runtime.pix(self.max_range[0] * 2)),
             int(canvas_runtime.pix(self.max_range[1] * 2))
-        ))
+        )
+        self.canvas_rotate = pygame.Surface(self.receptive_field_double)
+        self.canvas_unscaled = pygame.Surface(self.receptive_field)
 
     def render(self, canvas, position, heading):
         # Prepare a runtime canvas for rotation
-        receptive_field_double = (
-            canvas.pix(self.max_range[0] * 2),
-            canvas.pix(self.max_range[1] * 2)
-        )
+        # Assume max_range is only the radius!
         self.canvas_rotate.blit(
             canvas,
             (0, 0),
             (
-                position[0] - receptive_field_double[0] / 2,
-                position[1] - receptive_field_double[1] / 2,
-                receptive_field_double[0],
-                receptive_field_double[1]
+                position[0] - self.receptive_field_double[0] / 2,
+                position[1] - self.receptive_field_double[1] / 2,
+                self.receptive_field_double[0],
+                self.receptive_field_double[1]
             )
         )
 
         # Rotate the image so that ego is always heading top
         rotation = np.rad2deg(heading) + 90
-        scale = 1
-        canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, scale)  # Already rotated!
-        # canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
+        new_canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
+        # new_canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1)  # Optional choice! Not so efficient!
 
         # Crop the rotated image and then resize to the desired resolution
-        self.canvas_display_double.blit(canvas, (0, 0), (
-            canvas.get_size()[0] / 2 - self.resolution[0],  # Left
-            canvas.get_size()[1] / 2 - self.resolution[1],  # Top
-            self.resolution[0] * 2,  # Width
-            self.resolution[1] * 2  # Height
+        self.canvas_unscaled.blit(new_canvas, (0, 0), (
+            new_canvas.get_size()[0] / 2 - self.receptive_field[0] / 2,  # Left
+            new_canvas.get_size()[1] / 2 - self.receptive_field[1] / 2,  # Top
+            self.receptive_field[0],  # Width
+            self.receptive_field[1]  # Height
         ))
+        pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
 
-        pygame.transform.smoothscale(self.canvas_display_double, self.canvas_display.get_size(), self.canvas_display)
+        # print(
+        #     "Current canvas size, canvas display size",
+        #     new_canvas.get_size(),
+        #     canvas.get_size(),
+        #     self.receptive_field,
+        #     self.receptive_field_double,
+        #     canvas.get_size(),
+        #     self.canvas_display.get_size()
+        # )
         return self.canvas_display
 
     def get_observation_window(self):
         return self.canvas_display
 
     def get_size(self):
+        assert self.canvas_rotate is not None
         return self.canvas_rotate.get_size()
 
 
@@ -78,7 +93,7 @@ class HighwayRender:
     """
     RESOLUTION = (200, 200)  # pix x pix
     MAP_RESOLUTION = (2000, 2000)  # pix x pix
-    MAX_RANGE = (50, 50)
+    MAX_RANGE = (50, 50)  # maximum detection distance = 50 M
 
     # CAM_REGION = 100  # 50m x (50m * HEIGHT/WIDTH)
     # FPS = 60
