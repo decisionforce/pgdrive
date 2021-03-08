@@ -84,6 +84,7 @@ class PGDriveEnv(gym.Env):
             record_episode=False,
             use_saver=False,
             save_level=0.5,
+            num_player=2,
 
             # ===== stat =====
             overtake_stat=False
@@ -103,6 +104,8 @@ class PGDriveEnv(gym.Env):
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
         self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        self.actions_space = {i: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+                              for i in range(self.config["num_player"])}
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -137,7 +140,9 @@ class PGDriveEnv(gym.Env):
         self.current_seed = self.start_seed
         self.current_map = None
         self.vehicle = None  # Ego vehicle
+        self.vehicles = {i: None for i in range(self.config["num_player"])}
         self.done = False
+        self.dones = {i: False for i in range(self.config["num_player"])}
         self.takeover = False
         self.step_info = None
         self.front_vehicles = None
@@ -176,6 +181,7 @@ class PGDriveEnv(gym.Env):
         # init vehicle
         v_config = self.config["vehicle_config"]
         self.vehicle = BaseVehicle(self.pg_world, v_config)
+        self.vehicles = {i: BaseVehicle(self.pg_world, v_config) for i in range(self.config["num_player"])}
 
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
@@ -183,7 +189,9 @@ class PGDriveEnv(gym.Env):
                 self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
             )
         # add sensors
-        self.add_modules_for_vehicle()
+        self.add_modules_for_vehicle(self.vehicle)
+        for i in range(self.config["num_player"]):
+            self.add_modules_for_vehicle(self.vehicles[i])
 
     def step(self, action: np.ndarray):
         # add custom metric in info
@@ -218,7 +226,7 @@ class PGDriveEnv(gym.Env):
 
         # update rl info
         self.done = self.done or done
-        step_reward = self.reward(action)
+        step_reward = self.reward(action, self.vehicle)
         done_reward = self._done_episode()
 
         if self.done:
@@ -274,6 +282,7 @@ class PGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.done = False
+        self.dones = {i: False for i in range(self.config["num_player"])}
         self.takeover = False
 
         # clear world and traffic manager
@@ -284,6 +293,8 @@ class PGDriveEnv(gym.Env):
 
         # reset main vehicle
         self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
+        # for i in range(self.config["num_player"]):
+        #     self.vehicles[i].reset(self.current_map, self.vehicles[i].born_place, 0.0)
 
         # generate new traffic according to the map
         self.scene_manager.reset(
@@ -300,24 +311,25 @@ class PGDriveEnv(gym.Env):
         o = self.observation.observe(self.vehicle)
         return o
 
-    def reward(self, action):
+    def reward(self, action, arg_vehicle):
+        vehicle = self.vehicle
         """
         Override this func to get a new reward function
         :param action: [steering, throttle/brake]
         :return: reward
         """
         # Reward for moving forward in current lane
-        current_lane = self.vehicle.lane
-        long_last, _ = current_lane.local_coordinates(self.vehicle.last_position)
-        long_now, lateral_now = current_lane.local_coordinates(self.vehicle.position)
+        current_lane = arg_vehicle.lane
+        long_last, _ = current_lane.local_coordinates(arg_vehicle.last_position)
+        long_now, lateral_now = current_lane.local_coordinates(arg_vehicle.position)
 
         reward = 0.0
         lateral_factor = clip(1 - 2 * abs(lateral_now) / self.current_map.lane_width, 0.0, 1.0)
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
         # Penalty for frequent steering
-        steering_change = abs(self.vehicle.last_current_action[0][0] - self.vehicle.last_current_action[1][0])
-        steering_penalty = self.config["steering_penalty"] * steering_change * self.vehicle.speed / 20
+        steering_change = abs(arg_vehicle.last_current_action[0][0] - arg_vehicle.last_current_action[1][0])
+        steering_penalty = self.config["steering_penalty"] * steering_change * arg_vehicle.speed / 20
         reward -= steering_penalty
         # Penalty for frequent acceleration / brake
         acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
@@ -325,13 +337,13 @@ class PGDriveEnv(gym.Env):
 
         # Penalty for waiting
         low_speed_penalty = 0
-        if self.vehicle.speed < 1:
+        if arg_vehicle.speed < 1:
             low_speed_penalty = self.config["low_speed_penalty"]  # encourage car
         reward -= low_speed_penalty
 
         reward -= self.config["general_penalty"]
 
-        reward += self.config["speed_reward"] * (self.vehicle.speed / self.vehicle.max_speed)
+        reward += self.config["speed_reward"] * (arg_vehicle.speed / arg_vehicle.max_speed)
 
         # if reward > 3.0:
         #     print("Stop here.")
@@ -379,6 +391,11 @@ class PGDriveEnv(gym.Env):
             self.vehicle.destroy(self.pg_world)
             del self.vehicle
             self.vehicle = None
+
+            for i in range(self.config["num_player"]):
+                self.vehicles[i].destroy(self.pg_world)
+                del self.vehicles
+            self.vehicles = {i: None for i in range(self.config["num_player"])}
 
             del self.controller
             self.controller = None
@@ -458,36 +475,36 @@ class PGDriveEnv(gym.Env):
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
             self.current_map.load_to_pg_world(self.pg_world)
 
-    def add_modules_for_vehicle(self):
+    def add_modules_for_vehicle(self, arg_vehicle):
         # add vehicle module for training according to config
-        vehicle_config = self.vehicle.vehicle_config
-        self.vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
+        vehicle_config = arg_vehicle.vehicle_config
+        arg_vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         if not self.config["use_image"]:
             # TODO visualize lidar
-            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
+            arg_vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
 
             if self.config["use_render"]:
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("rgb_cam", rgb_cam)
 
-                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("mini_map", mini_map)
+                mini_map = MiniMap(vehicle_config["mini_map"], arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("mini_map", mini_map)
             return
 
         if self.config["use_image"]:
             # 3 types image observation
             if self.config["image_source"] == "rgb_cam":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("rgb_cam", rgb_cam)
             elif self.config["image_source"] == "mini_map":
-                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("mini_map", mini_map)
+                mini_map = MiniMap(vehicle_config["mini_map"], arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("mini_map", mini_map)
             elif self.config["image_source"] == "depth_cam":
                 cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(*cam_config, self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("depth_cam", depth_cam)
+                depth_cam = DepthCamera(*cam_config, arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("depth_cam", depth_cam)
             else:
                 raise ValueError("No module named {}".format(self.config["image_source"]))
 
@@ -495,11 +512,11 @@ class PGDriveEnv(gym.Env):
         if self.config["use_render"]:
             if self.config["image_source"] == "mini_map":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("rgb_cam", rgb_cam)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("rgb_cam", rgb_cam)
             else:
-                mini_map = MiniMap(vehicle_config["mini_map"], self.vehicle.chassis_np, self.pg_world)
-                self.vehicle.add_image_sensor("mini_map", mini_map)
+                mini_map = MiniMap(vehicle_config["mini_map"], arg_vehicle.chassis_np, self.pg_world)
+                arg_vehicle.add_image_sensor("mini_map", mini_map)
 
     def dump_all_maps(self):
         assert self.pg_world is None, "We assume you generate map files in independent tasks (not in training). " \
