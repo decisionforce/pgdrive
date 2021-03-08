@@ -3,6 +3,7 @@ import sys
 from typing import List, Tuple
 
 import numpy as np
+
 from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -162,33 +163,35 @@ class HighwayRender:
         #     angle=np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
         # )
 
-        # TODO(pzh) If we can make sure the image is always heading to ego vehicle's heading,
-        #  then why shouldn't we just draw a static rectangle in the display canvas?
-        rotation = np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
-
-        # scale = self.MAP_RESOLUTION[1] / self.MAX_RANGE
-
-        width = int(self.RESOLUTION[0] * 2)
-        height = int(self.RESOLUTION[1] * 2)
-
-        # width = self.canvas_runtime.pix(self.MAX_RANGE)
-        # height = width * self.RESOLUTION[1] / self.RESOLUTION[0]
-
+        # Prepare a canvas for rotation and scaling, with 2x size.
         pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
-
         self.canvas_rotate.blit(
             self.canvas_runtime,
             (0, 0),
             (
-                pos[0],pos[1],self.RESOLUTION[0], self.RESOLUTION[1]
-                # pos[0] - self.RESOLUTION[0] / 2,
-                # pos[1] - self.RESOLUTION[1] / 2,
-                # self.RESOLUTION[0],
-                # self.RESOLUTION[1]
+                pos[0] - self.RESOLUTION[0],
+                pos[1] - self.RESOLUTION[1],
+                self.RESOLUTION[0] * 2,
+                self.RESOLUTION[1] * 2
             )
-            # (pos[0] * 2 - width / 2, pos[1] * 2 - height / 2, width, height)
         )
-        self.canvas_display = self.canvas_rotate
+
+        # Rotate and scale
+        # TODO(pzh) If we can make sure the image is always heading to ego vehicle's heading,
+        #  then why shouldn't we just draw a static rectangle in the display canvas?
+        rotation = np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
+        canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1.0)  # Already rotated!
+
+        # pygame.transform.scale(final_cut_surface, self.RESOLUTION, self.display_region)
+
+        # self.canvas_display = canvas
+        self.canvas_display.blit(canvas, (0, 0), (
+            canvas.get_size()[0] / 2 - self.RESOLUTION[0] / 2,  # Left
+            canvas.get_size()[1] / 2 - self.RESOLUTION[1] / 2,  # Top
+            self.RESOLUTION[0],  # Width
+            self.RESOLUTION[1]  # Height
+        ))
+
         # canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1.0)  # Already rotated!
         # self.canvas_display.blit(
         #     canvas,
