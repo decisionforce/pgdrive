@@ -33,8 +33,7 @@ class ObservationWindow:
             int(canvas_runtime.pix(self.max_range[1] * 2 * np.sqrt(2)))
         )
         self.receptive_field = (
-            int(canvas_runtime.pix(self.max_range[0] * 2)),
-            int(canvas_runtime.pix(self.max_range[1] * 2))
+            int(canvas_runtime.pix(self.max_range[0] * 2)), int(canvas_runtime.pix(self.max_range[1] * 2))
         )
         self.canvas_rotate = pygame.Surface(self.receptive_field_double)
         self.canvas_unscaled = pygame.Surface(self.receptive_field)
@@ -43,13 +42,9 @@ class ObservationWindow:
         # Prepare a runtime canvas for rotation
         # Assume max_range is only the radius!
         self.canvas_rotate.blit(
-            canvas,
-            (0, 0),
-            (
-                position[0] - self.receptive_field_double[0] / 2,
-                position[1] - self.receptive_field_double[1] / 2,
-                self.receptive_field_double[0],
-                self.receptive_field_double[1]
+            canvas, (0, 0), (
+                position[0] - self.receptive_field_double[0] / 2, position[1] - self.receptive_field_double[1] / 2,
+                self.receptive_field_double[0], self.receptive_field_double[1]
             )
         )
 
@@ -59,12 +54,16 @@ class ObservationWindow:
         # new_canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1)  # Optional choice! Not so efficient!
 
         # Crop the rotated image and then resize to the desired resolution
-        self.canvas_unscaled.blit(new_canvas, (0, 0), (
-            new_canvas.get_size()[0] / 2 - self.receptive_field[0] / 2,  # Left
-            new_canvas.get_size()[1] / 2 - self.receptive_field[1] / 2,  # Top
-            self.receptive_field[0],  # Width
-            self.receptive_field[1]  # Height
-        ))
+        self.canvas_unscaled.blit(
+            new_canvas,
+            (0, 0),
+            (
+                new_canvas.get_size()[0] / 2 - self.receptive_field[0] / 2,  # Left
+                new_canvas.get_size()[1] / 2 - self.receptive_field[1] / 2,  # Top
+                self.receptive_field[0],  # Width
+                self.receptive_field[1]  # Height
+            )
+        )
         pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
 
         # print(
@@ -197,12 +196,12 @@ class HighwayRender:
 
         # Set the active area that can be modify to accelerate
         pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
-        self.canvas_runtime.set_clip((
-            pos[0] - self.obs_window.get_size()[0] / 2,
-            pos[1] - self.obs_window.get_size()[1] / 2,
-            self.obs_window.get_size()[0],
-            self.obs_window.get_size()[1]
-        ))
+        self.canvas_runtime.set_clip(
+            (
+                pos[0] - self.obs_window.get_size()[0] / 2, pos[1] - self.obs_window.get_size()[1] / 2,
+                self.obs_window.get_size()[0], self.obs_window.get_size()[1]
+            )
+        )
         self.canvas_runtime.blit(self.canvas_background, (0, 0))
 
         # Draw vehicles
@@ -214,17 +213,15 @@ class HighwayRender:
 
         # Prepare a runtime canvas for rotation
         return self.obs_window.render(
-            canvas=self.canvas_runtime,
-            position=pos,
-            heading=self.scene_mgr.ego_vehicle.heading_theta
+            canvas=self.canvas_runtime, position=pos, heading=self.scene_mgr.ego_vehicle.heading_theta
         )
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -316,12 +313,12 @@ class VehicleGraphics:
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
-            origin_pos=None,
-            show_rect: bool = False
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
+        origin_pos=None,
+        show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
