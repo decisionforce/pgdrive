@@ -15,6 +15,62 @@ from pgdrive.world.highway_render.world_surface import WorldSurface
 pygame = import_pygame()
 
 
+class ObservationWindow:
+    def __init__(self, max_range, resolution):
+        self.max_range = max_range
+        self.resolution = resolution
+
+        self.canvas_rotate = None
+        self.canvas_display = pygame.Surface(self.resolution)
+        self.canvas_display_double = pygame.Surface((self.resolution[0] * 2, self.resolution[1] * 2))
+
+    def reset(self, canvas_runtime):
+        self.canvas_rotate = pygame.Surface((
+            int(canvas_runtime.pix(self.max_range[0] * 2)),
+            int(canvas_runtime.pix(self.max_range[1] * 2))
+        ))
+
+    def render(self, canvas, position, heading):
+        # Prepare a runtime canvas for rotation
+        receptive_field_double = (
+            canvas.pix(self.max_range[0] * 2),
+            canvas.pix(self.max_range[1] * 2)
+        )
+        self.canvas_rotate.blit(
+            canvas,
+            (0, 0),
+            (
+                position[0] - receptive_field_double[0] / 2,
+                position[1] - receptive_field_double[1] / 2,
+                receptive_field_double[0],
+                receptive_field_double[1]
+            )
+        )
+
+        # Rotate the image so that ego is always heading top
+        rotation = np.rad2deg(heading) + 90
+        scale = 1
+        canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, scale)  # Already rotated!
+        # canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
+
+        # Crop the rotated image and then resize to the desired resolution
+        self.canvas_display_double.blit(canvas, (0, 0), (
+            canvas.get_size()[0] / 2 - self.resolution[0],  # Left
+            canvas.get_size()[1] / 2 - self.resolution[1],  # Top
+            self.resolution[0] * 2,  # Width
+            self.resolution[1] * 2  # Height
+        ))
+
+        pygame.transform.smoothscale(self.canvas_display_double, self.canvas_display.get_size(), self.canvas_display)
+        return self.canvas_display
+
+    def get_observation_window(self):
+        return self.canvas_display
+
+    def get_size(self):
+        return self.canvas_rotate.get_size()
+
+
 class HighwayRender:
     """
     Most of the source code is from Highway-Env, we only optimize and integrate it in PGDrive
@@ -32,7 +88,6 @@ class HighwayRender:
         self.resolution = self.RESOLUTION
         self.onscreen = onscreen
 
-        # self._scaling = None  # automatically change, don't set the value
         self._center_pos = None  # automatically change, don't set the value
         self._should_draw_map = True
         self._canvas_to_display_scaling = 0.0
@@ -52,10 +107,7 @@ class HighwayRender:
         # canvas
         self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        self.canvas_rotate = None
-        self.canvas_display = pygame.Surface(self.RESOLUTION)
-        self.canvas_display_double = pygame.Surface(
-            (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2))  # Intermediate used only!
+        self.obs_window = ObservationWindow(self.MAX_RANGE, self.RESOLUTION)
 
     def set_scene_mgr(self, scene_mgr):
         self.scene_mgr = scene_mgr
@@ -83,7 +135,7 @@ class HighwayRender:
 
         if self.onscreen:
             self.screen.fill(pygame.Color("black"))
-            self.screen.blit(self.canvas_display, (0, 0))
+            self.screen.blit(self.obs_window.get_observation_window(), (0, 0))
             pygame.display.flip()
 
     def draw_map(self) -> pygame.Surface:
@@ -91,8 +143,6 @@ class HighwayRender:
         :return: a big map surface, clip  and rotate to use a piece of it
         """
         surface = self.canvas_background
-
-        # TODO(PZH) should we fill surface with black here? Origianl it is create a new WorldSurface!
 
         # Setup the maximize size of the canvas
         # scaling and center can be easily found by bounding box
@@ -122,12 +172,7 @@ class HighwayRender:
                     LaneGraphics.LANE_LINE_WIDTH = 0.5
                     LaneGraphics.display(l, self.canvas_background, two_side)
 
-        # Setup the intermediate canvas
-        # rotate is a intermediate surface that store the image in WorldSurface scale.
-        self.canvas_rotate = pygame.Surface((
-            int(self.canvas_runtime.pix(self.MAX_RANGE[0] * 2)),
-            int(self.canvas_runtime.pix(self.MAX_RANGE[1] * 2))
-        ))
+        self.obs_window.reset(self.canvas_runtime)
 
         self._should_draw_map = False
 
@@ -138,10 +183,10 @@ class HighwayRender:
         # Set the active area that can be modify to accelerate
         pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
         self.canvas_runtime.set_clip((
-            pos[0] - self.canvas_rotate.get_size()[0] / 2,
-            pos[1] - self.canvas_rotate.get_size()[1] / 2,
-            self.canvas_rotate.get_size()[0],
-            self.canvas_rotate.get_size()[1]
+            pos[0] - self.obs_window.get_size()[0] / 2,
+            pos[1] - self.obs_window.get_size()[1] / 2,
+            self.obs_window.get_size()[0],
+            self.obs_window.get_size()[1]
         ))
         self.canvas_runtime.blit(self.canvas_background, (0, 0))
 
@@ -153,36 +198,11 @@ class HighwayRender:
             VehicleGraphics.display(v, self.canvas_runtime)
 
         # Prepare a runtime canvas for rotation
-        receptive_field_double = (
-            self.canvas_runtime.pix(self.MAX_RANGE[0] * 2),
-            self.canvas_runtime.pix(self.MAX_RANGE[1] * 2)
+        return self.obs_window.render(
+            canvas=self.canvas_runtime,
+            position=pos,
+            heading=self.scene_mgr.ego_vehicle.heading_theta
         )
-        self.canvas_rotate.blit(
-            self.canvas_runtime,
-            (0, 0),
-            (
-                pos[0] - receptive_field_double[0] / 2,
-                pos[1] - receptive_field_double[1] / 2,
-                receptive_field_double[0],
-                receptive_field_double[1]
-            )
-        )
-
-        # Rotate the image so that ego is always heading top
-        rotation = np.rad2deg(self.scene_mgr.ego_vehicle.heading_theta) + 90
-        scale = 1
-        canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, scale)  # Already rotated!
-        # canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
-
-        # Crop the rotated image and then resize to the desired resolution
-        self.canvas_display_double.blit(canvas, (0, 0), (
-            canvas.get_size()[0] / 2 - self.RESOLUTION[0],  # Left
-            canvas.get_size()[1] / 2 - self.RESOLUTION[1],  # Top
-            self.RESOLUTION[0] * 2,  # Width
-            self.RESOLUTION[1] * 2  # Height
-        ))
-
-        pygame.transform.smoothscale(self.canvas_display_double, self.canvas_display.get_size(), self.canvas_display)
 
     @staticmethod
     def blit_rotate(
@@ -214,6 +234,9 @@ class HighwayRender:
         # rotate and blit the image
         surf.blit(rotated_image, origin)
         return origin
+
+    def get_observation_window(self):
+        return self.obs_window.get_observation_window()
 
 
 class VehicleGraphics:

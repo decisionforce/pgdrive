@@ -239,7 +239,7 @@ class TopDownObservation(ObservationType):
 
     def observe(self, vehicle: BaseVehicle):
         self.env.pg_world.highway_render.render()
-        surface = self.env.pg_world.highway_render.canvas_display
+        surface = self.env.pg_world.highway_render.get_observation_window()
         img = self.pygame.surfarray.array3d(surface)
         if self.rgb_clip:
             img = img.astype(np.float32) / 255
