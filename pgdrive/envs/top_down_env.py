@@ -19,17 +19,24 @@ class TopDownPGDriveEnv(PGDriveEnv):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-
-    env = TopDownPGDriveEnv(dict(environment_num=1, map="C"))
+    frames = []
+    env = TopDownPGDriveEnv(dict(environment_num=1, map="C", traffic_density=1.0))
+    import numpy as np
     env.reset()
     for _ in range(10):
         o, *_ = env.step([0, 1])
         # env.reset()
     for _ in range(10):
         o, *_ = env.step([-0.05, 1])
-    for _ in range(1000):
-        o, *_ = env.step([0.5, 1])
-        plt.imshow(o)
-        plt.show()
-        print(o.mean())
+    for _ in range(200):
+        o, *_ = env.step([0.01, 1])
+
+        frames.append(np.array(o) * 255)
+        # plt.imshow(o)
+        # plt.show()
+        # print(o.mean())
     env.close()
+
+    # TODO(PZH) remove this when merging the PR!
+    import visya
+    visya.generate_mp4(np.array(frames, dtype=np.uint8), "tmp.mp4")
