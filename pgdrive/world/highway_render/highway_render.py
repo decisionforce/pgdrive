@@ -3,9 +3,8 @@ import sys
 from typing import List, Tuple
 
 import numpy as np
-
-from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.abs_lane import LineType
+from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.utils import import_pygame
 from pgdrive.utils.constans import Decoration
@@ -17,7 +16,7 @@ pygame = import_pygame()
 
 class HighwayRender:
     """
-    Most of the source code is from Highway-Env, we only optimize and integrate it in PG-Drive
+    Most of the source code is from Highway-Env, we only optimize and integrate it in PGDrive
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
     RESOLUTION = (200, 200)  # pix x pix
@@ -34,25 +33,22 @@ class HighwayRender:
         self._center_pos = None  # automatically change, don't set the value
         self.onscreen = onscreen
 
-        # map
-        self.map = None
-        self.map_surface = None
-
-        # traffic
+        # scene
+        self.road_network = None
         self.scene_mgr = None
 
+        # initialize
         pygame.init()
         pygame.display.set_caption(PG_EDITION + " (Top-down)")
-        self.clock = None
-        # if self.onscreen:
         # main_window_position means the left upper location.
         os.environ['SDL_VIDEO_WINDOW_POS'] = \
             '%i,%i' % (main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
-        self.screen = pygame.display.set_mode(self.resolution) if onscreen else None
-        self.clock = pygame.time.Clock()
+        self.screen = pygame.display.set_mode(self.resolution) if onscreen else None  # Used for display only!
 
+        # canvas
         self.surface = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.frame_surface = pygame.Surface(self.RESOLUTION)
+        self.background = None
 
     def render(self) -> np.ndarray:
         if self.onscreen:
@@ -65,8 +61,6 @@ class HighwayRender:
         if self.onscreen:
             self.screen.fill(pygame.Color("black"))
             self.screen.blit(self.frame_surface, (0, 0))
-            # if self.clock is not None:
-            #     self.clock.tick(self.FPS)
             pygame.display.flip()
 
     def set_scene_mgr(self, scene_mgr):
@@ -78,7 +72,7 @@ class HighwayRender:
         :param map: Map class
         :return: None
         """
-        self.map = map
+        self.road_network = map.road_network
         self.draw_map()
 
     def draw_map(self) -> pygame.Surface:
@@ -87,7 +81,7 @@ class HighwayRender:
         """
         surface = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         surface.set_colorkey(surface.BLACK)
-        b_box = self.map.road_network.get_bounding_box()
+        b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
         max_len = max(x_len, y_len)
@@ -98,25 +92,27 @@ class HighwayRender:
         centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
         self._center_pos = centering_pos
         surface.move_display_window_to(centering_pos)
-        for _from in self.map.road_network.graph.keys():
+        for _from in self.road_network.graph.keys():
             decoration = True if _from == Decoration.start else False
-            for _to in self.map.road_network.graph[_from].keys():
-                for l in self.map.road_network.graph[_from][_to]:
-                    two_side = True if l is self.map.road_network.graph[_from][_to][-1] or decoration else False
+            for _to in self.road_network.graph[_from].keys():
+                for l in self.road_network.graph[_from][_to]:
+                    two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
                     LaneGraphics.LANE_LINE_WIDTH = 0.5
                     LaneGraphics.display(l, surface, two_side)
-        self.map_surface = surface
+        self.background = surface
 
     def draw_scene(self):
         self.surface.fill(pygame.Color("black"))
         surface = self.surface
         surface.scaling = self._scaling
         surface.move_display_window_to(self._center_pos)
-        surface.blit(self.map_surface, (0, 0))
+        surface.blit(self.background, (0, 0))
         VehicleGraphics.display(self.scene_mgr.ego_vehicle, surface)
         for v in self.scene_mgr.traffic_mgr.vehicles:
             if v is self.scene_mgr.ego_vehicle:
+                print('sss')
                 continue
+            # FIXME We don't need to update every vehicle right?
             VehicleGraphics.display(v, surface)
         pos = surface.pos2pix(*self.scene_mgr.ego_vehicle.position)
         width = self.MAP_RESOLUTION[0] / 2
@@ -171,7 +167,7 @@ class HighwayRender:
         return origin
 
 
-class VehicleGraphics(object):
+class VehicleGraphics:
     RED = (255, 100, 100)
     GREEN = (50, 200, 0)
     BLUE = (100, 200, 255)
@@ -210,7 +206,9 @@ class VehicleGraphics(object):
             surface.pix(v.WIDTH)
         )
         pygame.draw.rect(vehicle_surface, cls.BLUE if not isinstance(vehicle, BaseVehicle) else cls.GREEN, rect, 0)
-        pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
+
+        # FIXME PZH: @LQY what this sentence used for?
+        # pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
         # Centered rotation
         if not isinstance(vehicle, BaseVehicle):
@@ -222,6 +220,7 @@ class VehicleGraphics(object):
 
         # Label
         if label:
+            # TODO PZH: Do not initialize font here! Waste of time!
             font = pygame.font.Font(None, 15)
             text = "#{}".format(id(v) % 1000)
             text = font.render(text, 1, (10, 10, 10), (255, 255, 255))
@@ -272,7 +271,7 @@ class VehicleGraphics(object):
         return color
 
 
-class LaneGraphics(object):
+class LaneGraphics:
     """A visualization of a lane."""
 
     STRIPE_SPACING: float = 5
