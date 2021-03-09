@@ -145,11 +145,22 @@ class TopDownObservation(ObservationType):
         self.canvas_runtime.blit(self.canvas_background, (0, 0))
 
         # Draw vehicles
-        VehicleGraphics.display(self.scene_manager.ego_vehicle, self.canvas_runtime)
+        # TODO PZH: I hate computing these in pygame-related code!!!
+        ego_heading = self.scene_manager.ego_vehicle.heading_theta
+        ego_heading = ego_heading if abs(ego_heading) > 2 * np.pi / 180 else 0
+
+        VehicleGraphics.display(
+            vehicle=self.scene_manager.ego_vehicle,
+            surface=self.canvas_runtime,
+            heading=ego_heading,
+            color=VehicleGraphics.GREEN
+        )
         for v in self.scene_manager.traffic_mgr.vehicles:
             if v is self.scene_manager.ego_vehicle:
                 continue
-            VehicleGraphics.display(v, self.canvas_runtime)
+            h = v.heading
+            h = h if abs(h) > 2 * np.pi / 180 else 0
+            VehicleGraphics.display(vehicle=v, surface=self.canvas_runtime, heading=h, color=VehicleGraphics.BLUE)
 
         # Prepare a runtime canvas for rotation
         return self.obs_window.render(

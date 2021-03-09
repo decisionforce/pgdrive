@@ -198,9 +198,23 @@ class VehicleGraphics:
     PURPLE = (200, 0, 150)
     DEFAULT_COLOR = YELLOW
     EGO_COLOR = GREEN
+    font = None
+
+    # registered_surface = dict()
 
     @classmethod
-    def display(cls, vehicle, surface, label: bool = False) -> None:
+    def get_surface(cls, length):
+        # print(cls.registered_surface.keys())
+        # if length in cls.registered_surface:
+        #     return cls.registered_surface[length]
+        vehicle_surface = pygame.Surface(
+            (length, length), flags=pygame.SRCALPHA
+        )  # per-pixel alpha
+        # cls.registered_surface[length] = vehicle_surface
+        return vehicle_surface
+
+    @classmethod
+    def display(cls, vehicle, surface, color, heading, label: bool = False) -> None:
         """
         Display a vehicle on a pygame surface.
 
@@ -210,7 +224,6 @@ class VehicleGraphics:
         :param surface: the surface to draw the vehicle on
         :param label: whether a text label should be rendered
         """
-        from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
         if not surface.is_visible(vehicle.position):
             return
 
@@ -220,34 +233,27 @@ class VehicleGraphics:
         # Vehicle rectangle
         length = v.LENGTH + 2 * tire_length
 
-        # FIXME we should not initialize Surface here! Maintain a library of pre-generated surface in renderer!
-        vehicle_surface = pygame.Surface(
-            (surface.pix(length), surface.pix(length)), flags=pygame.SRCALPHA
-        )  # per-pixel alpha
+        vehicle_surface = cls.get_surface(surface.pix(length))
         rect = (
             surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH),
             surface.pix(v.WIDTH)
         )
-        # TODO(pzh) remove the dependency here and pass in the color you like as input argument!
-        pygame.draw.rect(vehicle_surface, cls.BLUE if not isinstance(vehicle, BaseVehicle) else cls.GREEN, rect, 0)
+        pygame.draw.rect(vehicle_surface, color, rect, 0)
 
         # Old Highway heritage, draw black curve as the contour of vehicle.
         # pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
         # Centered rotation
-        if not isinstance(vehicle, BaseVehicle):
-            h = v.heading if abs(v.heading) > 2 * np.pi / 180 else 0
-        else:
-            h = v.heading_theta if abs(v.heading_theta) > 2 * np.pi / 180 else 0
         position = [*surface.pos2pix(v.position[0], v.position[1])]
-        cls.blit_rotate(surface, vehicle_surface, position, np.rad2deg(-h))
+
+        cls.blit_rotate(surface, vehicle_surface, position, np.rad2deg(-heading))
 
         # Label
         if label:
-            # TODO PZH: Do not initialize font here! Waste of time!
-            font = pygame.font.Font(None, 15)
+            if cls.font is None:
+                cls.font = pygame.font.Font(None, 15)
             text = "#{}".format(id(v) % 1000)
-            text = font.render(text, 1, (10, 10, 10), (255, 255, 255))
+            text = cls.font.render(text, 1, (10, 10, 10), (255, 255, 255))
             surface.blit(text, position)
 
     @staticmethod
