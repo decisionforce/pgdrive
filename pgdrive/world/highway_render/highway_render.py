@@ -299,7 +299,7 @@ class VehicleGraphics:
         pygame.draw.rect(vehicle_surface, cls.BLUE if not isinstance(vehicle, BaseVehicle) else cls.GREEN, rect, 0)
 
         # FIXME PZH: @LQY what this sentence used for?
-        # FIXME LQY: It is from highway-env
+        # FIXME LQY: @PZH It is from highway-env, Used to add a black exterior frame for vehicles
         # pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
         # Centered rotation
