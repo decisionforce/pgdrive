@@ -1,12 +1,14 @@
-from typing import List
+from typing import List, Tuple, Union
+
+import numpy as np
 
 from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.utils import import_pygame
 
+PositionType = Union[Tuple[float, float], np.ndarray]
 pygame = import_pygame()
-
 COLOR_BLACK = pygame.Color("black")
 
 
@@ -84,17 +86,6 @@ class ObservationWindow:
     def get_size(self):
         assert self.canvas_rotate is not None
         return self.canvas_rotate.get_size()
-
-
-from typing import Tuple, Union
-
-import numpy as np
-
-from pgdrive.utils import import_pygame
-
-pygame = import_pygame()
-
-PositionType = Union[Tuple[float, float], np.ndarray]
 
 
 class WorldSurface(pygame.Surface):
@@ -461,3 +452,62 @@ class LaneGraphics:
             new_dots = reversed(new_dots) if side else new_dots
             dots.extend(new_dots)
         pygame.draw.polygon(draw_surface, color, dots, 0)
+
+
+class ObservationWindowMultiChannel:
+    def __init__(self, names, max_range, resolution):
+        assert isinstance(names, list)
+        self.sub_observations = {
+            k: ObservationWindow(max_range=max_range, resolution=resolution) for k in names
+        }
+
+    def reset(self, canvas_runtime):
+        for k, sub in self.sub_observations.items():
+            sub.reset(canvas_runtime)
+
+    def render(self, canvas_dict, position, heading):
+        assert isinstance(canvas_dict, dict)
+        assert set(canvas_dict.keys()) == set(self.sub_observations.keys())
+        ret = dict()
+        for k, canvas in canvas_dict.items():
+            ret[k] = self.sub_observations[k].render(canvas, position, heading)
+        return self.get_observation_window(ret)
+
+        # # Prepare a runtime canvas for rotation
+        # # Assume max_range is only the radius!
+        # self.canvas_rotate.blit(
+        #     canvas, (0, 0), (
+        #         position[0] - self.receptive_field_double[0] / 2, position[1] - self.receptive_field_double[1] / 2,
+        #         self.receptive_field_double[0], self.receptive_field_double[1]
+        #     )
+        # )
+        #
+        # # Rotate the image so that ego is always heading top
+        # rotation = np.rad2deg(heading) + 90
+        # new_canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
+        # # new_canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1)  # Optional choice! Not so efficient!
+        #
+        # # Crop the rotated image and then resize to the desired resolution
+        # self.canvas_unscaled.blit(
+        #     new_canvas,
+        #     (0, 0),
+        #     (
+        #         new_canvas.get_size()[0] / 2 - self.receptive_field[0] / 2,  # Left
+        #         new_canvas.get_size()[1] / 2 - self.receptive_field[1] / 2,  # Top
+        #         self.receptive_field[0],  # Width
+        #         self.receptive_field[1]  # Height
+        #     )
+        # )
+        # pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
+        # return self.get_observation_window(canvas_dict)
+
+    def get_observation_window(self, canvas_dict=None):
+        if canvas_dict is None:
+            canvas_dict = {k: v.get_observation_window() for k, v in self.sub_observations.items()}
+        return canvas_dict
+        # We should stack observation here!
+        # raise ValueError()
+        # return self.canvas_display
+
+    def get_size(self):
+        return next(iter(self.sub_observations.values())).get_size()
