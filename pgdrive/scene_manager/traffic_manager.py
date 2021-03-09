@@ -138,6 +138,8 @@ class TrafficManager:
                 remove = v.need_remove()
                 if remove:
                     vehicles_to_remove.append(v)
+                else:
+                    self.vehicles.append(v.vehicle_node.kinematic_model)
             else:
                 v.update_state(pg_world)
 
