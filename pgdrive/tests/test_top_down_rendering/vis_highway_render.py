@@ -4,7 +4,7 @@ from pgdrive.envs.top_down_env import TopDownPGDriveEnv
 from pgdrive.utils import setup_logger
 
 
-def vis_highway_render_with_panda_render():
+def vis_top_down_render_with_panda_render():
     setup_logger(True)
 
     env = TopDownPGDriveEnv(
@@ -34,4 +34,4 @@ def vis_highway_render_with_panda_render():
 
 
 if __name__ == '__main__':
-    vis_highway_render_with_panda_render()
+    vis_top_down_render_with_panda_render()

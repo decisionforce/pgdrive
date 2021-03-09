@@ -231,8 +231,7 @@ class VehicleGraphics:
         # TODO(pzh) remove the dependency here and pass in the color you like as input argument!
         pygame.draw.rect(vehicle_surface, cls.BLUE if not isinstance(vehicle, BaseVehicle) else cls.GREEN, rect, 0)
 
-        # FIXME PZH: @LQY what this sentence used for?
-        # FIXME LQY: @PZH It is from highway-env, Used to add a black exterior frame for vehicles
+        # Old Highway heritage, draw black curve as the contour of vehicle.
         # pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
 
         # Centered rotation

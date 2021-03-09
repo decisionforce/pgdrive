@@ -33,7 +33,7 @@ class ImageBuffer:
             )
             assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"
         except AssertionError:
-            logging.debug("Cannot create {}, maybe the render pipe is highway render".format(self.__class__.__name__))
+            logging.debug("Cannot create {}".format(self.__class__.__name__))
             self.buffer = None
             self.cam = NodePath(Camera("non-sense camera"))
             self.lens = self.cam.node().getLens()

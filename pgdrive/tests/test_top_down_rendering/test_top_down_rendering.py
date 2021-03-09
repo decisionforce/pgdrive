@@ -1,19 +1,20 @@
-import pygame
+import numpy as np
 
-from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.envs.top_down_env import TopDownPGDriveEnv
 
 
 def test_top_down_rendering():
-    env = PGDriveEnv(dict(environment_num=20, start_seed=0, map=10, use_topdown=True, use_render=False))
-    try:
-        env.reset()
-        for i in range(5):
-            env.step(env.action_space.sample())
-            env.render(mode="human")
-            env.render(mode="rgb_array")
-        pygame.image.save(env.pg_world.highway_render.obs_window.canvas_display, "save_offscreen.jpg")
-    finally:
-        env.close()
+    env = TopDownPGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0))
+    for _ in range(5):
+        o = env.reset()
+        assert np.mean(o) > 0.0
+        for _ in range(10):
+            o, *_ = env.step([0, 1])
+            assert np.mean(o) > 0.0
+        for _ in range(10):
+            o, *_ = env.step([-0.05, 1])
+            assert np.mean(o) > 0.0
+    env.close()
 
 
 if __name__ == "__main__":
