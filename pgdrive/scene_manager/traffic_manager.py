@@ -116,6 +116,9 @@ class TrafficManager(RandomEngine):
                 if remove:
                     vehicles_to_remove.append(v)
                 else:
+                    # TODO traffic system will be updated soon
+                    self.vehicles.remove(v.vehicle_node.kinematic_model)
+                    v.reset()
                     self.vehicles.append(v.vehicle_node.kinematic_model)
             else:
                 v.update_state(pg_world)

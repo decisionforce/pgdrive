@@ -284,7 +284,6 @@ class VehicleGraphics:
 
         :param vehicle: the vehicle to be drawn
         :param surface: the surface to draw the vehicle on
-        :param offscreen: whether the rendering should be done offscreen or not
         :param label: whether a text label should be rendered
         """
         from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
