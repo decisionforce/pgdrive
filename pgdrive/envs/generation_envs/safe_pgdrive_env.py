@@ -18,15 +18,10 @@ class SafePGDriveEnv(PGDriveEnv):
         return config
 
     def custom_info_callback(self):
-        self.step_info["cost"] = 0
         if self.step_info["crash_vehicle"]:
-            self.step_info["cost"] = self.config["crash_vehicle_cost"]
             self.done = False
         elif self.step_info["crash_object"]:
-            self.step_info["cost"] = self.config["crash_object_cost"]
             self.done = False
-        elif self.step_info["out_of_road"]:
-            self.step_info["cost"] = self.config["out_of_road_cost"]
 
     # def reward(self, action):
     #     """
