@@ -1,15 +1,14 @@
-from pgdrive.envs.observation_type import TopDownObservation
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.world.top_down_observation.top_down_observation import TopDownObservation
 
 
 class TopDownPGDriveEnv(PGDriveEnv):
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnv.default_config()
-        config["use_topdown"] = True
+        # config["use_topdown"] = True
         return config
 
     def initialize_observation(self):
@@ -19,9 +18,11 @@ class TopDownPGDriveEnv(PGDriveEnv):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+
     frames = []
     env = TopDownPGDriveEnv(dict(environment_num=1, map="C", traffic_density=1.0))
     import numpy as np
+
     env.reset()
     for _ in range(10):
         o, *_ = env.step([0, 1])

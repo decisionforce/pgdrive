@@ -125,7 +125,7 @@ class PGDriveEnv(gym.Env):
             {
                 "use_render": self.use_render,
                 "use_image": self.config["use_image"],
-                "use_topdown": self.config["use_topdown"],
+                # "use_topdown": self.config["use_topdown"],
                 "debug": self.config["debug"],
                 # "force_fps": self.config["force_fps"],
                 "decision_repeat": self.config["decision_repeat"],
@@ -265,7 +265,7 @@ class PGDriveEnv(gym.Env):
         :param text:text to show
         :return: when mode is 'rgb', image array is returned
         """
-        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE or self.pg_world.highway_render is not None, (
+        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE, (
             "render is off now, can not render"
         )
         self.pg_world.render_frame(text)
@@ -320,6 +320,9 @@ class PGDriveEnv(gym.Env):
     def _get_reset_return(self):
         self.vehicle.prepare_step(np.array([0.0, 0.0]))
         self.vehicle.update_state()
+
+        self.observation.reset(self)
+
         o = self.observation.observe(self.vehicle)
         return o
 
@@ -686,5 +689,5 @@ class PGDriveEnv(gym.Env):
             if name == "mini_map":
                 name = "lidar"
             sensor.save_image("{}.jpg".format(name))
-        if self.pg_world.highway_render is not None:
-            self.pg_world.highway_render.get_screenshot("top_down.jpg")
+        # if self.pg_world.highway_render is not None:
+        #     self.pg_world.highway_render.get_screenshot("top_down.jpg")

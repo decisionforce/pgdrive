@@ -15,8 +15,6 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils import AssetLoader, import_pygame
 from pgdrive.utils.constans import Decoration
-from pgdrive.world.highway_render.highway_render import LaneGraphics
-from pgdrive.world.highway_render.world_surface import WorldSurface
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.world.pg_world import PGWorld
 
@@ -91,7 +89,7 @@ class Map:
         #  a trick to optimize performance
         self.road_network.update_indices()
         self.road_network.build_helper()
-        self._load_to_highway_render(pg_world)
+        # self._load_to_highway_render(pg_world)
 
     @staticmethod
     def default_config():
@@ -132,11 +130,11 @@ class Map:
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         for block in self.blocks:
             block.attach_to_pg_world(parent_node_path, pg_physics_world)
-        self._load_to_highway_render(pg_world)
+        # self._load_to_highway_render(pg_world)
 
-    def _load_to_highway_render(self, pg_world: PGWorld):
-        if pg_world.highway_render is not None:
-            pg_world.highway_render.set_map(self)
+    # def _load_to_highway_render(self, pg_world: PGWorld):
+    #     if pg_world.highway_render is not None:
+    #         pg_world.highway_render.set_map(self)
 
     def unload_from_pg_world(self, pg_world: PGWorld):
         for block in self.blocks:
@@ -202,6 +200,9 @@ class Map:
         return ret
 
     def draw_maximum_surface(self, simple_draw=True) -> pygame.Surface:
+
+        raise ValueError("This part is deprecated!")
+
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
         b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
@@ -230,6 +231,9 @@ class Map:
         return ret
 
     def draw_navi_line(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
+
+        raise ValueError("This part is deprecated!")
+
         """
         Use this function to draw the whole map, with a navigation line.
         :param vehicle: ego vehicle, BaseVehicle Class

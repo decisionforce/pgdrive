@@ -1,16 +1,9 @@
-import os
-import sys
-from typing import List, Tuple
-
-import numpy as np
+from typing import List
 
 from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.utils import import_pygame
-from pgdrive.utils.constans import Decoration
-from pgdrive.world.constants import PG_EDITION
-from pgdrive.world.highway_render.world_surface import WorldSurface
 
 pygame = import_pygame()
 
@@ -93,167 +86,107 @@ class ObservationWindow:
         return self.canvas_rotate.get_size()
 
 
-class HighwayRender:
+from typing import Tuple, Union
+
+import numpy as np
+
+from pgdrive.utils import import_pygame
+
+pygame = import_pygame()
+
+PositionType = Union[Tuple[float, float], np.ndarray]
+
+
+class WorldSurface(pygame.Surface):
     """
-    Most of the source code is from Highway-Env, we only optimize and integrate it in PGDrive
-    See more information on its Github page: https://github.com/eleurent/highway-env
+    A pygame Surface implementing a local coordinate system so that we can move and zoom in the displayed area.
+    From highway-env, See more information on its Github page: https://github.com/eleurent/highway-env.
     """
-    RESOLUTION = (200, 200)  # pix x pix
-    MAP_RESOLUTION = (2000, 2000)  # pix x pix
-    MAX_RANGE = (50, 50)  # maximum detection distance = 50 M
 
-    # CAM_REGION = 100  # 50m x (50m * HEIGHT/WIDTH)
-    # FPS = 60
-    # ROTATE = True
+    BLACK = (0, 0, 0)
+    GREY = (100, 100, 100)
+    GREEN = (50, 200, 0)
+    YELLOW = (200, 200, 0)
+    WHITE = (255, 255, 255)
+    INITIAL_SCALING = 5.5
+    INITIAL_CENTERING = [0.5, 0.5]
+    SCALING_FACTOR = 1.3
+    MOVING_FACTOR = 0.1
 
-    def __init__(self, onscreen: bool, main_window_position=None):
-        self.resolution = self.RESOLUTION
-        self.onscreen = onscreen
+    def __init__(self, size: Tuple[int, int], flags: object, surf: pygame.SurfaceType) -> None:
+        surf.fill(pygame.Color("Black"))
+        super().__init__(size, flags, surf)
+        self.origin = np.array([0, 0])
+        self.scaling = self.INITIAL_SCALING
+        self.centering_position = self.INITIAL_CENTERING
+        self.fill(self.BLACK)
 
-        self._center_pos = None  # automatically change, don't set the value
-        self._should_draw_map = True
-        self._canvas_to_display_scaling = 0.0
-
-        # scene
-        self.road_network = None
-        self.scene_mgr = None
-
-        # initialize
-        pygame.init()
-        pygame.display.set_caption(PG_EDITION + " (Top-down)")
-        # main_window_position means the left upper location.
-        os.environ['SDL_VIDEO_WINDOW_POS'] = \
-            '%i,%i' % (main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
-        self.screen = pygame.display.set_mode(self.resolution) if onscreen else None  # Used for display only!
-
-        # canvas
-        self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        self.obs_window = ObservationWindow(self.MAX_RANGE, self.RESOLUTION)
-
-    def set_scene_mgr(self, scene_mgr):
-        self.scene_mgr = scene_mgr
-
-    def set_map(self, map):
+    def pix(self, length: float) -> int:
         """
-        Initialize the most big map surface to save calculation time, this func is called in map class automatically
-        :param map: Map class
-        :return: None
+        Convert a distance [m] to pixels [px].
+
+        :param length: the input distance [m]
+        :return: the corresponding size [px]
         """
-        self.road_network = map.road_network
-        self._should_draw_map = True
+        return int(length * self.scaling)
 
-    def render(self) -> np.ndarray:
-        if self.onscreen:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sys.exit()
-
-        if self._should_draw_map:
-            self.draw_map()
-
-        self.draw_scene()
-
-        if self.onscreen:
-            self.screen.fill(COLOR_BLACK)
-            self.screen.blit(self.obs_window.get_observation_window(), (0, 0))
-            pygame.display.flip()
-
-    def get_screenshot(self, name="screenshot.jpg"):
-        pygame.image.save(self.screen, name)
-
-    def draw_map(self) -> pygame.Surface:
+    def pos2pix(self, x: float, y: float) -> Tuple[int, int]:
         """
-        :return: a big map surface, clip  and rotate to use a piece of it
+        Convert two world coordinates [m] into a position in the surface [px]
+
+        :param x: x world coordinate [m]
+        :param y: y world coordinate [m]
+        :return: the coordinates of the corresponding pixel [px]
         """
-        surface = self.canvas_background
+        return self.pix(x - self.origin[0]), self.pix(y - self.origin[1])
 
-        # Setup the maximize size of the canvas
-        # scaling and center can be easily found by bounding box
-        b_box = self.road_network.get_bounding_box()
-        self.canvas_background.set_colorkey(self.canvas_background.BLACK)
-        x_len = b_box[1] - b_box[0]
-        y_len = b_box[3] - b_box[2]
-        max_len = max(x_len, y_len) + 20  # Add more 20 meters
-        scaling = self.MAP_RESOLUTION[1] / max_len - 0.1
-        assert scaling > 0
+    def vec2pix(self, vec: PositionType) -> Tuple[int, int]:
+        """
+        Convert a world position [m] into a position in the surface [px].
 
-        # real-world distance * scaling = pixel in canvas
-        self.canvas_background.scaling = scaling
-        self.canvas_runtime.scaling = scaling
-        # self._scaling = scaling
+        :param vec: a world position [m]
+        :return: the coordinates of the corresponding pixel [px]
+        """
+        return self.pos2pix(vec[0], vec[1])
 
-        centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
-        # self._center_pos = centering_pos
-        self.canvas_runtime.move_display_window_to(centering_pos)
+    def is_visible(self, vec: PositionType, margin: int = 50) -> bool:
+        """
+        Is a position visible in the surface?
+        :param vec: a position
+        :param margin: margins around the frame to test for visibility
+        :return: whether the position is visible
+        """
+        x, y = self.vec2pix(vec)
+        return -margin < x < self.get_width() + margin and -margin < y < self.get_height() + margin
 
-        surface.move_display_window_to(centering_pos)
-        for _from in self.road_network.graph.keys():
-            decoration = True if _from == Decoration.start else False
-            for _to in self.road_network.graph[_from].keys():
-                for l in self.road_network.graph[_from][_to]:
-                    two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
-                    LaneGraphics.LANE_LINE_WIDTH = 0.5
-                    LaneGraphics.display(l, self.canvas_background, two_side)
+    def move_display_window_to(self, position: PositionType) -> None:
+        """
+        Set the origin of the displayed area to center on a given world position.
 
-        self.obs_window.reset(self.canvas_runtime)
-
-        self._should_draw_map = False
-
-    def draw_scene(self):
-        # Set the active area that can be modify to accelerate
-        pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
-        clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
-        self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
-        self.canvas_runtime.fill(COLOR_BLACK)
-        self.canvas_runtime.blit(self.canvas_background, (0, 0))
-
-        # Draw vehicles
-        VehicleGraphics.display(self.scene_mgr.ego_vehicle, self.canvas_runtime)
-        for v in self.scene_mgr.traffic_mgr.vehicles:
-            if v is self.scene_mgr.ego_vehicle:
-                continue
-            VehicleGraphics.display(v, self.canvas_runtime)
-
-        # Prepare a runtime canvas for rotation
-        return self.obs_window.render(
-            canvas=self.canvas_runtime, position=pos, heading=self.scene_mgr.ego_vehicle.heading_theta
+        :param position: a world position [m]
+        """
+        self.origin = position - np.array(
+            [
+                self.centering_position[0] * self.get_width() / self.scaling,
+                self.centering_position[1] * self.get_height() / self.scaling
+            ]
         )
 
-    @staticmethod
-    def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-    ) -> Tuple:
-        """Many thanks to https://stackoverflow.com/a/54714144."""
-        # calculate the axis aligned bounding box of the rotated image
-        w, h = image.get_size()
-        box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-        box_rotate = [p.rotate(angle) for p in box]
-        min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
-        max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
+    def handle_event(self, event: pygame.event.EventType) -> None:
+        """
+        Handle pygame events for moving and zooming in the displayed area.
 
-        # calculate the translation of the pivot
-        origin_pos = w / 2, h / 2
-        pivot = pygame.math.Vector2(origin_pos[0], -origin_pos[1])
-        pivot_rotate = pivot.rotate(angle)
-        pivot_move = pivot_rotate - pivot
-
-        # calculate the upper left origin of the rotated image
-        origin = (
-            pos[0] - origin_pos[0] + min_box[0] - pivot_move[0], pos[1] - origin_pos[1] - max_box[1] + pivot_move[1]
-        )
-        # get a rotated image
-        rotated_image = pygame.transform.rotate(image, angle)
-        # rotate and blit the image
-        surf.blit(rotated_image, origin)
-        return origin
-
-    def get_observation_window(self):
-        return self.obs_window.get_observation_window()
+        :param event: a pygame event
+        """
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_l:
+                self.scaling *= 1 / self.SCALING_FACTOR
+            if event.key == pygame.K_o:
+                self.scaling *= self.SCALING_FACTOR
+            if event.key == pygame.K_m:
+                self.centering_position[0] -= self.MOVING_FACTOR
+            if event.key == pygame.K_k:
+                self.centering_position[0] += self.MOVING_FACTOR
 
 
 class VehicleGraphics:
@@ -320,12 +253,12 @@ class VehicleGraphics:
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
