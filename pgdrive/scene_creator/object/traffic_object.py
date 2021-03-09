@@ -16,7 +16,7 @@ class ObjectNode(BulletRigidBodyNode):
     """
     COST_ONCE = True  # cost will give at the first time
 
-    def __init__(self, object_body_name:str):
+    def __init__(self, object_body_name: str):
         BulletRigidBodyNode.__init__(self, object_body_name)
         BulletRigidBodyNode.setPythonTag(self, object_body_name, self)
         self.crashed = False

@@ -58,7 +58,7 @@ if __name__ == "__main__":
             "manual_control": True,
             "use_render": True,
             "environment_num": 100,
-            "start_seed":75,
+            "start_seed": 75,
             "debug": True,
             "cull_scene": True,
             "pg_world_config": {

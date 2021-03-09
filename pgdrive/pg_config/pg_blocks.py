@@ -16,8 +16,8 @@ class PGBlock:
         StdTInterSection: 0.075,
         InRampOnStraight: 0.1,
         OutRampOnStraight: 0.1,
-        InFork:0.00,
-        OutFork:0.00,
+        InFork: 0.00,
+        OutFork: 0.00,
     }
 
     @classmethod
