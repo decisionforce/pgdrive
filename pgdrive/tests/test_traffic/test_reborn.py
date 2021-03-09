@@ -18,18 +18,20 @@ def test_traffic_reborn(vis=False):
         }
     )
     env.reset()
-    for i in range(1, 3000):
-        env.step([0, 0])
-        current_v = set(env.scene_manager.traffic_mgr.vehicles)
-        for v in list(env.scene_manager.traffic_mgr.traffic_vehicles) + [env.vehicle]:
-            if v is env.vehicle:
-                current_v.discard(v)
-            else:
-                current_v.discard(v.vehicle_node.kinematic_model)
-        assert len(current_v) == 0, "vehicles didn't release"
-        assert len(env.scene_manager.traffic_mgr.vehicles) - len(env.scene_manager.traffic_mgr.traffic_vehicles) == 1, \
-            "vehicles didn't release"
-    env.close()
+    try:
+        for i in range(1, 3000):
+            env.step([0, 0])
+            current_v = set(env.scene_manager.traffic_mgr.vehicles)
+            for v in list(env.scene_manager.traffic_mgr.traffic_vehicles) + [env.vehicle]:
+                if v is env.vehicle:
+                    current_v.discard(v)
+                else:
+                    current_v.discard(v.vehicle_node.kinematic_model)
+            assert len(current_v) == 0, "vehicles didn't release"
+            assert len(env.scene_manager.traffic_mgr.vehicles) - len(env.scene_manager.traffic_mgr.traffic_vehicles) == 1, \
+                "vehicles didn't release"
+    finally:
+        env.close()
 
 
 if __name__ == '__main__':
