@@ -70,8 +70,13 @@ class TopDownMultiChannel(TopDownObservation):
 
     def init_canvas(self):
         self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        # self.canvas_dict = {
+        #     k: WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION)) for k in self.CHANNEL_NAMES
+        # }
         self.canvas_navigation = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_road_network = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_ego = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
 
     def reset(self, env):
         self.scene_manager = env.scene_manager
@@ -100,8 +105,6 @@ class TopDownMultiChannel(TopDownObservation):
         """
         :return: a big map surface, clip  and rotate to use a piece of it
         """
-        surface = self.canvas_background
-
         # Setup the maximize size of the canvas
         # scaling and center can be easily found by bounding box
         b_box = self.road_network.get_bounding_box()
@@ -116,14 +119,16 @@ class TopDownMultiChannel(TopDownObservation):
         self.canvas_background.scaling = scaling
         self.canvas_runtime.scaling = scaling
         self.canvas_navigation.scaling = scaling
-        # self._scaling = scaling
+        self.canvas_ego.scaling = scaling
+        self.canvas_road_network.scaling = scaling
 
         centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
-        # self._center_pos = centering_pos
         self.canvas_runtime.move_display_window_to(centering_pos)
         self.canvas_navigation.move_display_window_to(centering_pos)
+        self.canvas_ego.move_display_window_to(centering_pos)
+        self.canvas_background.move_display_window_to(centering_pos)
+        self.canvas_road_network.move_display_window_to(centering_pos)
 
-        surface.move_display_window_to(centering_pos)
         for _from in self.road_network.graph.keys():
             decoration = True if _from == Decoration.start else False
             for _to in self.road_network.graph[_from].keys():
@@ -131,22 +136,34 @@ class TopDownMultiChannel(TopDownObservation):
                     two_side = True if l is self.road_network.graph[_from][_to][-1] or decoration else False
                     LaneGraphics.LANE_LINE_WIDTH = 0.5
                     LaneGraphics.display(l, self.canvas_background, two_side)
-
+        self.canvas_road_network.blit(self.canvas_background, (0, 0))
         self.obs_window.reset(self.canvas_runtime)
 
         self._should_draw_map = False
 
         self.draw_navigation()
 
+    def _refresh(self, canvas, pos, clip_size):
+        canvas.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
+        canvas.fill(COLOR_BLACK)
+
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
+        # pos = self.canvas_runtime.pos2pix(*self.scene_manager.ego_vehicle.position)
+        # clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
+        # self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
+        # self.canvas_runtime.fill(COLOR_BLACK)
+
+        # self.canvas_runtime.blit(self.canvas_navigation, (0, 0))
+
         pos = self.canvas_runtime.pos2pix(*self.scene_manager.ego_vehicle.position)
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
-        self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
-        self.canvas_runtime.fill(COLOR_BLACK)
 
-        self.canvas_runtime.blit(self.canvas_background, (0, 0))
-        # self.canvas_runtime.blit(self.canvas_navigation, (0, 0))
+        # self._refresh(self.canvas_navigation, pos, clip_size)
+        self._refresh(self.canvas_ego, pos, clip_size)
+        self._refresh(self.canvas_runtime, pos, clip_size)
+
+        # self.canvas_road_network.blit(self.canvas_background, (0, 0))
 
         # Draw vehicles
         # TODO PZH: I hate computing these in pygame-related code!!!
@@ -155,7 +172,7 @@ class TopDownMultiChannel(TopDownObservation):
 
         VehicleGraphics.display(
             vehicle=self.scene_manager.ego_vehicle,
-            surface=self.canvas_runtime,
+            surface=self.canvas_ego,  # Draw target vehicle in this canvas!
             heading=ego_heading,
             color=VehicleGraphics.GREEN
         )
@@ -168,9 +185,9 @@ class TopDownMultiChannel(TopDownObservation):
 
         return self.obs_window.render(
             canvas_dict=dict(
-                road_network=self.canvas_background,  # TODO
+                road_network=self.canvas_road_network,  # TODO
                 traffic_flow=self.canvas_runtime,
-                target_vehicle=self.canvas_runtime,  # TODO
+                target_vehicle=self.canvas_ego,  # TODO
                 navigation=self.canvas_navigation,
             ), position=pos, heading=self.scene_manager.ego_vehicle.heading_theta
         )
@@ -200,7 +217,6 @@ class TopDownMultiChannel(TopDownObservation):
         # Stack
         img = np.stack(list(img_dict.values()), axis=2)
         return np.transpose(img, (1, 0, 2))
-        # return np.transpose(img, (1, 0, 2))
 
     def draw_navigation(self):
         checkpoints = self.target_vehicle.routing_localization.checkpoints

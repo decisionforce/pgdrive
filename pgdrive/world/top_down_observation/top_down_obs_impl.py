@@ -473,41 +473,10 @@ class ObservationWindowMultiChannel:
             ret[k] = self.sub_observations[k].render(canvas, position, heading)
         return self.get_observation_window(ret)
 
-        # # Prepare a runtime canvas for rotation
-        # # Assume max_range is only the radius!
-        # self.canvas_rotate.blit(
-        #     canvas, (0, 0), (
-        #         position[0] - self.receptive_field_double[0] / 2, position[1] - self.receptive_field_double[1] / 2,
-        #         self.receptive_field_double[0], self.receptive_field_double[1]
-        #     )
-        # )
-        #
-        # # Rotate the image so that ego is always heading top
-        # rotation = np.rad2deg(heading) + 90
-        # new_canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
-        # # new_canvas = pygame.transform.rotozoom(self.canvas_rotate, rotation, 1)  # Optional choice! Not so efficient!
-        #
-        # # Crop the rotated image and then resize to the desired resolution
-        # self.canvas_unscaled.blit(
-        #     new_canvas,
-        #     (0, 0),
-        #     (
-        #         new_canvas.get_size()[0] / 2 - self.receptive_field[0] / 2,  # Left
-        #         new_canvas.get_size()[1] / 2 - self.receptive_field[1] / 2,  # Top
-        #         self.receptive_field[0],  # Width
-        #         self.receptive_field[1]  # Height
-        #     )
-        # )
-        # pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
-        # return self.get_observation_window(canvas_dict)
-
     def get_observation_window(self, canvas_dict=None):
         if canvas_dict is None:
             canvas_dict = {k: v.get_observation_window() for k, v in self.sub_observations.items()}
         return canvas_dict
-        # We should stack observation here!
-        # raise ValueError()
-        # return self.canvas_display
 
     def get_size(self):
         return next(iter(self.sub_observations.values())).get_size()
