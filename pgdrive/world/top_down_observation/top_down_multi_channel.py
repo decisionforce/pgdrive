@@ -12,11 +12,11 @@ from pgdrive.utils.constans import Decoration
 from pgdrive.world.constants import PG_EDITION
 from pgdrive.world.top_down_observation.top_down_obs_impl import WorldSurface, ObservationWindow, COLOR_BLACK, \
     VehicleGraphics, LaneGraphics
-
+from pgdrive.world.top_down_observation.top_down_observation import TopDownObservation
 pygame = import_pygame()
 
 
-class TopDownObservation(ObservationType):
+class TopDownMultiChannel(TopDownObservation):
     """
     Most of the source code is from Highway-Env, we only optimize and integrate it in PGDrive
     See more information on its Github page: https://github.com/eleurent/highway-env
@@ -26,83 +26,77 @@ class TopDownObservation(ObservationType):
     MAX_RANGE = (50, 50)  # maximum detection distance = 50 M
 
     def __init__(self, vehicle_config, env, clip_rgb: bool):
-        super(TopDownObservation, self).__init__(vehicle_config, env)
-        self.rgb_clip = clip_rgb
-        self.num_stacks = 3
-
-        # self.obs_shape = (64, 64)
-        self.obs_shape = self.RESOLUTION
-
-        self.pygame = import_pygame()
-
-        self.onscreen = env.config["use_render"]
-        main_window_position = (0, 0)
-
-        self._center_pos = None  # automatically change, don't set the value
-        self._should_draw_map = True
-        self._canvas_to_display_scaling = 0.0
-
-        # scene
-        self.road_network = None
-        self.scene_manager = None
-
-        # initialize
-        pygame.init()
-        pygame.display.set_caption(PG_EDITION + " (Top-down)")
-        # main_window_position means the left upper location.
-        os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}' \
-            .format(main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
-        # Used for display only!
-        self.screen = pygame.display.set_mode(
-            (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2)) if self.onscreen else None
-
-        # canvas
-        self.init_canvas()
-        self.init_obs_window()
+        super(TopDownObservation, self).__init__(vehicle_config, env, clip_rgb)
+        # self.rgb_clip = clip_rgb
+        # self.num_stacks = 3
+        #
+        # # self.obs_shape = (64, 64)
+        # self.obs_shape = self.RESOLUTION
+        #
+        # self.pygame = import_pygame()
+        #
+        # self.onscreen = env.config["use_render"]
+        # main_window_position = (0, 0)
+        #
+        # self._center_pos = None  # automatically change, don't set the value
+        # self._should_draw_map = True
+        # self._canvas_to_display_scaling = 0.0
+        #
+        # # scene
+        # self.road_network = None
+        # self.scene_manager = None
+        #
+        # # initialize
+        # pygame.init()
+        # pygame.display.set_caption(PG_EDITION + " (Top-down)")
+        # # main_window_position means the left upper location.
+        # os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}' \
+        #     .format(main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
+        # # Used for display only!
+        # self.screen = pygame.display.set_mode(
+        #     (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2)) if self.onscreen else None
+        #
+        # # canvas
+        # self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        # self.canvas_navigation = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        # self.canvas_surrounding = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        #
+        # self.obs_window = ObservationWindow(self.MAX_RANGE, self.RESOLUTION)
 
     def init_obs_window(self):
-        self.obs_window = ObservationWindow(self.MAX_RANGE, self.RESOLUTION)
+        self.obs_window  = dict(
+            road_network=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
+            traffic_flow=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
+            target_vehicle=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
+            navigation=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
+        )
 
     def init_canvas(self):
-        self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_navigation = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_surrounding = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
 
     def reset(self, env):
         self.scene_manager = env.scene_manager
         self.road_network = env.current_map.road_network
         self._should_draw_map = True
 
-    # def _set_scene_mgr(self, scene_manager):
-    #     self.scene_mgr = scene_manager
+    # def render(self) -> np.ndarray:
+    #     if self.onscreen:
+    #         for event in pygame.event.get():
+    #             if event.type == pygame.KEYDOWN:
+    #                 if event.key == pygame.K_ESCAPE:
+    #                     sys.exit()
     #
-    # def set_map(self, map):
-    #     """
-    #     Initialize the most big map surface to save calculation time, this func is called in map class automatically
-    #     :param map: Map class
-    #     :return: None
-    #     """
-    #     self.road_network = map.road_network
-    #     self._should_draw_map = True
-
-    def render(self) -> np.ndarray:
-        if self.onscreen:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        sys.exit()
-
-        if self._should_draw_map:
-            self.draw_map()
-
-        self.draw_scene()
-
-        if self.onscreen:
-            self.screen.fill(COLOR_BLACK)
-            pygame.transform.scale2x(self.obs_window.get_observation_window(), self.screen)
-            pygame.display.flip()
-
-    def get_screenshot(self, name="screenshot.jpg"):
-        pygame.image.save(self.screen, name)
+    #     if self._should_draw_map:
+    #         self.draw_map()
+    #
+    #     self.draw_scene()
+    #
+    #     if self.onscreen:
+    #         self.screen.fill(COLOR_BLACK)
+    #         pygame.transform.scale2x(self.obs_window.get_observation_window(), self.screen)
+    #         pygame.display.flip()
 
     def draw_map(self) -> pygame.Surface:
         """
@@ -173,47 +167,47 @@ class TopDownObservation(ObservationType):
             canvas=self.canvas_runtime, position=pos, heading=self.scene_manager.ego_vehicle.heading_theta
         )
 
-    @staticmethod
-    def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
-    ) -> Tuple:
-        """Many thanks to https://stackoverflow.com/a/54714144."""
-        # calculate the axis aligned bounding box of the rotated image
-        w, h = image.get_size()
-        box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-        box_rotate = [p.rotate(angle) for p in box]
-        min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
-        max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
-
-        # calculate the translation of the pivot
-        origin_pos = w / 2, h / 2
-        pivot = pygame.math.Vector2(origin_pos[0], -origin_pos[1])
-        pivot_rotate = pivot.rotate(angle)
-        pivot_move = pivot_rotate - pivot
-
-        # calculate the upper left origin of the rotated image
-        origin = (
-            pos[0] - origin_pos[0] + min_box[0] - pivot_move[0], pos[1] - origin_pos[1] - max_box[1] + pivot_move[1]
-        )
-        # get a rotated image
-        rotated_image = pygame.transform.rotate(image, angle)
-        # rotate and blit the image
-        surf.blit(rotated_image, origin)
-        return origin
+    # @staticmethod
+    # def blit_rotate(
+    #         surf: pygame.SurfaceType,
+    #         image: pygame.SurfaceType,
+    #         pos,
+    #         angle: float,
+    # ) -> Tuple:
+    #     """Many thanks to https://stackoverflow.com/a/54714144."""
+    #     # calculate the axis aligned bounding box of the rotated image
+    #     w, h = image.get_size()
+    #     box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
+    #     box_rotate = [p.rotate(angle) for p in box]
+    #     min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
+    #     max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
+    #
+    #     # calculate the translation of the pivot
+    #     origin_pos = w / 2, h / 2
+    #     pivot = pygame.math.Vector2(origin_pos[0], -origin_pos[1])
+    #     pivot_rotate = pivot.rotate(angle)
+    #     pivot_move = pivot_rotate - pivot
+    #
+    #     # calculate the upper left origin of the rotated image
+    #     origin = (
+    #         pos[0] - origin_pos[0] + min_box[0] - pivot_move[0], pos[1] - origin_pos[1] - max_box[1] + pivot_move[1]
+    #     )
+    #     # get a rotated image
+    #     rotated_image = pygame.transform.rotate(image, angle)
+    #     # rotate and blit the image
+    #     surf.blit(rotated_image, origin)
+    #     return origin
 
     def get_observation_window(self):
         return self.obs_window.get_observation_window()
 
-    @property
-    def observation_space(self):
-        shape = self.obs_shape + (self.num_stacks,)
-        if self.rgb_clip:
-            return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
-        else:
-            return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
+    # @property
+    # def observation_space(self):
+    #     shape = self.obs_shape + (self.num_stacks,)
+    #     if self.rgb_clip:
+    #         return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
+    #     else:
+    #         return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
 
     def observe(self, vehicle: BaseVehicle):
         self.render()
