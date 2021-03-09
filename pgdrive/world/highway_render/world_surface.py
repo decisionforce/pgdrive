@@ -30,6 +30,7 @@ class WorldSurface(pygame.Surface):
         self.origin = np.array([0, 0])
         self.scaling = self.INITIAL_SCALING
         self.centering_position = self.INITIAL_CENTERING
+        self.fill(self.BLACK)
 
     def pix(self, length: float) -> int:
         """
