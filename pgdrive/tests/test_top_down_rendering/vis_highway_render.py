@@ -14,7 +14,7 @@ def vis_highway_render_with_panda_render():
             "use_render": True,
             "use_image": False,
             "use_topdown": True,
-            "traffic_mode": "hybrid"
+            "traffic_mode": "reborn"
         }
     )
     o = env.reset()
