@@ -32,11 +32,11 @@ if __name__ == '__main__':
         o, *_ = env.step([0.01, 1])
 
         frames.append(np.array(o) * 255)
-        # plt.imshow(o)
-        # plt.show()
-        # print(o.mean())
+        plt.imshow(o)
+        plt.show()
+        print(o.mean())
     env.close()
 
     # TODO(PZH) remove this when merging the PR!
-    import visya
-    visya.generate_mp4(np.array(frames, dtype=np.uint8), "tmp.mp4")
+    # import visya
+    # visya.generate_mp4(np.array(frames, dtype=np.uint8), "tmp.mp4")
