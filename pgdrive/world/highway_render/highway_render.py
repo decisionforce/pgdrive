@@ -199,30 +199,15 @@ class HighwayRender:
 
         # Set the active area that can be modify to accelerate
         pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
-        self.canvas_runtime.set_clip(
-            (
-                pos[0] - self.obs_window.get_size()[0] / 2, pos[1] - self.obs_window.get_size()[1] / 2,
-                self.obs_window.get_size()[0], self.obs_window.get_size()[1]
-            )
-        )
+        clip_size = (int(self.obs_window.get_size()[0] * 1.2), int(self.obs_window.get_size()[0] * 1.2))
+        self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
         self.canvas_runtime.blit(self.canvas_background, (0, 0))
 
         # Draw vehicles
         VehicleGraphics.display(self.scene_mgr.ego_vehicle, self.canvas_runtime)
-        # print("Current number of traget vehicles: ", len(self.scene_mgr.traffic_mgr.vehicles))
         for v in self.scene_mgr.traffic_mgr.vehicles:
             if v is self.scene_mgr.ego_vehicle:
-                print(
-                    "Current number of traget vehicles: ", len(self.scene_mgr.traffic_mgr.vehicles), "ego!",
-                    self.canvas_runtime.is_visible(v.position), v.position
-                )
                 continue
-            else:
-
-                print(
-                    "Current number of traget vehicles: ", len(self.scene_mgr.traffic_mgr.vehicles),
-                    self.canvas_runtime.is_visible(v.position), v.position
-                )
             VehicleGraphics.display(v, self.canvas_runtime)
 
         # Prepare a runtime canvas for rotation
@@ -232,10 +217,10 @@ class HighwayRender:
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -329,12 +314,12 @@ class VehicleGraphics:
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
-        origin_pos=None,
-        show_rect: bool = False
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
+            origin_pos=None,
+            show_rect: bool = False
     ) -> None:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
