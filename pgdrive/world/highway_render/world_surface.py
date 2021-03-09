@@ -26,6 +26,7 @@ class WorldSurface(pygame.Surface):
     MOVING_FACTOR = 0.1
 
     def __init__(self, size: Tuple[int, int], flags: object, surf: pygame.SurfaceType) -> None:
+        surf.fill(pygame.Color("Black"))
         super().__init__(size, flags, surf)
         self.origin = np.array([0, 0])
         self.scaling = self.INITIAL_SCALING

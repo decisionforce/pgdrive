@@ -29,6 +29,8 @@ class ObservationWindow:
         self.canvas_display.fill(COLOR_BLACK)
 
     def reset(self, canvas_runtime):
+        canvas_runtime.fill(COLOR_BLACK)
+
         # Assume max_range is only the radius!
         self.receptive_field_double = (
             int(canvas_runtime.pix(self.max_range[0] * np.sqrt(2))) * 2,
@@ -41,6 +43,7 @@ class ObservationWindow:
         self.canvas_rotate.fill(COLOR_BLACK)
         self.canvas_unscaled = pygame.Surface(self.receptive_field)
         self.canvas_unscaled.fill(COLOR_BLACK)
+        self.canvas_display.fill(COLOR_BLACK)
 
     def render(self, canvas, position, heading):
         # Prepare a runtime canvas for rotation
@@ -171,7 +174,7 @@ class HighwayRender:
         self.canvas_background.set_colorkey(self.canvas_background.BLACK)
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
-        max_len = max(x_len, y_len)
+        max_len = max(x_len, y_len) + 20  # Add more 20 meters
         scaling = self.MAP_RESOLUTION[1] / max_len - 0.1
         assert scaling > 0
 
@@ -198,13 +201,11 @@ class HighwayRender:
         self._should_draw_map = False
 
     def draw_scene(self):
-        # Setup background
-        self.canvas_runtime.fill(COLOR_BLACK)
-
         # Set the active area that can be modify to accelerate
         pos = self.canvas_runtime.pos2pix(*self.scene_mgr.ego_vehicle.position)
-        clip_size = (int(self.obs_window.get_size()[0] * 1.2), int(self.obs_window.get_size()[0] * 1.2))
+        clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
         self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
+        self.canvas_runtime.fill(COLOR_BLACK)
         self.canvas_runtime.blit(self.canvas_background, (0, 0))
 
         # Draw vehicles
