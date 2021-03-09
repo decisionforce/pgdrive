@@ -21,8 +21,12 @@ def vis_highway_render_with_panda_render():
     s = time.time()
     for i in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())
-        env.render(text={"vehicle_num": len(env.scene_manager.traffic_mgr.vehicles),
-                         "traffic_vehicle": len(env.scene_manager.traffic_mgr.traffic_vehicles)})
+        env.render(
+            text={
+                "vehicle_num": len(env.scene_manager.traffic_mgr.vehicles),
+                "traffic_vehicle": len(env.scene_manager.traffic_mgr.traffic_vehicles)
+            }
+        )
         # if d:
         #     env.reset()
         if i % 1000 == 0:
