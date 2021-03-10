@@ -457,9 +457,7 @@ class LaneGraphics:
 class ObservationWindowMultiChannel:
     def __init__(self, names, max_range, resolution):
         assert isinstance(names, list)
-        self.sub_observations = {
-            k: ObservationWindow(max_range=max_range, resolution=resolution) for k in names
-        }
+        self.sub_observations = {k: ObservationWindow(max_range=max_range, resolution=resolution) for k in names}
 
     def reset(self, canvas_runtime):
         for k, sub in self.sub_observations.items():

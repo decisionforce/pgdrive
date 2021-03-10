@@ -309,7 +309,6 @@ class PGWorld(ShowBase.ShowBase):
                 use_image=False,  # Render the first-view image in screen or buffer
 
                 # use_topdown=False,  # Render the top-down view image in screen or buffer
-
                 pstats=False
             )
         )

@@ -54,7 +54,8 @@ class TopDownObservation(ObservationType):
             .format(main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
         # Used for display only!
         self.screen = pygame.display.set_mode(
-            (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2)) if self.onscreen else None
+            (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2)
+        ) if self.onscreen else None
 
         # canvas
         self.init_canvas()
@@ -175,10 +176,10 @@ class TopDownObservation(ObservationType):
 
     @staticmethod
     def blit_rotate(
-            surf: pygame.SurfaceType,
-            image: pygame.SurfaceType,
-            pos,
-            angle: float,
+        surf: pygame.SurfaceType,
+        image: pygame.SurfaceType,
+        pos,
+        angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -209,7 +210,7 @@ class TopDownObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = self.obs_shape + (self.num_stacks,)
+        shape = self.obs_shape + (self.num_stacks, )
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:

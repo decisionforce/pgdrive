@@ -265,9 +265,7 @@ class PGDriveEnv(gym.Env):
         :param text:text to show
         :return: when mode is 'rgb', image array is returned
         """
-        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE, (
-            "render is off now, can not render"
-        )
+        assert self.use_render or self.pg_world.mode != RENDER_MODE_NONE, ("render is off now, can not render")
         self.pg_world.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting

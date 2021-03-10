@@ -233,7 +233,6 @@ class Map:
     def draw_navi_line(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
 
         raise ValueError("This part is deprecated!")
-
         """
         Use this function to draw the whole map, with a navigation line.
         :param vehicle: ego vehicle, BaseVehicle Class

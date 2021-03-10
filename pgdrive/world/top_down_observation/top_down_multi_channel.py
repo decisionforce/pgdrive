@@ -26,13 +26,14 @@ class TopDownMultiChannel(TopDownObservation):
     CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation", "past_pos"]
 
     def __init__(
-            self, vehicle_config, env, clip_rgb: bool, frame_stack: int = 5, post_stack: int = 5, frame_skip: int = 5
+        self, vehicle_config, env, clip_rgb: bool, frame_stack: int = 5, post_stack: int = 5, frame_skip: int = 5
     ):
         super(TopDownMultiChannel, self).__init__(vehicle_config, env, clip_rgb)
         self.num_stacks = 9
         self.stack_traffic_flow = deque([], maxlen=(frame_stack - 1) * frame_skip + 1)
-        self.stack_past_pos = deque([],
-                                    maxlen=(post_stack - 1) * frame_skip + 1)  # In the coordination of target vehicle
+        self.stack_past_pos = deque(
+            [], maxlen=(post_stack - 1) * frame_skip + 1
+        )  # In the coordination of target vehicle
         self.frame_stack = frame_stack
         self.frame_skip = frame_skip
         self._should_fill_stack = True
@@ -149,7 +150,9 @@ class TopDownMultiChannel(TopDownObservation):
                 traffic_flow=self.canvas_runtime,
                 target_vehicle=self.canvas_ego,  # TODO
                 navigation=self.canvas_navigation,
-            ), position=pos, heading=self.scene_manager.ego_vehicle.heading_theta
+            ),
+            position=pos,
+            heading=self.scene_manager.ego_vehicle.heading_theta
         )
         ret["past_pos"] = self.canvas_past_pos
         return ret
@@ -214,7 +217,7 @@ class TopDownMultiChannel(TopDownObservation):
 
     @property
     def observation_space(self):
-        shape = self.obs_shape + (self.num_stacks,)
+        shape = self.obs_shape + (self.num_stacks, )
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
