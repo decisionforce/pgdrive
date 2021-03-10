@@ -491,9 +491,11 @@ class PGDriveEnv(gym.Env):
         vehicle_config = self.vehicle.vehicle_config
         self.vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         if not self.config["use_image"]:
-            if vehicle_config["lidar"][0] > 0 and vehicle_config["lidar"][1] > 0:
+            if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
                 self.vehicle.add_lidar(
-                    vehicle_config["lidar"][0], vehicle_config["lidar"][1], vehicle_config["show_lidar"]
+                    num_lasers=vehicle_config["lidar"]["num_lasers"],
+                    distance=vehicle_config["lidar"]["distance"],
+                    show_lidar_point=vehicle_config["show_lidar"]
                 )
             else:
                 import logging
@@ -664,8 +666,8 @@ class PGDriveEnv(gym.Env):
 
                 # for collision
                 lidar_p = self.vehicle.lidar.get_cloud_points()
-                left = int(self.vehicle.lidar.laser_num / 4)
-                right = int(self.vehicle.lidar.laser_num / 4 * 3)
+                left = int(self.vehicle.lidar.num_lasers / 4)
+                right = int(self.vehicle.lidar.num_lasers / 4 * 3)
                 if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
                                                                                     ) < (save_level + 0.1) / 10:
                     # lateral safe distance 2.0m
