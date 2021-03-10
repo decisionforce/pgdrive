@@ -1,5 +1,4 @@
 import copy
-from panda3d.core import PNMImage
 import json
 import logging
 import os.path as osp
@@ -9,6 +8,7 @@ from typing import Union, Optional, Iterable
 
 import gym
 import numpy as np
+from panda3d.core import PNMImage
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
@@ -491,8 +491,15 @@ class PGDriveEnv(gym.Env):
         vehicle_config = self.vehicle.vehicle_config
         self.vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         if not self.config["use_image"]:
-            # TODO visualize lidar
-            self.vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1], vehicle_config["show_lidar"])
+            if vehicle_config["lidar"][0] > 0 and vehicle_config["lidar"][1] > 0:
+                self.vehicle.add_lidar(
+                    vehicle_config["lidar"][0], vehicle_config["lidar"][1], vehicle_config["show_lidar"]
+                )
+            else:
+                import logging
+                logging.warning(
+                    "You have set the lidar config to: {}, which seems to be invalid!".format(vehicle_config["lidar"])
+                )
 
             if self.config["use_render"]:
                 rgb_cam_config = vehicle_config["rgb_cam"]

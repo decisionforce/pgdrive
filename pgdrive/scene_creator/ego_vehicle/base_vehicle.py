@@ -438,6 +438,8 @@ class BaseVehicle(DynamicElement):
         self.image_sensors[name] = sensor
 
     def add_lidar(self, laser_num=240, distance=50, show_lidar_point=False):
+        assert laser_num > 0
+        assert distance > 0
         self.lidar = Lidar(self.pg_world.render, laser_num, distance, show_lidar_point)
 
     def add_routing_localization(self, show_navi_point: bool):

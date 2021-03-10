@@ -188,8 +188,9 @@ class LidarStateObservation(ObservationType):
         """
         state = self.state_obs.observe(vehicle)
         other_v_info = []
-        other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"][2])
-        other_v_info += vehicle.lidar.get_cloud_points()
+        if vehicle.lidar is not None:
+            other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"][2])
+            other_v_info += vehicle.lidar.get_cloud_points()
         return np.concatenate((state, np.asarray(other_v_info)))
 
 

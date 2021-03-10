@@ -20,7 +20,13 @@ blackbox_test_configs = dict(
     envs_100=dict(environment_num=100),
     envs_1000=dict(environment_num=1000),
     envs_10000=dict(environment_num=10000),
-    envs_100000=dict(environment_num=100000)
+    envs_100000=dict(environment_num=100000),
+    no_lidar1=dict(vehicle_config=dict(lidar=(0, 10, 0))),
+    no_lidar2=dict(vehicle_config=dict(lidar=(0, 10, 4))),
+    no_lidar3=dict(vehicle_config=dict(lidar=(10, 10, 0))),
+    no_lidar4=dict(vehicle_config=dict(lidar=(0, 0, 0))),
+    no_lidar5=dict(vehicle_config=dict(lidar=(10, 0, 0))),
+    no_lidar6=dict(vehicle_config=dict(lidar=(0, 0, 10))),
 )
 
 pid_control_config = dict(environment_num=1, start_seed=5, map="CrXROSTR", traffic_density=0.0)
