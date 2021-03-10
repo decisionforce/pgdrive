@@ -1,13 +1,13 @@
 import time
 
-from pgdrive.envs.top_down_env import TopDownPGDriveEnv
+from pgdrive.envs.top_down_env import TopDownSingleFramePGDriveEnv
 from pgdrive.utils import setup_logger
 
 
 def vis_top_down_render_with_panda_render():
     setup_logger(True)
 
-    env = TopDownPGDriveEnv(
+    env = TopDownSingleFramePGDriveEnv(
         {
             "environment_num": 1,
             "manual_control": True,

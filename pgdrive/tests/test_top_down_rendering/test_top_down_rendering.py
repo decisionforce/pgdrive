@@ -1,10 +1,10 @@
 import numpy as np
 
-from pgdrive.envs.top_down_env import TopDownPGDriveEnv
+from pgdrive.envs.top_down_env import TopDownSingleFramePGDriveEnv
 
 
 def test_top_down_rendering():
-    env = TopDownPGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0))
+    env = TopDownSingleFramePGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0))
     for _ in range(5):
         o = env.reset()
         assert np.mean(o) > 0.0

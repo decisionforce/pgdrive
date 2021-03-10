@@ -1,9 +1,9 @@
 import time
 
-from pgdrive.envs.top_down_env import TopDownPGDriveEnv
+from pgdrive.envs.top_down_env import TopDownSingleFramePGDriveEnv
 
 if __name__ == '__main__':
-    env = TopDownPGDriveEnv(dict(environment_num=10))
+    env = TopDownSingleFramePGDriveEnv(dict(environment_num=10))
     o = env.reset()
     start = time.time()
     action = [0.0, 0.1]
