@@ -9,6 +9,7 @@ class TopDownSingleFramePGDriveEnv(PGDriveEnv):
     def default_config(cls) -> PGConfig:
         config = PGDriveEnv.default_config()
         config["vehicle_config"]["lidar"] = {"num_lasers": 0, "distance": 0}  # Remove lidar
+        config.extend_config_with_unknown_keys({"frame_skip": 5, "frame_stack": 5})
         return config
 
     def initialize_observation(self):
@@ -19,7 +20,12 @@ class TopDownSingleFramePGDriveEnv(PGDriveEnv):
 class TopDownPGDriveEnv(TopDownSingleFramePGDriveEnv):
     def initialize_observation(self):
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
-        return TopDownMultiChannel(vehicle_config, self, self.config["rgb_clip"])
+        return TopDownMultiChannel(
+            vehicle_config, self, self.config["rgb_clip"],
+            frame_stack=self.config["frame_stack"],
+            post_stack=self.config["frame_stack"],
+            frame_skip=self.config["frame_skip"],
+        )
 
 
 if __name__ == '__main__':
