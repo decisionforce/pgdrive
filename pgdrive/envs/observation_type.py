@@ -167,7 +167,9 @@ class LidarStateObservation(ObservationType):
     @property
     def observation_space(self):
         shape = list(self.state_obs.observation_space.shape)
-        shape[0] += self.config["lidar"][0] + self.config["lidar"][2] * 4
+        if self.config["lidar"][0] > 0 and self.config["lidar"][1] > 0:
+            # Number of lidar rays and distance should be positive!
+            shape[0] += self.config["lidar"][0] + self.config["lidar"][2] * 4
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe(self, vehicle):
