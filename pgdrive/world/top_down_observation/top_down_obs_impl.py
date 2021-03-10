@@ -19,10 +19,9 @@ class ObservationWindow:
         self.receptive_field_double = None
 
         self.canvas_rotate = None
-        self.canvas_uncropped = pygame.Surface((
-            int(self.resolution[0] * np.sqrt(2)) + 1,
-            int(self.resolution[1] * np.sqrt(2)) + 1
-        ))
+        self.canvas_uncropped = pygame.Surface(
+            (int(self.resolution[0] * np.sqrt(2)) + 1, int(self.resolution[1] * np.sqrt(2)) + 1)
+        )
 
         self.canvas_display = pygame.Surface(self.resolution)
         self.canvas_display.fill(COLOR_BLACK)
@@ -383,10 +382,13 @@ class ObservationWindowMultiChannel:
     def __init__(self, names, max_range, resolution):
         assert isinstance(names, list)
         assert set(self.CHANNEL_NAMES)
-        self.sub_observations = {k: ObservationWindow(max_range=max_range, resolution=resolution) for k in
-                                 ["traffic_flow", "target_vehicle", "navigation"]}
+        self.sub_observations = {
+            k: ObservationWindow(max_range=max_range, resolution=resolution)
+            for k in ["traffic_flow", "target_vehicle", "navigation"]
+        }
         self.sub_observations["road_network"] = ObservationWindow(
-            max_range=max_range, resolution=(resolution[0] * 2, resolution[1] * 2))
+            max_range=max_range, resolution=(resolution[0] * 2, resolution[1] * 2)
+        )
 
     def reset(self, canvas_runtime):
         for k, sub in self.sub_observations.items():
