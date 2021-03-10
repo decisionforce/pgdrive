@@ -29,6 +29,7 @@ if __name__ == '__main__':
         # env.reset()
     for _ in range(10):
         o, *_ = env.step([-0.05, 1])
+        assert env.observation_space.contains(o)
     for _ in range(200):
         o, *_ = env.step([0.01, 1])
 
@@ -37,7 +38,3 @@ if __name__ == '__main__':
         plt.show()
         print(o.mean())
     env.close()
-
-    # TODO(PZH) remove this when merging the PR!
-    # import visya
-    # visya.generate_mp4(np.array(frames, dtype=np.uint8), "tmp.mp4")

@@ -1,5 +1,8 @@
-import numpy as np
+import math
+from collections import deque
 
+import gym
+import numpy as np
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import import_pygame
 from pgdrive.utils.constans import Decoration
@@ -8,6 +11,7 @@ from pgdrive.world.top_down_observation.top_down_obs_impl import WorldSurface, C
 from pgdrive.world.top_down_observation.top_down_observation import TopDownObservation
 
 pygame = import_pygame()
+COLOR_WHITE = pygame.Color("white")
 
 
 class TopDownMultiChannel(TopDownObservation):
@@ -15,91 +19,43 @@ class TopDownMultiChannel(TopDownObservation):
     Most of the source code is from Highway-Env, we only optimize and integrate it in PGDrive
     See more information on its Github page: https://github.com/eleurent/highway-env
     """
-    RESOLUTION = (200, 200)  # pix x pix
+    RESOLUTION = (100, 100)  # pix x pix
     MAP_RESOLUTION = (2000, 2000)  # pix x pix
     MAX_RANGE = (50, 50)  # maximum detection distance = 50 M
 
-    CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation"]
+    CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation", "past_pos"]
 
-    def __init__(self, vehicle_config, env, clip_rgb: bool):
+    def __init__(
+            self, vehicle_config, env, clip_rgb: bool, frame_stack: int = 5, post_stack: int = 5, frame_skip: int = 5
+    ):
         super(TopDownMultiChannel, self).__init__(vehicle_config, env, clip_rgb)
-        # self.rgb_clip = clip_rgb
-        # self.num_stacks = 3
-        #
-        # # self.obs_shape = (64, 64)
-        # self.obs_shape = self.RESOLUTION
-        #
-        # self.pygame = import_pygame()
-        #
-        # self.onscreen = env.config["use_render"]
-        # main_window_position = (0, 0)
-        #
-        # self._center_pos = None  # automatically change, don't set the value
-        # self._should_draw_map = True
-        # self._canvas_to_display_scaling = 0.0
-        #
-        # # scene
-        # self.road_network = None
-        # self.scene_manager = None
-        #
-        # # initialize
-        # pygame.init()
-        # pygame.display.set_caption(PG_EDITION + " (Top-down)")
-        # # main_window_position means the left upper location.
-        # os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}' \
-        #     .format(main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
-        # # Used for display only!
-        # self.screen = pygame.display.set_mode(
-        #     (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2)) if self.onscreen else None
-        #
-        # # canvas
-        # self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        # self.canvas_navigation = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        # self.canvas_surrounding = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        #
-        # self.obs_window = ObservationWindow(self.MAX_RANGE, self.RESOLUTION)
+        self.num_stacks = 9
+        self.stack_traffic_flow = deque([], maxlen=(frame_stack - 1) * frame_skip + 1)
+        self.stack_past_pos = deque([],
+                                    maxlen=(post_stack - 1) * frame_skip + 1)  # In the coordination of target vehicle
+        self.frame_stack = frame_stack
+        self.frame_skip = frame_skip
+        self._should_fill_stack = True
 
     def init_obs_window(self):
-        self.obs_window = ObservationWindowMultiChannel(self.CHANNEL_NAMES, self.MAX_RANGE, self.RESOLUTION)
-        # self.obs_window  = dict(
-        #     road_network=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
-        #     traffic_flow=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
-        #     target_vehicle=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
-        #     navigation=ObservationWindow(self.MAX_RANGE, self.RESOLUTION),
-        # )
+        names = self.CHANNEL_NAMES.copy()
+        names.remove("past_pos")
+        self.obs_window = ObservationWindowMultiChannel(names, self.MAX_RANGE, self.RESOLUTION)
 
     def init_canvas(self):
         self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
-        # self.canvas_dict = {
-        #     k: WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION)) for k in self.CHANNEL_NAMES
-        # }
         self.canvas_navigation = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.canvas_road_network = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
         self.canvas_ego = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
+        self.canvas_past_pos = pygame.Surface(self.RESOLUTION)  # A local view
 
     def reset(self, env):
         self.scene_manager = env.scene_manager
         self.road_network = env.current_map.road_network
         self.target_vehicle = env.vehicle
         self._should_draw_map = True
-
-    # def render(self) -> np.ndarray:
-    #     if self.onscreen:
-    #         for event in pygame.event.get():
-    #             if event.type == pygame.KEYDOWN:
-    #                 if event.key == pygame.K_ESCAPE:
-    #                     sys.exit()
-    #
-    #     if self._should_draw_map:
-    #         self.draw_map()
-    #
-    #     self.draw_scene()
-    #
-    #     if self.onscreen:
-    #         self.screen.fill(COLOR_BLACK)
-    #         pygame.transform.scale2x(self.obs_window.get_observation_window(), self.screen)
-    #         pygame.display.flip()
+        self._should_fill_stack = True
 
     def draw_map(self) -> pygame.Surface:
         """
@@ -149,21 +105,12 @@ class TopDownMultiChannel(TopDownObservation):
 
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
-        # pos = self.canvas_runtime.pos2pix(*self.scene_manager.ego_vehicle.position)
-        # clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
-        # self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
-        # self.canvas_runtime.fill(COLOR_BLACK)
-
-        # self.canvas_runtime.blit(self.canvas_navigation, (0, 0))
-
         pos = self.canvas_runtime.pos2pix(*self.scene_manager.ego_vehicle.position)
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
 
-        # self._refresh(self.canvas_navigation, pos, clip_size)
         self._refresh(self.canvas_ego, pos, clip_size)
         self._refresh(self.canvas_runtime, pos, clip_size)
-
-        # self.canvas_road_network.blit(self.canvas_background, (0, 0))
+        self.canvas_past_pos.fill(COLOR_BLACK)
 
         # Draw vehicles
         # TODO PZH: I hate computing these in pygame-related code!!!
@@ -183,7 +130,20 @@ class TopDownMultiChannel(TopDownObservation):
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(vehicle=v, surface=self.canvas_runtime, heading=h, color=VehicleGraphics.BLUE)
 
-        return self.obs_window.render(
+        pos = self.canvas_runtime.pos2pix(*self.scene_manager.ego_vehicle.position)
+        self.stack_past_pos.append(pos)
+        for p in self._get_stack_indices(len(self.stack_past_pos)):
+            p = self.stack_past_pos[p]
+            # TODO PZH: Could you help me check this part? I just engineering out the equation. Not sure if correct!@LQY
+            p = (p[0] - pos[0], p[1] - pos[1])
+            p = (p[1], p[0])
+            p = pygame.math.Vector2(p)
+            p = p.rotate(np.rad2deg(ego_heading) + 90)
+            p = (p[1], p[0])
+            p = (p[0] + self.RESOLUTION[0] / 2, p[1] + self.RESOLUTION[1] / 2)
+            pygame.draw.circle(self.canvas_past_pos, color=COLOR_WHITE, radius=1, center=p)
+
+        ret = self.obs_window.render(
             canvas_dict=dict(
                 road_network=self.canvas_road_network,  # TODO
                 traffic_flow=self.canvas_runtime,
@@ -191,9 +151,13 @@ class TopDownMultiChannel(TopDownObservation):
                 navigation=self.canvas_navigation,
             ), position=pos, heading=self.scene_manager.ego_vehicle.heading_theta
         )
+        ret["past_pos"] = self.canvas_past_pos
+        return ret
 
     def get_observation_window(self):
-        return self.obs_window.get_observation_window()
+        ret = self.obs_window.get_observation_window()
+        ret["past_pos"] = self.canvas_past_pos
+        return ret
 
     def _transform(self, img):
         img = img[..., 0] > 0
@@ -211,11 +175,27 @@ class TopDownMultiChannel(TopDownObservation):
         # Gray scale
         img_dict = {k: self._transform(img) for k, img in img_dict.items()}
 
+        if self._should_fill_stack:
+            self.stack_past_pos.clear()
+            self.stack_traffic_flow.clear()
+            for _ in range(self.stack_traffic_flow.maxlen):
+                self.stack_traffic_flow.append(img_dict["traffic_flow"])
+            self._should_fill_stack = False
+        self.stack_traffic_flow.append(img_dict["traffic_flow"])
+
         # Reorder
-        pass  # TODO
+        img = [
+            img_dict["road_network"],
+            img_dict["navigation"],
+            img_dict["target_vehicle"],
+            img_dict["past_pos"],
+        ]  # + list(self.stack_traffic_flow)
+
+        for i in self._get_stack_indices(len(self.stack_traffic_flow)):
+            img.append(self.stack_traffic_flow[i])
 
         # Stack
-        img = np.stack(list(img_dict.values()), axis=2)
+        img = np.stack(img, axis=2)
         return np.transpose(img, (1, 0, 2))
 
     def draw_navigation(self):
@@ -224,3 +204,18 @@ class TopDownMultiChannel(TopDownObservation):
             lanes = self.road_network.graph[c][checkpoints[i + 1]]
             for lane in lanes:
                 LaneGraphics.simple_draw(lane, self.canvas_navigation, color=(255, 0, 0))
+
+    def _get_stack_indices(self, length):
+        num = int(math.ceil(length / self.frame_skip))
+        indices = []
+        for i in range(num):
+            indices.append(length - 1 - i * self.frame_skip)
+        return indices
+
+    @property
+    def observation_space(self):
+        shape = self.obs_shape + (self.num_stacks,)
+        if self.rgb_clip:
+            return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
+        else:
+            return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)

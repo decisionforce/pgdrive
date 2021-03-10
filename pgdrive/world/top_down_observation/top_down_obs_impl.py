@@ -67,8 +67,8 @@ class ObservationWindow:
                 self.receptive_field[1]  # Height
             )
         )
-        # pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
-        pygame.transform.scale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
+        pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
+        # pygame.transform.scale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
 
         # print(
         #     "Current canvas size, canvas display size",
