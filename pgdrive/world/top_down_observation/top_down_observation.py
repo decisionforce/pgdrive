@@ -73,18 +73,6 @@ class TopDownObservation(ObservationType):
         self.road_network = env.current_map.road_network
         self._should_draw_map = True
 
-    # def _set_scene_mgr(self, scene_manager):
-    #     self.scene_mgr = scene_manager
-    #
-    # def set_map(self, map):
-    #     """
-    #     Initialize the most big map surface to save calculation time, this func is called in map class automatically
-    #     :param map: Map class
-    #     :return: None
-    #     """
-    #     self.road_network = map.road_network
-    #     self._should_draw_map = True
-
     def render(self) -> np.ndarray:
         if self.onscreen:
             for event in pygame.event.get():

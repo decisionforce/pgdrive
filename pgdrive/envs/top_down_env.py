@@ -34,7 +34,7 @@ if __name__ == '__main__':
         o, *_ = env.step([0.01, 1])
 
         frames.append(np.array(o) * 255)
-        plt.imshow(o)
+        plt.imshow(o, cmap="gray")
         plt.show()
         print(o.mean())
     env.close()

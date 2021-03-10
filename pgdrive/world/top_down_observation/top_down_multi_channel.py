@@ -9,6 +9,7 @@ from pgdrive.utils.constans import Decoration
 from pgdrive.world.top_down_observation.top_down_obs_impl import WorldSurface, COLOR_BLACK, \
     VehicleGraphics, LaneGraphics, ObservationWindowMultiChannel
 from pgdrive.world.top_down_observation.top_down_observation import TopDownObservation
+import cv2
 
 pygame = import_pygame()
 COLOR_WHITE = pygame.Color("white")
@@ -163,11 +164,11 @@ class TopDownMultiChannel(TopDownObservation):
         return ret
 
     def _transform(self, img):
-        img = img[..., 0] > 0
+        img = np.mean(img, axis=-1)
         if self.rgb_clip:
-            img = img.astype(np.float32)
+            img = img.astype(np.float32) / 255
         else:
-            img = img.astype(np.uint8) * 255
+            pass
         return img
 
     def observe(self, vehicle: BaseVehicle):
@@ -187,8 +188,10 @@ class TopDownMultiChannel(TopDownObservation):
         self.stack_traffic_flow.append(img_dict["traffic_flow"])
 
         # Reorder
+        img_road_network = img_dict["road_network"]
+        img_road_network = cv2.resize(img_road_network, self.RESOLUTION, interpolation=cv2.INTER_LINEAR)
         img = [
-            img_dict["road_network"],
+            img_road_network,
             img_dict["navigation"],
             img_dict["target_vehicle"],
             img_dict["past_pos"],
@@ -206,7 +209,7 @@ class TopDownMultiChannel(TopDownObservation):
         for i, c in enumerate(checkpoints[:-1]):
             lanes = self.road_network.graph[c][checkpoints[i + 1]]
             for lane in lanes:
-                LaneGraphics.simple_draw(lane, self.canvas_navigation, color=(255, 0, 0))
+                LaneGraphics.simple_draw(lane, self.canvas_navigation, color=(255, 255, 255))
 
     def _get_stack_indices(self, length):
         num = int(math.ceil(length / self.frame_skip))

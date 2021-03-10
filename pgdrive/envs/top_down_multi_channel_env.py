@@ -28,7 +28,7 @@ if __name__ == '__main__':
         o, *_ = env.step([1, 1])
         fig, axes = plt.subplots(1, o.shape[-1], figsize=(12, 10))
         for o_i in range(o.shape[-1]):
-            axes[o_i].imshow(o[..., o_i])
+            axes[o_i].imshow(o[..., o_i], cmap="gray")
             axes[o_i].set_title(names[o_i])
         fig.suptitle("Multi-channel Top-down Observation")
         plt.show()

@@ -19,7 +19,11 @@ class ObservationWindow:
         self.receptive_field_double = None
 
         self.canvas_rotate = None
-        self.canvas_unscaled = None
+        self.canvas_uncropped = pygame.Surface((
+            int(self.resolution[0] * np.sqrt(2)) + 1,
+            int(self.resolution[1] * np.sqrt(2)) + 1
+        ))
+
         self.canvas_display = pygame.Surface(self.resolution)
         self.canvas_display.fill(COLOR_BLACK)
 
@@ -36,9 +40,8 @@ class ObservationWindow:
         )
         self.canvas_rotate = pygame.Surface(self.receptive_field_double)
         self.canvas_rotate.fill(COLOR_BLACK)
-        self.canvas_unscaled = pygame.Surface(self.receptive_field)
-        self.canvas_unscaled.fill(COLOR_BLACK)
         self.canvas_display.fill(COLOR_BLACK)
+        self.canvas_uncropped.fill(COLOR_BLACK)
 
     def _blit(self, canvas, position):
         self.canvas_rotate.blit(
@@ -50,27 +53,24 @@ class ObservationWindow:
 
     def _rotate(self, heading):
         rotation = np.rad2deg(heading) + 90
-        new_canvas = pygame.transform.rotate(self.canvas_rotate, rotation)
-        return new_canvas
+        scale = self.canvas_uncropped.get_size()[0] / self.canvas_rotate.get_size()[0]
+        return pygame.transform.rotozoom(self.canvas_rotate, rotation, scale)
 
     def _crop(self, new_canvas):
-        self.canvas_unscaled.blit(
+        size = self.canvas_display.get_size()
+        self.canvas_display.blit(
             new_canvas,
             (0, 0),
             (
-                new_canvas.get_size()[0] / 2 - self.receptive_field[0] / 2,  # Left
-                new_canvas.get_size()[1] / 2 - self.receptive_field[1] / 2,  # Top
-                self.receptive_field[0],  # Width
-                self.receptive_field[1]  # Height
+                new_canvas.get_size()[0] / 2 - size[0] / 2,  # Left
+                new_canvas.get_size()[1] / 2 - size[1] / 2,  # Top
+                size[0],  # Width
+                size[1]  # Height
             )
         )
 
-    def _scale(self):
-        pygame.transform.smoothscale(self.canvas_unscaled, self.canvas_display.get_size(), self.canvas_display)
-
     def render(self, canvas, position, heading):
-        # Prepare a runtime canvas for rotation
-        # Assume max_range is only the radius!
+        # Prepare a runtime canvas for rotation. Assume max_range is only the radius, not diameter!
         self._blit(canvas, position)
 
         # Rotate the image so that ego is always heading top
@@ -78,8 +78,6 @@ class ObservationWindow:
 
         # Crop the rotated image and then resize to the desired resolution
         self._crop(new_canvas)
-
-        self._scale()
 
         return self.canvas_display
 
@@ -194,19 +192,6 @@ class VehicleGraphics:
     EGO_COLOR = GREEN
     font = None
 
-    # registered_surface = dict()
-
-    # @classmethod
-    # def get_surface(cls, length):
-    #     # print(cls.registered_surface.keys())
-    #     # if length in cls.registered_surface:
-    #     #     return cls.registered_surface[length]
-    #     vehicle_surface = pygame.Surface(
-    #         (length, length), flags=pygame.SRCALPHA
-    #     )  # per-pixel alpha
-    #     # cls.registered_surface[length] = vehicle_surface
-    #     return vehicle_surface
-
     @classmethod
     def display(cls, vehicle, surface, color, heading, label: bool = False) -> None:
         """
@@ -228,19 +213,6 @@ class VehicleGraphics:
         box_rotate = [p.rotate(angle) + position for p in box]
         pygame.draw.polygon(surface, color=color, points=box_rotate)
 
-        # tire_length, tire_width = 1, 0.3
-        # length = v.LENGTH + 2 * tire_length
-        # vehicle_surface = cls.get_surface(surface.pix(length))
-        # rect = (
-        #     surface.pix(tire_length), surface.pix(length / 2 - v.WIDTH / 2), surface.pix(v.LENGTH), surface.pix(v.WIDTH)
-        # )
-        # pygame.draw.rect(vehicle_surface, color, rect, 0)
-        # pygame.draw.rect(vehicle_surface, pygame.color.Color("Red"), (0, 0, 1000, 1000), 0)
-        # Old Highway heritage, draw black curve as the contour of vehicle.
-        # pygame.draw.rect(vehicle_surface, cls.BLACK, rect, 1)
-        # cls.blit_rotate(surface, vehicle_surface, position, np.rad2deg(-heading))
-        # pygame.draw.circle(surface, color=pygame.color.Color("White"), radius=15, center=position)
-
         # Label
         if label:
             if cls.font is None:
@@ -248,42 +220,6 @@ class VehicleGraphics:
             text = "#{}".format(id(vehicle) % 1000)
             text = cls.font.render(text, 1, (10, 10, 10), (255, 255, 255))
             surface.blit(text, position)
-
-    # @staticmethod
-    # def blit_rotate(
-    #         surf: pygame.SurfaceType,
-    #         image: pygame.SurfaceType,
-    #         pos,
-    #         angle: float,
-    #         origin_pos=None,
-    #         show_rect: bool = False
-    # ) -> None:
-    #     """Many thanks to https://stackoverflow.com/a/54714144."""
-    #     # calculate the axis aligned bounding box of the rotated image
-    #     w, h = image.get_size()
-    #     box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-    #     box_rotate = [p.rotate(angle) for p in box]
-    #     min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
-    #     max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
-    #
-    #     # calculate the translation of the pivot
-    #     if origin_pos is None:
-    #         origin_pos = w / 2, h / 2
-    #     pivot = pygame.math.Vector2(origin_pos[0], -origin_pos[1])
-    #     pivot_rotate = pivot.rotate(angle)
-    #     pivot_move = pivot_rotate - pivot
-    #
-    #     # calculate the upper left origin of the rotated image
-    #     origin = (
-    #         pos[0] - origin_pos[0] + min_box[0] - pivot_move[0], pos[1] - origin_pos[1] - max_box[1] + pivot_move[1]
-    #     )
-    #     # get a rotated image
-    #     rotated_image = pygame.transform.rotate(image, angle)
-    #     # rotate and blit the image
-    #     surf.blit(rotated_image, origin)
-    #     # draw rectangle around the image
-    #     if show_rect:
-    #         pygame.draw.rect(surf, (255, 0, 0), (*origin, *rotated_image.get_size()), 2)
 
     @classmethod
     def get_color(cls, vehicle) -> Tuple[int]:
@@ -440,27 +376,17 @@ class LaneGraphics:
              surface.pos2pix(*p_4)]
         )
 
-    # @classmethod
-    # def draw_ground(cls, lane, surface, color: Tuple[float], width: float, draw_surface: pygame.Surface = None) -> None:
-    #     draw_surface = draw_surface or surface
-    #     stripes_count = int(2 * (surface.get_height() + surface.get_width()) / (cls.STRIPE_SPACING * surface.scaling))
-    #     s_origin, _ = lane.local_coordinates(surface.origin)
-    #     s0 = (int(s_origin) // cls.STRIPE_SPACING - stripes_count // 2) * cls.STRIPE_SPACING
-    #     dots = []
-    #     for side in range(2):
-    #         longis = np.clip(s0 + np.arange(stripes_count) * cls.STRIPE_SPACING, 0, lane.length)
-    #         lats = [2 * (side - 0.5) * width for _ in longis]
-    #         new_dots = [surface.vec2pix(lane.position(longi, lat)) for longi, lat in zip(longis, lats)]
-    #         new_dots = reversed(new_dots) if side else new_dots
-    #         dots.extend(new_dots)
-    #     pygame.draw.polygon(draw_surface, color, dots, 0)
-
 
 class ObservationWindowMultiChannel:
+    CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation", "past_pos"]
+
     def __init__(self, names, max_range, resolution):
         assert isinstance(names, list)
-        self.sub_observations = {k: ObservationWindow(max_range=max_range, resolution=resolution) for k in names}
-        self.canvas_rotate
+        assert set(self.CHANNEL_NAMES)
+        self.sub_observations = {k: ObservationWindow(max_range=max_range, resolution=resolution) for k in
+                                 ["traffic_flow", "target_vehicle", "navigation"]}
+        self.sub_observations["road_network"] = ObservationWindow(
+            max_range=max_range, resolution=(resolution[0] * 2, resolution[1] * 2))
 
     def reset(self, canvas_runtime):
         for k, sub in self.sub_observations.items():
@@ -473,11 +399,6 @@ class ObservationWindowMultiChannel:
         for k, canvas in canvas_dict.items():
             ret[k] = self.sub_observations[k].render(canvas, position, heading)
         return self.get_observation_window(ret)
-
-
-    # def render(self, canvas):
-
-
 
     def get_observation_window(self, canvas_dict=None):
         if canvas_dict is None:
