@@ -1,9 +1,9 @@
-from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.envs.top_down_env import TopDownPGDriveEnv
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.top_down_observation.top_down_multi_channel import TopDownMultiChannel
 
 
-class TopDownMultiChannelPGDriveEnv(PGDriveEnv):
+class TopDownMultiChannelPGDriveEnv(TopDownPGDriveEnv):
     def initialize_observation(self):
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         return TopDownMultiChannel(vehicle_config, self, self.config["rgb_clip"])
@@ -11,6 +11,7 @@ class TopDownMultiChannelPGDriveEnv(PGDriveEnv):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+
     env = TopDownMultiChannelPGDriveEnv(dict(environment_num=1, map="C", traffic_density=1.0))
     env.reset()
     for _ in range(10):

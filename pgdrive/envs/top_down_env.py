@@ -1,9 +1,16 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.top_down_observation.top_down_observation import TopDownObservation
 
 
 class TopDownPGDriveEnv(PGDriveEnv):
+    @classmethod
+    def default_config(cls) -> PGConfig:
+        config = PGDriveEnv.default_config()
+        config["vehicle_config"]["lidar"] = {"num_lasers": 0, "distance": 0}  # Remove lidar
+        return config
+
     def initialize_observation(self):
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         return TopDownObservation(vehicle_config, self, self.config["rgb_clip"])
