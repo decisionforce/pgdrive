@@ -116,6 +116,8 @@ class ImageBuffer:
     def remove_display_region(self, pg_world):
         if pg_world.mode == RENDER_MODE_ONSCREEN and self.display_region:
             pg_world.win.removeDisplayRegion(self.display_region)
+        for line_node in self.line_borders:
+            line_node.detachNode()
 
     def destroy(self, pg_world):
         if pg_world is not None:

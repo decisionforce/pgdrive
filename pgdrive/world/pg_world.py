@@ -384,7 +384,7 @@ class PGWorld(ShowBase.ShowBase):
         line_seg.moveTo(start_p[0] * self.w_scale, 0, start_p[1] * self.h_scale)
         line_seg.drawTo(end_p[0] * self.w_scale, 0, end_p[1] * self.h_scale)
         line_seg.setThickness(thickness)
-        line_np = NodePath(line_seg.create(False)).reparentTo(self.aspect2d)
+        line_np = self.aspect2d.attachNewNode(line_seg.create(False))
         return line_np
 
     def remove_logo(self, task):
