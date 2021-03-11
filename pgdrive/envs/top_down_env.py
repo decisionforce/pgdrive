@@ -9,7 +9,7 @@ class TopDownSingleFramePGDriveEnv(PGDriveEnv):
     def default_config(cls) -> PGConfig:
         config = PGDriveEnv.default_config()
         config["vehicle_config"]["lidar"] = {"num_lasers": 0, "distance": 0}  # Remove lidar
-        config.extend_config_with_unknown_keys({"frame_skip": 5, "frame_stack": 5})
+        config.extend_config_with_unknown_keys({"frame_skip": 5, "frame_stack": 5, "rgb_clip": False})
         return config
 
     def initialize_observation(self):
@@ -21,7 +21,9 @@ class TopDownPGDriveEnv(TopDownSingleFramePGDriveEnv):
     def initialize_observation(self):
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         return TopDownMultiChannel(
-            vehicle_config, self, self.config["rgb_clip"],
+            vehicle_config,
+            self,
+            self.config["rgb_clip"],
             frame_stack=self.config["frame_stack"],
             post_stack=self.config["frame_stack"],
             frame_skip=self.config["frame_skip"],
@@ -50,13 +52,13 @@ if __name__ == '__main__':
     env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1))
     env.reset()
     names = [
-        "road_network", "navigation", "target_vehicle", "past_pos", "traffic t-4", "traffic t-3", "traffic t-2",
-        "traffic t-1", "traffic t"
+        "road_network", "navigation", "target_vehicle", "past_pos", "traffic t", "traffic t-1", "traffic t-2",
+        "traffic t-3", "traffic t-4"
     ]
     for _ in range(20):
         o, *_ = env.step([-0.05, 1])
         assert env.observation_space.contains(o)
-    for _ in range(200):
+    for _ in range(100):
         o, *_ = env.step([1, 1])
         fig, axes = plt.subplots(1, o.shape[-1], figsize=(15, 3))
         for o_i in range(o.shape[-1]):

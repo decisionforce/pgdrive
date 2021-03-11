@@ -69,8 +69,7 @@ if __name__ == "__main__":
     # env.vehicle.collision_info_np.detachNode()
     # env.vehicle.routing_localization.right_arrow.detachNode()
 
-
-    env.vehicle.chassis_np.setPos(244,0, 1.5)
+    env.vehicle.chassis_np.setPos(244, 0, 1.5)
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render(

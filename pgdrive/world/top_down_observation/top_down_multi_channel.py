@@ -164,11 +164,12 @@ class TopDownMultiChannel(TopDownObservation):
         return ret
 
     def _transform(self, img):
-        img = np.mean(img, axis=-1)
+        # img = np.mean(img, axis=-1)
+        img = img[..., 0]
         if self.rgb_clip:
             img = img.astype(np.float32) / 255
         else:
-            pass
+            img = img.astype(np.uint8)
         return img
 
     def observe(self, vehicle: BaseVehicle):
