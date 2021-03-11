@@ -199,10 +199,18 @@ class Map:
             ret = self.read_map(map_config)
         return ret
 
+    def __del__(self):
+        describe = self.random_seed if self.random_seed is not None else "custom"
+        logging.debug("Scene {} is destroyed".format(describe))
+
+    # ==========
+    # The below code is deprecated. Part of it's function is inherited in top_down_observation.
+    # The code is used to draw the overall road network and annotate a given route with color.
+    #
     def draw_maximum_surface(self, simple_draw=True) -> pygame.Surface:
-
-        raise ValueError("This part is deprecated!")
-
+        import logging
+        from pgdrive.world.top_down_observation.top_down_obs_impl import WorldSurface, LaneGraphics
+        logging.warning("This part is deprecated! We will remove the rendering function in map instance future!")
         surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
         b_box = self.road_network.get_bounding_box()
         x_len = b_box[1] - b_box[0]
@@ -230,45 +238,41 @@ class Map:
         ret = cv2.resize(pygame.surfarray.pixels_red(surface), resolution, interpolation=cv2.INTER_LINEAR)
         return ret
 
-    def draw_navi_line(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
-
-        raise ValueError("This part is deprecated!")
-        """
-        Use this function to draw the whole map, with a navigation line.
-        :param vehicle: ego vehicle, BaseVehicle Class
-        :param dest_resolution: image resolution
-        :param save: save this image
-        :param navi_line_color: color of navigation line
-        :return: pygame.Surface
-        """
-        self.film_size = (2 * dest_resolution[0], 2 * dest_resolution[1])
-        checkpoints = vehicle.routing_localization.checkpoints
-        max_surface = self.draw_maximum_surface(simple_draw=False)
-        map_surface = pygame.Surface(dest_resolution)
-        pygame.transform.scale(max_surface, dest_resolution, map_surface)
-        surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
-        b_box = self.road_network.get_bounding_box()
-        x_len = b_box[1] - b_box[0]
-        y_len = b_box[3] - b_box[2]
-        max_len = max(x_len, y_len)
-        # scaling and center can be easily found by bounding box
-        scaling = self.film_size[1] / max_len - 0.1
-        surface.scaling = scaling
-        centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
-        surface.move_display_window_to(centering_pos)
-        for i, c in enumerate(checkpoints[:-1]):
-            lanes = self.road_network.graph[c][checkpoints[i + 1]]
-            for lane in lanes:
-                LaneGraphics.simple_draw(lane, surface, color=navi_line_color)
-        dest_surface = pygame.Surface(dest_resolution)
-        pygame.transform.scale(surface, dest_resolution, dest_surface)
-        dest_surface.set_alpha(100)
-        map_surface.blit(dest_surface, (0, 0))
-        if save:
-            pygame.image.save(map_surface, "map_{}.png".format(self.random_seed))
-        self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
-        return map_surface
-
-    def __del__(self):
-        describe = self.random_seed if self.random_seed is not None else "custom"
-        logging.debug("Scene {} is destroyed".format(describe))
+    # def draw_navi_line(self, vehicle, dest_resolution=(512, 512), save=False, navi_line_color=(255, 0, 0)):
+    #
+    #     raise ValueError("This part is deprecated!")
+    #     """
+    #     Use this function to draw the whole map, with a navigation line.
+    #     :param vehicle: ego vehicle, BaseVehicle Class
+    #     :param dest_resolution: image resolution
+    #     :param save: save this image
+    #     :param navi_line_color: color of navigation line
+    #     :return: pygame.Surface
+    #     """
+    #     self.film_size = (2 * dest_resolution[0], 2 * dest_resolution[1])
+    #     checkpoints = vehicle.routing_localization.checkpoints
+    #     max_surface = self.draw_maximum_surface(simple_draw=False)
+    #     map_surface = pygame.Surface(dest_resolution)
+    #     pygame.transform.scale(max_surface, dest_resolution, map_surface)
+    #     surface = WorldSurface(self.film_size, 0, pygame.Surface(self.film_size))
+    #     b_box = self.road_network.get_bounding_box()
+    #     x_len = b_box[1] - b_box[0]
+    #     y_len = b_box[3] - b_box[2]
+    #     max_len = max(x_len, y_len)
+    #     # scaling and center can be easily found by bounding box
+    #     scaling = self.film_size[1] / max_len - 0.1
+    #     surface.scaling = scaling
+    #     centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
+    #     surface.move_display_window_to(centering_pos)
+    #     for i, c in enumerate(checkpoints[:-1]):
+    #         lanes = self.road_network.graph[c][checkpoints[i + 1]]
+    #         for lane in lanes:
+    #             LaneGraphics.simple_draw(lane, surface, color=navi_line_color)
+    #     dest_surface = pygame.Surface(dest_resolution)
+    #     pygame.transform.scale(surface, dest_resolution, dest_surface)
+    #     dest_surface.set_alpha(100)
+    #     map_surface.blit(dest_surface, (0, 0))
+    #     if save:
+    #         pygame.image.save(map_surface, "map_{}.png".format(self.random_seed))
+    #     self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
+    #     return map_surface
