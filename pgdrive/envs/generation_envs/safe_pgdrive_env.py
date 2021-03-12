@@ -18,6 +18,7 @@ class SafePGDriveEnv(PGDriveEnv):
         return config
 
     def custom_info_callback(self):
+        super(SafePGDriveEnv, self).custom_info_callback()
         if self.step_info["crash_vehicle"]:
             self.done = False
         elif self.step_info["crash_object"]:
