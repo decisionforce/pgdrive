@@ -1,7 +1,7 @@
 import sys
 from distutils.core import setup
 from os import path
-
+from pgdrive.world.constants import PG_EDITION
 from setuptools import find_namespace_packages
 
 assert sys.version_info.major == 3 and sys.version_info.minor >= 6, "python version >= 3.6 is required"
@@ -9,14 +9,17 @@ assert sys.version_info.major == 3 and sys.version_info.minor >= 6, "python vers
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
-
 packages = find_namespace_packages(
     exclude=("docs", "docs.*", "documentation", "documentation.*", "pgdrive.assets.*", "build.*"))
 print("We will install the following packages: ", packages)
 
+""" ===== Remember to modify the PG_EDITION at first ====="""
+
+version=PG_EDITION[PG_EDITION.rfind("v")+1:]
+
 setup(
     name="pgdrive",
-    version="0.1.2",
+    version=version,
     description="An open-ended driving simulator with infinite scenes",
     url="https://github.com/decisionforce/pgdrive",
     author="PGDrive Team",

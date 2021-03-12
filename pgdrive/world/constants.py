@@ -2,7 +2,7 @@ from panda3d.core import Vec4
 from pgdrive.scene_creator.object.traffic_object import TrafficCone, TrafficTriangle
 from pgdrive.pg_config.body_name import BodyName
 
-PG_EDITION = "PGDrive v0.1.2"
+PG_EDITION = "PGDrive v0.1.3"
 
 HELP_MESSAGE = "Keyboard Shortcuts:\n" \
                "  W: Acceleration\n" \
