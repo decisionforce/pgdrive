@@ -57,6 +57,8 @@ How to publish to pypi?  Noted by Zhenghao in Dec 27, 2020.
     
 3. Get wheel
     python setup.py sdist bdist_wheel
+    
+    WARNING: wheel should not be created on windows, since assets will not be included in the .whl file !!!
 
 4. Upload to test channel
     twine upload --repository testpypi dist/*
