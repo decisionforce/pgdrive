@@ -476,7 +476,6 @@ class PGDriveEnv(gym.Env):
 
         return done, done_reward, done_info
 
-
     def close(self):
         if self.pg_world is not None:
             if self.main_camera is not None:
