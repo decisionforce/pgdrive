@@ -455,7 +455,7 @@ class PGDriveEnv(gym.Env):
             done_reward += self.config["success_reward"]
             logging.info("Episode ended! Reason: arrive_dest.")
             done_info["arrive_dest"] = True
-        elif vehicle.crash:
+        elif vehicle.crash_vehicle:
             done = True
             done_reward -= self.config["crash_penalty"]
             logging.info("Episode ended! Reason: crash. ")
@@ -583,16 +583,14 @@ class PGDriveEnv(gym.Env):
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
             self.current_map.load_to_pg_world(self.pg_world)
 
-    def add_modules_for_vehicle(self, arg_vehicle):
+    def add_modules_for_vehicle(self, vehicle):
         # FIXME rename!
         # add vehicle module for training according to config
-        vehicle_config = arg_vehicle.vehicle_config
-        arg_vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
+        vehicle_config = vehicle.vehicle_config
+        vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         if not self.config["use_image"]:
-            # TODO visualize lidar
-            arg_vehicle.add_lidar(vehicle_config["lidar"][0], vehicle_config["lidar"][1])
             if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
-                self.vehicle.add_lidar(
+                vehicle.add_lidar(
                     num_lasers=vehicle_config["lidar"]["num_lasers"],
                     distance=vehicle_config["lidar"]["distance"],
                     show_lidar_point=vehicle_config["show_lidar"]
@@ -605,26 +603,26 @@ class PGDriveEnv(gym.Env):
 
             if self.config["use_render"]:
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("rgb_cam", rgb_cam)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("rgb_cam", rgb_cam)
 
-                mini_map = MiniMap(vehicle_config["mini_map"], arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("mini_map", mini_map)
+                mini_map = MiniMap(vehicle_config["mini_map"], vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("mini_map", mini_map)
             return
 
         if self.config["use_image"]:
             # 3 types image observation
             if self.config["image_source"] == "rgb_cam":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("rgb_cam", rgb_cam)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("rgb_cam", rgb_cam)
             elif self.config["image_source"] == "mini_map":
-                mini_map = MiniMap(vehicle_config["mini_map"], arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("mini_map", mini_map)
+                mini_map = MiniMap(vehicle_config["mini_map"], vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("mini_map", mini_map)
             elif self.config["image_source"] == "depth_cam":
                 cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(*cam_config, arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("depth_cam", depth_cam)
+                depth_cam = DepthCamera(*cam_config, vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("depth_cam", depth_cam)
             else:
                 raise ValueError("No module named {}".format(self.config["image_source"]))
 
@@ -632,11 +630,11 @@ class PGDriveEnv(gym.Env):
         if self.config["use_render"]:
             if self.config["image_source"] == "mini_map":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("rgb_cam", rgb_cam)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("rgb_cam", rgb_cam)
             else:
-                mini_map = MiniMap(vehicle_config["mini_map"], arg_vehicle.chassis_np, self.pg_world)
-                arg_vehicle.add_image_sensor("mini_map", mini_map)
+                mini_map = MiniMap(vehicle_config["mini_map"], vehicle.chassis_np, self.pg_world)
+                vehicle.add_image_sensor("mini_map", mini_map)
 
     def dump_all_maps(self):
         assert self.pg_world is None, "We assume you generate map files in independent tasks (not in training). " \

@@ -64,7 +64,7 @@ class TrafficManager(RandomEngine):
         self.update_random_seed(map.random_seed)
 
         # clear traffic in last episdoe
-        self.clear_traffic(pg_world)
+        # self._clear_traffic(pg_world)
 
         self.target_vehicles = target_vehicles
         # self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
@@ -188,15 +188,16 @@ class TrafficManager(RandomEngine):
             self.random_seed = None
 
         # single agent env
-        self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
+        # self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
         # TODO multi-agent env support
-        self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
+        # self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
+
         # update global info
         self.map = map
         self.density = traffic_density
 
         # update vehicle list
-        self.vehicles.append(*controllable_vehicles)  # it is used to perform IDM and bicycle model based motion
+        # self.vehicles.append(*controllable_vehicles)  # it is used to perform IDM and bicycle model based motion
 
     def get_vehicle_num(self):
         """

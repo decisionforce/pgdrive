@@ -73,7 +73,9 @@ class SceneManager:
         if episode_data is None:
             # FIXME
             self.objects_mgr.generate(self, pg_world)
-            self.traffic_mgr.generate(pg_world)
+            self.traffic_mgr.generate(
+                pg_world=pg_world, map=self.map, target_vehicles=self.target_vehicles, traffic_density=traffic_density
+            )
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
 
@@ -151,7 +153,7 @@ class SceneManager:
 
             def _advance(v):
                 PGLOD.cull_distant_traffic_vehicles(self.traffic_mgr.traffic_vehicles, v.position, self.pg_world)
-                PGLOD.cull_distant_objects(self.objects_mgr.spawned_objects, v.position, self.pg_world)
+                PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, v.position, self.pg_world)
 
             self.for_each_target_vehicle(_advance)
             # PGLOD.cull_distant_traffic_vehicles(
