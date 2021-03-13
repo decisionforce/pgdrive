@@ -19,14 +19,13 @@ from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import recursive_equal, safe_clip, clip, get_np_random
+from pgdrive.utils.constans import DEFAULT_AGENT
 from pgdrive.world import RENDER_MODE_NONE
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PGWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
-
-DEFAULT_AGENT = "default_agent"
 
 
 class PGDriveEnv(gym.Env):
@@ -457,7 +456,7 @@ class PGDriveEnv(gym.Env):
             done_info["arrive_dest"] = True
         elif vehicle.crash_vehicle:
             done = True
-            done_reward -= self.config["crash_penalty"]
+            done_reward -= self.config["crash_vehicle_penalty"]
             logging.info("Episode ended! Reason: crash. ")
             done_info["crash"] = True
         elif vehicle.out_of_route or not vehicle.on_lane or vehicle.crash_side_walk:

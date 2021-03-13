@@ -224,8 +224,8 @@ class TrafficManager(RandomEngine):
                     states[vehicle.index] = vehicle.get_state()
 
         # FIXME the global state system might be wrong!
-        # states["ego"] =
-        states["ego"] = self.ego_vehicle.get_state()
+        states["ego"] = {k: v.get_state() for k, v in self.target_vehicles.items()}
+        # states["ego"] = self.ego_vehicle.get_state()
         return states
 
     def get_global_init_states(self) -> Dict:
