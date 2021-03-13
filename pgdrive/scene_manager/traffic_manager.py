@@ -5,7 +5,7 @@ from typing import Tuple, Dict, List
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils import norm, get_np_random
+from pgdrive.utils import norm, RandomEngine
 from pgdrive.world.pg_world import PGWorld
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
@@ -22,7 +22,7 @@ class TrafficMode:
     Hybrid = "hybrid"
 
 
-class TrafficManager:
+class TrafficManager(RandomEngine):
     VEHICLE_GAP = 10  # m
 
     def __init__(self, traffic_mode: TrafficMode, random_traffic: bool):
@@ -30,10 +30,8 @@ class TrafficManager:
         Control the whole traffic flow
         :param traffic_mode: Reborn mode or Trigger mode
         :param random_traffic: the distribution of vehicles will be different in different episdoes
-
-        We treat
         """
-        # current map
+        # current map TODO maintain one map in scene_mgr
         self.map = None
 
         # traffic vehicle list
@@ -41,7 +39,7 @@ class TrafficManager:
         self.vehicles = None
         self.traffic_vehicles = None
         self.block_triggered_vehicles = None
-        self.spawned_vehicles = []
+        self._spawned_vehicles = []  # auto-destroy
 
         # traffic property
         self.mode = traffic_mode
@@ -50,18 +48,18 @@ class TrafficManager:
         self.reborn_lanes = None
 
         # control randomness of traffic
-        self.random_seed = None
-        self.np_random = None
+        super(TrafficManager, self).__init__()
 
     def generate(self, pg_world: PGWorld, map: Map, target_vehicles: Dict, traffic_density: float):
         """
-        Generate traffic on map
+        Generate traffic on map, according to the mode and density
         :param pg_world: World
         :param map: The map class containing block list and road network
         :param target_vehicles: vehicles for a multi-agent environment support
         :param traffic_density: Traffic density defined by: number of vehicles per meter
         :return: List of Traffic vehicles
         """
+
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.update_random_seed(map.random_seed)
 
@@ -80,9 +78,10 @@ class TrafficManager:
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self.spawned_vehicles = []
 
+        traffic_density = self.density
         if abs(traffic_density - 0.0) < 1e-2:
             return
-
+        map = self.map
         self.reborn_lanes = None
         if self.mode == TrafficMode.Reborn:
             # add reborn vehicle
@@ -95,7 +94,7 @@ class TrafficManager:
             self._create_vehicles_once(pg_world, map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
-        logging.debug("Init {} Traffic Vehicles".format(len(self.vehicles) - 1))
+        logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_vehicles)))
 
     def prepare_step(self, scene_mgr):
         """
@@ -139,6 +138,11 @@ class TrafficManager:
                 remove = v.need_remove()
                 if remove:
                     vehicles_to_remove.append(v)
+                else:
+                    # TODO traffic system will be updated soon
+                    self.vehicles.remove(v.vehicle_node.kinematic_model)
+                    v.reset()
+                    self.vehicles.append(v.vehicle_node.kinematic_model)
             else:
                 v.update_state(pg_world)
 
@@ -154,33 +158,45 @@ class TrafficManager:
                 vehicle_type = self.random_vehicle_type()
                 random_v = self.spawn_one_vehicle(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
                 self.traffic_vehicles.append(random_v)
-                self.vehicles.append(random_v.vehicle_node.kinematic_model)
 
         return False
 
-    def clear_traffic(self, pg_world: PGWorld) -> None:
-        """
-        Clear all traffic vehicles in map
-        :param pg_world: World
-        :return: None
-        """
-        if self.spawned_vehicles is not None:
-            for v in self.spawned_vehicles:
+    def _clear_traffic(self, pg_world: PGWorld):
+        if self._spawned_vehicles is not None:
+            for v in self._spawned_vehicles:
                 v.destroy(pg_world)
 
-        self.traffic_vehicles = None
-        self.vehicles = None
-        self.block_triggered_vehicles = None
-        self.spawned_vehicles = None
-
-    def update_random_seed(self, random_seed: int):
+    def reset(self, pg_world: PGWorld, map: Map, controllable_vehicles: List, traffic_density: float) -> None:
         """
-        Update the random seed and random engine of traffic
-        :param random_seed: int, random seed
+        Clear the scene and then reset the scene to empty
+        :param pg_world: PGWorld class
+        :param map: Map class containing road_network
+        :param controllable_vehicles: a list of controllable vehicles
+        :param traffic_density: the density of traffic in this episode
         :return: None
         """
-        self.random_seed = random_seed if not self.random_traffic else None
-        self.np_random = get_np_random(self.random_seed)
+        self._clear_traffic(pg_world)
+
+        self.vehicles = []
+        self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
+        self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
+        self._spawned_vehicles = []
+
+        logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
+        self.update_random_seed(map.random_seed)
+        if self.random_traffic:
+            self.random_seed = None
+
+        # single agent env
+        self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
+        # TODO multi-agent env support
+        self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
+        # update global info
+        self.map = map
+        self.density = traffic_density
+
+        # update vehicle list
+        self.vehicles.append(*controllable_vehicles)  # it is used to perform IDM and bicycle model based motion
 
     def get_vehicle_num(self):
         """
@@ -247,7 +263,8 @@ class TrafficManager:
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self.vehicles), self, lane, long, seed=self.random_seed, enable_reborn=enable_reborn
         )
-        self.spawned_vehicles.append(random_v)
+        self._spawned_vehicles.append(random_v)
+        self.vehicles.append(random_v.vehicle_node.kinematic_model)
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_reborn_lane):
@@ -270,7 +287,6 @@ class TrafficManager:
                 continue
             vehicle_type = self.random_vehicle_type()
             random_v = self.spawn_one_vehicle(vehicle_type, lane, long, is_reborn_lane)
-            self.vehicles.append(random_v.vehicle_node.kinematic_model)
             traffic_vehicles.append(random_v)
         return traffic_vehicles
 
@@ -291,6 +307,8 @@ class TrafficManager:
         """
         vehicle_num = 0
         for block in map.blocks[1:]:
+            if block.PROHIBIT_TRAFFIC_GENERATION:
+                continue
             vehicles_on_block = []
             trigger_road = block.pre_block_socket.positive_road
 
@@ -397,7 +415,7 @@ class TrafficManager:
         :param pg_world: World
         :return: None
         """
-        self.clear_traffic(pg_world)
+        self._clear_traffic(pg_world)
         # current map
         self.map = None
 

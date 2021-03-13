@@ -22,7 +22,8 @@ class SceneManager:
         pg_world: PGWorld,
         traffic_mode=TrafficMode.Trigger,
         random_traffic: bool = False,
-        record_episode: bool = False
+        record_episode: bool = False,
+        cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -46,7 +47,10 @@ class SceneManager:
         self.replay_system: Optional[PGReplayer] = None
         self.record_system: Optional[PGRecorder] = None
 
-    def reset(self, map: Map, target_vehicles, traffic_density: float, episode_data=None):
+        # cull scene
+        self.cull_scene = cull_scene
+
+    def reset(self, map: Map, target_vehicles, traffic_density: float, accident_prob: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
@@ -55,8 +59,9 @@ class SceneManager:
         self.target_vehicles = target_vehicles
         self.map = map
 
-        self.traffic_mgr.clear_traffic(pg_world)
-        self.objects_mgr.clear_objects(pg_world)
+        # FIXME
+        self.traffic_mgr.reset(pg_world, map, target_vehicles, traffic_density)
+        self.objects_mgr.reset(pg_world, map, accident_prob)
 
         if self.replay_system is not None:
             self.replay_system.destroy(pg_world)
@@ -66,12 +71,14 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            self.traffic_mgr.generate(pg_world, map, self.target_vehicles, traffic_density)
+            # FIXME
+            self.objects_mgr.generate(self, pg_world)
+            self.traffic_mgr.generate(pg_world)
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
 
-        if pg_world.highway_render is not None:
-            pg_world.highway_render.set_scene_mgr(self)
+        # if pg_world.highway_render is not None:
+        #     pg_world.highway_render.set_scene_mgr(self)
         if self.record_episode:
             if episode_data is None:
                 self.record_system = PGRecorder(map, self.traffic_mgr.get_global_init_states())
@@ -160,6 +167,14 @@ class SceneManager:
         for k, v in self.target_vehicles.items():
             ret[k] = func(v)
         return ret
+        if self.cull_scene:
+            PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
+            if self.replay_system is None:
+                PGLOD.cull_distant_traffic_vehicles(
+                    self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
+                )
+                PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, self.ego_vehicle.position, self.pg_world)
+        return done
 
     def dump_episode(self) -> None:
         """Dump the data of an episode."""
@@ -170,6 +185,10 @@ class SceneManager:
         pg_world = self.pg_world if pg_world is None else pg_world
         self.traffic_mgr.destroy(pg_world)
         self.traffic_mgr = None
+
+        self.objects_mgr.destroy(pg_world)
+        self.objects_mgr = None
+
         self.map = None
         if self.record_system is not None:
             self.record_system.destroy(pg_world)

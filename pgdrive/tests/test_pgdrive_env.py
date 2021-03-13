@@ -19,12 +19,22 @@ blackbox_test_configs = dict(
     envs_100=dict(environment_num=100),
     envs_1000=dict(environment_num=1000),
     envs_10000=dict(environment_num=10000),
-    envs_100000=dict(environment_num=100000)
+    envs_100000=dict(environment_num=100000),
+    no_lidar0=dict(vehicle_config=dict(lidar=dict(num_lasers=0, distance=0, num_others=0))),
+    no_lidar1=dict(vehicle_config=dict(lidar=dict(num_lasers=0, distance=10, num_others=0))),
+    no_lidar2=dict(vehicle_config=dict(lidar=dict(num_lasers=10, distance=0, num_others=0))),
+    no_lidar3=dict(vehicle_config=dict(lidar=dict(num_lasers=0, distance=0, num_others=10))),
+    no_lidar4=dict(vehicle_config=dict(lidar=dict(num_lasers=10, distance=10, num_others=0))),
+    no_lidar5=dict(vehicle_config=dict(lidar=dict(num_lasers=10, distance=0, num_others=10))),
+    no_lidar6=dict(vehicle_config=dict(lidar=dict(num_lasers=0, distance=10, num_others=10))),
+    no_lidar7=dict(vehicle_config=dict(lidar=dict(num_lasers=10, distance=10, num_others=10))),
 )
 
 pid_control_config = dict(environment_num=1, start_seed=5, map="CrXROSTR", traffic_density=0.0)
 
-info_keys = ["cost", "velocity", "steering", "acceleration", "step_reward", "crash", "out_of_road", "arrive_dest"]
+info_keys = [
+    "cost", "velocity", "steering", "acceleration", "step_reward", "crash_vehicle", "out_of_road", "arrive_dest"
+]
 
 assert "__init__.py" not in os.listdir(os.path.dirname(__file__)), "Please remove __init__.py in tests directory."
 
