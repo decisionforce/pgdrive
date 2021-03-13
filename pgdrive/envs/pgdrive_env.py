@@ -226,8 +226,7 @@ class PGDriveEnv(gym.Env):
                 self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
             )
         # add sensors
-        for v in self.vehicles.values():
-            self.add_modules_for_vehicle(v)
+        self.for_each_vehicle(self.add_modules_for_vehicle)
 
     def preprocess_actions(self, actions):
         ret_actions = dict()
@@ -247,7 +246,7 @@ class PGDriveEnv(gym.Env):
                 )
 
             # filter by saver to protect
-            steering, throttle, saver_info = self.saver(action, vehicle)
+            steering, throttle, saver_info = self.saver(action, key)
             action = (steering, throttle)
             step_info.update(saver_info)
             infos[key] = step_info
@@ -582,7 +581,6 @@ class PGDriveEnv(gym.Env):
             self.current_map.load_to_pg_world(self.pg_world)
 
     def add_modules_for_vehicle(self, vehicle):
-        # FIXME rename!
         # add vehicle module for training according to config
         vehicle_config = vehicle.vehicle_config
         vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added

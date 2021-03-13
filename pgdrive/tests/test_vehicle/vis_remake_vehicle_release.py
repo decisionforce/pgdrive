@@ -18,9 +18,13 @@ class TestEnv(PGDriveEnv):
 
     def reset(self):
         if self.vehicle is not None:
-            self.vehicle.destroy()
-            self.vehicle = BaseVehicle(env.pg_world, env.config["vehicle_config"])
-            self.add_modules_for_vehicle()
+            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
+            self.vehicles = {
+                a: BaseVehicle(self.pg_world, env.config["vehicle_config"])
+                for a in self.multi_agent_action_space.keys()
+            }
+
+            self.for_each_vehicle(self.add_modules_for_vehicle)
             if self.main_camera is not None:
                 self.main_camera.reset(self.vehicle, env.pg_world)
         super(TestEnv, self).reset()
