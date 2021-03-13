@@ -125,7 +125,7 @@ class PGDriveEnv(gym.Env):
                  for i in range(self.num_agents)}
             )
 
-        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
         if self.num_agents == 1:
             self.multi_agent_action_space = {DEFAULT_AGENT: action_space_fn()}
             self.action_space = self.multi_agent_action_space[DEFAULT_AGENT]
@@ -299,7 +299,7 @@ class PGDriveEnv(gym.Env):
                 reward = 0
             step_infos[key].update(
                 {
-                    "cost": float(0),  # it may be overwritten in callback func
+                    "cost": float(0),
                     "velocity": float(vehicle.speed),
                     "steering": float(vehicle.steering),
                     "acceleration": float(vehicle.throttle_brake),
@@ -307,6 +307,7 @@ class PGDriveEnv(gym.Env):
                     "takeover": self.takeover,  # TODO fix takeover!
                 }
             )
+            step_infos[key] = self._add_cost_to_info(step_infos[key])
             step_infos[key] = self.custom_info_callback(step_infos[key], vehicle)
             rewards[key] = reward + done_reward
 
@@ -316,15 +317,15 @@ class PGDriveEnv(gym.Env):
         else:
             return obses, rewards, copy.deepcopy(self.dones), copy.deepcopy(step_infos)
 
-    def _add_cost(self):
-        # FIXME wrong!
-        self.step_info["cost"] = 0
-        if self.step_info["crash_vehicle"]:
-            self.step_info["cost"] = self.config["crash_vehicle_cost"]
-        elif self.step_info["crash_object"]:
-            self.step_info["cost"] = self.config["crash_object_cost"]
-        elif self.step_info["out_of_road"]:
-            self.step_info["cost"] = self.config["out_of_road_cost"]
+    def _add_cost_to_info(self, step_info):
+        step_info["cost"] = 0
+        if step_info["crash_vehicle"]:
+            step_info["cost"] = self.config["crash_vehicle_cost"]
+        elif step_info["crash_object"]:
+            step_info["cost"] = self.config["crash_object_cost"]
+        elif step_info["out_of_road"]:
+            step_info["cost"] = self.config["out_of_road_cost"]
+        return step_info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         """
@@ -427,7 +428,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -827,6 +828,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
