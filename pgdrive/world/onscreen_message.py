@@ -2,8 +2,7 @@ from typing import Optional, Union
 
 from direct.showbase import OnScreenDebug
 from panda3d.core import Vec4
-
-from pgdrive.world.constants import HELP_MESSAGE, DEBUG_MESSAGE
+from pgdrive.constants import HELP_MESSAGE, DEBUG_MESSAGE
 
 
 class PGOnScreenMessage(OnScreenDebug.OnScreenDebug):
@@ -73,7 +72,7 @@ class PGOnScreenMessage(OnScreenDebug.OnScreenDebug):
                 isNew = "~"
             value = v[1]
             if type(value) == float:
-                value = "% 10.4f" % (value, )
+                value = "% 10.4f" % (value,)
             # else: other types will be converted to str by the "%s"
             if type(value) == str:
                 value = value.strip()
