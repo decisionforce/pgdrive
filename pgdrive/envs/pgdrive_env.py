@@ -169,9 +169,7 @@ class PGDriveEnv(gym.Env):
         self.vehicles = {a: None for a in self.multi_agent_action_space.keys()}
 
         self.dones = None
-
-        self.takeover = False
-        # self.step_info = None
+        self.takeover = None
         self.front_vehicles = None
         self.back_vehicles = None
 
@@ -304,7 +302,7 @@ class PGDriveEnv(gym.Env):
                     "steering": float(vehicle.steering),
                     "acceleration": float(vehicle.throttle_brake),
                     "step_reward": float(reward),
-                    "takeover": self.takeover,  # TODO fix takeover!
+                    "takeover": self.takeover[key],
                 }
             )
             step_infos[key] = self._add_cost_to_info(step_infos[key])
@@ -367,7 +365,7 @@ class PGDriveEnv(gym.Env):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
 
         self.dones = {a: False for a in self.multi_agent_action_space.keys()}
-        self.takeover = False
+        self.takeover = {a: False for a in self.multi_agent_action_space.keys()}
 
         # clear world and traffic manager
         self.pg_world.clear_world()
@@ -730,14 +728,15 @@ class PGDriveEnv(gym.Env):
         else:
             return action
 
-    def saver(self, action, vehicle=None):
+    def saver(self, action, vehicle_key=None):
         """
         Rule to enable saver
         :param action: original action
         :return: a new action to override original action
         """
-        if vehicle is None:
+        if vehicle_key is None:
             raise ValueError("Please update your code to multi-agent variant! Delete this sentence later!")
+        vehicle = self.vehicles[vehicle_key]
 
         steering = action[0]
         throttle = action[1]
@@ -778,11 +777,11 @@ class PGDriveEnv(gym.Env):
                     throttle = saver_a[1]
 
         # indicate if current frame is takeover step
-        pre_save = self.takeover
-        self.takeover = True if action[0] != steering or action[1] != throttle else False
+        pre_save = self.takeover[vehicle_key]
+        self.takeover[vehicle_key] = True if action[0] != steering or action[1] != throttle else False
         saver_info = {
-            "takeover_start": True if not pre_save and self.takeover else False,
-            "takeover_end": True if pre_save and not self.takeover else False
+            "takeover_start": True if not pre_save and self.takeover[vehicle_key] else False,
+            "takeover_end": True if pre_save and not self.takeover[vehicle_key] else False
         }
         return steering, throttle, saver_info
 
