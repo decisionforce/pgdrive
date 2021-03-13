@@ -23,6 +23,9 @@ class TrafficMode:
 
 
 class TrafficManager:
+
+    # FIXME we should use dict to vehicles! Rather than list!
+
     VEHICLE_GAP = 10  # m
 
     def __init__(self, traffic_mode: TrafficMode, random_traffic: bool):

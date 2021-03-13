@@ -4,7 +4,7 @@ import logging
 import os.path as osp
 import sys
 import time
-from typing import Union, Optional, Iterable
+from typing import Union, Optional, Iterable, Dict, AnyStr
 
 import gym
 import numpy as np
@@ -203,75 +203,90 @@ class PGDriveEnv(gym.Env):
         for v in self.vehicles.values():
             self.add_modules_for_vehicle(v)
 
-    def step(self, action: np.ndarray):
-        assert self.num_agents == 1, "We don't support multi-agent yet!"
-        # add custom metric in info
-        step_info = {"raw_action": (action[0], action[1])}
+    def preprocess_actions(self, actions):
+        ret_actions = dict()
+        infos = dict()
 
-        if self.config["action_check"]:
-            assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
-                action, self.action_space
-            )
+        for key, action in actions.items():
+
+            vehicle = self.vehicles[key]
+            action_space = self.multi_agent_action_space[key]
+
+            # add custom metric in info
+            step_info = {"raw_action": (action[0], action[1])}
+
+            if self.config["action_check"]:
+                assert action_space.contains(action), "Input {} is not compatible with action space {}!".format(
+                    action, action_space
+                )
+
+            # filter by saver to protect
+            steering, throttle, saver_info = self.saver(action, vehicle)
+            action = (steering, throttle)
+            step_info.update(saver_info)
+            infos[key] = step_info
+
+            # protect agent from nan error
+            action = safe_clip(action, min_val=action_space.low[0], max_val=action_space.high[0])
+            ret_actions[key] = action
+        return ret_actions, infos
+
+    def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
 
         if self.config["manual_control"] and self.use_render:
-            action = self.controller.process_input()
-            action = self.expert_take_over(action)
+            assert self.num_agents == 1, "We don't support manually control in multi-agent yet!"
+            actions = self.controller.process_input()
+            actions = self.expert_take_over(actions)
 
-        # filter by saver to protect
-        steering, throttle, saver_info = self.saver(action)
-        action = (steering, throttle)
-        step_info.update(saver_info)
+        if self.num_agents == 1:
+            actions = {DEFAULT_AGENT: actions}
 
-        # protect agent from nan error
-        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
+        actions, step_infos = self.preprocess_actions(actions)
+
+        # Check whether some actions are left.
+        given_keys = set(actions.keys())
+        have_keys = set(self.vehicles.keys())
+        assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
+            given_keys, have_keys
+        )
 
         # preprocess
-        self.scene_manager.prepare_step(action)
+        self.scene_manager.prepare_step(actions)
 
         # step all entities
         self.scene_manager.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
-        done = self.scene_manager.update_state()
+        dones = self.scene_manager.update_state()
 
         # update obs
-        obs = self.for_each_vehicle(self.observation.observe)
-        assert len(obs) == 1, "We don't support multi-agent now!"
-        obs = obs[DEFAULT_AGENT]
-        # obs = self.observation.observe(self.vehicle)
+        obses = self.for_each_vehicle(self.observation.observe)
+        rewards = dict()
+        for key, vehicle in self.vehicles.items():
+            reward = self.reward_function(vehicle, actions[key])
+            done, done_reward, done_info = self.done_function(vehicle)
+            step_infos[key].update(done_info)
+            self.dones[key] = self.dones[key] or dones[key] or done
+            if self.dones[key]:
+                reward = 0
+            step_infos[key].update(
+                {
+                    "cost": float(0),  # it may be overwritten in callback func
+                    "velocity": float(vehicle.speed),
+                    "steering": float(vehicle.steering),
+                    "acceleration": float(vehicle.throttle_brake),
+                    "step_reward": float(reward),
+                    "takeover": self.takeover,  # TODO fix takeover!
+                }
+            )
+            step_infos[key] = self.custom_info_callback(step_infos[key], vehicle)
+            rewards[key] = reward + done_reward
 
-        # update rl info
-        assert len(self.dones) == 1
-        self.dones[DEFAULT_AGENT] = self.dones[DEFAULT_AGENT] or done
-        assert len(self.vehicles) == 1
-
-        # step_reward = self.for_each_vehicle(self.reward_function)
-        assert len(self.vehicles) == 1
-        step_reward = self.reward_function(self.vehicles[DEFAULT_AGENT], action)
-
-        done, done_reward, done_info = self.done_function(self.vehicles[DEFAULT_AGENT])
-        step_info.update(done_info)
-        self.dones[DEFAULT_AGENT] = done
-
-        if self.dones[DEFAULT_AGENT]:
-            step_reward = 0
-
-        # update info
-        step_info.update(
-            {
-                "cost": float(0),  # it may be overwritten in callback func
-                "velocity": float(self.vehicles[DEFAULT_AGENT].speed),
-                "steering": float(self.vehicles[DEFAULT_AGENT].steering),
-                "acceleration": float(self.vehicles[DEFAULT_AGENT].throttle_brake),
-                "step_reward": float(step_reward),
-                "takeover": self.takeover,
-            }
-        )
-        step_info = self.custom_info_callback(step_info)
-
-        # FIXME step info should be a dict too!
-
-        return obs, step_reward + done_reward, self.dones[DEFAULT_AGENT], step_info
+        if self.num_agents == 1:
+            return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
+                   copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(step_infos[DEFAULT_AGENT])
+        else:
+            return obses, rewards, copy.deepcopy(self.dones), copy.deepcopy(step_infos)
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         """
@@ -328,7 +343,7 @@ class PGDriveEnv(gym.Env):
         # generate new traffic according to the map
         assert len(self.vehicles) == 1, "We don't support multi-agent now!"
         self.scene_manager.reset(
-            self.current_map, self.vehicles[DEFAULT_AGENT], self.config["traffic_density"], episode_data=episode_data
+            self.current_map, self.vehicles, self.config["traffic_density"], episode_data=episode_data
         )
 
         self.front_vehicles = set()
@@ -448,16 +463,21 @@ class PGDriveEnv(gym.Env):
         del self.restored_maps
         self.restored_maps = dict()
 
-    def custom_info_callback(self, step_info):
+    def custom_info_callback(self, step_info, vehicle):
         """
         Override it to add custom infomation
         :return: None
         """
+
+        # FIXME This function is not working!
+
         if self.config["overtake_stat"]:
             # use it only when evaluation
             assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
-            self._overtake_stat(self.vehicles[DEFAULT_AGENT])
+            self._overtake_stat(vehicle)
+
         step_info["overtake_vehicle_num"] = len(self.front_vehicles.intersection(self.back_vehicles))
+
         return step_info
 
     def _overtake_stat(self, vehicle):
@@ -652,13 +672,14 @@ class PGDriveEnv(gym.Env):
         else:
             return action
 
-    def saver(self, action):
+    def saver(self, action, vehicle=None):
         """
         Rule to enable saver
         :param action: original action
         :return: a new action to override original action
         """
-        vehicle = self.vehicles[DEFAULT_AGENT]
+        if vehicle is None:
+            raise ValueError("Please update your code to multi-agent variant! Delete this sentence later!")
 
         steering = action[0]
         throttle = action[1]

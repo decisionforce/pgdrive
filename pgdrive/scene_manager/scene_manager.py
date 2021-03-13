@@ -1,13 +1,13 @@
 import logging
-from pgdrive.scene_manager.PGLOD import PGLOD
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, AnyStr
+
 import numpy as np
 from pgdrive.scene_creator.map import Map
-from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.scene_manager.PGLOD import PGLOD
 from pgdrive.scene_manager.object_manager import ObjectsManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
+from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
 from pgdrive.world.pg_world import PGWorld
-from pgdrive.scene_manager.traffic_manager import TrafficMode
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,9 @@ class SceneManager:
         self.objects_mgr = ObjectsManager()
 
         # common variable
-        self.ego_vehicle = None
+
+        # FIXME! We need multi-agent variant of vehicles here!
+        self.target_vehicles = None
         self.map = None
 
         # for recovering, they can not exist together
@@ -44,12 +46,13 @@ class SceneManager:
         self.replay_system: Optional[PGReplayer] = None
         self.record_system: Optional[PGRecorder] = None
 
-    def reset(self, map: Map, ego_vehicle, traffic_density: float, episode_data=None):
+    def reset(self, map: Map, target_vehicles, traffic_density: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
         pg_world = self.pg_world
-        self.ego_vehicle = ego_vehicle
+        assert isinstance(target_vehicles, dict)
+        self.target_vehicles = target_vehicles
         self.map = map
 
         self.traffic_mgr.clear_traffic(pg_world)
@@ -63,7 +66,7 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            self.traffic_mgr.generate(pg_world, map, [ego_vehicle], traffic_density)
+            self.traffic_mgr.generate(pg_world, map, list(self.target_vehicles.values()), traffic_density)
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
 
@@ -75,7 +78,7 @@ class SceneManager:
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
-    def prepare_step(self, ego_vehicle_action: np.array):
+    def prepare_step(self, target_actions: Dict[AnyStr, np.array]):
         """
         Entities make decision here, and prepare for step
         All entities can access this global manager to query or interact with others
@@ -85,7 +88,8 @@ class SceneManager:
         """
         if self.replay_system is None:
             # not in replay mode
-            self.ego_vehicle.prepare_step(ego_vehicle_action)
+            for k, a in target_actions.items():
+                self.target_vehicles[k].prepare_step(a)
             self.traffic_mgr.prepare_step(self, self.pg_world)
 
     def step(self, step_num: int = 1) -> None:
@@ -113,25 +117,49 @@ class SceneManager:
         Update states after finishing movement
         :return: if this episode is done
         """
-        done = False
+        dones = {k: False for k in self.target_vehicles.keys()}
+        # done = False
+
         if self.replay_system is not None:
-            self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
+            self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
+            # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         else:
-            done = self.traffic_mgr.update_state(self, self.pg_world) or done
+            global_done = self.traffic_mgr.update_state(self, self.pg_world)
+            if global_done:
+                dones = {k: True for k in self.target_vehicles.keys()}
+
         if self.record_system is not None:
             # didn't record while replay
             self.record_system.record_frame(self.traffic_mgr.get_global_states())
-        self.ego_vehicle.update_state()
+
+        self.for_each_target_vehicle(lambda v: v.update_state())
+        # self.ego_vehicle.update_state()
 
         # cull distant objects
-        PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
+        self.for_each_target_vehicle(lambda v: PGLOD.cull_distant_blocks(self.map.blocks, v.position, self.pg_world))
+        # PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
+
         if self.replay_system is None:
             # TODO add objects to replay system and add new cull method
-            PGLOD.cull_distant_traffic_vehicles(
-                self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
-            )
-            PGLOD.cull_distant_objects(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
-        return done
+
+            def _advance(v):
+                PGLOD.cull_distant_traffic_vehicles(self.traffic_mgr.traffic_vehicles, v.position, self.pg_world)
+                PGLOD.cull_distant_objects(self.objects_mgr.spawned_objects, v.position, self.pg_world)
+
+            self.for_each_target_vehicle(_advance)
+            # PGLOD.cull_distant_traffic_vehicles(
+            #     self.traffic_mgr.traffic_vehicles, self.ego_vehicle.position, self.pg_world
+            # )
+            # PGLOD.cull_distant_objects(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
+
+        return dones
+
+    def for_each_target_vehicle(self, func):
+        """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""
+        ret = dict()
+        for k, v in self.target_vehicles.items():
+            ret[k] = func(v)
+        return ret
 
     def dump_episode(self) -> None:
         """Dump the data of an episode."""
