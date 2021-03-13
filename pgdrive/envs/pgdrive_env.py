@@ -125,7 +125,7 @@ class PGDriveEnv(gym.Env):
                  for i in range(self.num_agents)}
             )
 
-        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
         if self.num_agents == 1:
             self.multi_agent_action_space = {DEFAULT_AGENT: action_space_fn()}
             self.action_space = self.multi_agent_action_space[DEFAULT_AGENT]
@@ -425,7 +425,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -825,7 +825,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:
