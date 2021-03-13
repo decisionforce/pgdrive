@@ -121,7 +121,7 @@ class PGDriveEnv(gym.Env):
                  for i in range(self.num_agents)}
             )
 
-        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
         if self.num_agents == 1:
             self.multi_agent_action_space = {DEFAULT_AGENT: action_space_fn()}
             self.action_space = self.multi_agent_action_space[DEFAULT_AGENT]
@@ -215,11 +215,8 @@ class PGDriveEnv(gym.Env):
 
         # init vehicle
         v_config = self.config["vehicle_config"]
-        v_config["use_image"] = self.config["use_image"]
-        v_config["image_source"] = self.config["image_source"]
-        v_config["use_render"] = self.config["use_render"]
-
-        self.vehicles = {a: BaseVehicle(self.pg_world, v_config) for a in self.multi_agent_action_space.keys()}
+        self.vehicles = {a: BaseVehicle(self.pg_world, v_config, self.config["use_render"]) for a in
+                         self.multi_agent_action_space.keys()}
 
         # TODO add a change target vehicle cam func
         # for manual_control and main camera type
@@ -373,7 +370,7 @@ class PGDriveEnv(gym.Env):
         # reset main vehicle
         # self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
         for v in self.vehicles.values():
-            v.reset(self.current_map, v.born_place, 0.0)
+            v.reset(self.current_map)
 
         # generate new traffic according to the map
         self.scene_manager.reset(
@@ -384,8 +381,6 @@ class PGDriveEnv(gym.Env):
             episode_data=episode_data
         )
 
-        self.front_vehicles = set()
-        self.back_vehicles = set()
         return self._get_reset_return()
 
     def _get_reset_return(self):
@@ -423,7 +418,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -511,32 +506,7 @@ class PGDriveEnv(gym.Env):
         Override it to add custom infomation
         :return: None
         """
-
-        # FIXME This function is not working!
-
-        if self.config["overtake_stat"]:
-            # use it only when evaluation
-            assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
-            self._overtake_stat(vehicle)
-
-        step_info["overtake_vehicle_num"] = len(self.front_vehicles.intersection(self.back_vehicles))
-
         return step_info
-
-    def _overtake_stat(self, vehicle):
-        surrounding_vs = vehicle.lidar.get_surrounding_vehicles()
-        routing = vehicle.routing_localization
-        ckpt_idx = routing.target_checkpoints_index
-        for surrounding_v in surrounding_vs:
-            if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]]):
-                if vehicle.lane.local_coordinates(vehicle.position)[0] - \
-                        vehicle.lane.local_coordinates(surrounding_v.position)[0] < 0:
-                    self.front_vehicles.add(surrounding_v)
-                    if surrounding_v in self.back_vehicles:
-                        # FIXME, multi-agent not supported yet!
-                        self.back_vehicles.remove(surrounding_v)
-                else:
-                    self.back_vehicles.add(surrounding_v)
 
     def update_map(self, episode_data: dict = None):
         if episode_data is not None:
@@ -577,7 +547,6 @@ class PGDriveEnv(gym.Env):
             self.current_map = self.maps[self.current_seed]
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
             self.current_map.load_to_pg_world(self.pg_world)
-
 
     def dump_all_maps(self):
         assert self.pg_world is None, "We assume you generate map files in independent tasks (not in training). " \

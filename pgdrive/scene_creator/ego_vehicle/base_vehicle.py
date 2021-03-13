@@ -1,4 +1,5 @@
 import copy
+from pgdrive.scene_creator.blocks.first_block import FirstBlock
 import logging
 import math
 import time
@@ -49,26 +50,36 @@ class BaseVehicle(DynamicElement):
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
-    default_vehicle_config = PGConfig(
-        dict(
-            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-            show_lidar=False,
-            mini_map=(84, 84, 250),  # buffer length, width
-            rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_mark=True,
-            increment_steering=False,
-            wheel_friction=0.6,
-            image_source="rgb_cam",
-            use_image=False,
-            use_render=False
-        ))
+    default_vehicle_config = PGConfig(dict(
 
-    born_place = (5, 0)
+        # ===== vehicle module config =====
+        lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
+        show_lidar=False,
+        mini_map=(84, 84, 250),  # buffer length, width
+        rgb_cam=(84, 84),  # buffer length, width
+        depth_cam=(84, 84, True),  # buffer length, width, view_ground
+        show_navi_mark=True,
+        increment_steering=False,
+        wheel_friction=0.6,
+
+        # ===== use image =====
+        image_source="rgb_cam",  # take effect when only when use_image == True
+        use_image=False,
+
+        # ===== vehicle born =====
+        born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+        born_longitude=5.0,
+        bron_lateral=0.0,
+
+        # ==== others ====
+        overtake_stat=False,  # we usually set to True when evaluation
+    ))
+
     LENGTH = None
     WIDTH = None
 
-    def __init__(self, pg_world: PGWorld, vehicle_config: dict = None, random_seed: int = 0, config: dict = None):
+    def __init__(self, pg_world: PGWorld, vehicle_config: dict = None, use_render=False, *, random_seed: int = 0,
+                 physics_config: dict = None):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
         module parameters.
@@ -79,8 +90,8 @@ class BaseVehicle(DynamicElement):
 
         # config info
         self.set_config(self.PARAMETER_SPACE.sample())
-        if config is not None:
-            self.set_config(config)
+        if physics_config is not None:
+            self.set_config(physics_config)
 
         self.vehicle_config = self.get_vehicle_config(
             vehicle_config
@@ -103,6 +114,7 @@ class BaseVehicle(DynamicElement):
         self.vehicle_panel = VehiclePanel(self.pg_world) if (self.pg_world.mode == RENDER_MODE_ONSCREEN) else None
 
         # state info
+        self.born_place = (0, 0)
         self.throttle_brake = 0.0
         self.steering = 0
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
@@ -127,9 +139,9 @@ class BaseVehicle(DynamicElement):
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
-        self._add_modules_for_vehicle()
+        self._add_modules_for_vehicle(use_render)
 
-    def _add_modules_for_vehicle(self):
+    def _add_modules_for_vehicle(self, use_render):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
@@ -146,7 +158,7 @@ class BaseVehicle(DynamicElement):
                     "You have set the lidar config to: {}, which seems to be invalid!".format(vehicle_config["lidar"])
                 )
 
-            if vehicle_config["use_render"]:
+            if use_render:
                 rgb_cam_config = vehicle_config["rgb_cam"]
                 rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.pg_world)
                 self.add_image_sensor("rgb_cam", rgb_cam)
@@ -172,7 +184,7 @@ class BaseVehicle(DynamicElement):
                 raise ValueError("No module named {}".format(vehicle_config["image_source"]))
 
         # load more sensors for visualization when render, only for beauty...
-        if vehicle_config["use_render"]:
+        if use_render:
             if vehicle_config["image_source"] == "mini_map":
                 rgb_cam_config = vehicle_config["rgb_cam"]
                 rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.pg_world)
@@ -227,11 +239,18 @@ class BaseVehicle(DynamicElement):
         self._state_check()
         self.update_dist_to_left_right()
         self.out_of_route = True if self.dist_to_right < 0 or self.dist_to_left < 0 else False
+        self._update_overtake_stat()
 
-    def reset(self, map: Map, pos: np.ndarray, heading: float):
+    def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
         """
         pos is a 2-d array, and heading is a float (unit degree)
+        if pos is not None, vehicle will be reset to the position
+        else, vehicle will be reset to born place
         """
+        if pos is None:
+            self.born_place = map.road_network.get_lane(self.vehicle_config["born_lane_index"]).position(
+                self.vehicle_config["born_longitude"], self.vehicle_config["born_lateral"])
+            pos = self.born_place
         heading = -np.deg2rad(heading) - np.pi / 2
         self.chassis_np.setPos(Vec3(*pos, 1))
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
@@ -251,6 +270,10 @@ class BaseVehicle(DynamicElement):
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
         self.update_dist_to_left_right()
+
+        # overtake_stat
+        self.front_vehicles = set()
+        self.back_vehicles = set()
 
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
@@ -371,8 +394,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -634,6 +657,25 @@ class BaseVehicle(DynamicElement):
     def set_state(self, state: dict):
         self.set_heading(state["heading"])
         self.set_position(state["position"])
+
+    def _update_overtake_stat(self):
+        if self.vehicle_config["overtake_stat"]:
+            surrounding_vs = self.lidar.get_surrounding_vehicles()
+            routing = self.routing_localization
+            ckpt_idx = routing.target_checkpoints_index
+            for surrounding_v in surrounding_vs:
+                if surrounding_v.lane_index[:-1] == (
+                        routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]]):
+                    if self.lane.local_coordinates(self.position)[0] - \
+                            self.lane.local_coordinates(surrounding_v.position)[0] < 0:
+                        self.front_vehicles.add(surrounding_v)
+                        if surrounding_v in self.back_vehicles:
+                            self.back_vehicles.remove(surrounding_v)
+                    else:
+                        self.back_vehicles.add(surrounding_v)
+
+    def get_overtake_num(self):
+        return len(self.front_vehicles.intersection(self.back_vehicles))
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
