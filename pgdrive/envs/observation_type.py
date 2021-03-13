@@ -213,6 +213,7 @@ class ImageStateObservation(ObservationType):
 
     @property
     def observation_space(self):
+        # TODO it should be specified by different vehicle
         return gym.spaces.Dict(
             {
                 self.IMAGE: self.img_obs.observation_space,
