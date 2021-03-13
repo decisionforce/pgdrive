@@ -101,13 +101,21 @@ class PGDriveEnv(gym.Env):
         if config:
             self.config.update(config)
 
+        self.num_agents = self.config["num_agents"]
+
         # set their value after vehicle created
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
-        self.observation_space = self.observation.observation_space
 
-        self.num_agents = self.config["num_agents"]
+        if self.num_agents == 1:
+            self.observation_space = self.observation.observation_space
+        else:
+            self.observation_space = gym.spaces.Dict(
+                {"agent{}".format(i): self.observation.observation_space
+                 for i in range(self.num_agents)}
+            )
+
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
         if self.num_agents == 1:
@@ -341,7 +349,6 @@ class PGDriveEnv(gym.Env):
             v.reset(self.current_map, v.born_place, 0.0)
 
         # generate new traffic according to the map
-        assert len(self.vehicles) == 1, "We don't support multi-agent now!"
         self.scene_manager.reset(
             self.current_map, self.vehicles, self.config["traffic_density"], episode_data=episode_data
         )
@@ -351,13 +358,17 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
-        for v in self.vehicles.values():
+        ret = dict()
+        for k, v in self.vehicles.items():
             v.prepare_step(np.array([0.0, 0.0]))
             v.update_state()
 
             # FIXME pzh: what should we do here?
-            o = self.observation.observe(v)
-        return o
+            ret[k] = self.observation.observe(v)
+        if self.num_agents == 1:
+            return ret[DEFAULT_AGENT]
+        else:
+            return ret
 
     def reward_function(self, vehicle, action):
         """

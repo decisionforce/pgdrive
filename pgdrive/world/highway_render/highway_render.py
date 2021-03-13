@@ -3,9 +3,8 @@ import sys
 from typing import List, Tuple
 
 import numpy as np
-
-from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.abs_lane import LineType
+from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.utils import import_pygame
 from pgdrive.utils.constans import Decoration
@@ -113,11 +112,14 @@ class HighwayRender:
         surface.scaling = self._scaling
         surface.move_display_window_to(self._center_pos)
         surface.blit(self.map_surface, (0, 0))
-        VehicleGraphics.display(self.scene_mgr.ego_vehicle, surface)
+        for v in self.scene_mgr.target_vehicles.values():
+            VehicleGraphics.display(v, surface)
         for v in self.scene_mgr.traffic_mgr.vehicles:
-            if v is self.scene_mgr.ego_vehicle:
+            if self.scene_mgr.is_target_vehicle(v):
                 continue
             VehicleGraphics.display(v, surface)
+
+        # FIXME!
         pos = surface.pos2pix(*self.scene_mgr.ego_vehicle.position)
         width = self.MAP_RESOLUTION[0] / 2
         height = width * self.RESOLUTION[1] / self.RESOLUTION[0]

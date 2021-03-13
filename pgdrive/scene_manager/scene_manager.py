@@ -66,7 +66,7 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            self.traffic_mgr.generate(pg_world, map, list(self.target_vehicles.values()), traffic_density)
+            self.traffic_mgr.generate(pg_world, map, self.target_vehicles, traffic_density)
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
 
@@ -90,7 +90,7 @@ class SceneManager:
             # not in replay mode
             for k, a in target_actions.items():
                 self.target_vehicles[k].prepare_step(a)
-            self.traffic_mgr.prepare_step(self, self.pg_world)
+            self.traffic_mgr.prepare_step(self)
 
     def step(self, step_num: int = 1) -> None:
         """
@@ -184,3 +184,6 @@ class SceneManager:
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
+
+    def is_target_vehicle(self, v):
+        return v in self.target_vehicles.values()

@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pytest
-
 from pgdrive import PGDriveEnv
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.PID_controller import PIDController, Target
 
