@@ -4,7 +4,7 @@ import math
 import time
 from collections import deque
 from typing import Optional
-
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
@@ -29,6 +29,8 @@ from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.world.pg_world import PGWorld
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
+from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 
 
 class BaseVehicle(DynamicElement):
@@ -57,8 +59,10 @@ class BaseVehicle(DynamicElement):
             show_navi_mark=True,
             increment_steering=False,
             wheel_friction=0.6,
-        )
-    )
+            image_source="rgb_cam",
+            use_image=False,
+            use_render=False
+        ))
 
     born_place = (5, 0)
     LENGTH = None
@@ -123,6 +127,59 @@ class BaseVehicle(DynamicElement):
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
+        self._add_modules_for_vehicle()
+
+    def _add_modules_for_vehicle(self):
+        # add self module for training according to config
+        vehicle_config = self.vehicle_config
+        self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
+        if not self.vehicle_config["use_image"]:
+            if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
+                self.add_lidar(
+                    num_lasers=vehicle_config["lidar"]["num_lasers"],
+                    distance=vehicle_config["lidar"]["distance"],
+                    show_lidar_point=vehicle_config["show_lidar"]
+                )
+            else:
+                import logging
+                logging.warning(
+                    "You have set the lidar config to: {}, which seems to be invalid!".format(vehicle_config["lidar"])
+                )
+
+            if vehicle_config["use_render"]:
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.pg_world)
+                self.add_image_sensor("rgb_cam", rgb_cam)
+
+                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.pg_world)
+                self.add_image_sensor("mini_map", mini_map)
+            return
+
+        if vehicle_config["use_image"]:
+            # 3 types image observation
+            if vehicle_config["image_source"] == "rgb_cam":
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.pg_world)
+                self.add_image_sensor("rgb_cam", rgb_cam)
+            elif vehicle_config["image_source"] == "mini_map":
+                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.pg_world)
+                self.add_image_sensor("mini_map", mini_map)
+            elif vehicle_config["image_source"] == "depth_cam":
+                cam_config = vehicle_config["depth_cam"]
+                depth_cam = DepthCamera(*cam_config, self.chassis_np, self.pg_world)
+                self.add_image_sensor("depth_cam", depth_cam)
+            else:
+                raise ValueError("No module named {}".format(vehicle_config["image_source"]))
+
+        # load more sensors for visualization when render, only for beauty...
+        if vehicle_config["use_render"]:
+            if vehicle_config["image_source"] == "mini_map":
+                rgb_cam_config = vehicle_config["rgb_cam"]
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.pg_world)
+                self.add_image_sensor("rgb_cam", rgb_cam)
+            else:
+                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.pg_world)
+                self.add_image_sensor("mini_map", mini_map)
 
     def init_done_info(self):
         # done info will be initialized every frame

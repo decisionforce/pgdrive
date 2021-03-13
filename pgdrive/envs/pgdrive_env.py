@@ -13,9 +13,6 @@ from pgdrive.constants import DEFAULT_AGENT, RENDER_MODE_NONE
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficMode
@@ -218,17 +215,17 @@ class PGDriveEnv(gym.Env):
 
         # init vehicle
         v_config = self.config["vehicle_config"]
+        v_config["use_image"] = self.config["use_image"]
+        v_config["image_source"] = self.config["image_source"]
+        v_config["use_render"] = self.config["use_render"]
 
         self.vehicles = {a: BaseVehicle(self.pg_world, v_config) for a in self.multi_agent_action_space.keys()}
 
+        # TODO add a change target vehicle cam func
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
             self.main_camera = ChaseCamera(
-                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
-            )
-        # add sensors
-        for v in self.vehicles.values():
-            self.add_modules_for_vehicle(v)
+                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world)
 
     def preprocess_actions(self, actions):
         ret_actions = dict()
@@ -581,58 +578,6 @@ class PGDriveEnv(gym.Env):
             assert isinstance(self.current_map, Map), "map should be an instance of Map() class"
             self.current_map.load_to_pg_world(self.pg_world)
 
-    def add_modules_for_vehicle(self, vehicle):
-        # FIXME rename!
-        # add vehicle module for training according to config
-        vehicle_config = vehicle.vehicle_config
-        vehicle.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
-        if not self.config["use_image"]:
-            if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
-                vehicle.add_lidar(
-                    num_lasers=vehicle_config["lidar"]["num_lasers"],
-                    distance=vehicle_config["lidar"]["distance"],
-                    show_lidar_point=vehicle_config["show_lidar"]
-                )
-            else:
-                import logging
-                logging.warning(
-                    "You have set the lidar config to: {}, which seems to be invalid!".format(vehicle_config["lidar"])
-                )
-
-            if self.config["use_render"]:
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("rgb_cam", rgb_cam)
-
-                mini_map = MiniMap(vehicle_config["mini_map"], vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("mini_map", mini_map)
-            return
-
-        if self.config["use_image"]:
-            # 3 types image observation
-            if self.config["image_source"] == "rgb_cam":
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("rgb_cam", rgb_cam)
-            elif self.config["image_source"] == "mini_map":
-                mini_map = MiniMap(vehicle_config["mini_map"], vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("mini_map", mini_map)
-            elif self.config["image_source"] == "depth_cam":
-                cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(*cam_config, vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("depth_cam", depth_cam)
-            else:
-                raise ValueError("No module named {}".format(self.config["image_source"]))
-
-        # load more sensors for visualization when render, only for beauty...
-        if self.config["use_render"]:
-            if self.config["image_source"] == "mini_map":
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("rgb_cam", rgb_cam)
-            else:
-                mini_map = MiniMap(vehicle_config["mini_map"], vehicle.chassis_np, self.pg_world)
-                vehicle.add_image_sensor("mini_map", mini_map)
 
     def dump_all_maps(self):
         assert self.pg_world is None, "We assume you generate map files in independent tasks (not in training). " \
