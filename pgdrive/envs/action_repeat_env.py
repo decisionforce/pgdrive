@@ -113,7 +113,7 @@ class ActionRepeat(PGDriveEnv):
         i["render"] = render_list
         i["trajectory"] = [
             dict(
-                reward=r_list[idx],
+                reward_function=r_list[idx],
                 discounted_reward=discounted_r_list[idx],
                 obs=o_list[idx],
                 action=action,

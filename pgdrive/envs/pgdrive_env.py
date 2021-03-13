@@ -719,6 +719,12 @@ class PGDriveEnv(gym.Env):
             ret[k] = func(v, *args, **kwargs)
         return ret
 
+    @property
+    def vehicle(self):
+        """A helper to return the vehicle only in the single-agent environment!"""
+        assert len(self.vehicles) == 1, "env.vehicle is only supported in single-agent environment!"
+        return self.vehicles[DEFAULT_AGENT]
+
     def reward(self, *args, **kwargs):
         raise ValueError("reward function is deprecated!")
 
