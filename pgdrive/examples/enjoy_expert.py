@@ -37,7 +37,7 @@ if __name__ == '__main__':
         print("Closing the environment!")
         env.close()
         print(
-            "Episode count {}, Success rate: {}, Average reward: {}".format(
+            "Episode count {}, Success rate: {}, Average reward_function: {}".format(
                 ep_count,
                 sum(success_list) / len(success_list),
                 sum(reward_list) / len(reward_list)

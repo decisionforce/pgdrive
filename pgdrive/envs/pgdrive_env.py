@@ -8,7 +8,6 @@ from typing import Union, Optional, Iterable
 
 import gym
 import numpy as np
-
 from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
@@ -16,8 +15,8 @@ from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthC
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
-from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.scene_manager.scene_manager import SceneManager
+from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import recursive_equal, safe_clip, clip, get_np_random
 from pgdrive.world import RENDER_MODE_NONE
 from pgdrive.world.chase_camera import ChaseCamera
@@ -26,8 +25,12 @@ from pgdrive.world.pg_world import PGWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
+DEFAULT_AGENT = "default_agent"
+
 
 class PGDriveEnv(gym.Env):
+    DEFAULT_AGENT = DEFAULT_AGENT
+
     @staticmethod
     def default_config() -> PGConfig:
         env_config = dict(
@@ -84,7 +87,7 @@ class PGDriveEnv(gym.Env):
             record_episode=False,
             use_saver=False,
             save_level=0.5,
-            num_player=2,
+            num_agents=1,
 
             # ===== stat =====
             overtake_stat=False
@@ -103,9 +106,16 @@ class PGDriveEnv(gym.Env):
         self.observation = LidarStateObservation(vehicle_config) if not self.config["use_image"] \
             else ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
-        self.actions_space = {i: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
-                              for i in range(self.config["num_player"])}
+
+        self.num_agents = self.config["num_agents"]
+        assert isinstance(self.num_agents, int) and self.num_agents > 0
+        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        if self.num_agents == 1:
+            self.multi_agent_action_space = {DEFAULT_AGENT: action_space_fn()}
+            self.action_space = self.multi_agent_action_space[DEFAULT_AGENT]
+        else:
+            self.multi_agent_action_space = {"agent{}".format(i): action_space_fn() for i in range(self.num_agents)}
+            self.action_space = gym.spaces.Dict(self.multi_agent_action_space)
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -139,12 +149,13 @@ class PGDriveEnv(gym.Env):
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         self.current_seed = self.start_seed
         self.current_map = None
-        self.vehicle = None  # Ego vehicle
-        self.vehicles = {i: None for i in range(self.config["num_player"])}
-        self.done = False
-        self.dones = {i: False for i in range(self.config["num_player"])}
+
+        self.vehicles = {a: None for a in self.multi_agent_action_space.keys()}
+
+        self.dones = None
+
         self.takeover = False
-        self.step_info = None
+        # self.step_info = None
         self.front_vehicles = None
         self.back_vehicles = None
 
@@ -180,8 +191,8 @@ class PGDriveEnv(gym.Env):
 
         # init vehicle
         v_config = self.config["vehicle_config"]
-        self.vehicle = BaseVehicle(self.pg_world, v_config)
-        self.vehicles = {i: BaseVehicle(self.pg_world, v_config) for i in range(self.config["num_player"])}
+
+        self.vehicles = {a: BaseVehicle(self.pg_world, v_config) for a in self.multi_agent_action_space.keys()}
 
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
@@ -189,13 +200,13 @@ class PGDriveEnv(gym.Env):
                 self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
             )
         # add sensors
-        self.add_modules_for_vehicle(self.vehicle)
-        for i in range(self.config["num_player"]):
-            self.add_modules_for_vehicle(self.vehicles[i])
+        for v in self.vehicles.values():
+            self.add_modules_for_vehicle(v)
 
     def step(self, action: np.ndarray):
+        assert self.num_agents == 1, "We don't support multi-agent yet!"
         # add custom metric in info
-        self.step_info = {"raw_action": (action[0], action[1])}
+        step_info = {"raw_action": (action[0], action[1])}
 
         if self.config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
@@ -207,7 +218,9 @@ class PGDriveEnv(gym.Env):
             action = self.expert_take_over(action)
 
         # filter by saver to protect
-        action = self.saver(action)
+        steering, throttle, saver_info = self.saver(action)
+        action = (steering, throttle)
+        step_info.update(saver_info)
 
         # protect agent from nan error
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
@@ -222,30 +235,43 @@ class PGDriveEnv(gym.Env):
         done = self.scene_manager.update_state()
 
         # update obs
-        obs = self.observation.observe(self.vehicle)
+        obs = self.for_each_vehicle(self.observation.observe)
+        assert len(obs) == 1, "We don't support multi-agent now!"
+        obs = obs[DEFAULT_AGENT]
+        # obs = self.observation.observe(self.vehicle)
 
         # update rl info
-        self.done = self.done or done
-        step_reward = self.reward(action, self.vehicle)
-        done_reward = self._done_episode()
+        assert len(self.dones) == 1
+        self.dones[DEFAULT_AGENT] = self.dones[DEFAULT_AGENT] or done
+        assert len(self.vehicles) == 1
 
-        if self.done:
+        # step_reward = self.for_each_vehicle(self.reward_function)
+        assert len(self.vehicles) == 1
+        step_reward = self.reward_function(self.vehicles[DEFAULT_AGENT], action)
+
+        done, done_reward, done_info = self.done_function(self.vehicles[DEFAULT_AGENT])
+        step_info.update(done_info)
+        self.dones[DEFAULT_AGENT] = done
+
+        if self.dones[DEFAULT_AGENT]:
             step_reward = 0
 
         # update info
-        self.step_info.update(
+        step_info.update(
             {
                 "cost": float(0),  # it may be overwritten in callback func
-                "velocity": float(self.vehicle.speed),
-                "steering": float(self.vehicle.steering),
-                "acceleration": float(self.vehicle.throttle_brake),
+                "velocity": float(self.vehicles[DEFAULT_AGENT].speed),
+                "steering": float(self.vehicles[DEFAULT_AGENT].steering),
+                "acceleration": float(self.vehicles[DEFAULT_AGENT].throttle_brake),
                 "step_reward": float(step_reward),
                 "takeover": self.takeover,
             }
         )
-        self.custom_info_callback()
+        step_info = self.custom_info_callback(step_info)
 
-        return obs, step_reward + done_reward, self.done, self.step_info
+        # FIXME step info should be a dict too!
+
+        return obs, step_reward + done_reward, self.dones[DEFAULT_AGENT], step_info
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         """
@@ -266,8 +292,11 @@ class PGDriveEnv(gym.Env):
             if not hasattr(self, "_temporary_img_obs"):
                 from pgdrive.envs.observation_type import ImageObservation
                 image_source = "rgb_cam"
-                self.temporary_img_obs = ImageObservation(self.vehicle.vehicle_config, image_source, False)
-            self.temporary_img_obs.observe(self.vehicle.image_sensors[image_source])
+                assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
+                self.temporary_img_obs = ImageObservation(
+                    self.vehicles[DEFAULT_AGENT].vehicle_config, image_source, False
+                )
+            self.temporary_img_obs.observe(self.vehicles[DEFAULT_AGENT].image_sensors[image_source])
             return self.temporary_img_obs.get_image()
 
         # logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
@@ -281,8 +310,8 @@ class PGDriveEnv(gym.Env):
         :return: None
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
-        self.done = False
-        self.dones = {i: False for i in range(self.config["num_player"])}
+
+        self.dones = {a: False for a in self.multi_agent_action_space.keys()}
         self.takeover = False
 
         # clear world and traffic manager
@@ -292,13 +321,14 @@ class PGDriveEnv(gym.Env):
         self.update_map(episode_data)
 
         # reset main vehicle
-        self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
-        # for i in range(self.config["num_player"]):
-        #     self.vehicles[i].reset(self.current_map, self.vehicles[i].born_place, 0.0)
+        # self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
+        for v in self.vehicles.values():
+            v.reset(self.current_map, v.born_place, 0.0)
 
         # generate new traffic according to the map
+        assert len(self.vehicles) == 1, "We don't support multi-agent now!"
         self.scene_manager.reset(
-            self.current_map, self.vehicle, self.config["traffic_density"], episode_data=episode_data
+            self.current_map, self.vehicles[DEFAULT_AGENT], self.config["traffic_density"], episode_data=episode_data
         )
 
         self.front_vehicles = set()
@@ -306,75 +336,82 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
-        self.vehicle.prepare_step(np.array([0.0, 0.0]))
-        self.vehicle.update_state()
-        o = self.observation.observe(self.vehicle)
+        for v in self.vehicles.values():
+            v.prepare_step(np.array([0.0, 0.0]))
+            v.update_state()
+
+            # FIXME pzh: what should we do here?
+            o = self.observation.observe(v)
         return o
 
-    def reward(self, action, arg_vehicle):
-        vehicle = self.vehicle
+    def reward_function(self, vehicle, action):
         """
-        Override this func to get a new reward function
+        Override this func to get a new reward_function function
+        :param vehicle: A vehicle instance
         :param action: [steering, throttle/brake]
-        :return: reward
+        :return: reward_function
         """
         # Reward for moving forward in current lane
-        current_lane = arg_vehicle.lane
-        long_last, _ = current_lane.local_coordinates(arg_vehicle.last_position)
-        long_now, lateral_now = current_lane.local_coordinates(arg_vehicle.position)
+        current_lane = vehicle.lane
+        long_last, _ = current_lane.local_coordinates(vehicle.last_position)
+        long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
         reward = 0.0
         lateral_factor = clip(1 - 2 * abs(lateral_now) / self.current_map.lane_width, 0.0, 1.0)
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
         # Penalty for frequent steering
-        steering_change = abs(arg_vehicle.last_current_action[0][0] - arg_vehicle.last_current_action[1][0])
-        steering_penalty = self.config["steering_penalty"] * steering_change * arg_vehicle.speed / 20
+        steering_change = abs(vehicle.last_current_action[0][0] - vehicle.last_current_action[1][0])
+        steering_penalty = self.config["steering_penalty"] * steering_change * vehicle.speed / 20
         reward -= steering_penalty
+
         # Penalty for frequent acceleration / brake
         acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
         low_speed_penalty = 0
-        if arg_vehicle.speed < 1:
+        if vehicle.speed < 1:
             low_speed_penalty = self.config["low_speed_penalty"]  # encourage car
         reward -= low_speed_penalty
 
         reward -= self.config["general_penalty"]
 
-        reward += self.config["speed_reward"] * (arg_vehicle.speed / arg_vehicle.max_speed)
+        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
 
-        # if reward > 3.0:
+        # if reward_function > 3.0:
         #     print("Stop here.")
 
         return reward
 
-    def _done_episode(self) -> (float, dict):
-        reward_ = 0
+    def done_function(self, vehicle) -> (float, dict):
+        done_reward = 0
+        done = False
         done_info = dict(crash=False, out_of_road=False, arrive_dest=False)
-        long, lat = self.vehicle.routing_localization.final_lane.local_coordinates(self.vehicle.position)
+        long, lat = vehicle.routing_localization.final_lane.local_coordinates(vehicle.position)
 
-        if self.vehicle.routing_localization.final_lane.length - 5 < long < self.vehicle.routing_localization.final_lane.length + 5 \
+        if vehicle.routing_localization.final_lane.length - 5 < long < vehicle.routing_localization.final_lane.length + 5 \
                 and self.current_map.lane_width / 2 >= lat >= (
                 0.5 - self.current_map.lane_num) * self.current_map.lane_width:
-            self.done = True
-            reward_ += self.config["success_reward"]
+            done = True
+            done_reward += self.config["success_reward"]
             logging.info("Episode ended! Reason: arrive_dest.")
             done_info["arrive_dest"] = True
-        elif self.vehicle.crash:
-            self.done = True
-            reward_ -= self.config["crash_penalty"]
+        elif vehicle.crash:
+            done = True
+            done_reward -= self.config["crash_penalty"]
             logging.info("Episode ended! Reason: crash. ")
             done_info["crash"] = True
-        elif self.vehicle.out_of_route or not self.vehicle.on_lane or self.vehicle.crash_side_walk:
-            self.done = True
-            reward_ -= self.config["out_of_road_penalty"]
+        elif vehicle.out_of_route or not vehicle.on_lane or vehicle.crash_side_walk:
+            done = True
+            done_reward -= self.config["out_of_road_penalty"]
             logging.info("Episode ended! Reason: out_of_road.")
             done_info["out_of_road"] = True
 
-        self.step_info.update(done_info)
-        return reward_
+        return done, done_reward, done_info
+
+        # self.step_info.update(done_info)
+        # return reward_
 
     def close(self):
         if self.pg_world is not None:
@@ -388,14 +425,14 @@ class PGDriveEnv(gym.Env):
             del self.scene_manager
             self.scene_manager = None
 
-            self.vehicle.destroy(self.pg_world)
-            del self.vehicle
-            self.vehicle = None
+            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
+            del self.vehicles
+            self.vehicles = None
 
-            for i in range(self.config["num_player"]):
-                self.vehicles[i].destroy(self.pg_world)
-                del self.vehicles
-            self.vehicles = {i: None for i in range(self.config["num_player"])}
+            # for i in range(self.config["num_player"]):
+            #     self.vehicles[i].destroy(self.pg_world)
+            #     del self.vehicles
+            # self.vehicles = {i: None for i in range(self.config["num_player"])}
 
             del self.controller
             self.controller = None
@@ -411,26 +448,29 @@ class PGDriveEnv(gym.Env):
         del self.restored_maps
         self.restored_maps = dict()
 
-    def custom_info_callback(self):
+    def custom_info_callback(self, step_info):
         """
         Override it to add custom infomation
         :return: None
         """
         if self.config["overtake_stat"]:
             # use it only when evaluation
-            self._overtake_stat()
-        self.step_info["overtake_vehicle_num"] = len(self.front_vehicles.intersection(self.back_vehicles))
+            assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
+            self._overtake_stat(self.vehicles[DEFAULT_AGENT])
+        step_info["overtake_vehicle_num"] = len(self.front_vehicles.intersection(self.back_vehicles))
+        return step_info
 
-    def _overtake_stat(self):
-        surrounding_vs = self.vehicle.lidar.get_surrounding_vehicles()
-        routing = self.vehicle.routing_localization
+    def _overtake_stat(self, vehicle):
+        surrounding_vs = vehicle.lidar.get_surrounding_vehicles()
+        routing = vehicle.routing_localization
         ckpt_idx = routing.target_checkpoints_index
         for surrounding_v in surrounding_vs:
             if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]]):
-                if self.vehicle.lane.local_coordinates(self.vehicle.position)[0] - \
-                        self.vehicle.lane.local_coordinates(surrounding_v.position)[0] < 0:
+                if vehicle.lane.local_coordinates(vehicle.position)[0] - \
+                        vehicle.lane.local_coordinates(surrounding_v.position)[0] < 0:
                     self.front_vehicles.add(surrounding_v)
                     if surrounding_v in self.back_vehicles:
+                        # FIXME, multi-agent not supported yet!
                         self.back_vehicles.remove(surrounding_v)
                 else:
                     self.back_vehicles.add(surrounding_v)
@@ -618,20 +658,22 @@ class PGDriveEnv(gym.Env):
         :param action: original action
         :return: a new action to override original action
         """
+        vehicle = self.vehicles[DEFAULT_AGENT]
+
         steering = action[0]
         throttle = action[1]
         if self.config["use_saver"] and not self._expert_take_over:
             # saver can be used for human or another AI
             save_level = self.config["save_level"]
-            obs = self.observation.observe(self.vehicle)
+            obs = self.observation.observe(vehicle)
             from pgdrive.examples.ppo_expert import expert
             saver_a = expert(obs, deterministic=False)
             if save_level > 0.9:
                 steering = saver_a[0]
                 throttle = saver_a[1]
             elif save_level > 1e-3:
-                heading_diff = self.vehicle.heading_diff(self.vehicle.lane) - 0.5
-                f = min(1 + abs(heading_diff) * self.vehicle.speed * self.vehicle.max_speed, save_level * 10)
+                heading_diff = vehicle.heading_diff(vehicle.lane) - 0.5
+                f = min(1 + abs(heading_diff) * vehicle.speed * vehicle.max_speed, save_level * 10)
                 # for out of road
                 if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
                     0] <= 1e-3 or \
@@ -639,15 +681,15 @@ class PGDriveEnv(gym.Env):
                             1] <= 1e-3:
                     steering = saver_a[0]
                     throttle = saver_a[1]
-                    if self.vehicle.speed < 5:
+                    if vehicle.speed < 5:
                         throttle = 0.5
-                # if saver_a[1] * self.vehicle.speed < -40 and action[1] > 0:
+                # if saver_a[1] * vehicle.speed < -40 and action[1] > 0:
                 #     throttle = saver_a[1]
 
                 # for collision
-                lidar_p = self.vehicle.lidar.get_cloud_points()
-                left = int(self.vehicle.lidar.laser_num / 4)
-                right = int(self.vehicle.lidar.laser_num / 4 * 3)
+                lidar_p = vehicle.lidar.get_cloud_points()
+                left = int(vehicle.lidar.laser_num / 4)
+                right = int(vehicle.lidar.laser_num / 4 * 3)
                 if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
                                                                                     ) < (save_level + 0.1) / 10:
                     # lateral safe distance 2.0m
@@ -659,9 +701,45 @@ class PGDriveEnv(gym.Env):
         # indicate if current frame is takeover step
         pre_save = self.takeover
         self.takeover = True if action[0] != steering or action[1] != throttle else False
-        self.step_info["takeover_start"] = True if not pre_save and self.takeover else False
-        self.step_info["takeover_end"] = True if pre_save and not self.takeover else False
-        return steering, throttle
+        saver_info = {
+            "takeover_start": True if not pre_save and self.takeover else False,
+            "takeover_end": True if pre_save and not self.takeover else False
+        }
+        return steering, throttle, saver_info
 
     def toggle_expert_take_over(self):
         self._expert_take_over = not self._expert_take_over
+
+    def for_each_vehicle(self, func, *args, **kwargs):
+        """
+        func is a function that take each vehicle as the first argument and *arg and **kwargs as others.
+        """
+        ret = dict()
+        for k, v in self.vehicles.items():
+            ret[k] = func(v, *args, **kwargs)
+        return ret
+
+    def reward(self, *args, **kwargs):
+        raise ValueError("reward function is deprecated!")
+
+
+if __name__ == '__main__':
+
+    def _act(env, action):
+        assert env.action_space.contains(action)
+        obs, reward, done, info = env.step(action)
+        assert env.observation_space.contains(obs)
+        assert np.isscalar(reward)
+        assert isinstance(info, dict)
+
+    env = PGDriveEnv()
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        _act(env, env.action_space.sample())
+        for x in [-1, 0, 1]:
+            env.reset()
+            for y in [-1, 0, 1]:
+                _act(env, [x, y])
+    finally:
+        env.close()
