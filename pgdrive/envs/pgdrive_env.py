@@ -302,15 +302,13 @@ class PGDriveEnv(gym.Env):
             self.vehicles,
             self.config["traffic_density"],
             self.config["accident_prob"],
-            episode_data=episode_data
-        )
+            episode_data=episode_data)
 
         return self._get_reset_return()
 
     def _get_reset_return(self):
         ret = dict()
         for id, v in self.vehicles.items():
-            v.prepare_step(np.array([0.0, 0.0]))
             v.update_state()
             v.observation.reset(self)
             ret[id] = v.observation.observe(v)
@@ -560,9 +558,8 @@ class PGDriveEnv(gym.Env):
         Only take effect whene vehicle num==1
         :return: None
         """
-        raise ValueError
         assert len(self.vehicles)==1, "Only enable when driving in single agent env"
-        self.vehicle._expert_takeover = not self._expert_takeover
+        self.vehicle._expert_takeover = not self.vehicle._expert_takeover
 
     def capture(self):
         img = PNMImage()

@@ -252,7 +252,7 @@ class BaseVehicle(DynamicElement):
         """
         # init step info to store info before each step
         self._init_step_info()
-        self._preprocess_action(action)
+        action= self._preprocess_action(action)
 
         self._frame_objects_crashed = []
         self.last_position = self.position
@@ -317,6 +317,9 @@ class BaseVehicle(DynamicElement):
         # overtake_stat
         self.front_vehicles = set()
         self.back_vehicles = set()
+
+        # for render
+        self.vehicle_panel.renew_2d_car_para_visualization(self)
 
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
