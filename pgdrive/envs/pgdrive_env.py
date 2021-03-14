@@ -100,6 +100,8 @@ class PGDriveEnv(gym.Env):
         if config:
             self.config.update(config)
         self.num_agents = self.config["num_agents"]
+        if self.num_agents > 1:
+            self.config["target_vehicles_config"].pop(DEFAULT_AGENT)
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicles_config"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
@@ -240,7 +242,7 @@ class PGDriveEnv(gym.Env):
             return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
                    copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(self.vehicle.step_info)
         else:
-            return obses, rewards, copy.deepcopy(self.dones), copy.deepcopy(step_infos)
+            return obses, rewards, copy.deepcopy(self.dones), self.for_each_vehicle(lambda v:v.step_info)
 
     def _add_cost(self):
         # FIXME wrong!

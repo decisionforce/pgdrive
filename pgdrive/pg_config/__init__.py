@@ -109,3 +109,6 @@ class PGConfig:
 
     def keys(self):
         return self._config.keys()
+
+    def pop(self, key):
+        self._config.pop(key)
