@@ -162,9 +162,9 @@ class ImageObservation(ObservationType):
 
 
 class LidarStateObservation(ObservationType):
-    def __init__(self, config):
-        self.state_obs = StateObservation(config)
-        super(LidarStateObservation, self).__init__(config)
+    def __init__(self, vehicle_config):
+        self.state_obs = StateObservation(vehicle_config)
+        super(LidarStateObservation, self).__init__(vehicle_config)
 
     @property
     def observation_space(self):
@@ -206,9 +206,10 @@ class ImageStateObservation(ObservationType):
     IMAGE = "image"
     STATE = "state"
 
-    def __init__(self, config, image_source: str, clip_rgb: bool):
+    def __init__(self, vehicle_config):
+        config = vehicle_config
         super(ImageStateObservation, self).__init__(config)
-        self.img_obs = ImageObservation(config, image_source, clip_rgb)
+        self.img_obs = ImageObservation(config, config["image_cource"], config["rgb_clip"])
         self.state_obs = StateObservation(config)
 
     @property

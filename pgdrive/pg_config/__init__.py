@@ -2,6 +2,10 @@ import numpy as np
 
 
 def _check_keys(new_config, old_config, prefix=""):
+    if isinstance(new_config, PGConfig):
+        new_config=new_config.get_dict()
+    if isinstance(old_config, PGConfig):
+        old_config=new_config.get_dict()
     assert isinstance(new_config, dict)
     assert isinstance(old_config, dict)
     own_keys = set(old_config)
@@ -95,3 +99,6 @@ class PGConfig:
         :return: None
         """
         self._config.update(extra_config)
+
+    def items(self):
+        return self._config.items()

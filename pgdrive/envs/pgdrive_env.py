@@ -9,8 +9,7 @@ from typing import Union, Optional, Iterable, Dict, AnyStr
 import gym
 import numpy as np
 from panda3d.core import PNMImage
-from pgdrive.constants import DEFAULT_AGENT, RENDER_MODE_NONE
-from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
+from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
@@ -50,11 +49,13 @@ class PGDriveEnv(gym.Env):
             accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
 
             # ===== Observation =====
-            use_image=False,  # Use first view
+            # TODO use_image should be assigned automatically
+            use_image=False,  # Use image observation, else Lidar is the default observation
             use_topdown=False,  # Use top-down view
             rgb_clip=True,
-            vehicle_config=dict(),  # use default vehicle modules see more in BaseVehicle
-            image_source="rgb_cam",  # mini_map or rgb_cam or depth cam
+
+            # ==== agents config =====
+            target_vehicles_config={DEFAULT_AGENT: BaseVehicle.default_vehicle_config},  # agent_id: vehicle_config
 
             # ===== Map Config =====
             map=3,  # int or string: an easy way to fill map_config
@@ -67,6 +68,7 @@ class PGDriveEnv(gym.Env):
             environment_num=1,
 
             # ===== Action =====
+            # TODO move to vehicle
             decision_repeat=5,
 
             # ===== Reward Scheme =====
@@ -109,25 +111,12 @@ class PGDriveEnv(gym.Env):
 
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
+        assert len(self.config["target_vehicles_config"]) == self.num_agents, "assign born place for each vehicle"
+        self.vehicles = {agent_id: BaseVehicle(v_config) for agent_id, v_config in
+                         self.config["target_vehicles_config"].items()}
 
-        # set their value after vehicle created
-        self.observation = self.initialize_observation()
-        self.observation_space = self.observation.observation_space
-        if self.num_agents == 1:
-            self.observation_space = self.observation.observation_space
-        else:
-            self.observation_space = gym.spaces.Dict(
-                {"agent{}".format(i): self.observation.observation_space
-                 for i in range(self.num_agents)}
-            )
-
-        action_space_fn = lambda: gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
-        if self.num_agents == 1:
-            self.multi_agent_action_space = {DEFAULT_AGENT: action_space_fn()}
-            self.action_space = self.multi_agent_action_space[DEFAULT_AGENT]
-        else:
-            self.multi_agent_action_space = {"agent{}".format(i): action_space_fn() for i in range(self.num_agents)}
-            self.action_space = gym.spaces.Dict(self.multi_agent_action_space)
+        self.observation_space = gym.spaces.Dict({id: v.observation_space for id, v in self.vehicles.items()})
+        self.action_space = gym.spaces.Dict({id: v.action_space for id, v in self.vehicles.items()})
 
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
@@ -162,22 +151,9 @@ class PGDriveEnv(gym.Env):
         self.current_seed = self.start_seed
         self.current_map = None
 
-        self.vehicles = {a: None for a in self.multi_agent_action_space.keys()}
-
         self.dones = None
 
-        self.takeover = False
         # self.step_info = None
-        self.front_vehicles = None
-        self.back_vehicles = None
-
-    def initialize_observation(self):
-        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
-        if self.config["use_image"]:
-            o = ImageStateObservation(vehicle_config, self.config["image_source"], self.config["rgb_clip"])
-        else:
-            o = LidarStateObservation(vehicle_config)
-        return o
 
     def lazy_init(self):
         """
@@ -214,9 +190,8 @@ class PGDriveEnv(gym.Env):
                 raise ValueError("No such a controller type: {}".format(self.config["controller"]))
 
         # init vehicle
-        v_config = self.config["vehicle_config"]
-        self.vehicles = {a: BaseVehicle(self.pg_world, v_config, self.config["use_render"]) for a in
-                         self.multi_agent_action_space.keys()}
+        for v in self.vehicles.values():
+            v.spawned_in_world(self.pg_world)
 
         # TODO add a change target vehicle cam func
         # for manual_control and main camera type
@@ -726,7 +701,8 @@ class PGDriveEnv(gym.Env):
     def vehicle(self):
         """A helper to return the vehicle only in the single-agent environment!"""
         assert len(self.vehicles) == 1, "env.vehicle is only supported in single-agent environment!"
-        return self.vehicles[DEFAULT_AGENT]
+        ego_v = self.vehicles[DEFAULT_AGENT]
+        return ego_v
 
     def reward(self, *args, **kwargs):
         raise ValueError("reward function is deprecated!")
@@ -740,6 +716,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

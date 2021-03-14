@@ -1,8 +1,10 @@
 import copy
+import gym
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 import logging
 import math
 import time
+from pgdrive.constants import DEFAULT_AGENT
 from collections import deque
 from typing import Optional
 from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
@@ -65,42 +67,57 @@ class BaseVehicle(DynamicElement):
         # ===== use image =====
         image_source="rgb_cam",  # take effect when only when use_image == True
         use_image=False,
+        rgb_clip=True,
 
         # ===== vehicle born =====
         born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
         born_longitude=5.0,
-        bron_lateral=0.0,
+        born_lateral=0.0,
 
         # ==== others ====
         overtake_stat=False,  # we usually set to True when evaluation
+
     ))
 
     LENGTH = None
     WIDTH = None
 
-    def __init__(self, pg_world: PGWorld, vehicle_config: dict = None, use_render=False, *, random_seed: int = 0,
-                 physics_config: dict = None):
+    def __init__(self, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
-        module parameters.
+        module parameters. And self.physics_config defines the physics feature of vehicles, such as length/width
+        :param vehicle_config: mostly, vehicle module config
+        :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
         """
         super(BaseVehicle, self).__init__(random_seed)
-        self.pg_world = pg_world
-        self.node_path = NodePath("vehicle")
-
         # config info
         self.set_config(self.PARAMETER_SPACE.sample())
         if physics_config is not None:
             self.set_config(physics_config)
 
-        self.vehicle_config = self.get_vehicle_config(
-            vehicle_config
-        ) if vehicle_config is not None else self.default_vehicle_config
+        self.vehicle_config = self.get_vehicle_config(vehicle_config) \
+            if vehicle_config is not None else self.default_vehicle_config
         self.increment_steering = self.vehicle_config["increment_steering"]
         self.max_speed = self.get_config()[Parameter.speed_max]
         self.max_steering = self.get_config()[Parameter.steering_max]
 
+        # observation, action
+        self.observation = self._initialize_observation()
+        self.observation_space = self.observation.observation_space
+        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+
+    def spawned_in_world(self, pg_world: PGWorld):
+        """
+        Spawne this vehilce in pgworld
+        :param pg_world:
+        :param random_seed:
+        :return:
+        """
+        self.pg_world = pg_world
+        self.node_path = NodePath("vehicle")
+
         # create
+        self.born_place = (0, 0)
         self._add_chassis(pg_world.physics_world)
         self.wheels = self._create_wheel()
 
@@ -110,11 +127,9 @@ class BaseVehicle(DynamicElement):
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-
         self.vehicle_panel = VehiclePanel(self.pg_world) if (self.pg_world.mode == RENDER_MODE_ONSCREEN) else None
 
         # state info
-        self.born_place = (0, 0)
         self.throttle_brake = 0.0
         self.steering = 0
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
@@ -139,9 +154,10 @@ class BaseVehicle(DynamicElement):
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
-        self._add_modules_for_vehicle(use_render)
+        self._add_modules_for_vehicle(pg_world.pg_config["use_render"])
+        self.takeover = False
 
-    def _add_modules_for_vehicle(self, use_render):
+    def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
@@ -676,6 +692,15 @@ class BaseVehicle(DynamicElement):
 
     def get_overtake_num(self):
         return len(self.front_vehicles.intersection(self.back_vehicles))
+
+    def _initialize_observation(self):
+        from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
+        vehicle_config = self.vehicle_config
+        if vehicle_config["use_image"]:
+            o = ImageStateObservation(vehicle_config)
+        else:
+            o = LidarStateObservation(vehicle_config)
+        return o
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
