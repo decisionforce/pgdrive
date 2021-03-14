@@ -99,13 +99,12 @@ class PGDriveEnv(gym.Env):
         self.config = self.default_config()
         if config:
             self.config.update(config)
-        self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
-
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicles_config"]) == self.num_agents, "assign born place for each vehicle"
         self.vehicles = {agent_id: BaseVehicle(v_config) for agent_id, v_config in
                          self.config["target_vehicles_config"].items()}
+        self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
 
         # obs. action space
         self.observation_space = gym.spaces.Dict({id: v.observation_space for id, v in self.vehicles.items()})
@@ -600,8 +599,8 @@ class PGDriveEnv(gym.Env):
 
     @property
     def use_image(self):
-        for v_config in self.config["target_vehicles_config"].values():
-            if v_config["use_image"]:
+        for v in self.vehicles.values():
+            if v.vehicle_config["use_image"]:
                 return True
         return False
 

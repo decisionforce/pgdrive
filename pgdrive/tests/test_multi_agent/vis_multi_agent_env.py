@@ -18,6 +18,7 @@ class TestEnv(PGDriveEnv):
                     "debug_physics_world": True,
                     "pstats": True
                 },
+                "target_vehicles_config":{"default_agent": dict(lidar=dict(num_lasers=0, distance=0, num_others=0))},
                 # "controller":"joystick",
                 "manual_control": True,
                 "use_render": True,
