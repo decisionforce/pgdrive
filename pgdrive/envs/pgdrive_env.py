@@ -102,16 +102,19 @@ class PGDriveEnv(gym.Env):
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicles_config"]) == self.num_agents, "assign born place for each vehicle"
-        self.vehicles = {agent_id: BaseVehicle(v_config) for agent_id, v_config in
-                         self.config["target_vehicles_config"].items()}
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
 
         # obs. action space
-        self.observation_space = gym.spaces.Dict({id: v.observation_space for id, v in self.vehicles.items()})
-        self.action_space = gym.spaces.Dict({id: v.action_space for id, v in self.vehicles.items()})
+        self.observation_space = gym.spaces.Dict(
+            {id: BaseVehicle.get_observation_space_before_init(v_config) for id, v_config in
+             self.config["target_vehicles_config"].items()})
+        self.action_space = gym.spaces.Dict(
+            {id: BaseVehicle.get_action_space_before_init() for id in
+             self.config["target_vehicles_config"].keys()})
+
         if self.num_agents == 1:
-            self.observation_space=self.observation_space[DEFAULT_AGENT]
-            self.action_space=self.action_space[DEFAULT_AGENT]
+            self.observation_space = self.observation_space[DEFAULT_AGENT]
+            self.action_space = self.action_space[DEFAULT_AGENT]
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -187,8 +190,8 @@ class PGDriveEnv(gym.Env):
                 raise ValueError("No such a controller type: {}".format(self.config["controller"]))
 
         # init vehicle
-        for v in self.vehicles.values():
-            v.spawned_in_world(self.pg_world)
+        self.vehicles = {agent_id: BaseVehicle(self.pg_world, v_config) for agent_id, v_config in
+                         self.config["target_vehicles_config"].items()}
 
         # TODO add a change target vehicle cam func
         # for manual_control and main camera type
@@ -599,8 +602,8 @@ class PGDriveEnv(gym.Env):
 
     @property
     def use_image(self):
-        for v in self.vehicles.values():
-            if v.vehicle_config["use_image"]:
+        for extra_v_config in self.config["target_vehicles_config"].values():
+            if BaseVehicle.get_vehicle_config(extra_v_config)["use_image"]:
                 return True
         return False
 

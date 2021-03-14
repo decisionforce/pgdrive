@@ -86,29 +86,25 @@ class BaseVehicle(DynamicElement):
     LENGTH = None
     WIDTH = None
 
-    def __init__(self, vehicle_config: dict = None):
+    def __init__(self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None,
+                 random_seed: int = 0):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
         module parameters. And self.physics_config defines the physics feature of vehicles, such as length/width
+        :param pg_world: PGWorld
         :param vehicle_config: mostly, vehicle module config
         :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
+        :param random_seed: int
         """
 
         self.vehicle_config = self.get_vehicle_config(vehicle_config) \
             if vehicle_config is not None else self.default_vehicle_config
 
         # observation, action
-        self.observation = self._initialize_observation()
+        self.observation = self._initialize_observation(self.vehicle_config)
         self.observation_space = self.observation.observation_space
-        self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        self.action_space = self.get_action_space_before_init()
 
-    def spawned_in_world(self, pg_world: PGWorld, physics_config: dict = None, random_seed: int = 0):
-        """
-        Spawne this vehilce in pgworld
-        :param pg_world:
-        :param random_seed:
-        :return:
-        """
         super(BaseVehicle, self).__init__(random_seed)
         # config info
         self.set_config(self.PARAMETER_SPACE.sample())
@@ -252,7 +248,7 @@ class BaseVehicle(DynamicElement):
         """
         # init step info to store info before each step
         self._init_step_info()
-        action= self._preprocess_action(action)
+        action = self._preprocess_action(action)
 
         self._frame_objects_crashed = []
         self.last_position = self.position
@@ -724,14 +720,24 @@ class BaseVehicle(DynamicElement):
     def get_overtake_num(self):
         return len(self.front_vehicles.intersection(self.back_vehicles))
 
-    def _initialize_observation(self):
+    @classmethod
+    def _initialize_observation(cls, vehicle_config: dict):
         from pgdrive.envs.observation_type import LidarStateObservation, ImageStateObservation
-        vehicle_config = self.vehicle_config
         if vehicle_config["use_image"]:
             o = ImageStateObservation(vehicle_config)
         else:
             o = LidarStateObservation(vehicle_config)
         return o
+
+    @classmethod
+    def get_observation_space_before_init(cls, vehicle_config: dict = None):
+        vehicle_config = cls.get_vehicle_config(vehicle_config) \
+            if vehicle_config is not None else cls.default_vehicle_config
+        return cls._initialize_observation(vehicle_config).observation_space
+
+    @classmethod
+    def get_action_space_before_init(cls):
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def saver(self, action):
         """
@@ -746,36 +752,41 @@ class BaseVehicle(DynamicElement):
             save_level = self.config["save_level"] if not self._expert_takeover else 1.0
             obs = self.observation.observe(self)
             from pgdrive.examples.ppo_expert import expert
-            saver_a = expert(obs, deterministic=False)
-            if save_level > 0.9:
-                steering = saver_a[0]
-                throttle = saver_a[1]
-            elif save_level > 1e-3:
-                heading_diff = self.heading_diff(self.lane) - 0.5
-                f = min(1 + abs(heading_diff) * self.speed * self.max_speed, save_level * 10)
-                # for out of road
-                if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
-                    0] <= 1e-3 or \
-                        obs[
-                            1] <= 1e-3:
+            try:
+                saver_a = expert(obs, deterministic=False)
+            except ValueError:
+                print("Expert can not takeover, due to observation space mismathing!")
+                saver_a = action
+            else:
+                if save_level > 0.9:
                     steering = saver_a[0]
                     throttle = saver_a[1]
-                    if self.speed < 5:
-                        throttle = 0.5
-                # if saver_a[1] * self.speed < -40 and action[1] > 0:
-                #     throttle = saver_a[1]
+                elif save_level > 1e-3:
+                    heading_diff = self.heading_diff(self.lane) - 0.5
+                    f = min(1 + abs(heading_diff) * self.speed * self.max_speed, save_level * 10)
+                    # for out of road
+                    if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
+                        0] <= 1e-3 or \
+                            obs[
+                                1] <= 1e-3:
+                        steering = saver_a[0]
+                        throttle = saver_a[1]
+                        if self.speed < 5:
+                            throttle = 0.5
+                    # if saver_a[1] * self.speed < -40 and action[1] > 0:
+                    #     throttle = saver_a[1]
 
-                # for collision
-                lidar_p = self.lidar.get_cloud_points()
-                left = int(self.lidar.num_lasers / 4)
-                right = int(self.lidar.num_lasers / 4 * 3)
-                if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
-                                                                                    ) < (save_level + 0.1) / 10:
-                    # lateral safe distance 2.0m
-                    steering = saver_a[0]
-                if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
-                    # longitude safe distance 15 m
-                    throttle = saver_a[1]
+                    # for collision
+                    lidar_p = self.lidar.get_cloud_points()
+                    left = int(self.lidar.num_lasers / 4)
+                    right = int(self.lidar.num_lasers / 4 * 3)
+                    if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
+                                                                                        ) < (save_level + 0.1) / 10:
+                        # lateral safe distance 2.0m
+                        steering = saver_a[0]
+                    if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
+                        # longitude safe distance 15 m
+                        throttle = saver_a[1]
 
         # indicate if current frame is takeover step
         pre_save = self.takeover

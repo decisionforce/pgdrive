@@ -10,8 +10,7 @@ class TestEnv(PGDriveEnv):
             {
                 "environment_num": 1,
                 "start_seed": 3,
-                "use_image": False,
-                "image_source": "depth_cam",
+                "target_vehicles_config": {"default_agent": {"use_image": False, "image_source": "depth_cam"}},
                 "pg_world_config": {
                     "debug": False
                 },
