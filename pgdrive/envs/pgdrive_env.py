@@ -107,11 +107,18 @@ class PGDriveEnv(gym.Env):
         self.vehicles = {agent_id: BaseVehicle(v_config) for agent_id, v_config in
                          self.config["target_vehicles_config"].items()}
 
+        # obs. action space
         self.observation_space = gym.spaces.Dict({id: v.observation_space for id, v in self.vehicles.items()})
         self.action_space = gym.spaces.Dict({id: v.action_space for id, v in self.vehicles.items()})
+        if self.num_agents == 1:
+            self.observation_space=self.observation_space[DEFAULT_AGENT]
+            self.action_space=self.action_space[DEFAULT_AGENT]
 
+        # map setting
         self.start_seed = self.config["start_seed"]
         self.env_num = self.config["environment_num"]
+
+        # vis
         self.use_render = self.config["use_render"]
 
         # process map config

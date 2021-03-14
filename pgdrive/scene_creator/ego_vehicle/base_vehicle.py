@@ -319,7 +319,8 @@ class BaseVehicle(DynamicElement):
         self.back_vehicles = set()
 
         # for render
-        self.vehicle_panel.renew_2d_car_para_visualization(self)
+        if self.vehicle_panel is not None:
+            self.vehicle_panel.renew_2d_car_para_visualization(self)
 
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
