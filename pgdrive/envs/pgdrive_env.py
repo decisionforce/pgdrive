@@ -333,8 +333,7 @@ class PGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
 
-        self.dones = {a: False for a in self.multi_agent_action_space.keys()}
-        self.takeover = False
+        self.dones = {agent_id:False for agent_id in self.vehicles.keys()}
 
         # clear world and traffic manager
         self.pg_world.clear_world()
@@ -360,16 +359,12 @@ class PGDriveEnv(gym.Env):
 
     def _get_reset_return(self):
         ret = dict()
-        for k, v in self.vehicles.items():
+        for id, v in self.vehicles.items():
             v.prepare_step(np.array([0.0, 0.0]))
             v.update_state()
-        self.observation.reset(self)
-        for k, v in self.vehicles.items():
-            ret[k] = self.observation.observe(v)
-        if self.num_agents == 1:
-            return ret[DEFAULT_AGENT]
-        else:
-            return ret
+            v.observation.reset(self)
+            ret[id] = v.observation.observe(v)
+        return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
     def reward_function(self, vehicle, action):
         """
