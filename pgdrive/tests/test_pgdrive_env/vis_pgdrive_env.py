@@ -22,10 +22,8 @@ class TestEnv(PGDriveEnv):
                     "pstats": True
                 },
                 # "controller":"joystick",
-                "image_source": "mini_map",
                 "manual_control": True,
                 "use_render": True,
-                "use_image": False,
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
                 "rgb_clip": True,
@@ -50,8 +48,9 @@ if __name__ == "__main__":
         env.render(
             text={
                 "vehicle_num": len(env.scene_manager.traffic_mgr.traffic_vehicles),
-                "dist_to_left:": env.vehicle.dist_to_left,
-                "dist_to_right:": env.vehicle.dist_to_right
+                "dist_to_left": env.vehicle.dist_to_left,
+                "dist_to_right": env.vehicle.dist_to_right,
+                "velocity":env.vehicle.speed
             }
         )
         if d:

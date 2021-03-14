@@ -379,7 +379,8 @@ class BaseVehicle(DynamicElement):
         """
         km/h
         """
-        speed = self.chassis_np.node().get_linear_velocity().length() * 3.6
+        velocity=self.chassis_np.node().get_linear_velocity()
+        speed = norm(velocity[0], velocity[1]) * 3.6
         return clip(speed, 0.0, 100000.0)
 
     @property
