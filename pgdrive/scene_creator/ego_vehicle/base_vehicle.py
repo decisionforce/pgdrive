@@ -230,8 +230,8 @@ class BaseVehicle(DynamicElement):
     def _preprocess_action(self, action):
         self.step_info["raw_action"] = (action[0], action[1])
         if self.vehicle_config["action_check"]:
-            assert action_space.contains(action), "Input {} is not compatible with action space {}!".format(
-                action, action_space)
+            assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
+                action, self.action_space)
 
         # filter by saver to protect
         steering, throttle, saver_info = self.saver(action)

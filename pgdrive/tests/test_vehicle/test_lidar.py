@@ -25,11 +25,9 @@ def test_lidar(render=False):
         detect_vehicle = False
         for i in range(1, 100000):
             o, r, d, info = env.step([0, 1])
-
             if len(env.vehicle.lidar.get_surrounding_vehicles()) != 0:
                 detect_vehicle = True
 
-            # env.render("Test: {}".format(i))
             if d:
                 break
         assert detect_vehicle, "Lidar detection failed"
