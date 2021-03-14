@@ -25,6 +25,7 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils import safe_clip
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
@@ -76,6 +77,9 @@ class BaseVehicle(DynamicElement):
 
         # ==== others ====
         overtake_stat=False,  # we usually set to True when evaluation
+        action_check=False,
+        use_saver=False,
+        save_level=0.5,
 
     ))
 
@@ -144,18 +148,20 @@ class BaseVehicle(DynamicElement):
         self.current_banner = None
         self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
-        # done info
+        # step info
         self.crash_vehicle = None
         self.crash_object = None
         self.out_of_route = None
         self.crash_side_walk = None
         self.on_lane = None
-        self.init_done_info()
+        self.step_info = None
+        self._init_step_info()
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
         self._add_modules_for_vehicle(pg_world.pg_config["use_render"])
         self.takeover = False
+        self._expert_takeover = False
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
@@ -209,13 +215,14 @@ class BaseVehicle(DynamicElement):
                 mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.pg_world)
                 self.add_image_sensor("mini_map", mini_map)
 
-    def init_done_info(self):
+    def _init_step_info(self):
         # done info will be initialized every frame
         self.crash_vehicle = False
         self.crash_object = False
         self.crash_side_walk = False
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
+        self.step_info = {"reward": 0, "cost": 0}
 
     @classmethod
     def get_vehicle_config(cls, new_config):
@@ -223,12 +230,30 @@ class BaseVehicle(DynamicElement):
         default.update(new_config)
         return default
 
+    def _preprocess_action(self, action):
+        self.step_info["raw_action"] = (action[0], action[1])
+        if self.vehicle_config["action_check"]:
+            assert action_space.contains(action), "Input {} is not compatible with action space {}!".format(
+                action, action_space)
+
+        # filter by saver to protect
+        steering, throttle, saver_info = self.saver(action)
+        action = (steering, throttle)
+        self.step_info.update(saver_info)
+
+        # protect agent from nan error
+        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
+        return action
+
     def prepare_step(self, action):
         """
         Save info and make decision before action
         """
-        self._frame_objects_crashed = []
+        # init step info to store info before each step
+        self._init_step_info()
+        self._preprocess_action(action)
 
+        self._frame_objects_crashed = []
         self.last_position = self.position
         self.last_heading_dir = self.heading
         self.last_current_action.append(action)  # the real step of physics world is implemented in taskMgr.step()
@@ -238,9 +263,6 @@ class BaseVehicle(DynamicElement):
             self.set_act(action)
         if self.vehicle_panel is not None:
             self.vehicle_panel.renew_2d_car_para_visualization(self)
-
-        # init done info before each step
-        self.init_done_info()
 
     def update_state(self, pg_world=None):
         # callback
@@ -256,6 +278,9 @@ class BaseVehicle(DynamicElement):
         self.update_dist_to_left_right()
         self.out_of_route = True if self.dist_to_right < 0 or self.dist_to_left < 0 else False
         self._update_overtake_stat()
+        self.step_info.update({"velocity": float(self.speed),
+                               "steering": float(self.steering),
+                               "acceleration": float(self.throttle_brake)})
 
     def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
         """
@@ -277,7 +302,7 @@ class BaseVehicle(DynamicElement):
         self.system.resetSuspension()
 
         # done info
-        self.init_done_info()
+        self._init_step_info()
 
         # other info
         self.throttle_brake = 0.0
@@ -286,6 +311,7 @@ class BaseVehicle(DynamicElement):
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
         self.update_dist_to_left_right()
+        self.takeover = False
 
         # overtake_stat
         self.front_vehicles = set()
@@ -701,6 +727,60 @@ class BaseVehicle(DynamicElement):
         else:
             o = LidarStateObservation(vehicle_config)
         return o
+
+    def saver(self, action):
+        """
+        Rule to enable saver
+        :param action: original action
+        :return: a new action to override original action
+        """
+        steering = action[0]
+        throttle = action[1]
+        if self.vehicle_config["use_saver"] or self._expert_takeover:
+            # saver can be used for human or another AI
+            save_level = self.config["save_level"] if not self._expert_takeover else 1.0
+            obs = self.observation.observe(self)
+            from pgdrive.examples.ppo_expert import expert
+            saver_a = expert(obs, deterministic=False)
+            if save_level > 0.9:
+                steering = saver_a[0]
+                throttle = saver_a[1]
+            elif save_level > 1e-3:
+                heading_diff = self.heading_diff(self.lane) - 0.5
+                f = min(1 + abs(heading_diff) * self.speed * self.max_speed, save_level * 10)
+                # for out of road
+                if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
+                    0] <= 1e-3 or \
+                        obs[
+                            1] <= 1e-3:
+                    steering = saver_a[0]
+                    throttle = saver_a[1]
+                    if self.speed < 5:
+                        throttle = 0.5
+                # if saver_a[1] * self.speed < -40 and action[1] > 0:
+                #     throttle = saver_a[1]
+
+                # for collision
+                lidar_p = self.lidar.get_cloud_points()
+                left = int(self.lidar.num_lasers / 4)
+                right = int(self.lidar.num_lasers / 4 * 3)
+                if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
+                                                                                    ) < (save_level + 0.1) / 10:
+                    # lateral safe distance 2.0m
+                    steering = saver_a[0]
+                if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
+                    # longitude safe distance 15 m
+                    throttle = saver_a[1]
+
+        # indicate if current frame is takeover step
+        pre_save = self.takeover
+        self.takeover = True if action[0] != steering or action[1] != throttle else False
+        saver_info = {
+            "takeover_start": True if not pre_save and self.takeover else False,
+            "takeover_end": True if pre_save and not self.takeover else False,
+            "takeover": self.takeover
+        }
+        return steering, throttle, saver_info
 
     def __del__(self):
         super(BaseVehicle, self).__del__()

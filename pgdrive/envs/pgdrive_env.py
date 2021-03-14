@@ -90,15 +90,8 @@ class PGDriveEnv(gym.Env):
 
             # ===== Others =====
             pg_world_config=dict(),
-            use_increment_steering=False,
-            action_check=False,
             record_episode=False,
-            use_saver=False,
-            save_level=0.5,
             num_agents=1,
-
-            # ===== stat =====
-            overtake_stat=False
         )
         config = PGConfig(env_config)
         config.register_type("map", str, int)
@@ -144,7 +137,6 @@ class PGDriveEnv(gym.Env):
         self.scene_manager: Optional[SceneManager] = None
         self.main_camera = None
         self.controller = None
-        self._expert_take_over = False
         self.restored_maps = dict()
 
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
@@ -170,7 +162,7 @@ class PGDriveEnv(gym.Env):
         self.pg_world.accept("escape", sys.exit)
 
         # Press t can let expert take over. But this function is still experimental.
-        self.pg_world.accept("t", self.toggle_expert_take_over)
+        self.pg_world.accept("t", self.toggle_expert_takeover)
 
         # capture all figs
         self.pg_world.accept("p", self.capture)
@@ -199,45 +191,13 @@ class PGDriveEnv(gym.Env):
             self.main_camera = ChaseCamera(
                 self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world)
 
-    def preprocess_actions(self, actions):
-        ret_actions = dict()
-        infos = dict()
-
-        for key, action in actions.items():
-
-            vehicle = self.vehicles[key]
-            action_space = self.multi_agent_action_space[key]
-
-            # add custom metric in info
-            step_info = {"raw_action": (action[0], action[1]), "cost": 0}
-
-            if self.config["action_check"]:
-                assert action_space.contains(action), "Input {} is not compatible with action space {}!".format(
-                    action, action_space
-                )
-
-            # filter by saver to protect
-            steering, throttle, saver_info = self.saver(action, vehicle)
-            action = (steering, throttle)
-            step_info.update(saver_info)
-            infos[key] = step_info
-
-            # protect agent from nan error
-            action = safe_clip(action, min_val=action_space.low[0], max_val=action_space.high[0])
-            ret_actions[key] = action
-        return ret_actions, infos
-
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
-
         if self.config["manual_control"] and self.use_render:
             assert self.num_agents == 1, "We don't support manually control in multi-agent yet!"
             actions = self.controller.process_input()
-            actions = self.expert_take_over(actions)
 
         if self.num_agents == 1:
             actions = {DEFAULT_AGENT: actions}
-
-        actions, step_infos = self.preprocess_actions(actions)
 
         # Check whether some actions are left.
         given_keys = set(actions.keys())
@@ -256,31 +216,21 @@ class PGDriveEnv(gym.Env):
         dones = self.scene_manager.update_state()
 
         # update obs
-        obses = self.for_each_vehicle(self.observation.observe)
+        obses = {agent_id:v.observation.observe(v) for agent_id, v in self.vehicles.items()}
         rewards = dict()
         for key, vehicle in self.vehicles.items():
             reward = self.reward_function(vehicle, actions[key])
             done, done_reward, done_info = self.done_function(vehicle)
-            step_infos[key].update(done_info)
+            vehicle.step_info.update(done_info)
             self.dones[key] = self.dones[key] or dones[key] or done
             if self.dones[key]:
                 reward = 0
-            step_infos[key].update(
-                {
-                    "cost": float(0),  # it may be overwritten in callback func
-                    "velocity": float(vehicle.speed),
-                    "steering": float(vehicle.steering),
-                    "acceleration": float(vehicle.throttle_brake),
-                    "step_reward": float(reward),
-                    "takeover": self.takeover,  # TODO fix takeover!
-                }
-            )
-            step_infos[key] = self.custom_info_callback(step_infos[key], vehicle)
+            vehicle.step_info["step_reward"]=float(reward)
             rewards[key] = reward + done_reward
 
         if self.num_agents == 1:
             return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
-                   copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(step_infos[DEFAULT_AGENT])
+                   copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(self.vehicle.step_info)
         else:
             return obses, rewards, copy.deepcopy(self.dones), copy.deepcopy(step_infos)
 
@@ -605,71 +555,14 @@ class PGDriveEnv(gym.Env):
             return 0
         return self.scene_manager.get_vehicle_num()
 
-    def expert_take_over(self, action):
-        if self._expert_take_over:
-            from pgdrive.examples.ppo_expert import expert
-            return expert(self.observation.observe(self.vehicle))
-        else:
-            return action
-
-    def saver(self, action, vehicle=None):
+    def toggle_expert_takeover(self):
         """
-        Rule to enable saver
-        :param action: original action
-        :return: a new action to override original action
+        Only take effect whene vehicle num==1
+        :return: None
         """
-        if vehicle is None:
-            raise ValueError("Please update your code to multi-agent variant! Delete this sentence later!")
-
-        steering = action[0]
-        throttle = action[1]
-        if self.config["use_saver"] and not self._expert_take_over:
-            # saver can be used for human or another AI
-            save_level = self.config["save_level"]
-            obs = self.observation.observe(vehicle)
-            from pgdrive.examples.ppo_expert import expert
-            saver_a = expert(obs, deterministic=False)
-            if save_level > 0.9:
-                steering = saver_a[0]
-                throttle = saver_a[1]
-            elif save_level > 1e-3:
-                heading_diff = vehicle.heading_diff(vehicle.lane) - 0.5
-                f = min(1 + abs(heading_diff) * vehicle.speed * vehicle.max_speed, save_level * 10)
-                # for out of road
-                if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
-                    0] <= 1e-3 or \
-                        obs[
-                            1] <= 1e-3:
-                    steering = saver_a[0]
-                    throttle = saver_a[1]
-                    if vehicle.speed < 5:
-                        throttle = 0.5
-                # if saver_a[1] * vehicle.speed < -40 and action[1] > 0:
-                #     throttle = saver_a[1]
-
-                # for collision
-                lidar_p = vehicle.lidar.get_cloud_points()
-                left = int(vehicle.lidar.num_lasers / 4)
-                right = int(vehicle.lidar.num_lasers / 4 * 3)
-                if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
-                                                                                    ) < (save_level + 0.1) / 10:
-                    # lateral safe distance 2.0m
-                    steering = saver_a[0]
-                if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
-                    # longitude safe distance 15 m
-                    throttle = saver_a[1]
-
-        # indicate if current frame is takeover step
-        pre_save = self.takeover
-        self.takeover = True if action[0] != steering or action[1] != throttle else False
-        saver_info = {
-            "takeover_start": True if not pre_save and self.takeover else False,
-            "takeover_end": True if pre_save and not self.takeover else False
-        }
-        return steering, throttle, saver_info
-
-    def toggle_expert_take_over(self):
-        self._expert_take_over = not self._expert_take_over
+        raise ValueError
+        assert len(self.vehicles)==1, "Only enable when driving in single agent env"
+        self.vehicle._expert_takeover = not self._expert_takeover
 
     def capture(self):
         img = PNMImage()
