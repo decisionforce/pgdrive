@@ -49,8 +49,6 @@ class PGDriveEnv(gym.Env):
             accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
 
             # ===== Observation =====
-            # TODO use_image should be assigned automatically
-            use_image=False,  # Use image observation, else Lidar is the default observation
             use_topdown=False,  # Use top-down view
             rgb_clip=True,
 
@@ -101,6 +99,7 @@ class PGDriveEnv(gym.Env):
         self.config = self.default_config()
         if config:
             self.config.update(config)
+        self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
 
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
@@ -216,7 +215,7 @@ class PGDriveEnv(gym.Env):
         dones = self.scene_manager.update_state()
 
         # update obs
-        obses = {agent_id:v.observation.observe(v) for agent_id, v in self.vehicles.items()}
+        obses = {agent_id: v.observation.observe(v) for agent_id, v in self.vehicles.items()}
         rewards = dict()
         for key, vehicle in self.vehicles.items():
             reward = self.reward_function(vehicle, actions[key])
@@ -225,7 +224,7 @@ class PGDriveEnv(gym.Env):
             self.dones[key] = self.dones[key] or dones[key] or done
             if self.dones[key]:
                 reward = 0
-            vehicle.step_info["step_reward"]=float(reward)
+            vehicle.step_info["step_reward"] = float(reward)
             rewards[key] = reward + done_reward
 
         if self.num_agents == 1:
@@ -283,7 +282,7 @@ class PGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
 
-        self.dones = {agent_id:False for agent_id in self.vehicles.keys()}
+        self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
 
         # clear world and traffic manager
         self.pg_world.clear_world()
@@ -558,7 +557,7 @@ class PGDriveEnv(gym.Env):
         Only take effect whene vehicle num==1
         :return: None
         """
-        assert len(self.vehicles)==1, "Only enable when driving in single agent env"
+        assert len(self.vehicles) == 1, "Only enable when driving in single agent env"
         self.vehicle._expert_takeover = not self.vehicle._expert_takeover
 
     def capture(self):
@@ -591,6 +590,13 @@ class PGDriveEnv(gym.Env):
 
     def reward(self, *args, **kwargs):
         raise ValueError("reward function is deprecated!")
+
+    @property
+    def use_image(self):
+        for v_config in self.config["target_vehicles_config"].values():
+            if v_config["use_image"]:
+                return True
+        return False
 
 
 if __name__ == '__main__':

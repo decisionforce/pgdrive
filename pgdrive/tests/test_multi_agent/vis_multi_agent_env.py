@@ -21,7 +21,6 @@ class TestEnv(PGDriveEnv):
                 # "controller":"joystick",
                 "manual_control": True,
                 "use_render": True,
-                "use_image": False,
                 "steering_penalty": 0.0,
                 "decision_repeat": 5,
                 "rgb_clip": True,

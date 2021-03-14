@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 
 def _check_keys(new_config, old_config, prefix=""):
@@ -102,3 +103,9 @@ class PGConfig:
 
     def items(self):
         return self._config.items()
+
+    def values(self):
+        return self._config.values()
+
+    def keys(self):
+        return self._config.keys()
