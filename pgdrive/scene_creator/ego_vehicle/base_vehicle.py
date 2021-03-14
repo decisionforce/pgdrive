@@ -86,37 +86,38 @@ class BaseVehicle(DynamicElement):
     LENGTH = None
     WIDTH = None
 
-    def __init__(self, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0):
+    def __init__(self, vehicle_config: dict = None):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
         module parameters. And self.physics_config defines the physics feature of vehicles, such as length/width
         :param vehicle_config: mostly, vehicle module config
         :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
         """
-        super(BaseVehicle, self).__init__(random_seed)
-        # config info
-        self.set_config(self.PARAMETER_SPACE.sample())
-        if physics_config is not None:
-            self.set_config(physics_config)
 
         self.vehicle_config = self.get_vehicle_config(vehicle_config) \
             if vehicle_config is not None else self.default_vehicle_config
-        self.increment_steering = self.vehicle_config["increment_steering"]
-        self.max_speed = self.get_config()[Parameter.speed_max]
-        self.max_steering = self.get_config()[Parameter.steering_max]
 
         # observation, action
         self.observation = self._initialize_observation()
         self.observation_space = self.observation.observation_space
         self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
-    def spawned_in_world(self, pg_world: PGWorld):
+    def spawned_in_world(self, pg_world: PGWorld, physics_config: dict = None, random_seed: int = 0):
         """
         Spawne this vehilce in pgworld
         :param pg_world:
         :param random_seed:
         :return:
         """
+        super(BaseVehicle, self).__init__(random_seed)
+        # config info
+        self.set_config(self.PARAMETER_SPACE.sample())
+        if physics_config is not None:
+            self.set_config(physics_config)
+        self.increment_steering = self.vehicle_config["increment_steering"]
+        self.max_speed = self.get_config()[Parameter.speed_max]
+        self.max_steering = self.get_config()[Parameter.steering_max]
+
         self.pg_world = pg_world
         self.node_path = NodePath("vehicle")
 
