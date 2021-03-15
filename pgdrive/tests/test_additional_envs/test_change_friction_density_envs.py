@@ -33,4 +33,4 @@ def test_change_density_env():
 
 
 if __name__ == '__main__':
-    pytest.main(["-sv", "test_change_friction_env.py"])
+    pytest.main(["-sv", "test_change_friction_density_envs.py"])
