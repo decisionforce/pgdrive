@@ -42,7 +42,10 @@ class FirstBlock(Block):
         CreateAdverseRoad(other_v_born_road, self.block_network, self._global_network)
 
         self._create_in_world()
-        global_network += self.block_network
+
+        # global_network += self.block_network
+        global_network.add(self.block_network)
+
         socket = self.create_socket_from_positive_road(other_v_born_road)
         socket.index = 0
         self.add_sockets(socket)

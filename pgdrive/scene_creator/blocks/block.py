@@ -5,6 +5,7 @@ import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
     TransparencyAttrib, SamplerState, NodePath
+
 from pgdrive.constants import Decoration, BodyName
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.scene_creator.blocks.constants import BlockDefault
@@ -13,6 +14,7 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
+from pgdrive.utils import random_string
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.element import Element
@@ -26,10 +28,12 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
         self.index = None
+        self.unique_id = random_string()
 
 
 class Block(Element, BlockDefault):
@@ -47,6 +51,7 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -69,7 +74,7 @@ class Block(Element, BlockDefault):
         self._reborn_roads = []
 
         # own sockets, one block derives from a socket, but will have more sockets to connect other blocks
-        self._sockets = []
+        self._sockets = dict()
 
         # used to connect previous blocks, save its info here
         self.pre_block_socket = pre_block_socket
@@ -126,9 +131,12 @@ class Block(Element, BlockDefault):
         self.number_of_sample_trial += 1
         self._clear_topology()
         no_cross = self._try_plug_into_previous_block()
-        for i, s in enumerate(self._sockets):
+        for i, s in enumerate(self._sockets.values()):
             s.index = i
-        self._global_network += self.block_network
+
+        # self._global_network += self.block_network
+        self._global_network.add(self.block_network)
+
         return no_cross
 
     def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld):
@@ -360,14 +368,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -524,3 +532,6 @@ class Block(Element, BlockDefault):
             "Socket can only be created from positive road"
         positive_road = Road(road.start_node, road.end_node)
         return BlockSocket(positive_road, -positive_road)
+
+    def get_socket_ids(self):
+        return list(self._sockets.keys())
