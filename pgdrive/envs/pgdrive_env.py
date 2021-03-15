@@ -42,8 +42,10 @@ class PGDriveEnv(gym.Env):
             _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
             # ==== agents config =====
-            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.get_vehicle_config()},  # agent_id: vehicle_config
             num_agents=1,
+            target_vehicle_configs={},  # agent_id: vehicle_config
+            # this take effects only in single-agent env for convenience
+            vehicle_config=BaseVehicle.get_vehicle_config(),
 
             # ===== Observation =====
             use_topdown=False,  # Use top-down view
@@ -102,9 +104,8 @@ class PGDriveEnv(gym.Env):
         if config:
             self.config.update(config)
         self.num_agents = self.config["num_agents"]
-        if self.num_agents > 1:
-            self.config["target_vehicle_configs"].pop(DEFAULT_AGENT)
-            # raise ValueError("We don't fulfill target_vehicle_configs yet!")
+        if self.num_agents == 1:
+            self.config["target_vehicle_configs"][DEFAULT_AGENT] = self.config["vehicle_config"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
