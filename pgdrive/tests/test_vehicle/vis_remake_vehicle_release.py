@@ -9,20 +9,17 @@ class TestEnv(PGDriveEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             {
-                "image_source": "depth_cam",
                 "manual_control": True,
                 "use_render": False,
-                "use_image": True
             }
         )
 
     def reset(self):
-        if self.vehicle is not None:
+        if self.vehicles is not None:
             self.vehicle.destroy()
-            self.vehicle = BaseVehicle(env.pg_world, env.config["vehicle_config"])
-            self.add_modules_for_vehicle()
+            self.vehicles["default_agent"] = BaseVehicle(env.pg_world)
             if self.main_camera is not None:
-                self.main_camera.reset(self.vehicle, env.pg_world)
+                self.main_camera.chase(self.vehicle, env.pg_world)
         super(TestEnv, self).reset()
 
 

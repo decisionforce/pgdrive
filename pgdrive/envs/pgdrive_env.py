@@ -105,7 +105,7 @@ class PGDriveEnv(gym.Env):
             # raise ValueError("We don't fulfill target_vehicle_configs yet!")
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
-        self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
+        self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
 
         # obs. action space
         self.observation_space = gym.spaces.Dict(
@@ -158,9 +158,9 @@ class PGDriveEnv(gym.Env):
         self.current_seed = self.start_seed
         self.current_map = None
 
+        self.vehicles = None
         self.dones = None
-
-        # self.step_info = None
+        self.current_track_vehicle = None
 
     def lazy_init(self):
         """
@@ -202,16 +202,22 @@ class PGDriveEnv(gym.Env):
             for agent_id, v_config in self.config["target_vehicle_configs"].items()
         }
 
-        # TODO add a change target vehicle cam func
+        # first tracked vehicles
+        vehicles = sorted(self.vehicles.items())
+        self.current_track_vehicle = vehicles[0][1]
+
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
             self.main_camera = ChaseCamera(
-                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world)
+                self.pg_world.cam, self.config["camera_height"], 7, self.pg_world)
+            self.main_camera.chase(self.current_track_vehicle, self.pg_world)
+        self.pg_world.accept("n", self.chase_another_v)
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
-        if self.config["manual_control"] and self.use_render:
-            assert self.num_agents == 1, "We don't support manually control in multi-agent yet!"
-            actions = self.controller.process_input()
+        # TODO manual control selected vehicle
+        # if self.config["manual_control"] and self.use_render:
+        #     # assert self.num_agents == 1, "We don't support manually control in multi-agent yet!"
+        #     actions = self.controller.process_input()
 
         if self.num_agents == 1:
             actions = {DEFAULT_AGENT: actions}
@@ -514,11 +520,19 @@ class PGDriveEnv(gym.Env):
         raise ValueError("reward function is deprecated!")
 
     @property
-    def use_image(self):
+    def use_image_sensor(self):
         for extra_v_config in self.config["target_vehicle_configs"].values():
             if BaseVehicle.get_vehicle_config(extra_v_config)["use_image"]:
                 return True
         return False
+
+    def chase_another_v(self) -> (str, BaseVehicle):
+        vehicles = sorted(self.vehicles.items()) * 2
+        for index, v in enumerate(vehicles):
+            if vehicles[index - 1][1] == self.current_track_vehicle:
+                self.current_track_vehicle=v[1]
+                self.main_camera.chase(self.current_track_vehicle, self.pg_world)
+                return
 
 
 if __name__ == '__main__':
@@ -529,6 +543,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

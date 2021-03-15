@@ -15,7 +15,7 @@ class TestEnv(PGDriveEnv):
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
-                    "debug_physics_world": True,
+                    # "debug_physics_world": True,
                     "pstats": True
                 },
                 # "controller":"joystick",
@@ -36,14 +36,9 @@ if __name__ == "__main__":
     o = env.reset()
     print("vehicle num", len(env.scene_manager.traffic_mgr.vehicles))
     for i in range(1, 100000):
-        o, r, d, info = env.step([0, 1])
-        env.render(
-            text={
-                "vehicle_num": len(env.scene_manager.traffic_mgr.traffic_vehicles),
-                "dist_to_left:": env.vehicle.dist_to_left,
-                "dist_to_right:": env.vehicle.dist_to_right
-            }
-        )
+        o, r, d, info = env.step({"agent0": [0, 1], "agent1": [0, 1]})
+        # o, r, d, info = env.step([0,1])
+        env.render()
         if d:
             print("Reset")
             env.reset()
