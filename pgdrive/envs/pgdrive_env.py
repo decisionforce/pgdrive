@@ -5,14 +5,16 @@ import os.path as osp
 import sys
 import time
 from typing import Union, Optional, Iterable, Dict, AnyStr
-from pgdrive.rl import pg_cost_function, pg_done_function, pg_reward_function
+
 import gym
 import numpy as np
 from panda3d.core import PNMImage
+
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.pg_config import PGConfig
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.rl_utils import pg_cost_function, pg_done_function, pg_reward_function
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import recursive_equal, get_np_random
@@ -29,6 +31,34 @@ class PGDriveEnv(gym.Env):
     @staticmethod
     def default_config() -> PGConfig:
         env_config = dict(
+            # ===== Generalization =====
+            start_seed=0,
+            environment_num=1,
+
+            # ===== Map Config =====
+            map=3,  # int or string: an easy way to fill map_config
+            map_config=dict(),
+            load_map_from_json=True,  # Whether to load maps from pre-generated file
+            _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
+
+            # ==== agents config =====
+            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.get_vehicle_config()},  # agent_id: vehicle_config
+            num_agents=1,
+
+            # ===== Observation =====
+            use_topdown=False,  # Use top-down view
+            rgb_clip=True,
+
+            # ===== Traffic =====
+            traffic_density=0.1,
+            traffic_mode=TrafficMode.Trigger,  # "reborn", "trigger", "hybrid"
+            random_traffic=False,  # Traffic is randomized at default.
+
+            # ===== Object =====
+            accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
+
+            # ===== Action =====
+            decision_repeat=5,
 
             # ===== Rendering =====
             use_render=False,  # pop a window to render or not
@@ -40,35 +70,11 @@ class PGDriveEnv(gym.Env):
             use_chase_camera=True,
             camera_height=1.8,
 
-            # ===== Traffic =====
-            traffic_density=0.1,
-            traffic_mode=TrafficMode.Trigger,
-            random_traffic=False,  # Traffic is randomized at default.
+            # ===== Others =====
+            pg_world_config=dict(),
+            record_episode=False,
 
-            # ===== Object =====
-            accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
-
-            # ===== Observation =====
-            use_topdown=False,  # Use top-down view
-            rgb_clip=True,
-
-            # ==== agents config =====
-            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.get_vehicle_config()},  # agent_id: vehicle_config
-
-            # ===== Map Config =====
-            map=3,  # int or string: an easy way to fill map_config
-            map_config=dict(),
-            load_map_from_json=True,  # Whether to load maps from pre-generated file
-            _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
-
-            # ===== Generalization =====
-            start_seed=0,
-            environment_num=1,
-
-            # ===== Action =====
-            decision_repeat=5,
-
-            # FIXME reward scheme is in vehicle config now
+            # Reward scheme is in vehicle config now!
             # # ===== Reward Scheme =====
             # success_reward=20,
             # out_of_road_penalty=5,
@@ -85,11 +91,6 @@ class PGDriveEnv(gym.Env):
             # crash_vehicle_cost=1,
             # crash_object_cost=1,
             # out_of_road_cost=1.,
-
-            # ===== Others =====
-            pg_world_config=dict(),
-            record_episode=False,
-            num_agents=1,
         )
         config = PGConfig(env_config)
         config.register_type("map", str, int)
@@ -272,7 +273,7 @@ class PGDriveEnv(gym.Env):
 
         if mode == "rgb_array" and self.config["use_render"]:
             if not hasattr(self, "_temporary_img_obs"):
-                from pgdrive.rl.observation_type import ImageObservation
+                from pgdrive.rl_utils.observation_type import ImageObservation
                 image_source = "rgb_cam"
                 assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
                 self.temporary_img_obs = ImageObservation(
@@ -554,6 +555,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
