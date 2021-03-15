@@ -3,8 +3,7 @@ from typing import Union, List
 
 import numpy as np
 from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
-
-from pgdrive.world import RENDER_MODE_ONSCREEN
+from pgdrive.constants import RENDER_MODE_ONSCREEN
 
 
 class ImageBuffer:
@@ -16,6 +15,7 @@ class ImageBuffer:
     display_bottom = 0.8
     display_top = 1
     display_region = None
+    default_region = [1 / 3, 2 / 3, 0.8, 1.0]
 
     def __init__(
         self,

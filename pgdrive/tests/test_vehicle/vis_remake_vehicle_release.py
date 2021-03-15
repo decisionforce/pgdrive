@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger
 
 setup_logger(debug=True)
@@ -7,26 +7,17 @@ setup_logger(debug=True)
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
-        super(TestEnv, self).__init__(
-            {
-                "image_source": "depth_cam",
-                "manual_control": True,
-                "use_render": False,
-                "use_image": True
-            }
-        )
+        super(TestEnv, self).__init__({
+            "manual_control": True,
+            "use_render": False,
+        })
 
     def reset(self):
-        if self.vehicle is not None:
-            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
-            self.vehicles = {
-                a: BaseVehicle(self.pg_world, env.config["vehicle_config"])
-                for a in self.multi_agent_action_space.keys()
-            }
-
-            self.for_each_vehicle(self.add_modules_for_vehicle)
+        if self.vehicles is not None:
+            self.vehicle.destroy()
+            self.vehicles["default_agent"] = BaseVehicle(env.pg_world)
             if self.main_camera is not None:
-                self.main_camera.reset(self.vehicle, env.pg_world)
+                self.main_camera.chase(self.vehicle, env.pg_world)
         super(TestEnv, self).reset()
 
 

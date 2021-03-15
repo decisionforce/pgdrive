@@ -1,11 +1,10 @@
 import copy
 import logging
 
+from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.scene_creator.map import Map
-from pgdrive.world.pg_world import PGWorld
-from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.utils.constans import DEFAULT_AGENT
+from pgdrive.world.pg_world import PGWorld
 
 
 class PGReplayer:
@@ -18,7 +17,7 @@ class PGReplayer:
 
     def _recover_vehicles_from_data(self, traffic_mgr: TrafficManager, episode_data: dict, pg_world: PGWorld):
         assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
-        import pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle_type as v_types
+        import pgdrive.scene_creator.vehicle.traffic_vehicle_type as v_types
         traffics = episode_data["init_traffic"]
         for name, config in traffics.items():
             car_type = getattr(v_types, config["type"])

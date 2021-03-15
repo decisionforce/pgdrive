@@ -1,12 +1,13 @@
 import logging
 from typing import Set
+
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape
 from panda3d.core import BitMask32, NodePath
-from pgdrive.pg_config.body_name import BodyName
+from pgdrive.constants import BodyName
 from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
-from pgdrive.scene_creator.pg_traffic_vehicle.traffic_vehicle import PGTrafficVehicle
+from pgdrive.scene_creator.vehicle.traffic_vehicle import PGTrafficVehicle
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
