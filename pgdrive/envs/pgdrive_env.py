@@ -53,7 +53,7 @@ class PGDriveEnv(gym.Env):
             rgb_clip=True,
 
             # ==== agents config =====
-            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.default_vehicle_config},  # agent_id: vehicle_config
+            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.get_vehicle_config()},  # agent_id: vehicle_config
 
             # ===== Map Config =====
             map=3,  # int or string: an easy way to fill map_config
@@ -102,7 +102,8 @@ class PGDriveEnv(gym.Env):
         self.num_agents = self.config["num_agents"]
         if self.num_agents > 1:
             self.config["target_vehicle_configs"].pop(DEFAULT_AGENT)
-            raise ValueError("We don't fulfill target_vehicle_configs yet!")
+            # TODO use vehicle_config in single agent env
+            # raise ValueError("We don't fulfill target_vehicle_configs yet!")
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})

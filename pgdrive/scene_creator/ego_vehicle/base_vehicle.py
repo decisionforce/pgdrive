@@ -53,7 +53,7 @@ class BaseVehicle(DynamicElement):
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
-    default_vehicle_config = PGConfig(dict(
+    _default_vehicle_config = PGConfig(dict(
 
         # ===== vehicle module config =====
         lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
@@ -98,7 +98,7 @@ class BaseVehicle(DynamicElement):
         """
 
         self.vehicle_config = self.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else self.default_vehicle_config
+            if vehicle_config is not None else self._default_vehicle_config
 
         # observation, action
         self.observation = self._initialize_observation(self.vehicle_config)
@@ -222,8 +222,10 @@ class BaseVehicle(DynamicElement):
         self.step_info = {"reward": 0, "cost": 0}
 
     @classmethod
-    def get_vehicle_config(cls, new_config):
-        default = copy.deepcopy(cls.default_vehicle_config)
+    def get_vehicle_config(cls, new_config=None):
+        default = copy.deepcopy(cls._default_vehicle_config)
+        if new_config is None:
+            return default
         default.update(new_config)
         return default
 
@@ -379,7 +381,7 @@ class BaseVehicle(DynamicElement):
         """
         km/h
         """
-        velocity=self.chassis_np.node().get_linear_velocity()
+        velocity = self.chassis_np.node().get_linear_velocity()
         speed = norm(velocity[0], velocity[1]) * 3.6
         return clip(speed, 0.0, 100000.0)
 
@@ -733,7 +735,7 @@ class BaseVehicle(DynamicElement):
     @classmethod
     def get_observation_space_before_init(cls, vehicle_config: dict = None):
         vehicle_config = cls.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else cls.default_vehicle_config
+            if vehicle_config is not None else cls._default_vehicle_config
         return cls._initialize_observation(vehicle_config).observation_space
 
     @classmethod
