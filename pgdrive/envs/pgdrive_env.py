@@ -69,23 +69,6 @@ class PGDriveEnv(gym.Env):
             # TODO move to vehicle
             decision_repeat=5,
 
-            # ===== Reward Scheme =====
-            success_reward=20,
-            out_of_road_penalty=5,
-            crash_vehicle_penalty=10,
-            crash_object_penalty=2,
-            acceleration_penalty=0.0,
-            steering_penalty=0.1,
-            low_speed_penalty=0.0,
-            driving_reward=1.0,
-            general_penalty=0.0,
-            speed_reward=0.1,
-
-            # ===== Cost Scheme =====
-            crash_vehicle_cost=1,
-            crash_object_cost=1,
-            out_of_road_cost=1.,
-
             # ===== Others =====
             pg_world_config=dict(),
             record_episode=False,
@@ -232,36 +215,19 @@ class PGDriveEnv(gym.Env):
         self.scene_manager.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
-        dones = self.scene_manager.update_state()
+        self.scene_manager.update_state()
 
-        # update obs
-        obses = {agent_id: v.observation.observe(v) for agent_id, v in self.vehicles.items()}
-        rewards = dict()
-        for key, vehicle in self.vehicles.items():
-            reward = self.reward_function(vehicle, actions[key])
-            done, done_reward, done_info = self.done_function(vehicle)
-            vehicle.step_info.update(done_info)
-            self.dones[key] = self.dones[key] or dones[key] or done
-            if self.dones[key]:
-                reward = 0
-            vehicle.step_info["step_reward"] = float(reward)
-            rewards[key] = reward + done_reward
+        # update obs, dones, rewards, costs, calculate done at first !
+        self.dones = self.for_each_vehicle(lambda v: v.done_function())
+        obses = self.for_each_vehicle(lambda v: v.observation.observe(v))
+        rewards = self.for_each_vehicle(lambda v: v.reward_function())
+        self.for_each_vehicle(lambda v: v.cost_function())
 
         if self.num_agents == 1:
             return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
                    copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(self.vehicle.step_info)
         else:
             return obses, rewards, copy.deepcopy(self.dones), self.for_each_vehicle(lambda v: v.step_info)
-
-    def _add_cost(self):
-        # FIXME wrong!
-        self.step_info["cost"] = 0
-        if self.step_info["crash_vehicle"]:
-            self.step_info["cost"] = self.config["crash_vehicle_cost"]
-        elif self.step_info["crash_object"]:
-            self.step_info["cost"] = self.config["crash_object_cost"]
-        elif self.step_info["out_of_road"]:
-            self.step_info["cost"] = self.config["out_of_road_cost"]
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         """
@@ -311,9 +277,7 @@ class PGDriveEnv(gym.Env):
         self.update_map(episode_data)
 
         # reset main vehicle
-        # self.vehicle.reset(self.current_map, self.vehicle.born_place, 0.0)
-        for v in self.vehicles.values():
-            v.reset(self.current_map)
+        self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
         # generate new traffic according to the map
         self.scene_manager.reset(
@@ -327,82 +291,9 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
-        ret = dict()
-        for id, v in self.vehicles.items():
-            v.update_state()
-            v.observation.reset(self)
-            ret[id] = v.observation.observe(v)
+        self.for_each_vehicle(lambda v: v.update_state)
+        ret = self.for_each_vehicle(lambda v: v.observation.reset)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
-
-    def reward_function(self, vehicle, action):
-        """
-        Override this func to get a new reward function
-        :param action: [steering, throttle/brake]
-        :return: reward
-        """
-        # Reward for moving forward in current lane
-        current_lane = vehicle.lane
-        long_last, _ = current_lane.local_coordinates(vehicle.last_position)
-        long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
-
-        # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
-        reward = 0.0
-        lateral_factor = clip(1 - 2 * abs(lateral_now) / self.current_map.lane_width, 0.0, 1.0)
-        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
-
-        # Penalty for frequent steering
-        steering_change = abs(vehicle.last_current_action[0][0] - vehicle.last_current_action[1][0])
-        steering_penalty = self.config["steering_penalty"] * steering_change * vehicle.speed / 20
-        reward -= steering_penalty
-
-        # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
-        reward -= acceleration_penalty
-
-        # Penalty for waiting
-        low_speed_penalty = 0
-        if vehicle.speed < 1:
-            low_speed_penalty = self.config["low_speed_penalty"]  # encourage car
-        reward -= low_speed_penalty
-        reward -= self.config["general_penalty"]
-
-        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
-
-        return reward
-
-    def done_function(self, vehicle) -> (float, dict):
-        done_reward = 0
-        done = False
-        done_info = dict(crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
-        long, lat = vehicle.routing_localization.final_lane.local_coordinates(vehicle.position)
-
-        if vehicle.routing_localization.final_lane.length - 5 < long < vehicle.routing_localization.final_lane.length + 5 \
-                and self.current_map.lane_width / 2 >= lat >= (
-                0.5 - self.current_map.lane_num) * self.current_map.lane_width:
-            done = True
-            done_reward += self.config["success_reward"]
-            logging.info("Episode ended! Reason: arrive_dest.")
-            done_info["arrive_dest"] = True
-        elif vehicle.crash_vehicle:
-            done = True
-            done_reward -= self.config["crash_vehicle_penalty"]
-            logging.info("Episode ended! Reason: crash. ")
-            done_info["crash"] = True
-        elif vehicle.out_of_route or not vehicle.on_lane or vehicle.crash_side_walk:
-            done = True
-            done_reward -= self.config["out_of_road_penalty"]
-            logging.info("Episode ended! Reason: out_of_road.")
-            done_info["out_of_road"] = True
-        elif vehicle.crash_object:
-            done = True
-            done_reward -= self.config["crash_object_penalty"]
-            done_info["crash_object"] = True
-
-        # for compatibility
-        # crash almost equals to crashing with vehicles
-        done_info["crash"] = done_info["crash_vehicle"] or done_info["crash_object"]
-
-        return done, done_reward, done_info
 
     def close(self):
         if self.pg_world is not None:
@@ -419,11 +310,6 @@ class PGDriveEnv(gym.Env):
             self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
             del self.vehicles
             self.vehicles = None
-
-            # for i in range(self.config["num_player"]):
-            #     self.vehicles[i].destroy(self.pg_world)
-            #     del self.vehicles
-            # self.vehicles = {i: None for i in range(self.config["num_player"])}
 
             del self.controller
             self.controller = None

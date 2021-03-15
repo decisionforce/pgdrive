@@ -77,6 +77,23 @@ class BaseVehicle(DynamicElement):
                 born_longitude=5.0,
                 born_lateral=0.0,
 
+                # ===== Reward Scheme =====
+                success_reward=20,
+                out_of_road_penalty=5,
+                crash_vehicle_penalty=10,
+                crash_object_penalty=2,
+                acceleration_penalty=0.0,
+                steering_penalty=0.1,
+                low_speed_penalty=0.0,
+                driving_reward=1.0,
+                general_penalty=0.0,
+                speed_reward=0.1,
+
+                # ===== Cost Scheme =====
+                crash_vehicle_cost=1,
+                crash_object_cost=1,
+                out_of_road_cost=1.,
+
                 # ==== others ====
                 overtake_stat=False,  # we usually set to True when evaluation
                 action_check=False,
@@ -162,6 +179,10 @@ class BaseVehicle(DynamicElement):
         self._add_modules_for_vehicle(pg_world.pg_config["use_render"])
         self.takeover = False
         self._expert_takeover = False
+
+        # overtake_stat
+        self.front_vehicles = set()
+        self.back_vehicles = set()
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
@@ -332,6 +353,91 @@ class BaseVehicle(DynamicElement):
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
                 block.node_path.hide(CamMask.DepthCam)
+
+    def cost_function(self):
+        self.step_info["cost"] = 0
+        if self.step_info["crash_vehicle"]:
+            self.step_info["cost"] = self.vehicle_config["crash_vehicle_cost"]
+        elif self.step_info["crash_object"]:
+            self.step_info["cost"] = self.vehicle_config["crash_object_cost"]
+        elif self.step_info["out_of_road"]:
+            self.step_info["cost"] = self.vehicle_config["out_of_road_cost"]
+
+    def reward_function(self):
+        """
+        Override this func to get a new reward function
+        :param action: [steering, throttle/brake]
+        :return: reward
+        """
+        action = self.last_current_action[1]
+        # Reward for moving forward in current lane
+        current_lane = self.lane
+        long_last, _ = current_lane.local_coordinates(self.last_position)
+        long_now, lateral_now = current_lane.local_coordinates(self.position)
+
+        # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
+        reward = 0.0
+        lateral_factor = clip(1 - 2 * abs(lateral_now) / self.routing_localization.map.lane_width, 0.0, 1.0)
+        reward += self.vehicle_config["driving_reward"] * (long_now - long_last) * lateral_factor
+
+        # Penalty for frequent steering
+        steering_change = abs(self.last_current_action[0][0] - self.last_current_action[1][0])
+        steering_penalty = self.vehicle_config["steering_penalty"] * steering_change * self.speed / 20
+        reward -= steering_penalty
+
+        # Penalty for frequent acceleration / brake
+        acceleration_penalty = self.vehicle_config["acceleration_penalty"] * ((action[1])**2)
+        reward -= acceleration_penalty
+
+        # Penalty for waiting
+        low_speed_penalty = 0
+        if self.speed < 1:
+            low_speed_penalty = self.vehicle_config["low_speed_penalty"]  # encourage car
+        reward -= low_speed_penalty
+        reward -= self.vehicle_config["general_penalty"]
+
+        reward += self.vehicle_config["speed_reward"] * (self.speed / self.max_speed)
+
+        # for done
+        if self.step_info["crash_vehicle"]:
+            reward -= self.vehicle_config["crash_vehicle_penalty"]
+        elif self.step_info["crash_object"]:
+            reward -= self.vehicle_config["crash_object_penalty"]
+        elif self.step_info["out_of_road"]:
+            reward -= self.vehicle_config["out_of_road_penalty"]
+        elif self.step_info["arrive_dest"]:
+            reward += self.vehicle_config["success_reward"]
+
+        return reward
+
+    def done_function(self) -> (float, dict):
+        done = False
+        done_info = dict(crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
+        long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
+
+        if self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5 \
+                and self.routing_localization.map.lane_width / 2 >= lat >= (
+                0.5 - self.routing_localization.map.lane_num) * self.routing_localization.map.lane_width:
+            done = True
+            logging.info("Episode ended! Reason: arrive_dest.")
+            done_info["arrive_dest"] = True
+        elif self.crash_vehicle:
+            done = True
+            logging.info("Episode ended! Reason: crash. ")
+            done_info["crash_vehicle"] = True
+        elif self.out_of_route or not self.on_lane or self.crash_side_walk:
+            done = True
+            logging.info("Episode ended! Reason: out_of_road.")
+            done_info["out_of_road"] = True
+        elif self.crash_object:
+            done = True
+            done_info["crash_object"] = True
+
+        # for compatibility
+        # crash almost equals to crashing with vehicles
+        done_info["crash"] = done_info["crash_vehicle"] or done_info["crash_object"]
+        self.step_info.update(done_info)
+        return done
 
     """------------------------------------------- act -------------------------------------------------"""
 
