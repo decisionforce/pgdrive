@@ -71,6 +71,7 @@ class PGDriveEnv(gym.Env):
             camera_height=1.8,
 
             # ===== Others =====
+            auto_termination=True,  # Whether to done the environment after 250*(num_blocks+1) steps.
             pg_world_config=dict(),
             record_episode=False,
 
@@ -154,6 +155,7 @@ class PGDriveEnv(gym.Env):
         self.main_camera = None
         self.controller = None
         self.restored_maps = dict()
+        self.episode_steps = 0
 
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         self.current_seed = self.start_seed
@@ -223,6 +225,8 @@ class PGDriveEnv(gym.Env):
         self.pg_world.accept("n", self.chase_another_v)
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
+        self.episode_steps += 1
+
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
             actions[self.current_track_vehicle_id] = action
@@ -252,11 +256,18 @@ class PGDriveEnv(gym.Env):
         rewards = self.for_each_vehicle(lambda v: pg_reward_function(v))
         self.for_each_vehicle(lambda v: pg_cost_function(v))
 
+        should_done = self.config["auto_termination"] and (self.episode_steps >= (self.current_map.num_blocks * 250))
+        self.for_each_vehicle(_auto_termination, should_done)
+        if should_done:
+            for k in self.dones:
+                self.dones[k] = True
+
         if self.num_agents == 1:
             return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
                    copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(self.vehicle.step_info)
         else:
-            return obses, rewards, copy.deepcopy(self.dones), self.for_each_vehicle(lambda v: v.step_info)
+            return obses, copy.deepcopy(rewards), copy.deepcopy(self.dones), \
+                   copy.deepcopy(self.for_each_vehicle(lambda v: v.step_info))
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         """
@@ -297,6 +308,7 @@ class PGDriveEnv(gym.Env):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
+        self.episode_steps = 0
 
         # clear world and traffic manager
         self.pg_world.clear_world()
@@ -545,6 +557,10 @@ class PGDriveEnv(gym.Env):
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
 
                 return
+
+
+def _auto_termination(vehicle, should_done):
+    vehicle.step_info["max_step"] = True if should_done else False
 
 
 if __name__ == '__main__':
