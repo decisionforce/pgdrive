@@ -24,7 +24,7 @@ def test_naive_multi_agent_pgdrive():
     assert isinstance(env.action_space, gym.spaces.Box)
     _step(env)
 
-    env = PGDriveEnv(config={"num_agents": 10, "target_vehicles_config":
+    env = PGDriveEnv(config={"num_agents": 10, "target_vehicle_configs":
         {"agent{}".format(i): {"born_longitude": i * 4} for i in range(10)}})
     assert isinstance(env.action_space, gym.spaces.Dict)
     obs = env.reset()

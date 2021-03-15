@@ -53,7 +53,7 @@ class PGDriveEnv(gym.Env):
             rgb_clip=True,
 
             # ==== agents config =====
-            target_vehicles_config={DEFAULT_AGENT: BaseVehicle.default_vehicle_config},  # agent_id: vehicle_config
+            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.default_vehicle_config},  # agent_id: vehicle_config
 
             # ===== Map Config =====
             map=3,  # int or string: an easy way to fill map_config
@@ -101,18 +101,19 @@ class PGDriveEnv(gym.Env):
             self.config.update(config)
         self.num_agents = self.config["num_agents"]
         if self.num_agents > 1:
-            self.config["target_vehicles_config"].pop(DEFAULT_AGENT)
+            self.config["target_vehicle_configs"].pop(DEFAULT_AGENT)
+            raise ValueError("We don't fulfill target_vehicle_configs yet!")
         assert isinstance(self.num_agents, int) and self.num_agents > 0
-        assert len(self.config["target_vehicles_config"]) == self.num_agents, "assign born place for each vehicle"
+        assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image else False})
 
         # obs. action space
         self.observation_space = gym.spaces.Dict(
             {id: BaseVehicle.get_observation_space_before_init(v_config) for id, v_config in
-             self.config["target_vehicles_config"].items()})
+             self.config["target_vehicle_configs"].items()})
         self.action_space = gym.spaces.Dict(
             {id: BaseVehicle.get_action_space_before_init() for id in
-             self.config["target_vehicles_config"].keys()})
+             self.config["target_vehicle_configs"].keys()})
 
         if self.num_agents == 1:
             self.observation_space = self.observation_space[DEFAULT_AGENT]
@@ -193,7 +194,7 @@ class PGDriveEnv(gym.Env):
 
         # init vehicle
         self.vehicles = {agent_id: BaseVehicle(self.pg_world, v_config) for agent_id, v_config in
-                         self.config["target_vehicles_config"].items()}
+                         self.config["target_vehicle_configs"].items()}
 
         # TODO add a change target vehicle cam func
         # for manual_control and main camera type
@@ -604,7 +605,7 @@ class PGDriveEnv(gym.Env):
 
     @property
     def use_image(self):
-        for extra_v_config in self.config["target_vehicles_config"].values():
+        for extra_v_config in self.config["target_vehicle_configs"].values():
             if BaseVehicle.get_vehicle_config(extra_v_config)["use_image"]:
                 return True
         return False
