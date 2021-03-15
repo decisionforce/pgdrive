@@ -69,22 +69,22 @@ class PGDriveEnv(gym.Env):
             # TODO move to vehicle
             decision_repeat=5,
 
-            # ===== Reward Scheme =====
-            success_reward=20,
-            out_of_road_penalty=5,
-            crash_vehicle_penalty=10,
-            crash_object_penalty=2,
-            acceleration_penalty=0.0,
-            steering_penalty=0.1,
-            low_speed_penalty=0.0,
-            driving_reward=1.0,
-            general_penalty=0.0,
-            speed_reward=0.1,
-
-            # ===== Cost Scheme =====
-            crash_vehicle_cost=1,
-            crash_object_cost=1,
-            out_of_road_cost=1.,
+            # # ===== Reward Scheme =====
+            # success_reward=20,
+            # out_of_road_penalty=5,
+            # crash_vehicle_penalty=10,
+            # crash_object_penalty=2,
+            # acceleration_penalty=0.0,
+            # steering_penalty=0.1,
+            # low_speed_penalty=0.0,
+            # driving_reward=1.0,
+            # general_penalty=0.0,
+            # speed_reward=0.1,
+            #
+            # # ===== Cost Scheme =====
+            # crash_vehicle_cost=1,
+            # crash_object_cost=1,
+            # out_of_road_cost=1.,
 
             # ===== Others =====
             pg_world_config=dict(),
