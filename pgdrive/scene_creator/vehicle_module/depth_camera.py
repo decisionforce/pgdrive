@@ -14,7 +14,7 @@ class DepthCamera(ImageBuffer):
     CAM_MASK = CamMask.DepthCam
     GROUND = -1.2
     TASK_NAME = "ground follow"
-    default_region=[1 / 3, 2 / 3, ImageBuffer.display_bottom, 1.0]
+    default_region = [1 / 3, 2 / 3, ImageBuffer.display_bottom, 1.0]
 
     def __init__(self, length: int, width: int, view_ground: bool, chassis_np: NodePath, pg_world: PGWorld):
         """

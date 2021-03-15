@@ -23,9 +23,15 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 # "debug":True,
                 "map": "XTX",
-
-                "target_vehicle_configs": {"agent0": {"born_longitude": 40}, "agent1": {"born_longitude": 10}},
-                "num_agents":2
+                "target_vehicle_configs": {
+                    "agent0": {
+                        "born_longitude": 40
+                    },
+                    "agent1": {
+                        "born_longitude": 10
+                    }
+                },
+                "num_agents": 2
             }
         )
 

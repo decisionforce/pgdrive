@@ -7,12 +7,10 @@ setup_logger(debug=True)
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
-        super(TestEnv, self).__init__(
-            {
-                "manual_control": True,
-                "use_render": False,
-            }
-        )
+        super(TestEnv, self).__init__({
+            "manual_control": True,
+            "use_render": False,
+        })
 
     def reset(self):
         if self.vehicles is not None:
