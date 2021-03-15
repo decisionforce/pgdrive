@@ -66,9 +66,9 @@ class PGDriveEnv(gym.Env):
             environment_num=1,
 
             # ===== Action =====
-            # TODO move to vehicle
             decision_repeat=5,
 
+            # FIXME reward scheme is in vehicle config now
             # # ===== Reward Scheme =====
             # success_reward=20,
             # out_of_road_penalty=5,
@@ -102,7 +102,6 @@ class PGDriveEnv(gym.Env):
         self.num_agents = self.config["num_agents"]
         if self.num_agents > 1:
             self.config["target_vehicle_configs"].pop(DEFAULT_AGENT)
-            # TODO use vehicle_config in single agent env
             # raise ValueError("We don't fulfill target_vehicle_configs yet!")
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
@@ -207,8 +206,7 @@ class PGDriveEnv(gym.Env):
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
             self.main_camera = ChaseCamera(
-                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
-            )
+                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world)
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         if self.config["manual_control"] and self.use_render:
@@ -268,7 +266,6 @@ class PGDriveEnv(gym.Env):
                     self.vehicles[DEFAULT_AGENT].vehicle_config, image_source, False
                 )
             else:
-                # FIXME image_source is not defined!
                 raise ValueError("Not implemented yet!")
             self.temporary_img_obs.observe(self.vehicles[DEFAULT_AGENT].image_sensors[image_source])
             return self.temporary_img_obs.get_image()

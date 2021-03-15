@@ -37,7 +37,6 @@ class SkyBox(DynamicElement):
             skybox_shader = Shader.load(
                 Shader.SL_GLSL,
                 AssetLoader.file_path("shaders", "skybox_gles.vert.glsl"),
-                # FIXME a potential bug here?
                 AssetLoader.file_path("shaders", "skybox_gles.frag.glsl")
             )
         else:
@@ -50,7 +49,6 @@ class SkyBox(DynamicElement):
             skybox_shader = Shader.load(
                 Shader.SL_GLSL,
                 AssetLoader.file_path("shaders", vert_file),
-                # FIXME a potential bug here?
                 AssetLoader.file_path("shaders", frag_file)
             )
         skybox.set_shader(skybox_shader)
