@@ -507,7 +507,7 @@ class BaseVehicle(DynamicElement):
     def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
         para = self.get_config()
         chassis = BulletRigidBodyNode(BodyName.Ego_vehicle_top)
-        chassis.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
+        chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicleTop))
         chassis_shape = BulletBoxShape(
             Vec3(
                 para[Parameter.vehicle_width] / 2, para[Parameter.vehicle_length] / 2,
@@ -637,7 +637,7 @@ class BaseVehicle(DynamicElement):
         node1 = contact.getNode1().getName()
         name = [node0, node1]
         name.remove(BodyName.Ego_vehicle_top)
-        if name[0] in [BodyName.Traffic_vehicle]:
+        if name[0] in [BodyName.Traffic_vehicle, BodyName.Ego_vehicle]:
             self.crash_vehicle = True
         elif name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
             node = contact.getNode0() if contact.getNode0().hasPythonTag(name[0]) else contact.getNode1()

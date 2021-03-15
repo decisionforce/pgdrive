@@ -161,6 +161,7 @@ class PGDriveEnv(gym.Env):
         self.vehicles = None
         self.dones = None
         self.current_track_vehicle: Optional[BaseVehicle] = None
+        self.current_track_vehicle_id: Optional[str] = None
 
     def lazy_init(self):
         """
@@ -208,6 +209,7 @@ class PGDriveEnv(gym.Env):
         # first tracked vehicles
         vehicles = sorted(self.vehicles.items())
         self.current_track_vehicle = vehicles[0][1]
+        self.current_track_vehicle_id = vehicles[0][0]
         for _, vehicle in vehicles:
             if vehicle is not self.current_track_vehicle:
                 # for display
@@ -221,10 +223,9 @@ class PGDriveEnv(gym.Env):
         self.pg_world.accept("n", self.chase_another_v)
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
-        # TODO manual control selected vehicle
-        # if self.config["manual_control"] and self.use_render:
-        #     # assert self.num_agents == 1, "We don't support manually control in multi-agent yet!"
-        #     actions = self.controller.process_input()
+        if self.config["manual_control"] and self.use_render:
+            action = self.controller.process_input()
+            actions[self.current_track_vehicle_id] = action
 
         if self.num_agents == 1:
             actions = {DEFAULT_AGENT: actions}
@@ -539,6 +540,7 @@ class PGDriveEnv(gym.Env):
             if vehicles[index - 1][1] == self.current_track_vehicle:
                 self.current_track_vehicle.remove_display_region()
                 self.current_track_vehicle = v[1]
+                self.current_track_vehicle_id = v[0]
                 self.current_track_vehicle.add_to_display()
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
 
