@@ -86,8 +86,8 @@ def test_zombie():
             acc = acc_controller.get_result(acc_error)
             if d:
                 assert info["arrive_dest"]
-                assert abs(env.vehicles[env.DEFAULT_AGENT].position[0] - dest[0]) < 0.1 and \
-                       abs(env.vehicles[env.DEFAULT_AGENT].position[1] - dest[1]) < 0.1
+                assert abs(env.vehicles[env.DEFAULT_AGENT].position[0] - dest[0]) < 0.15 and \
+                       abs(env.vehicles[env.DEFAULT_AGENT].position[1] - dest[1]) < 0.15
                 break
     finally:
         env.close()
