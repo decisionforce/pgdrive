@@ -15,7 +15,6 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils import random_string
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.element import Element
@@ -33,10 +32,14 @@ class BlockSocket:
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
-        self.index = random_string(prefix="socket")
+        self.index = None
 
-        # Deprecated
-        self.integer_index = None
+    def set_index(self, block_name: str, index: int):
+        self.index = self.get_real_index(block_name, index)
+
+    @classmethod
+    def get_real_index(cls, block_name: str, index: int):
+        return "{}-socket{}".format(block_name, index)
 
 
 class Block(Element, BlockDefault):
@@ -135,7 +138,7 @@ class Block(Element, BlockDefault):
         self._clear_topology()
         no_cross = self._try_plug_into_previous_block()
         for i, s in enumerate(self._sockets.values()):
-            s.integer_index = i
+            s.set_index(self._block_name, i)
 
         # self._global_network += self.block_network
         self._global_network.add(self.block_network)
@@ -152,14 +155,15 @@ class Block(Element, BlockDefault):
         return success
 
     def get_socket(self, index: Union[str, int]) -> BlockSocket:
-        # FIXME This is only a workaround. We should remove integral index in future!
         if isinstance(index, int):
             if index < 0 or index >= len(self._sockets):
                 raise ValueError("Socket of {}: index out of range".format(self.class_name))
-            return [s for s in self._sockets.values() if s.integer_index == index][0]
+            socket_index = BlockSocket.get_real_index(self._block_name, index)
         else:
-            assert index in self._sockets, (index, self._sockets.keys())
-            return self._sockets[index]
+            assert index.startswith(self._block_name)
+            socket_index = index
+        assert socket_index in self._sockets, (socket_index, self._sockets.keys())
+        return self._sockets[socket_index]
 
     def add_reborn_roads(self, reborn_roads: Union[List[Road], Road]):
         """
@@ -219,6 +223,12 @@ class Block(Element, BlockDefault):
 
     def _add_one_socket(self, socket: BlockSocket):
         assert isinstance(socket, BlockSocket), "Socket list only accept BlockSocket Type"
+        if socket.index is not None and not socket.index.startswith(self._block_name):
+            logging.warning(
+                "The adding socket has index {}, which is not started with this block name {}. This is dangerous! "
+                "Current block has sockets: {}.".format(
+                    socket.index, self._block_name, self.get_socket_indices()))
+        socket.set_index(self._block_name, len(self._sockets))
         self._sockets[socket.index] = socket
 
     def _add_one_reborn_road(self, reborn_road: Road):

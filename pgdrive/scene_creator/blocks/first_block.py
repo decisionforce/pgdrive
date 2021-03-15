@@ -47,8 +47,7 @@ class FirstBlock(Block):
         global_network.add(self.block_network)
 
         socket = self.create_socket_from_positive_road(other_v_born_road)
-        socket.integer_index = 0
-        # socket.index = 0
+        socket.set_index(self._block_name, 0)
 
         self.add_sockets(socket)
         self.attach_to_pg_world(render_root_np, pg_physics_world)
