@@ -32,8 +32,7 @@ class BlockSocket:
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
-        self.index = None
-        self.unique_id = random_string()
+        self.index = random_string()
 
 
 class Block(Element, BlockDefault):
@@ -131,8 +130,8 @@ class Block(Element, BlockDefault):
         self.number_of_sample_trial += 1
         self._clear_topology()
         no_cross = self._try_plug_into_previous_block()
-        for i, s in enumerate(self._sockets.values()):
-            s.index = i
+        # for i, s in enumerate(self._sockets.values()):
+        #     s.index = i
 
         # self._global_network += self.block_network
         self._global_network.add(self.block_network)
