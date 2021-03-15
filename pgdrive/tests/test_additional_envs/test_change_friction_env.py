@@ -23,7 +23,7 @@ def test_change_friction():
 
 
 def test_side_pass_env():
-    _run(SidePassEnv({"target_vehicle_configs": {"default_agent":{"show_navi_mark": False}}}))
+    _run(SidePassEnv({"target_vehicle_configs": {"default_agent": {"show_navi_mark": False}}}))
 
 
 def test_change_density_env():
