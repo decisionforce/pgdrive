@@ -44,9 +44,7 @@ if __name__ == "__main__":
     print("vehicle num", len(env.scene_manager.traffic_mgr.vehicles))
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
-        env.render(
-            text=info
-        )
+        env.render(text=info)
         if d:
             print("Reset")
             env.reset()

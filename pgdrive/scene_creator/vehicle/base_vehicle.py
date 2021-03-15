@@ -748,6 +748,7 @@ class BaseVehicle(DynamicElement):
                             self.back_vehicles.remove(surrounding_v)
                     else:
                         self.back_vehicles.add(surrounding_v)
+        self.step_info["overtake_vehicle_num"] = self.get_overtake_num()
 
     def get_overtake_num(self):
         return len(self.front_vehicles.intersection(self.back_vehicles))
