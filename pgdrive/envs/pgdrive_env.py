@@ -257,7 +257,7 @@ class PGDriveEnv(gym.Env):
         self.pg_world.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting
-            return self.observation.img_obs.get_image()
+            return self.vehicle.observation.img_obs.get_image()
 
         if mode == "rgb_array" and self.config["use_render"]:
             if not hasattr(self, "_temporary_img_obs"):

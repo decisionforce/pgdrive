@@ -5,7 +5,7 @@ import logging
 import math
 import time
 from collections import deque
-from typing import Optional
+from typing import Optional, Union
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
@@ -434,7 +434,7 @@ class BaseVehicle(DynamicElement):
 
     @property
     def velocity_direction(self):
-        direction = self.system.get_forward_vector()
+        direction = self.system.getForwardVector()
         return np.asarray([direction[0], -direction[1]])
 
     @property
@@ -605,7 +605,7 @@ class BaseVehicle(DynamicElement):
         :return: None
         """
         self.routing_localization.update(map)
-        lane, new_l_index = ray_localization((self.born_place), self.pg_world)
+        lane, new_l_index = ray_localization(np.array(self.born_place), self.pg_world)
         assert lane is not None, "Born place is not on road!"
         self.lane_index = new_l_index
         self.lane = lane
@@ -754,7 +754,7 @@ class BaseVehicle(DynamicElement):
         return len(self.front_vehicles.intersection(self.back_vehicles))
 
     @classmethod
-    def _initialize_observation(cls, vehicle_config: dict):
+    def _initialize_observation(cls, vehicle_config: Union[dict, PGConfig]):
         from pgdrive.rl.observation_type import LidarStateObservation, ImageStateObservation
         if vehicle_config["use_image"]:
             o = ImageStateObservation(vehicle_config)
@@ -782,7 +782,7 @@ class BaseVehicle(DynamicElement):
         throttle = action[1]
         if self.vehicle_config["use_saver"] or self._expert_takeover:
             # saver can be used for human or another AI
-            save_level = self.config["save_level"] if not self._expert_takeover else 1.0
+            save_level = self.vehicle_config["save_level"] if not self._expert_takeover else 1.0
             obs = self.observation.observe(self)
             from pgdrive.examples.ppo_expert import expert
             try:
