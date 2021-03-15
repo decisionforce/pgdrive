@@ -28,11 +28,13 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
-
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
         self.index = random_string()
+
+        # Deprecated
+        self.integer_index = None
 
 
 class Block(Element, BlockDefault):
@@ -50,7 +52,6 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -130,8 +131,8 @@ class Block(Element, BlockDefault):
         self.number_of_sample_trial += 1
         self._clear_topology()
         no_cross = self._try_plug_into_previous_block()
-        # for i, s in enumerate(self._sockets.values()):
-        #     s.index = i
+        for i, s in enumerate(self._sockets.values()):
+            s.integer_index = i
 
         # self._global_network += self.block_network
         self._global_network.add(self.block_network)
@@ -147,13 +148,16 @@ class Block(Element, BlockDefault):
         self.attach_to_pg_world(root_render_np, pg_physics_world)
         return success
 
-    def get_socket(self, index: int) -> BlockSocket:
+    def get_socket(self, index: str) -> BlockSocket:
+        return self._sockets[index]
+
+    def get_socket_with_integer_index(self, index: int) -> BlockSocket:
         """
         Get i th socket
         """
         if index < 0 or index >= len(self._sockets):
             raise ValueError("Socket of {}: index out of range".format(self.class_name))
-        return self._sockets[index]
+        return [s for s in self._sockets.values() if s.integer_index == index][0]
 
     def add_reborn_roads(self, reborn_roads: Union[List[Road], Road]):
         """
@@ -213,7 +217,7 @@ class Block(Element, BlockDefault):
 
     def _add_one_socket(self, socket: BlockSocket):
         assert isinstance(socket, BlockSocket), "Socket list only accept BlockSocket Type"
-        self._sockets.append(socket)
+        self._sockets[socket.index] = socket
 
     def _add_one_reborn_road(self, reborn_road: Road):
         assert isinstance(reborn_road, Road), "Spawn roads list only accept Road Type"
@@ -367,14 +371,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-            self,
-            lane_start,
-            lane_end,
-            middle,
-            parent_np: NodePath,
-            color: Vec4,
-            line_type: LineType,
-            straight_stripe=False
+        self,
+        lane_start,
+        lane_end,
+        middle,
+        parent_np: NodePath,
+        color: Vec4,
+        line_type: LineType,
+        straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -532,5 +536,8 @@ class Block(Element, BlockDefault):
         positive_road = Road(road.start_node, road.end_node)
         return BlockSocket(positive_road, -positive_road)
 
-    def get_socket_ids(self):
+    def get_socket_indices(self):
         return list(self._sockets.keys())
+
+    def get_socket_list(self):
+        return list(self._sockets.values())
