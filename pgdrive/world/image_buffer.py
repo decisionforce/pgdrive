@@ -15,16 +15,17 @@ class ImageBuffer:
     display_bottom = 0.8
     display_top = 1
     display_region = None
+    default_region = [1 / 3, 2 / 3, 0.8, 1.0]
 
     def __init__(
-        self,
-        length: float,
-        width: float,
-        pos: Vec3,
-        bkg_color: Union[Vec4, Vec3],
-        pg_world,
-        parent_node: NodePath,
-        frame_buffer_property=None,
+            self,
+            length: float,
+            width: float,
+            pos: Vec3,
+            bkg_color: Union[Vec4, Vec3],
+            pg_world,
+            parent_node: NodePath,
+            frame_buffer_property=None,
     ):
         try:
             assert pg_world.win is not None, "{} cannot be made without use_render or use_image".format(

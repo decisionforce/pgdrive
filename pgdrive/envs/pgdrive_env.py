@@ -160,7 +160,7 @@ class PGDriveEnv(gym.Env):
 
         self.vehicles = None
         self.dones = None
-        self.current_track_vehicle = None
+        self.current_track_vehicle: Optional[BaseVehicle] = None
 
     def lazy_init(self):
         """
@@ -202,9 +202,16 @@ class PGDriveEnv(gym.Env):
             for agent_id, v_config in self.config["target_vehicle_configs"].items()
         }
 
+        self.init_track_vehicle()
+
+    def init_track_vehicle(self):
         # first tracked vehicles
         vehicles = sorted(self.vehicles.items())
         self.current_track_vehicle = vehicles[0][1]
+        for _, vehicle in vehicles:
+            if vehicle is not self.current_track_vehicle:
+                # for display
+                vehicle.remove_display_region()
 
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
@@ -530,8 +537,11 @@ class PGDriveEnv(gym.Env):
         vehicles = sorted(self.vehicles.items()) * 2
         for index, v in enumerate(vehicles):
             if vehicles[index - 1][1] == self.current_track_vehicle:
-                self.current_track_vehicle=v[1]
+                self.current_track_vehicle.remove_display_region()
+                self.current_track_vehicle = v[1]
+                self.current_track_vehicle.add_to_display()
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
+
                 return
 
 
