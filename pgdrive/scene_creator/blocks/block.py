@@ -1,5 +1,6 @@
 import logging
-from typing import Dict, Union, List, Optional
+from collections import OrderedDict
+from typing import Dict, Union, List
 
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode
@@ -28,10 +29,11 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
-        self.index = random_string()
+        self.index = random_string(prefix="socket")
 
         # Deprecated
         self.integer_index = None
@@ -52,6 +54,7 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -74,7 +77,7 @@ class Block(Element, BlockDefault):
         self._reborn_roads = []
 
         # own sockets, one block derives from a socket, but will have more sockets to connect other blocks
-        self._sockets = dict()
+        self._sockets = OrderedDict()
 
         # used to connect previous blocks, save its info here
         self.pre_block_socket = pre_block_socket
@@ -155,6 +158,7 @@ class Block(Element, BlockDefault):
                 raise ValueError("Socket of {}: index out of range".format(self.class_name))
             return [s for s in self._sockets.values() if s.integer_index == index][0]
         else:
+            assert index in self._sockets, (index, self._sockets.keys())
             return self._sockets[index]
 
     def add_reborn_roads(self, reborn_roads: Union[List[Road], Road]):
@@ -369,14 +373,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
