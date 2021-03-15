@@ -53,35 +53,35 @@ class BaseVehicle(DynamicElement):
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
-    _default_vehicle_config = PGConfig(dict(
+    @classmethod
+    def _default_vehicle_config(cls) -> PGConfig:
+        return PGConfig(dict(
+            # ===== vehicle module config =====
+            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
+            show_lidar=False,
+            mini_map=(84, 84, 250),  # buffer length, width
+            rgb_cam=(84, 84),  # buffer length, width
+            depth_cam=(84, 84, True),  # buffer length, width, view_ground
+            show_navi_mark=True,
+            increment_steering=False,
+            wheel_friction=0.6,
 
-        # ===== vehicle module config =====
-        lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-        show_lidar=False,
-        mini_map=(84, 84, 250),  # buffer length, width
-        rgb_cam=(84, 84),  # buffer length, width
-        depth_cam=(84, 84, True),  # buffer length, width, view_ground
-        show_navi_mark=True,
-        increment_steering=False,
-        wheel_friction=0.6,
+            # ===== use image =====
+            image_source="rgb_cam",  # take effect when only when use_image == True
+            use_image=False,
+            rgb_clip=True,
 
-        # ===== use image =====
-        image_source="rgb_cam",  # take effect when only when use_image == True
-        use_image=False,
-        rgb_clip=True,
+            # ===== vehicle born =====
+            born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+            born_longitude=5.0,
+            born_lateral=0.0,
 
-        # ===== vehicle born =====
-        born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-        born_longitude=5.0,
-        born_lateral=0.0,
-
-        # ==== others ====
-        overtake_stat=False,  # we usually set to True when evaluation
-        action_check=False,
-        use_saver=False,
-        save_level=0.5,
-
-    ))
+            # ==== others ====
+            overtake_stat=False,  # we usually set to True when evaluation
+            action_check=False,
+            use_saver=False,
+            save_level=0.5,
+        ))
 
     LENGTH = None
     WIDTH = None
@@ -98,7 +98,7 @@ class BaseVehicle(DynamicElement):
         """
 
         self.vehicle_config = self.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else self._default_vehicle_config
+            if vehicle_config is not None else self._default_vehicle_config()
 
         # observation, action
         self.observation = self._initialize_observation(self.vehicle_config)
@@ -223,7 +223,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_vehicle_config(cls, new_config=None):
-        default = copy.deepcopy(cls._default_vehicle_config)
+        default = copy.deepcopy(cls._default_vehicle_config())
         if new_config is None:
             return default
         default.update(new_config)
@@ -735,7 +735,7 @@ class BaseVehicle(DynamicElement):
     @classmethod
     def get_observation_space_before_init(cls, vehicle_config: dict = None):
         vehicle_config = cls.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else cls._default_vehicle_config
+            if vehicle_config is not None else cls._default_vehicle_config()
         return cls._initialize_observation(vehicle_config).observation_space
 
     @classmethod
