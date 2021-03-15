@@ -11,7 +11,7 @@ import numpy as np
 from panda3d.core import PNMImage
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.pg_config import PGConfig
-from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficMode

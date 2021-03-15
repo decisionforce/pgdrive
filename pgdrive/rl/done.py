@@ -1,5 +1,5 @@
 import logging
-from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 
 
 def pg_done_function(vehicle: BaseVehicle) -> float:

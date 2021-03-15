@@ -1,7 +1,7 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.pg_config import PGConfig
 from pgdrive.constants import DEFAULT_AGENT
-from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.top_down_observation import TopDownMultiChannel, TopDownObservation
 
 

@@ -6,7 +6,7 @@ import math
 import time
 from collections import deque
 from typing import Optional
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.rgb_camera import RGBCamera
+from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
@@ -16,9 +16,9 @@ from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
 from pgdrive.pg_config.pg_space import PGSpace
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.lidar import Lidar
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.vehicle_panel import VehiclePanel
+from pgdrive.scene_creator.vehicle_module import Lidar
+from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
+from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -32,8 +32,8 @@ from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.world.pg_world import PGWorld
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.depth_camera import DepthCamera
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.mini_map import MiniMap
+from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
+from pgdrive.scene_creator.vehicle_module import MiniMap
 
 
 class BaseVehicle(DynamicElement):

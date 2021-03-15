@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from pgdrive import PGDriveEnv
 from pgdrive.constants import DEFAULT_AGENT
-from pgdrive.scene_creator.ego_vehicle.vehicle_module.PID_controller import PIDController, Target
+from pgdrive.scene_creator.vehicle_module.PID_controller import PIDController, Target
 
 # Key: case name, value: environmental config
 blackbox_test_configs = dict(
