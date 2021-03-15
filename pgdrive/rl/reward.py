@@ -25,7 +25,7 @@ def pg_reward_function(vehicle: BaseVehicle) -> float:
     reward -= steering_penalty
 
     # Penalty for frequent acceleration / brake
-    acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1]) ** 2)
+    acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1])**2)
     reward -= acceleration_penalty
 
     # Penalty for waiting

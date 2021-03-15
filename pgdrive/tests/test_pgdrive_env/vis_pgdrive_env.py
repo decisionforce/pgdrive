@@ -24,7 +24,6 @@ class TestEnv(PGDriveEnv):
                 # "controller":"joystick",
                 "manual_control": True,
                 "use_render": True,
-                "steering_penalty": 0.0,
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 # "debug":True,
@@ -46,12 +45,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render(
-            text={
-                "vehicle_num": len(env.scene_manager.traffic_mgr.traffic_vehicles),
-                "dist_to_left": env.vehicle.dist_to_left,
-                "dist_to_right": env.vehicle.dist_to_right,
-                "velocity": env.vehicle.speed
-            }
+            text=info
         )
         if d:
             print("Reset")
