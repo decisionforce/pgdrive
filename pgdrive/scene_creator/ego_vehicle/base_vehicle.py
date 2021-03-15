@@ -397,6 +397,7 @@ class BaseVehicle(DynamicElement):
         reward -= self.vehicle_config["general_penalty"]
 
         reward += self.vehicle_config["speed_reward"] * (self.speed / self.max_speed)
+        self.step_info["step_reward"]=reward
 
         # for done
         if self.step_info["crash_vehicle"]:

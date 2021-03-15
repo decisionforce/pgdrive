@@ -69,6 +69,23 @@ class PGDriveEnv(gym.Env):
             # TODO move to vehicle
             decision_repeat=5,
 
+            # ===== Reward Scheme =====
+            success_reward=20,
+            out_of_road_penalty=5,
+            crash_vehicle_penalty=10,
+            crash_object_penalty=2,
+            acceleration_penalty=0.0,
+            steering_penalty=0.1,
+            low_speed_penalty=0.0,
+            driving_reward=1.0,
+            general_penalty=0.0,
+            speed_reward=0.1,
+
+            # ===== Cost Scheme =====
+            crash_vehicle_cost=1,
+            crash_object_cost=1,
+            out_of_road_cost=1.,
+
             # ===== Others =====
             pg_world_config=dict(),
             record_episode=False,
@@ -291,8 +308,9 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
-        self.for_each_vehicle(lambda v: v.update_state)
-        ret = self.for_each_vehicle(lambda v: v.observation.reset)
+        self.for_each_vehicle(lambda v: v.update_state())
+        self.for_each_vehicle(lambda v: v.observation.reset(self))
+        ret = self.for_each_vehicle(lambda v: v.observation.observe(v))
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
     def close(self):
