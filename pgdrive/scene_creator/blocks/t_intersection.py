@@ -62,24 +62,24 @@ class TInterSection(InterSection):
         # for i in range(4):
         #     if i == t_type:
         #         continue
-            # exit_node = self._sockets[i].positive_road.start_node if i != Goal.ADVERSE else self._sockets[
-            #     i].negative_road.start_node
-            # pos_lanes = self.block_network.remove_all_roads(start_node, exit_node)
-            # entry_node = self._sockets[i].negative_road.end_node if i != Goal.ADVERSE else self._sockets[
-            #     i].positive_road.end_node
-            # neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
+        # exit_node = self._sockets[i].positive_road.start_node if i != Goal.ADVERSE else self._sockets[
+        #     i].negative_road.start_node
+        # pos_lanes = self.block_network.remove_all_roads(start_node, exit_node)
+        # entry_node = self._sockets[i].negative_road.end_node if i != Goal.ADVERSE else self._sockets[
+        #     i].positive_road.end_node
+        # neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
 
-            # TODO small vis bug may raise in a corner case,
-            #  these code can fix it but will introduce a new get_closest_lane_index bug
-            # if (i + 2) % 4 == t_type:
-            #     # for vis only, solve a bug existing in a corner case,
-            #     for lane in neg_lanes:
-            #         lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
-            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
-            #
-            #     for lane in pos_lanes:
-            #         lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
-            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
+        # TODO small vis bug may raise in a corner case,
+        #  these code can fix it but will introduce a new get_closest_lane_index bug
+        # if (i + 2) % 4 == t_type:
+        #     # for vis only, solve a bug existing in a corner case,
+        #     for lane in neg_lanes:
+        #         lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
+        #     self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
+        #
+        #     for lane in pos_lanes:
+        #         lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
+        #     self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
 
         self._change_vis(t_type)
 
