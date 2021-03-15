@@ -5,7 +5,7 @@ import os.path as osp
 import sys
 import time
 from typing import Union, Optional, Iterable, Dict, AnyStr
-
+from pgdrive.rl import pg_cost_function, pg_done_function, pg_reward_function
 import gym
 import numpy as np
 from panda3d.core import PNMImage
@@ -15,7 +15,7 @@ from pgdrive.scene_creator.ego_vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficMode
-from pgdrive.utils import recursive_equal, safe_clip, clip, get_np_random
+from pgdrive.utils import recursive_equal, get_np_random
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PGWorld
@@ -235,10 +235,10 @@ class PGDriveEnv(gym.Env):
         self.scene_manager.update_state()
 
         # update obs, dones, rewards, costs, calculate done at first !
-        self.dones = self.for_each_vehicle(lambda v: v.done_function())
+        self.dones = self.for_each_vehicle(lambda v: pg_done_function(v))
         obses = self.for_each_vehicle(lambda v: v.observation.observe(v))
-        rewards = self.for_each_vehicle(lambda v: v.reward_function())
-        self.for_each_vehicle(lambda v: v.cost_function())
+        rewards = self.for_each_vehicle(lambda v: pg_reward_function(v))
+        self.for_each_vehicle(lambda v: pg_cost_function(v))
 
         if self.num_agents == 1:
             return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
@@ -261,7 +261,7 @@ class PGDriveEnv(gym.Env):
 
         if mode == "rgb_array" and self.config["use_render"]:
             if not hasattr(self, "_temporary_img_obs"):
-                from pgdrive.envs.observation_type import ImageObservation
+                from pgdrive.rl.observation_type import ImageObservation
                 image_source = "rgb_cam"
                 assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
                 self.temporary_img_obs = ImageObservation(
@@ -532,6 +532,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
