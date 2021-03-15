@@ -55,39 +55,42 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def _default_vehicle_config(cls) -> PGConfig:
-        return PGConfig(dict(
-            # ===== vehicle module config =====
-            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-            show_lidar=False,
-            mini_map=(84, 84, 250),  # buffer length, width
-            rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_mark=True,
-            increment_steering=False,
-            wheel_friction=0.6,
+        return PGConfig(
+            dict(
+                # ===== vehicle module config =====
+                lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
+                show_lidar=False,
+                mini_map=(84, 84, 250),  # buffer length, width
+                rgb_cam=(84, 84),  # buffer length, width
+                depth_cam=(84, 84, True),  # buffer length, width, view_ground
+                show_navi_mark=True,
+                increment_steering=False,
+                wheel_friction=0.6,
 
-            # ===== use image =====
-            image_source="rgb_cam",  # take effect when only when use_image == True
-            use_image=False,
-            rgb_clip=True,
+                # ===== use image =====
+                image_source="rgb_cam",  # take effect when only when use_image == True
+                use_image=False,
+                rgb_clip=True,
 
-            # ===== vehicle born =====
-            born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-            born_longitude=5.0,
-            born_lateral=0.0,
+                # ===== vehicle born =====
+                born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+                born_longitude=5.0,
+                born_lateral=0.0,
 
-            # ==== others ====
-            overtake_stat=False,  # we usually set to True when evaluation
-            action_check=False,
-            use_saver=False,
-            save_level=0.5,
-        ))
+                # ==== others ====
+                overtake_stat=False,  # we usually set to True when evaluation
+                action_check=False,
+                use_saver=False,
+                save_level=0.5,
+            )
+        )
 
     LENGTH = None
     WIDTH = None
 
-    def __init__(self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None,
-                 random_seed: int = 0):
+    def __init__(
+        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+    ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
         module parameters. And self.physics_config defines the physics feature of vehicles, such as length/width
@@ -233,7 +236,8 @@ class BaseVehicle(DynamicElement):
         self.step_info["raw_action"] = (action[0], action[1])
         if self.vehicle_config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
-                action, self.action_space)
+                action, self.action_space
+            )
 
         # filter by saver to protect
         steering, throttle, saver_info = self.saver(action)
@@ -277,9 +281,13 @@ class BaseVehicle(DynamicElement):
         self.update_dist_to_left_right()
         self.out_of_route = True if self.dist_to_right < 0 or self.dist_to_left < 0 else False
         self._update_overtake_stat()
-        self.step_info.update({"velocity": float(self.speed),
-                               "steering": float(self.steering),
-                               "acceleration": float(self.throttle_brake)})
+        self.step_info.update(
+            {
+                "velocity": float(self.speed),
+                "steering": float(self.steering),
+                "acceleration": float(self.throttle_brake)
+            }
+        )
 
     def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
         """
@@ -288,8 +296,9 @@ class BaseVehicle(DynamicElement):
         else, vehicle will be reset to born place
         """
         if pos is None:
-            self.born_place = map.road_network.get_lane(self.vehicle_config["born_lane_index"]).position(
-                self.vehicle_config["born_longitude"], self.vehicle_config["born_lateral"])
+            self.born_place = map.road_network.get_lane(
+                self.vehicle_config["born_lane_index"]
+            ).position(self.vehicle_config["born_longitude"], self.vehicle_config["born_lateral"])
             pos = self.born_place
         heading = -np.deg2rad(heading) - np.pi / 2
         self.chassis_np.setPos(Vec3(*pos, 1))
@@ -440,8 +449,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-                (lateral_norm * forward_direction_norm)
+            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+            (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -710,8 +719,8 @@ class BaseVehicle(DynamicElement):
             routing = self.routing_localization
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
-                if surrounding_v.lane_index[:-1] == (
-                        routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]]):
+                if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
+                                                                                                           ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -740,7 +749,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
 
     def saver(self, action):
         """

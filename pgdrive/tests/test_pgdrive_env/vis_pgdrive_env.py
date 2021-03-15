@@ -50,7 +50,7 @@ if __name__ == "__main__":
                 "vehicle_num": len(env.scene_manager.traffic_mgr.traffic_vehicles),
                 "dist_to_left": env.vehicle.dist_to_left,
                 "dist_to_right": env.vehicle.dist_to_right,
-                "velocity":env.vehicle.speed
+                "velocity": env.vehicle.speed
             }
         )
         if d:

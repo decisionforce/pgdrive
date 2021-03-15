@@ -110,11 +110,15 @@ class PGDriveEnv(gym.Env):
 
         # obs. action space
         self.observation_space = gym.spaces.Dict(
-            {id: BaseVehicle.get_observation_space_before_init(v_config) for id, v_config in
-             self.config["target_vehicle_configs"].items()})
+            {
+                id: BaseVehicle.get_observation_space_before_init(v_config)
+                for id, v_config in self.config["target_vehicle_configs"].items()
+            }
+        )
         self.action_space = gym.spaces.Dict(
-            {id: BaseVehicle.get_action_space_before_init() for id in
-             self.config["target_vehicle_configs"].keys()})
+            {id: BaseVehicle.get_action_space_before_init()
+             for id in self.config["target_vehicle_configs"].keys()}
+        )
 
         if self.num_agents == 1:
             self.observation_space = self.observation_space[DEFAULT_AGENT]
@@ -194,14 +198,17 @@ class PGDriveEnv(gym.Env):
                 raise ValueError("No such a controller type: {}".format(self.config["controller"]))
 
         # init vehicle
-        self.vehicles = {agent_id: BaseVehicle(self.pg_world, v_config) for agent_id, v_config in
-                         self.config["target_vehicle_configs"].items()}
+        self.vehicles = {
+            agent_id: BaseVehicle(self.pg_world, v_config)
+            for agent_id, v_config in self.config["target_vehicle_configs"].items()
+        }
 
         # TODO add a change target vehicle cam func
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
             self.main_camera = ChaseCamera(
-                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world)
+                self.pg_world.cam, self.vehicle, self.config["camera_height"], 7, self.pg_world
+            )
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         if self.config["manual_control"] and self.use_render:
@@ -244,7 +251,7 @@ class PGDriveEnv(gym.Env):
             return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], \
                    copy.deepcopy(self.dones[DEFAULT_AGENT]), copy.deepcopy(self.vehicle.step_info)
         else:
-            return obses, rewards, copy.deepcopy(self.dones), self.for_each_vehicle(lambda v:v.step_info)
+            return obses, rewards, copy.deepcopy(self.dones), self.for_each_vehicle(lambda v: v.step_info)
 
     def _add_cost(self):
         # FIXME wrong!
@@ -314,7 +321,8 @@ class PGDriveEnv(gym.Env):
             self.vehicles,
             self.config["traffic_density"],
             self.config["accident_prob"],
-            episode_data=episode_data)
+            episode_data=episode_data
+        )
 
         return self._get_reset_return()
 
@@ -348,7 +356,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -620,7 +628,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:
