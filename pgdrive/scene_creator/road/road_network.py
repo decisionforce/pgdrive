@@ -3,6 +3,7 @@ import logging
 from typing import List, Tuple, Dict
 
 import numpy as np
+
 from pgdrive.constants import Decoration
 from pgdrive.scene_creator.lane.abs_lane import LineType, AbstractLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -25,13 +26,7 @@ class RoadNetwork:
         self._graph_helper = None
         self.debug = debug
 
-    def __add__(self, other):
-        ret = RoadNetwork()
-        ret.graph = self.graph
-        ret += other
-        return ret
-
-    def __iadd__(self, other):
+    def add(self, other):
         set_1 = set(self.graph) - {Decoration.start, Decoration.end}
         set_2 = set(other.graph) - {Decoration.start, Decoration.end}
         if len(set_1.intersection(set_2)) == 0:
@@ -186,12 +181,12 @@ class RoadNetwork:
         return self._graph_helper.get(position)
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-        np_random: np.random.RandomState = None
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+            np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -296,12 +291,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?
@@ -384,6 +379,16 @@ class RoadNetwork:
                 for _to, lanes in _to_dict.items():
                     if lane_num is None or len(lanes) == lane_num:
                         ret.append(Road(_from, _to))
+        return ret
+
+    def __iadd__(self, other):
+        raise ValueError("Deprecated function, use road_network.add(other) instead!")
+
+    def __add__(self, other):
+        raise ValueError("Deprecated function, use road_network.add(other) instead!")
+        ret = RoadNetwork()
+        ret.graph = self.graph
+        ret += other
         return ret
 
 

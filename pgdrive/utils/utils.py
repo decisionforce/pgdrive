@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import uuid
 
 
 def import_pygame():
@@ -50,3 +51,7 @@ def recursive_equal(data1, data2, need_assert=False):
 
 def is_mac():
     return sys.platform == "darwin"
+
+
+def random_string():
+    return str(uuid.uuid4())
