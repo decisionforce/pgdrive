@@ -26,11 +26,11 @@ class TestEnv(PGDriveEnv):
                 "target_vehicle_configs": {
                     "agent0": {
                         "born_longitude": 40,
-                        "show_lidar":True,
+                        "show_lidar": True,
                     },
                     "agent1": {
                         "born_longitude": 10,
-                        "show_lidar":True,
+                        "show_lidar": True,
                     }
                 },
                 "num_agents": 2
@@ -46,8 +46,8 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step({"agent0": [0, 0], "agent1": [0, 0]})
         # o, r, d, info = env.step([0,1])
-        env.render()
-        # if d:
-        #     print("Reset")
-        #     env.reset()
+        env.render(text=d)
+        if True in d.values():
+            print("Reset")
+            env.reset()
     env.close()
