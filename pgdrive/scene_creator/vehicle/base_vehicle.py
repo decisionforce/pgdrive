@@ -105,7 +105,7 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+            self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -258,11 +258,6 @@ class BaseVehicle(DynamicElement):
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
                 action, self.action_space
             )
-
-        # filter by saver to protect
-        steering, throttle, saver_info = self.saver(action)
-        action = (steering, throttle)
-        self.step_info.update(saver_info)
 
         # protect agent from nan error
         action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
@@ -469,8 +464,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -740,7 +735,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -770,66 +765,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
-
-    def saver(self, action):
-        """
-        Rule to enable saver
-        :param action: original action
-        :return: a new action to override original action
-        """
-        steering = action[0]
-        throttle = action[1]
-        if self.vehicle_config["use_saver"] or self._expert_takeover:
-            # saver can be used for human or another AI
-            save_level = self.vehicle_config["save_level"] if not self._expert_takeover else 1.0
-            obs = self.observation.observe(self)
-            from pgdrive.examples.ppo_expert import expert
-            try:
-                saver_a = expert(obs, deterministic=False)
-            except ValueError:
-                print("Expert can not takeover, due to observation space mismathing!")
-                saver_a = action
-            else:
-                if save_level > 0.9:
-                    steering = saver_a[0]
-                    throttle = saver_a[1]
-                elif save_level > 1e-3:
-                    heading_diff = self.heading_diff(self.lane) - 0.5
-                    f = min(1 + abs(heading_diff) * self.speed * self.max_speed, save_level * 10)
-                    # for out of road
-                    if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
-                        0] <= 1e-3 or \
-                            obs[
-                                1] <= 1e-3:
-                        steering = saver_a[0]
-                        throttle = saver_a[1]
-                        if self.speed < 5:
-                            throttle = 0.5
-                    # if saver_a[1] * self.speed < -40 and action[1] > 0:
-                    #     throttle = saver_a[1]
-
-                    # for collision
-                    lidar_p = self.lidar.get_cloud_points()
-                    left = int(self.lidar.num_lasers / 4)
-                    right = int(self.lidar.num_lasers / 4 * 3)
-                    if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
-                                                                                        ) < (save_level + 0.1) / 10:
-                        # lateral safe distance 2.0m
-                        steering = saver_a[0]
-                    if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
-                        # longitude safe distance 15 m
-                        throttle = saver_a[1]
-
-        # indicate if current frame is takeover step
-        pre_save = self.takeover
-        self.takeover = True if action[0] != steering or action[1] != throttle else False
-        saver_info = {
-            "takeover_start": True if not pre_save and self.takeover else False,
-            "takeover_end": True if pre_save and not self.takeover else False,
-            "takeover": self.takeover
-        }
-        return steering, throttle, saver_info
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
         for sensor in self.image_sensors.values():

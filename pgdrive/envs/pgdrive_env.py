@@ -225,9 +225,7 @@ class PGDriveEnv(gym.Env):
             self.main_camera.chase(self.current_track_vehicle, self.pg_world)
         self.pg_world.accept("n", self.chase_another_v)
 
-    def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
-        self.episode_steps += 1
-
+    def preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
             if self.num_agents == 1:
@@ -237,6 +235,15 @@ class PGDriveEnv(gym.Env):
 
         if self.num_agents == 1:
             actions = {DEFAULT_AGENT: actions}
+
+        # protect by expert
+        for v_id, v in self.vehicles.items():
+            actions[v_id] = self.saver(v, actions[v_id])
+        return actions
+
+    def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
+        self.episode_steps += 1
+        actions = self.preprocess_actions(actions)
 
         # Check whether some actions are left.
         given_keys = set(actions.keys())
@@ -556,8 +563,69 @@ class PGDriveEnv(gym.Env):
                 self.current_track_vehicle_id = v[0]
                 self.current_track_vehicle.add_to_display()
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
-
                 return
+
+    @staticmethod
+    def saver(vehicle: BaseVehicle, action):
+        """
+        Rule to enable saver
+        :param vehicle:BaseVehicle that need protection of saver
+        :param action: original action
+        :return: a new action to override original action
+        """
+        steering = action[0]
+        throttle = action[1]
+        if vehicle.vehicle_config["use_saver"] or vehicle._expert_takeover:
+            # saver can be used for human or another AI
+            save_level = vehicle.vehicle_config["save_level"] if not vehicle._expert_takeover else 1.0
+            obs = vehicle.observation.observe(vehicle)
+            from pgdrive.examples.ppo_expert import expert
+            try:
+                saver_a = expert(obs, deterministic=False)
+            except ValueError:
+                print("Expert can not takeover, due to observation space mismathing!")
+                saver_a = action
+            else:
+                if save_level > 0.9:
+                    steering = saver_a[0]
+                    throttle = saver_a[1]
+                elif save_level > 1e-3:
+                    heading_diff = vehicle.heading_diff(vehicle.lane) - 0.5
+                    f = min(1 + abs(heading_diff) * vehicle.speed * vehicle.max_speed, save_level * 10)
+                    # for out of road
+                    if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
+                        0] <= 1e-3 or \
+                            obs[
+                                1] <= 1e-3:
+                        steering = saver_a[0]
+                        throttle = saver_a[1]
+                        if vehicle.speed < 5:
+                            throttle = 0.5
+                    # if saver_a[1] * vehicle.speed < -40 and action[1] > 0:
+                    #     throttle = saver_a[1]
+
+                    # for collision
+                    lidar_p = vehicle.lidar.get_cloud_points()
+                    left = int(vehicle.lidar.num_lasers / 4)
+                    right = int(vehicle.lidar.num_lasers / 4 * 3)
+                    if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
+                                                                                        ) < (save_level + 0.1) / 10:
+                        # lateral safe distance 2.0m
+                        steering = saver_a[0]
+                    if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
+                        # longitude safe distance 15 m
+                        throttle = saver_a[1]
+
+        # indicate if current frame is takeover step
+        pre_save = vehicle.takeover
+        vehicle.takeover = True if action[0] != steering or action[1] != throttle else False
+        saver_info = {
+            "takeover_start": True if not pre_save and vehicle.takeover else False,
+            "takeover_end": True if pre_save and not vehicle.takeover else False,
+            "takeover": vehicle.takeover
+        }
+        vehicle.step_info.update(saver_info)
+        return steering, throttle
 
 
 def _auto_termination(vehicle, should_done):
@@ -572,6 +640,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
