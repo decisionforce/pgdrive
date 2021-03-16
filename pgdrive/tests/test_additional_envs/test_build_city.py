@@ -5,7 +5,10 @@ from pgdrive.world.pg_world import PGWorld
 def _t(num_blocks):
     map_config = dict(type="block_num", config=num_blocks)
     world = PGWorld()
-    map = CityMap(world, map_config)
+    try:
+        map = CityMap(world, map_config)
+    finally:
+        world.close_world()
 
 
 def test_build_city():
