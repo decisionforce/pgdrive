@@ -105,7 +105,7 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+            self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -462,8 +462,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -499,8 +499,8 @@ class BaseVehicle(DynamicElement):
 
     def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
         para = self.get_config()
-        chassis = BulletRigidBodyNode(BodyName.Ego_vehicle_top)
-        chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicleTop))
+        chassis = BulletRigidBodyNode(BodyName.Ego_vehicle)
+        chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
         chassis_shape = BulletBoxShape(
             Vec3(
                 para[Parameter.vehicle_width] / 2, para[Parameter.vehicle_length] / 2,
@@ -520,8 +520,8 @@ class BaseVehicle(DynamicElement):
         self.pg_world.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(self._collision_check))
         self.dynamic_nodes.append(chassis)
 
-        chassis_beneath = BulletGhostNode(BodyName.Ego_vehicle)
-        chassis_beneath.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
+        chassis_beneath = BulletGhostNode(BodyName.Ego_vehicle_beneath)
+        chassis_beneath.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicleBeneath))
         chassis_beneath.addShape(chassis_shape)
         self.chassis_beneath_np = self.chassis_np.attachNewNode(chassis_beneath)
         self.dynamic_nodes.append(chassis_beneath)
@@ -613,7 +613,7 @@ class BaseVehicle(DynamicElement):
             node0 = contact.getNode0()
             node1 = contact.getNode1()
             name = [node0.getName(), node1.getName()]
-            name.remove(BodyName.Ego_vehicle)
+            name.remove(BodyName.Ego_vehicle_beneath)
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
             elif name[0] == BodyName.Side_walk:
@@ -629,7 +629,7 @@ class BaseVehicle(DynamicElement):
         node0 = contact.getNode0().getName()
         node1 = contact.getNode1().getName()
         name = [node0, node1]
-        name.remove(BodyName.Ego_vehicle_top)
+        name.remove(BodyName.Ego_vehicle)
         if name[0] in [BodyName.Traffic_vehicle, BodyName.Ego_vehicle]:
             self.crash_vehicle = True
         elif name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
@@ -733,7 +733,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -748,13 +748,15 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
+        self.vehicle_panel.remove_display_region(self.pg_world)
         for sensor in self.image_sensors.values():
             sensor.remove_display_region(self.pg_world)
 
     def add_to_display(self):
+        self.vehicle_panel.add_to_display(self.pg_world, self.vehicle_panel.default_region)
         for sensor in self.image_sensors.values():
             sensor.add_to_display(self.pg_world, sensor.default_region)
 
