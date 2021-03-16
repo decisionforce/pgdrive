@@ -293,6 +293,7 @@ class PGDriveEnv(gym.Env):
                 termination_infos,
             ]
         )
+        step_infos = self.extra_step_info(step_infos)
 
         if should_done:
             for k in self.dones:
@@ -312,6 +313,9 @@ class PGDriveEnv(gym.Env):
 
     def reward_function(self, vehicle):
         return pg_reward_function(vehicle)
+
+    def extra_step_info(self, step_infos):
+        return step_infos
 
     def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
         """
@@ -687,6 +691,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
