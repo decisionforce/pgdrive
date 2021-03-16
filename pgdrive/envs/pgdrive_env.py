@@ -113,12 +113,16 @@ class PGDriveEnv(gym.Env):
         # obs. action space
         self.observation = {
             id: BaseVehicle.get_observation_before_init(v_config)
-            for id, v_config in self.config["target_vehicle_configs"].items()}
+            for id, v_config in self.config["target_vehicle_configs"].items()
+        }
         self.observation_space = gym.spaces.Dict(
-            {v_id: obs.observation_space for v_id, obs in self.observation.items()})
+            {v_id: obs.observation_space
+             for v_id, obs in self.observation.items()}
+        )
         self.action_space = gym.spaces.Dict(
             {id: BaseVehicle.get_action_space_before_init()
-             for id in self.config["target_vehicle_configs"].keys()})
+             for id in self.config["target_vehicle_configs"].keys()}
+        )
 
         if self.num_agents == 1:
             self.observation_space = self.observation_space[DEFAULT_AGENT]
@@ -643,7 +647,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:
