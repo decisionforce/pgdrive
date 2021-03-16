@@ -53,5 +53,8 @@ def is_mac():
     return sys.platform == "darwin"
 
 
-def random_string():
-    return str(uuid.uuid4())
+def random_string(prefix=None):
+    ret = str(uuid.uuid4())
+    if prefix is not None:
+        ret = "{}-{}".format(prefix, ret)
+    return ret

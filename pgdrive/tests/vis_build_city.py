@@ -5,10 +5,7 @@ from pgdrive.utils import draw_top_down_map
 from pgdrive.world.pg_world import PGWorld
 
 if __name__ == '__main__':
-    map_config = dict(
-        type="block_num",
-        config=7
-    )
+    map_config = dict(type="block_num", config=7)
 
     world = PGWorld()
     map = CityMap(world, map_config)

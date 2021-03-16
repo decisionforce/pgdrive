@@ -42,12 +42,11 @@ class PGDriveEnv(gym.Env):
             _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
             # ==== agents config =====
-            target_vehicle_configs={DEFAULT_AGENT: BaseVehicle.get_vehicle_config()},  # agent_id: vehicle_config
             num_agents=1,
+            target_vehicle_configs={},  # agent_id: vehicle_config
 
             # ===== Observation =====
             use_topdown=False,  # Use top-down view
-            rgb_clip=True,
 
             # ===== Traffic =====
             traffic_density=0.1,
@@ -75,23 +74,29 @@ class PGDriveEnv(gym.Env):
             pg_world_config=dict(),
             record_episode=False,
 
-            # Reward scheme is in vehicle config now!
-            # # ===== Reward Scheme =====
-            # success_reward=20,
-            # out_of_road_penalty=5,
-            # crash_vehicle_penalty=10,
-            # crash_object_penalty=2,
-            # acceleration_penalty=0.0,
-            # steering_penalty=0.1,
-            # low_speed_penalty=0.0,
-            # driving_reward=1.0,
-            # general_penalty=0.0,
-            # speed_reward=0.1,
-            #
-            # # ===== Cost Scheme =====
-            # crash_vehicle_cost=1,
-            # crash_object_cost=1,
-            # out_of_road_cost=1.,
+            # ===== Single-agent Env Quick Config =====
+            # 1. These config only takes effect in single-agent env
+            # 2. vehicle_config=custom_config_dict <=======> target_vehicle_configs[DEFAULT_AGENT]=custom_config_dict
+            # 3. reward/cost scheme will also override and write into custom_vehicle_config
+            vehicle_config=BaseVehicle.get_vehicle_config(),
+            rgb_clip=True,
+
+            # ----- Reward Scheme -----
+            success_reward=20,
+            out_of_road_penalty=5,
+            crash_vehicle_penalty=10,
+            crash_object_penalty=2,
+            acceleration_penalty=0.0,
+            steering_penalty=0.1,
+            low_speed_penalty=0.0,
+            driving_reward=1.0,
+            general_penalty=0.0,
+            speed_reward=0.1,
+
+            # ----- Cost Scheme -----
+            crash_vehicle_cost=1,
+            crash_object_cost=1,
+            out_of_road_cost=1.,
         )
         config = PGConfig(env_config)
         config.register_type("map", str, int)
@@ -102,19 +107,21 @@ class PGDriveEnv(gym.Env):
         if config:
             self.config.update(config)
         self.num_agents = self.config["num_agents"]
-        if self.num_agents > 1:
-            self.config["target_vehicle_configs"].pop(DEFAULT_AGENT)
-            # raise ValueError("We don't fulfill target_vehicle_configs yet!")
+        if self.num_agents == 1:
+            self.config["target_vehicle_configs"][DEFAULT_AGENT] = self.config["vehicle_config"]
+            self._sync_reward_config_in_single_agent_env()
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
 
         # obs. action space
+        self.observation = {
+            id: BaseVehicle.get_observation_before_init(v_config)
+            for id, v_config in self.config["target_vehicle_configs"].items()
+        }
         self.observation_space = gym.spaces.Dict(
-            {
-                id: BaseVehicle.get_observation_space_before_init(v_config)
-                for id, v_config in self.config["target_vehicle_configs"].items()
-            }
+            {v_id: obs.observation_space
+             for v_id, obs in self.observation.items()}
         )
         self.action_space = gym.spaces.Dict(
             {id: BaseVehicle.get_action_space_before_init()
@@ -224,15 +231,25 @@ class PGDriveEnv(gym.Env):
             self.main_camera.chase(self.current_track_vehicle, self.pg_world)
         self.pg_world.accept("n", self.chase_another_v)
 
-    def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
-        self.episode_steps += 1
-
+    def preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         if self.config["manual_control"] and self.use_render:
             action = self.controller.process_input()
-            actions[self.current_track_vehicle_id] = action
+            if self.num_agents == 1:
+                actions = action
+            else:
+                actions[self.current_track_vehicle_id] = action
 
         if self.num_agents == 1:
             actions = {DEFAULT_AGENT: actions}
+
+        # protect by expert
+        for v_id, v in self.vehicles.items():
+            actions[v_id] = self.saver(v_id, v, actions)
+        return actions
+
+    def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
+        self.episode_steps += 1
+        actions = self.preprocess_actions(actions)
 
         # Check whether some actions are left.
         given_keys = set(actions.keys())
@@ -248,11 +265,14 @@ class PGDriveEnv(gym.Env):
         self.scene_manager.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
+
         self.scene_manager.update_state()
 
         # update obs, dones, rewards, costs, calculate done at first !
+        obses = {}
+        for v_id, v in self.vehicles.items():
+            obses[v_id] = self.observation[v_id].observe(v)
         self.dones = self.for_each_vehicle(lambda v: pg_done_function(v))
-        obses = self.for_each_vehicle(lambda v: v.observation.observe(v))
         rewards = self.for_each_vehicle(lambda v: pg_reward_function(v))
         self.for_each_vehicle(lambda v: pg_cost_function(v))
 
@@ -331,9 +351,11 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
+        ret = {}
         self.for_each_vehicle(lambda v: v.update_state())
-        self.for_each_vehicle(lambda v: v.observation.reset(self))
-        ret = self.for_each_vehicle(lambda v: v.observation.observe(v))
+        for v_id, v in self.vehicles.items():
+            self.observation[v_id].reset(v)
+            ret[v_id] = self.observation[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
     def close(self):
@@ -495,15 +517,14 @@ class PGDriveEnv(gym.Env):
     def get_vehicle_num(self):
         if self.scene_manager is None:
             return 0
-        return self.scene_manager.get_vehicle_num()
+        return self.scene_manager.traffic_mgr.get_vehicle_num()
 
     def toggle_expert_takeover(self):
         """
         Only take effect whene vehicle num==1
         :return: None
         """
-        assert len(self.vehicles) == 1, "Only enable when driving in single agent env"
-        self.vehicle._expert_takeover = not self.vehicle._expert_takeover
+        self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
     def capture(self):
         img = PNMImage()
@@ -552,8 +573,77 @@ class PGDriveEnv(gym.Env):
                 self.current_track_vehicle_id = v[0]
                 self.current_track_vehicle.add_to_display()
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
-
                 return
+
+    def saver(self, v_id: str, vehicle: BaseVehicle, actions):
+        """
+        Rule to enable saver
+        :param v_id: id of a vehicle
+        :param vehicle:BaseVehicle that need protection of saver
+        :param actions: original actions of all vehicles
+        :return: a new action to override original action
+        """
+        action = actions[v_id]
+        steering = action[0]
+        throttle = action[1]
+        if vehicle.vehicle_config["use_saver"] or vehicle._expert_takeover:
+            # saver can be used for human or another AI
+            save_level = vehicle.vehicle_config["save_level"] if not vehicle._expert_takeover else 1.0
+            obs = self.observation[v_id].observe(vehicle)
+            from pgdrive.examples.ppo_expert import expert
+            try:
+                saver_a = expert(obs, deterministic=False)
+            except ValueError:
+                print("Expert can not takeover, due to observation space mismathing!")
+                saver_a = action
+            else:
+                if save_level > 0.9:
+                    steering = saver_a[0]
+                    throttle = saver_a[1]
+                elif save_level > 1e-3:
+                    heading_diff = vehicle.heading_diff(vehicle.lane) - 0.5
+                    f = min(1 + abs(heading_diff) * vehicle.speed * vehicle.max_speed, save_level * 10)
+                    # for out of road
+                    if (obs[0] < 0.04 * f and heading_diff < 0) or (obs[1] < 0.04 * f and heading_diff > 0) or obs[
+                        0] <= 1e-3 or \
+                            obs[
+                                1] <= 1e-3:
+                        steering = saver_a[0]
+                        throttle = saver_a[1]
+                        if vehicle.speed < 5:
+                            throttle = 0.5
+                    # if saver_a[1] * vehicle.speed < -40 and action[1] > 0:
+                    #     throttle = saver_a[1]
+
+                    # for collision
+                    lidar_p = vehicle.lidar.get_cloud_points()
+                    left = int(vehicle.lidar.num_lasers / 4)
+                    right = int(vehicle.lidar.num_lasers / 4 * 3)
+                    if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
+                                                                                        ) < (save_level + 0.1) / 10:
+                        # lateral safe distance 2.0m
+                        steering = saver_a[0]
+                    if action[1] >= 0 and saver_a[1] <= 0 and min(min(lidar_p[0:10]), min(lidar_p[-10:])) < save_level:
+                        # longitude safe distance 15 m
+                        throttle = saver_a[1]
+
+        # indicate if current frame is takeover step
+        pre_save = vehicle.takeover
+        vehicle.takeover = True if action[0] != steering or action[1] != throttle else False
+        saver_info = {
+            "takeover_start": True if not pre_save and vehicle.takeover else False,
+            "takeover_end": True if pre_save and not vehicle.takeover else False,
+            "takeover": vehicle.takeover
+        }
+        vehicle.step_info.update(saver_info)
+        return steering, throttle
+
+    def _sync_reward_config_in_single_agent_env(self):
+        set_1 = set(self.config.keys())
+        set_2 = set(BaseVehicle.get_vehicle_config().keys())
+        interesct = set_1.intersection(set_2)
+        for k in list(interesct):
+            self.config["target_vehicle_configs"][DEFAULT_AGENT][k] = self.config[k]
 
 
 def _auto_termination(vehicle, should_done):

@@ -1,4 +1,5 @@
 import logging
+from collections import OrderedDict
 from typing import Dict, Union, List
 
 import numpy
@@ -14,7 +15,6 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils import random_string
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.element import Element
@@ -28,12 +28,17 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
-
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
         self.index = None
-        self.unique_id = random_string()
+
+    def set_index(self, block_name: str, index: int):
+        self.index = self.get_real_index(block_name, index)
+
+    @classmethod
+    def get_real_index(cls, block_name: str, index: int):
+        return "{}-socket{}".format(block_name, index)
 
 
 class Block(Element, BlockDefault):
@@ -51,7 +56,6 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -74,7 +78,7 @@ class Block(Element, BlockDefault):
         self._reborn_roads = []
 
         # own sockets, one block derives from a socket, but will have more sockets to connect other blocks
-        self._sockets = dict()
+        self._sockets = OrderedDict()
 
         # used to connect previous blocks, save its info here
         self.pre_block_socket = pre_block_socket
@@ -131,10 +135,6 @@ class Block(Element, BlockDefault):
         self.number_of_sample_trial += 1
         self._clear_topology()
         no_cross = self._try_plug_into_previous_block()
-        for i, s in enumerate(self._sockets.values()):
-            s.index = i
-
-        # self._global_network += self.block_network
         self._global_network.add(self.block_network)
 
         return no_cross
@@ -148,13 +148,16 @@ class Block(Element, BlockDefault):
         self.attach_to_pg_world(root_render_np, pg_physics_world)
         return success
 
-    def get_socket(self, index: int) -> BlockSocket:
-        """
-        Get i th socket
-        """
-        if index < 0 or index >= len(self._sockets):
-            raise ValueError("Socket of {}: index out of range".format(self.class_name))
-        return self._sockets[index]
+    def get_socket(self, index: Union[str, int]) -> BlockSocket:
+        if isinstance(index, int):
+            if index < 0 or index >= len(self._sockets):
+                raise ValueError("Socket of {}: index out of range".format(self.class_name))
+            socket_index = list(self._sockets)[index]
+        else:
+            assert index.startswith(self._block_name)
+            socket_index = index
+        assert socket_index in self._sockets, (socket_index, self._sockets.keys())
+        return self._sockets[socket_index]
 
     def add_reborn_roads(self, reborn_roads: Union[List[Road], Road]):
         """
@@ -214,7 +217,15 @@ class Block(Element, BlockDefault):
 
     def _add_one_socket(self, socket: BlockSocket):
         assert isinstance(socket, BlockSocket), "Socket list only accept BlockSocket Type"
-        self._sockets.append(socket)
+        if socket.index is not None and not socket.index.startswith(self._block_name):
+            logging.warning(
+                "The adding socket has index {}, which is not started with this block name {}. This is dangerous! "
+                "Current block has sockets: {}.".format(socket.index, self._block_name, self.get_socket_indices())
+            )
+        if socket.index is None:
+            # if this socket is self block socket
+            socket.set_index(self._block_name, len(self._sockets))
+        self._sockets[socket.index] = socket
 
     def _add_one_reborn_road(self, reborn_road: Road):
         assert isinstance(reborn_road, Road), "Spawn roads list only accept Road Type"
@@ -368,14 +379,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-            self,
-            lane_start,
-            lane_end,
-            middle,
-            parent_np: NodePath,
-            color: Vec4,
-            line_type: LineType,
-            straight_stripe=False
+        self,
+        lane_start,
+        lane_end,
+        middle,
+        parent_np: NodePath,
+        color: Vec4,
+        line_type: LineType,
+        straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -533,5 +544,8 @@ class Block(Element, BlockDefault):
         positive_road = Road(road.start_node, road.end_node)
         return BlockSocket(positive_road, -positive_road)
 
-    def get_socket_ids(self):
+    def get_socket_indices(self):
         return list(self._sockets.keys())
+
+    def get_socket_list(self):
+        return list(self._sockets.values())
