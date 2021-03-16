@@ -645,7 +645,7 @@ class PGDriveEnv(gym.Env):
         else:
             o = LidarStateObservation(vehicle_config)
         return o
-    
+
     def _sync_reward_config_in_single_agent_env(self):
         set_1 = set(self.config.keys())
         set_2 = set(BaseVehicle.get_vehicle_config().keys())
