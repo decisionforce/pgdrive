@@ -84,7 +84,7 @@ class ObservationType(ABC):
         plt.imshow(img, cmap=plt.cm.gray)
         plt.show()
 
-    def reset(self, env):
+    def reset(self, env, vehicle=None):
         pass
 
 
@@ -92,6 +92,7 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -99,7 +100,7 @@ class StateObservation(ObservationType):
     def observation_space(self):
         # Navi info + Other states
         shape = BaseVehicle.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         """
@@ -145,7 +146,7 @@ class ImageObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE, )
+        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
@@ -160,10 +161,11 @@ class ImageObservation(ObservationType):
     def get_image(self):
         return self.state.copy()[:, :, -1]
 
-    def reset(self, env):
+    def reset(self, env, vehicle=None):
         """
         Clear stack
         :param env: PGDrive
+        :param vehicle: BaseVehicle
         :return: None
         """
         self.state = np.zeros(self.observation_space.shape)
@@ -233,6 +235,5 @@ class ImageStateObservation(ObservationType):
     def observe(self, vehicle: BaseVehicle):
         image_buffer = vehicle.image_sensors[self.img_obs.image_source]
         return {self.IMAGE: self.img_obs.observe(image_buffer), self.STATE: self.state_obs.observe(vehicle)}
-
 
 # Note that the top-down view observation is provided in pgdrive/world/top_down_observation/top_down_observation.py

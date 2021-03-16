@@ -1,12 +1,11 @@
 import copy
-import gym
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
 import logging
 import math
 import time
 from collections import deque
-from typing import Optional, Union
-from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
+from typing import Optional
+
+import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
@@ -16,15 +15,18 @@ from pgdrive.pg_config.cam_mask import CamMask
 from pgdrive.pg_config.collision_group import CollisionGroup
 from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
 from pgdrive.pg_config.pg_space import PGSpace
-from pgdrive.scene_creator.vehicle_module import Lidar
-from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
+from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
+from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
+from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
+from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
+from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.utils import safe_clip
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
@@ -32,8 +34,6 @@ from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.world.pg_world import PGWorld
-from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
-from pgdrive.scene_creator.vehicle_module import MiniMap
 
 
 class BaseVehicle(DynamicElement):
@@ -105,7 +105,7 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+            self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -462,8 +462,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -733,7 +733,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -747,23 +747,8 @@ class BaseVehicle(DynamicElement):
         return len(self.front_vehicles.intersection(self.back_vehicles))
 
     @classmethod
-    def _initialize_observation(cls, vehicle_config: Union[dict, PGConfig]):
-        from pgdrive.rl_utils.observation_type import LidarStateObservation, ImageStateObservation
-        if vehicle_config["use_image"]:
-            o = ImageStateObservation(vehicle_config)
-        else:
-            o = LidarStateObservation(vehicle_config)
-        return o
-
-    @classmethod
-    def get_observation_before_init(cls, vehicle_config: dict = None):
-        vehicle_config = cls.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else cls._default_vehicle_config()
-        return cls._initialize_observation(vehicle_config)
-
-    @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
         for sensor in self.image_sensors.values():

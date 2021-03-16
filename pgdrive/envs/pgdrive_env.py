@@ -4,15 +4,15 @@ import logging
 import os.path as osp
 import sys
 import time
-from typing import Union, Optional, Iterable, Dict, AnyStr
+from typing import Union, Optional, Dict, AnyStr
 
 import gym
 import numpy as np
 from panda3d.core import PNMImage
-
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.pg_config import PGConfig
 from pgdrive.rl_utils import pg_cost_function, pg_done_function, pg_reward_function
+from pgdrive.rl_utils.observation_type import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.scene_manager import SceneManager
@@ -111,8 +111,9 @@ class PGDriveEnv(gym.Env):
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
 
         # obs. action space
+
         self.observation = {
-            id: BaseVehicle.get_observation_before_init(v_config)
+            id: self.get_observation(BaseVehicle.get_vehicle_config(v_config))
             for id, v_config in self.config["target_vehicle_configs"].items()
         }
         self.observation_space = gym.spaces.Dict(
@@ -350,7 +351,7 @@ class PGDriveEnv(gym.Env):
         ret = {}
         self.for_each_vehicle(lambda v: v.update_state())
         for v_id, v in self.vehicles.items():
-            self.observation[v_id].reset(v)
+            self.observation[v_id].reset(self, v)
             ret[v_id] = self.observation[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
@@ -634,6 +635,13 @@ class PGDriveEnv(gym.Env):
         vehicle.step_info.update(saver_info)
         return steering, throttle
 
+    def get_observation(self, vehicle_config: Union[dict, PGConfig]):
+        if vehicle_config["use_image"]:
+            o = ImageStateObservation(vehicle_config)
+        else:
+            o = LidarStateObservation(vehicle_config)
+        return o
+
 
 def _auto_termination(vehicle, should_done):
     vehicle.step_info["max_step"] = True if should_done else False
@@ -647,6 +655,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
