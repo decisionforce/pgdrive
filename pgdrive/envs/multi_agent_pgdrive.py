@@ -1,7 +1,7 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.utils import setup_logger
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.utils import setup_logger
 
 setup_logger(True)
 
@@ -34,7 +34,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         config.extend_config_with_unknown_keys({"crash_done": False})
         return config
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
 
     def done_function(self, vehicle):
