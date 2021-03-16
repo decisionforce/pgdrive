@@ -120,8 +120,6 @@ class BaseVehicle(DynamicElement):
             if vehicle_config is not None else self._default_vehicle_config()
 
         # observation, action
-        self.observation = self._initialize_observation(self.vehicle_config)
-        self.observation_space = self.observation.observation_space
         self.action_space = self.get_action_space_before_init()
 
         super(BaseVehicle, self).__init__(random_seed)
@@ -758,10 +756,10 @@ class BaseVehicle(DynamicElement):
         return o
 
     @classmethod
-    def get_observation_space_before_init(cls, vehicle_config: dict = None):
+    def get_observation_before_init(cls, vehicle_config: dict = None):
         vehicle_config = cls.get_vehicle_config(vehicle_config) \
             if vehicle_config is not None else cls._default_vehicle_config()
-        return cls._initialize_observation(vehicle_config).observation_space
+        return cls._initialize_observation(vehicle_config)
 
     @classmethod
     def get_action_space_before_init(cls):

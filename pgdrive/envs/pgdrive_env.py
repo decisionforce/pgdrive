@@ -111,16 +111,14 @@ class PGDriveEnv(gym.Env):
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
 
         # obs. action space
+        self.observation = {
+            id: BaseVehicle.get_observation_before_init(v_config)
+            for id, v_config in self.config["target_vehicle_configs"].items()}
         self.observation_space = gym.spaces.Dict(
-            {
-                id: BaseVehicle.get_observation_space_before_init(v_config)
-                for id, v_config in self.config["target_vehicle_configs"].items()
-            }
-        )
+            {v_id: obs.observation_space for v_id, obs in self.observation.items()})
         self.action_space = gym.spaces.Dict(
             {id: BaseVehicle.get_action_space_before_init()
-             for id in self.config["target_vehicle_configs"].keys()}
-        )
+             for id in self.config["target_vehicle_configs"].keys()})
 
         if self.num_agents == 1:
             self.observation_space = self.observation_space[DEFAULT_AGENT]
@@ -238,7 +236,7 @@ class PGDriveEnv(gym.Env):
 
         # protect by expert
         for v_id, v in self.vehicles.items():
-            actions[v_id] = self.saver(v, actions[v_id])
+            actions[v_id] = self.saver(v_id, v, actions)
         return actions
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
@@ -263,8 +261,10 @@ class PGDriveEnv(gym.Env):
         self.scene_manager.update_state()
 
         # update obs, dones, rewards, costs, calculate done at first !
+        obses = {}
+        for v_id, v in self.vehicles.items():
+            obses[v_id] = self.observation[v_id].observe(v)
         self.dones = self.for_each_vehicle(lambda v: pg_done_function(v))
-        obses = self.for_each_vehicle(lambda v: v.observation.observe(v))
         rewards = self.for_each_vehicle(lambda v: pg_reward_function(v))
         self.for_each_vehicle(lambda v: pg_cost_function(v))
 
@@ -343,9 +343,11 @@ class PGDriveEnv(gym.Env):
         return self._get_reset_return()
 
     def _get_reset_return(self):
+        ret = {}
         self.for_each_vehicle(lambda v: v.update_state())
-        self.for_each_vehicle(lambda v: v.observation.reset(self))
-        ret = self.for_each_vehicle(lambda v: v.observation.observe(v))
+        for v_id, v in self.vehicles.items():
+            self.observation[v_id].reset(v)
+            ret[v_id] = self.observation[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
     def close(self):
@@ -565,20 +567,21 @@ class PGDriveEnv(gym.Env):
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
                 return
 
-    @staticmethod
-    def saver(vehicle: BaseVehicle, action):
+    def saver(self, v_id: str, vehicle: BaseVehicle, actions):
         """
         Rule to enable saver
+        :param v_id: id of a vehicle
         :param vehicle:BaseVehicle that need protection of saver
-        :param action: original action
+        :param actions: original actions of all vehicles
         :return: a new action to override original action
         """
+        action = actions[v_id]
         steering = action[0]
         throttle = action[1]
         if vehicle.vehicle_config["use_saver"] or vehicle._expert_takeover:
             # saver can be used for human or another AI
             save_level = vehicle.vehicle_config["save_level"] if not vehicle._expert_takeover else 1.0
-            obs = vehicle.observation.observe(vehicle)
+            obs = self.observation[v_id].observe(vehicle)
             from pgdrive.examples.ppo_expert import expert
             try:
                 saver_a = expert(obs, deterministic=False)

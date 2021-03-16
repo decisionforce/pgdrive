@@ -27,7 +27,7 @@ class ChangeFrictionEnv(PGDriveEnv):
 
     def _change_friction(self):
         if self.config["change_friction"] and self.vehicle is not None:
-            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
+            self.for_each_vehicle(lambda v_id, v: v.destroy(self.pg_world))
             del self.vehicles
 
             # We reset the friction here!
@@ -63,7 +63,7 @@ class ChangeFrictionEnv(PGDriveEnv):
         self._change_friction()
 
         # reset main vehicle
-        self.for_each_vehicle(lambda v: v.reset(self.current_map))
+        self.for_each_vehicle(lambda v_id, v: v.reset(self.current_map))
 
         # generate new traffic according to the map
         self.scene_manager.reset(
