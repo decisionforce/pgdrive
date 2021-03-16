@@ -28,11 +28,11 @@ class CityBIG(BIG):
     MAX_TRIAL = 2
 
     def __init__(
-            self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-            pg_physics_world: PGPhysicsWorld, random_seed: int
+        self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
+        pg_physics_world: PGPhysicsWorld, random_seed: int
     ):
-        super(CityBIG, self).__init__(lane_num, lane_width, global_network, render_node_path, pg_physics_world,
-                                      random_seed)
+        super(CityBIG,
+              self).__init__(lane_num, lane_width, global_network, render_node_path, pg_physics_world, random_seed)
 
         self._used_sockets = set()
         # self._block_sequence = None
@@ -97,14 +97,17 @@ class CityBIG(BIG):
         choices = set()
         count = 0
         socket = None
-        while count < 10:
+        while count < 1000:
             next_block = self.np_random.choice(self.blocks)
             choices = set(next_block.get_socket_indices()).difference(self._used_sockets)
             if len(choices) >= 1:
                 socket = next_block.get_socket(self.np_random.choice(list(choices)))
+                break
             count += 1
-        if socket is None:
-            raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
+        # if socket is None:
+        # raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
+
+        print("Spent {} iterations!!!".format(count))
 
         self._used_sockets.add(socket.index)
         block = block_type(len(self.blocks), socket, self._global_network, block_seed)
