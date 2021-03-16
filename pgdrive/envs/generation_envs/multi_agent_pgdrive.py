@@ -40,15 +40,31 @@ class MultiAgentPGDrive(PGDriveEnv):
             done_info["crash_vehicle"] = False
         return done, done_info
 
+    def step(self, actions):
+        # remove useless actions
+        id_to_remove = []
+        for id in actions.keys():
+            if id in self.done_vehicles.keys():
+                id_to_remove.append(id)
+        for id in id_to_remove:
+            actions.pop(id)
+
+        o,r,d,i = super(MultiAgentPGDrive, self).step(actions)
+        for id, done in d.items():
+            if done and id in self.vehicles.keys():
+                v = self.vehicles.pop(id)
+                v.prepare_step([0,-1])
+                self.done_vehicles[id]=v
+        return o,r,d,i
 
 if __name__ == "__main__":
     env = MultiAgentPGDrive({"use_render":True, "manual_control":True})
     o = env.reset()
     for i in range(1, 100000):
-        o, r, d, info = env.step({"agent0": [0, 0], "agent1": [0, 0]})
+        o, r, d, info = env.step({"agent0": [-1, 0], "agent1": [0, 0]})
         # o, r, d, info = env.step([0,1])
         env.render(text=d)
-        if True in d.values():
+        if len(env.vehicles)==0:
             print("Reset")
             env.reset()
     env.close()
