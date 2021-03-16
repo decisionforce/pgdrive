@@ -5,20 +5,21 @@ import os.path as osp
 import sys
 import time
 from typing import Union, Optional, Dict, AnyStr
-from pgdrive.rl_utils.cost import pg_cost_scheme
-from pgdrive.rl_utils.reward import pg_reward_scheme
+
 import gym
 import numpy as np
 from panda3d.core import PNMImage
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.pg_config import PGConfig
 from pgdrive.rl_utils import pg_cost_function, pg_done_function, pg_reward_function
+from pgdrive.rl_utils.cost import pg_cost_scheme
 from pgdrive.rl_utils.observation_type import LidarStateObservation, ImageStateObservation
+from pgdrive.rl_utils.reward import pg_reward_scheme
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.scene_manager.traffic_manager import TrafficMode
-from pgdrive.utils import recursive_equal, get_np_random
+from pgdrive.utils import recursive_equal, get_np_random, merge_dicts
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PGWorld
@@ -83,11 +84,11 @@ class PGDriveEnv(gym.Env):
             rgb_clip=True
         )
 
-        # ----- Single Agent Reward Scheme -----
-        env_config.update(pg_reward_scheme)
+        # ===== Single Agent Reward Scheme =====
+        env_config.update(copy.deepcopy(pg_reward_scheme))
 
-        # ----- Single Agent Cost Scheme -----
-        env_config.update(pg_cost_scheme)
+        # ===== Single Agent Cost Scheme =====
+        env_config.update(copy.deepcopy(pg_cost_scheme))
 
         config = PGConfig(env_config)
         config.register_type("map", str, int)
@@ -99,7 +100,7 @@ class PGDriveEnv(gym.Env):
             self.config.update(config)
         self.num_agents = self.config["num_agents"]
         if self.num_agents == 1:
-            self._quick_config_in_single_agent_env()
+            self._sync_config_to_vehicle_config()
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
@@ -636,14 +637,11 @@ class PGDriveEnv(gym.Env):
             o = LidarStateObservation(vehicle_config)
         return o
 
-    def _quick_config_in_single_agent_env(self):
-        self.config["target_vehicle_configs"][DEFAULT_AGENT] = BaseVehicle.get_vehicle_config()
-        self.config["target_vehicle_configs"][DEFAULT_AGENT].update(self.config["vehicle_config"])
-        set_1 = set(self.config.keys())
-        set_2 = set(BaseVehicle.get_vehicle_config().keys())
-        interesct = set_1.intersection(set_2)
-        for k in list(interesct):
-            self.config["target_vehicle_configs"][DEFAULT_AGENT][k] = self.config[k]
+    def _sync_config_to_vehicle_config(self):
+        assert self.num_agents == 1, "Only support single-agent sync now!"
+        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
+        vehicle_config = merge_dicts(old_dict=vehicle_config, new_dict=self.config.get_dict(), raise_error=False)
+        self.config["target_vehicle_configs"][DEFAULT_AGENT] = vehicle_config
 
 
 def _auto_termination(vehicle, should_done):
@@ -658,6 +656,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
