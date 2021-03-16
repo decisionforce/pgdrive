@@ -4,7 +4,8 @@ import math
 import time
 from collections import deque
 from typing import Optional
-
+from pgdrive.rl_utils.cost import pg_cost_scheme
+from pgdrive.rl_utils.reward import pg_reward_scheme
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
@@ -54,52 +55,36 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def _default_vehicle_config(cls) -> PGConfig:
-        return PGConfig(
-            dict(
-                # ===== vehicle module config =====
-                lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-                show_lidar=False,
-                mini_map=(84, 84, 250),  # buffer length, width
-                rgb_cam=(84, 84),  # buffer length, width
-                depth_cam=(84, 84, True),  # buffer length, width, view_ground
-                show_navi_mark=True,
-                increment_steering=False,
-                wheel_friction=0.6,
+        vehicle_config = dict(
+            # ===== vehicle module config =====
+            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
+            show_lidar=False,
+            mini_map=(84, 84, 250),  # buffer length, width
+            rgb_cam=(84, 84),  # buffer length, width
+            depth_cam=(84, 84, True),  # buffer length, width, view_ground
+            show_navi_mark=True,
+            increment_steering=False,
+            wheel_friction=0.6,
 
-                # ===== use image =====
-                image_source="rgb_cam",  # take effect when only when use_image == True
-                use_image=False,
-                rgb_clip=True,
+            # ===== use image =====
+            image_source="rgb_cam",  # take effect when only when use_image == True
+            use_image=False,
+            rgb_clip=True,
 
-                # ===== vehicle born =====
-                born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-                born_longitude=5.0,
-                born_lateral=0.0,
+            # ===== vehicle born =====
+            born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+            born_longitude=5.0,
+            born_lateral=0.0,
 
-                # ===== Reward Scheme =====
-                success_reward=20,
-                out_of_road_penalty=5,
-                crash_vehicle_penalty=10,
-                crash_object_penalty=2,
-                acceleration_penalty=0.0,
-                steering_penalty=0.1,
-                low_speed_penalty=0.0,
-                driving_reward=1.0,
-                general_penalty=0.0,
-                speed_reward=0.1,
-
-                # ===== Cost Scheme =====
-                crash_vehicle_cost=1,
-                crash_object_cost=1,
-                out_of_road_cost=1.,
-
-                # ==== others ====
-                overtake_stat=False,  # we usually set to True when evaluation
-                action_check=False,
-                use_saver=False,
-                save_level=0.5,
-            )
+            # ==== others ====
+            overtake_stat=False,  # we usually set to True when evaluation
+            action_check=False,
+            use_saver=False,
+            save_level=0.5,
         )
+        vehicle_config.update(pg_reward_scheme)
+        vehicle_config.update(pg_cost_scheme)
+        return PGConfig(vehicle_config)
 
     LENGTH = None
     WIDTH = None

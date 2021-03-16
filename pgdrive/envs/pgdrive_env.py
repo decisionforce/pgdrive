@@ -5,7 +5,8 @@ import os.path as osp
 import sys
 import time
 from typing import Union, Optional, Dict, AnyStr
-
+from pgdrive.rl_utils.cost import pg_cost_scheme
+from pgdrive.rl_utils.reward import pg_reward_scheme
 import gym
 import numpy as np
 from panda3d.core import PNMImage
@@ -79,25 +80,15 @@ class PGDriveEnv(gym.Env):
             # 2. vehicle_config=custom_config_dict <=======> target_vehicle_configs[DEFAULT_AGENT]=custom_config_dict
             # 3. reward/cost scheme will also override and write into custom_vehicle_config
             vehicle_config=BaseVehicle.get_vehicle_config(),
-            rgb_clip=True,
-
-            # ----- Reward Scheme -----
-            success_reward=20,
-            out_of_road_penalty=5,
-            crash_vehicle_penalty=10,
-            crash_object_penalty=2,
-            acceleration_penalty=0.0,
-            steering_penalty=0.1,
-            low_speed_penalty=0.0,
-            driving_reward=1.0,
-            general_penalty=0.0,
-            speed_reward=0.1,
-
-            # ----- Cost Scheme -----
-            crash_vehicle_cost=1,
-            crash_object_cost=1,
-            out_of_road_cost=1.,
+            rgb_clip=True
         )
+
+        # ----- Single Agent Reward Scheme -----
+        env_config.update(pg_reward_scheme)
+
+        # ----- Single Agent Cost Scheme -----
+        env_config.update(pg_cost_scheme)
+
         config = PGConfig(env_config)
         config.register_type("map", str, int)
         return config
@@ -667,7 +658,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:
