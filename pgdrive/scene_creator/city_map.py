@@ -94,20 +94,20 @@ class CityBIG(BIG):
             type_id = self._block_sequence[len(self.blocks)]
             block_type = PGBlock.get_block(type_id)
 
-        next_block = self.np_random.choice(self.blocks)
+        choices = set()
+        count = 0
+        socket = None
+        while count < 10:
+            next_block = self.np_random.choice(self.blocks)
+            choices = set(next_block.get_socket_indices()).difference(self._used_sockets)
+            if len(choices) >= 1:
+                socket = next_block.get_socket(self.np_random.choice(list(choices)))
+            count += 1
+        if socket is None:
+            raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
 
-        sockets = [i for i in range(next_block.)]
-        # sockets = [i for i in range(self.blocks[-1].SOCKET_NUM)]
-
-        socket = next_block.get_socket(self.np_random.choice(sockets))
-        self._used_sockets.add(socket.unique_id)
-
-        block = block_type(
-            len(self.blocks), socket, self._global_network,
-            # len(self.blocks), self.blocks[-1].get_socket(self.np_random.choice(sockets)), self._global_network,
-            block_seed
-        )
-
+        self._used_sockets.add(socket.index)
+        block = block_type(len(self.blocks), socket, self._global_network, block_seed)
         return block
 
     def destruct(self, block):
