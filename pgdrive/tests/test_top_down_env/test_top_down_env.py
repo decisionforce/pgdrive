@@ -5,9 +5,9 @@ from pgdrive.envs.top_down_env import TopDownSingleFramePGDriveEnv, TopDownPGDri
 
 def test_top_down_rendering():
     for env in [
-        TopDownSingleFramePGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0)),
-        TopDownPGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0)),
-        TopDownPGDriveEnv(dict(environment_num=5, map="C", frame_stack=1, post_stack=2)),
+            TopDownSingleFramePGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0)),
+            TopDownPGDriveEnv(dict(environment_num=5, map="C", traffic_density=1.0)),
+            TopDownPGDriveEnv(dict(environment_num=5, map="C", frame_stack=1, post_stack=2)),
     ]:
         try:
             for _ in range(5):
