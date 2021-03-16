@@ -2,6 +2,7 @@ import logging
 from typing import List, Tuple, Optional, Dict, AnyStr
 
 import numpy as np
+
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.PGLOD import PGLOD
 from pgdrive.scene_manager.object_manager import ObjectsManager
@@ -17,13 +18,14 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(
-        self,
-        pg_world: PGWorld,
-        traffic_mode=TrafficMode.Trigger,
-        random_traffic: bool = False,
-        record_episode: bool = False,
-        cull_scene: bool = True,
+            self,
+            pg_world: PGWorld,
+            traffic_mode=TrafficMode.Trigger,
+            random_traffic: bool = False,
+            record_episode: bool = False,
+            cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -95,11 +97,13 @@ class SceneManager:
         :param ego_vehicle_action: Ego_vehicle action
         :return: None
         """
+        step_infos = {}
         if self.replay_system is None:
             # not in replay mode
             for k, a in target_actions.items():
-                self.target_vehicles[k].prepare_step(a)
+                step_infos[k] = self.target_vehicles[k].prepare_step(a)
             self.traffic_mgr.prepare_step(self)
+        return step_infos
 
     def step(self, step_num: int = 1) -> None:
         """
@@ -141,7 +145,7 @@ class SceneManager:
             # didn't record while replay
             self.record_system.record_frame(self.traffic_mgr.get_global_states())
 
-        self.for_each_target_vehicle(lambda v: v.update_state())
+        step_infos = self.for_each_target_vehicle(lambda v: v.update_state())
         # self.ego_vehicle.update_state()
 
         # cull distant objects
@@ -161,7 +165,7 @@ class SceneManager:
             # )
             # PGLOD.cull_distant_objects(self.objects_mgr.spawned_objects, self.ego_vehicle.position, self.pg_world)
 
-        return dones
+        return dones, step_infos
 
     def for_each_target_vehicle(self, func):
         """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""
