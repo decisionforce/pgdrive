@@ -34,35 +34,36 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     # Test single RGB frame
-    env = TopDownSingleFramePGDriveEnv(dict(environment_num=1, map="C", traffic_density=1.0))
+    env = TopDownSingleFramePGDriveEnv(dict(use_render=True, environment_num=1, map="C", traffic_density=1.0))
     env.reset()
     for _ in range(20):
         o, *_ = env.step([0, 1])
         assert env.observation_space.contains(o)
     for _ in range(200):
         o, *_ = env.step([0.01, 1])
-        plt.imshow(o, cmap="gray")
-        plt.show()
-        print(o.mean())
+        env.render()
+        # plt.imshow(o, cmap="gray")
+        # plt.show()
+        # print(o.mean())
     env.close()
 
     # Test multi-channel frames
-    env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1))
-    env.reset()
-    names = [
-        "road_network", "navigation", "target_vehicle", "past_pos", "traffic t", "traffic t-1", "traffic t-2",
-        "traffic t-3", "traffic t-4"
-    ]
-    for _ in range(20):
-        o, *_ = env.step([-0.05, 1])
-        assert env.observation_space.contains(o)
-    for _ in range(100):
-        o, *_ = env.step([1, 1])
-        fig, axes = plt.subplots(1, o.shape[-1], figsize=(15, 3))
-        for o_i in range(o.shape[-1]):
-            axes[o_i].imshow(o[..., o_i], cmap="gray")
-            axes[o_i].set_title(names[o_i])
-        fig.suptitle("Multi-channel Top-down Observation")
-        plt.show()
-        print(o.mean())
-    env.close()
+    # env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1))
+    # env.reset()
+    # names = [
+    #     "road_network", "navigation", "target_vehicle", "past_pos", "traffic t", "traffic t-1", "traffic t-2",
+    #     "traffic t-3", "traffic t-4"
+    # ]
+    # for _ in range(20):
+    #     o, *_ = env.step([-0.05, 1])
+    #     assert env.observation_space.contains(o)
+    # for _ in range(100):
+    #     o, *_ = env.step([1, 1])
+    #     fig, axes = plt.subplots(1, o.shape[-1], figsize=(15, 3))
+    #     for o_i in range(o.shape[-1]):
+    #         axes[o_i].imshow(o[..., o_i], cmap="gray")
+    #         axes[o_i].set_title(names[o_i])
+    #     fig.suptitle("Multi-channel Top-down Observation")
+    #     plt.show()
+    #     print(o.mean())
+    # env.close()
