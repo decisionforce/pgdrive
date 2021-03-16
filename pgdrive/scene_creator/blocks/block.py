@@ -223,6 +223,7 @@ class Block(Element, BlockDefault):
                 "Current block has sockets: {}.".format(socket.index, self._block_name, self.get_socket_indices())
             )
         if socket.index is None:
+            # if this socket is self block socket
             socket.set_index(self._block_name, len(self._sockets))
         self._sockets[socket.index] = socket
 
