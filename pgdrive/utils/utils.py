@@ -4,6 +4,8 @@ import os
 import sys
 import uuid
 
+from pgdrive.pg_config import PGConfig
+
 
 def import_pygame():
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -61,7 +63,7 @@ def random_string(prefix=None):
     return ret
 
 
-# The following two functions is copied from ray/tune/utils/util.py, raise_error is added by us!
+# The following two functions is copied from ray/tune/utils/util.py, raise_error and pgconfig support is added by us!
 def merge_dicts(old_dict, new_dict, raise_error=True):
     """
     Args:
@@ -72,9 +74,13 @@ def merge_dicts(old_dict, new_dict, raise_error=True):
     Returns:
          dict: A new dict that is d1 and d2 deep merged.
     """
+    if isinstance(old_dict, PGConfig):
+        old_dict = old_dict.get_dict()
+    if isinstance(new_dict, PGConfig):
+        new_dict = new_dict.get_dict()
     merged = copy.deepcopy(old_dict)
-    deep_update(merged, new_dict, True, [], raise_error=raise_error)
-    return merged
+    deep_update(merged, new_dict, new_keys_allowed=False, allow_new_subkey_list=[], raise_error=raise_error)
+    return PGConfig(merged)
 
 
 def deep_update(original,
