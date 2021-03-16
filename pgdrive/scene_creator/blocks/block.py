@@ -156,7 +156,7 @@ class Block(Element, BlockDefault):
         if isinstance(index, int):
             if index < 0 or index >= len(self._sockets):
                 raise ValueError("Socket of {}: index out of range".format(self.class_name))
-            socket_index = BlockSocket.get_real_index(self._block_name, index)
+            socket_index = list(self._sockets)[index]
         else:
             assert index.startswith(self._block_name)
             socket_index = index
