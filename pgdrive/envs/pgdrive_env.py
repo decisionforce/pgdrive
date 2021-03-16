@@ -108,8 +108,7 @@ class PGDriveEnv(gym.Env):
             self.config.update(config)
         self.num_agents = self.config["num_agents"]
         if self.num_agents == 1:
-            self.config["target_vehicle_configs"][DEFAULT_AGENT] = self.config["vehicle_config"]
-            self._sync_reward_config_in_single_agent_env()
+            self._quick_config_in_single_agent_env()
         assert isinstance(self.num_agents, int) and self.num_agents > 0
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
         self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
@@ -646,7 +645,9 @@ class PGDriveEnv(gym.Env):
             o = LidarStateObservation(vehicle_config)
         return o
 
-    def _sync_reward_config_in_single_agent_env(self):
+    def _quick_config_in_single_agent_env(self):
+        self.config["target_vehicle_configs"][DEFAULT_AGENT] = BaseVehicle.get_vehicle_config()
+        self.config["target_vehicle_configs"][DEFAULT_AGENT].update(self.config["vehicle_config"])
         set_1 = set(self.config.keys())
         set_2 = set(BaseVehicle.get_vehicle_config().keys())
         interesct = set_1.intersection(set_2)
@@ -666,6 +667,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
