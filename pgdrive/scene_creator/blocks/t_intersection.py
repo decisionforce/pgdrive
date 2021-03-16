@@ -63,7 +63,7 @@ class TInterSection(InterSection):
         for i in range(4):
             if i == t_type:
                 continue
-            index_i = BlockSocket.get_real_index(self._block_name,i)
+            index_i = BlockSocket.get_real_index(self._block_name,i) if i < 3 else self.pre_block_socket_index
             exit_node = self._sockets[index_i].positive_road.start_node if i != Goal.ADVERSE else self._sockets[
                 index_i].negative_road.start_node
             pos_lanes = self.block_network.remove_all_roads(start_node, exit_node)
@@ -83,10 +83,8 @@ class TInterSection(InterSection):
                 self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
 
         self._change_vis(t_type)
-
         self._sockets.pop(self.pre_block_socket.index)
         socket = self._sockets.pop(BlockSocket.get_real_index(self._block_name, t_type))
-
         self.block_network.remove_all_roads(socket.positive_road.start_node, socket.positive_road.end_node)
         self.block_network.remove_all_roads(socket.negative_road.start_node, socket.negative_road.end_node)
         self._reborn_roads.remove(socket.negative_road)

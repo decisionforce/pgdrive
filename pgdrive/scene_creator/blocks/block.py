@@ -135,10 +135,6 @@ class Block(Element, BlockDefault):
         self.number_of_sample_trial += 1
         self._clear_topology()
         no_cross = self._try_plug_into_previous_block()
-        for i, s in enumerate(self._sockets.values()):
-            s.set_index(self._block_name, i)
-
-        # self._global_network += self.block_network
         self._global_network.add(self.block_network)
 
         return no_cross
@@ -226,7 +222,8 @@ class Block(Element, BlockDefault):
                 "The adding socket has index {}, which is not started with this block name {}. This is dangerous! "
                 "Current block has sockets: {}.".format(socket.index, self._block_name, self.get_socket_indices())
             )
-        socket.set_index(self._block_name, len(self._sockets))
+        if socket.index is None:
+            socket.set_index(self._block_name, len(self._sockets))
         self._sockets[socket.index] = socket
 
     def _add_one_reborn_road(self, reborn_road: Road):
