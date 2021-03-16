@@ -282,10 +282,17 @@ class PGDriveEnv(gym.Env):
 
         termination_infos = self.for_each_vehicle(_auto_termination, should_done)
 
-        step_infos = concat_step_infos([
-            saver_infos, scene_manager_infos, scene_manager_step_infos, done_infos, reward_infos, cost_infos,
-            termination_infos,
-        ])
+        step_infos = concat_step_infos(
+            [
+                saver_infos,
+                scene_manager_infos,
+                scene_manager_step_infos,
+                done_infos,
+                reward_infos,
+                cost_infos,
+                termination_infos,
+            ]
+        )
 
         if should_done:
             for k in self.dones:
@@ -680,7 +687,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:
