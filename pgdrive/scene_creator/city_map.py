@@ -97,15 +97,16 @@ class CityBIG(BIG):
         choices = set()
         count = 0
         socket = None
-        while count < 1000:
+        while count < 100_000:
             next_block = self.np_random.choice(self.blocks)
             choices = set(next_block.get_socket_indices()).difference(self._used_sockets)
             if len(choices) >= 1:
                 socket = next_block.get_socket(self.np_random.choice(list(choices)))
                 break
             count += 1
-        # if socket is None:
-        # raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
+
+        if socket is None:
+            raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
 
         print("Spent {} iterations!!!".format(count))
 
