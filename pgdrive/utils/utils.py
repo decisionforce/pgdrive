@@ -83,13 +83,14 @@ def merge_dicts(old_dict, new_dict, raise_error=True):
     return PGConfig(merged)
 
 
-def deep_update(original,
-                new_dict,
-                new_keys_allowed=False,
-                allow_new_subkey_list=None,
-                override_all_if_type_changes=None,
-                raise_error=True
-                ):
+def deep_update(
+    original,
+    new_dict,
+    new_keys_allowed=False,
+    allow_new_subkey_list=None,
+    override_all_if_type_changes=None,
+    raise_error=True
+):
     allow_new_subkey_list = allow_new_subkey_list or []
     override_all_if_type_changes = override_all_if_type_changes or []
 
