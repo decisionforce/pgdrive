@@ -94,8 +94,8 @@ class CityBIG(BIG):
             block_type = PGBlock.get_block(type_id)
 
         # exclude first block
-        socket_used=set([block.pre_block_socket for block in self.blocks[1:]])
-        socket_available=[]
+        socket_used = set([block.pre_block_socket for block in self.blocks[1:]])
+        socket_available = []
         for b in self.blocks:
             socket_available += b.get_socket_list()
         socket_available = set(socket_available).difference(socket_used)
