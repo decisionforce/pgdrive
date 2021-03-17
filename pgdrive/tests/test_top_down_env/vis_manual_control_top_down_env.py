@@ -9,9 +9,9 @@ if __name__ == '__main__':
             auto_termination=False,
 
             # Extremely easy environment
-            environment_num=1,
+            environment_num=100,
             traffic_density=0.0,
-            map="S",
+            # map="S",
             start_seed=5000,
             # frame_stack=tune.grid_search([1, 3, 5, 7]),
             # frame_stack=tune.grid_search([1, 3, 5]),
@@ -29,5 +29,7 @@ if __name__ == '__main__':
             if d:
                 print("Episode reward: ", ep_reward)
                 ep_reward = 0
+                env.reset()
+
     finally:
         env.close()

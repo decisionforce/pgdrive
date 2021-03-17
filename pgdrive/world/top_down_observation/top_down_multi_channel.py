@@ -66,6 +66,11 @@ class TopDownMultiChannel(TopDownObservation):
         # Setup the maximize size of the canvas
         # scaling and center can be easily found by bounding box
         b_box = self.road_network.get_bounding_box()
+        self.canvas_navigation.fill(COLOR_BLACK)
+        self.canvas_ego.fill(COLOR_BLACK)
+        self.canvas_road_network.fill(COLOR_BLACK)
+        self.canvas_runtime.fill(COLOR_BLACK)
+        self.canvas_background.fill(COLOR_BLACK)
         self.canvas_background.set_colorkey(self.canvas_background.BLACK)
         x_len = b_box[1] - b_box[0]
         y_len = b_box[3] - b_box[2]
