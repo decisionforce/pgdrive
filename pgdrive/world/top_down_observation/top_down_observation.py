@@ -85,7 +85,11 @@ class TopDownObservation(ObservationType):
 
         if self.onscreen:
             self.screen.fill(COLOR_BLACK)
-            pygame.transform.scale2x(self.obs_window.get_observation_window(), self.screen)
+            screen = self.obs_window.get_screen_window()
+            if screen.get_size() == self.screen.get_size():
+                self.screen.blit(screen, (0, 0))
+            else:
+                pygame.transform.scale2x(self.obs_window.get_screen_window(), self.screen)
             pygame.display.flip()
 
     def get_screenshot(self, name="screenshot.jpg"):
@@ -159,10 +163,10 @@ class TopDownObservation(ObservationType):
 
     @staticmethod
     def blit_rotate(
-        surf: pygame.SurfaceType,
-        image: pygame.SurfaceType,
-        pos,
-        angle: float,
+            surf: pygame.SurfaceType,
+            image: pygame.SurfaceType,
+            pos,
+            angle: float,
     ) -> Tuple:
         """Many thanks to https://stackoverflow.com/a/54714144."""
         # calculate the axis aligned bounding box of the rotated image
@@ -191,9 +195,12 @@ class TopDownObservation(ObservationType):
     def get_observation_window(self):
         return self.obs_window.get_observation_window()
 
+    def get_screen_window(self):
+        return self.obs_window.get_screen_window()
+
     @property
     def observation_space(self):
-        shape = self.obs_shape + (self.num_stacks, )
+        shape = self.obs_shape + (self.num_stacks,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
