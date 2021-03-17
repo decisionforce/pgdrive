@@ -106,7 +106,7 @@ class CityBIG(BIG):
             count += 1
 
         if socket is None:
-            # A simple soultion, can be optimized in the future
+            # TODO A simple soultion, can be optimized in the future
             next_block = self.blocks[-1]
             choices = set(next_block.get_socket_indices()).difference(self._used_sockets)
             if len(choices) >= 1:
