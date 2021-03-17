@@ -106,7 +106,13 @@ class CityBIG(BIG):
             count += 1
 
         if socket is None:
-            raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
+            # A simple soultion, can be optimized in the future
+            next_block = self.blocks[-1]
+            choices = set(next_block.get_socket_indices()).difference(self._used_sockets)
+            if len(choices) >= 1:
+                socket = next_block.get_socket(self.np_random.choice(list(choices)))
+            else:
+                raise ValueError((next_block.get_socket_indices(), choices, self._used_sockets))
 
         print("Spent {} iterations!!!".format(count))
 
