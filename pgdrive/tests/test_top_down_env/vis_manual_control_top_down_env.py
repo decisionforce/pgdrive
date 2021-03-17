@@ -1,22 +1,22 @@
 from pgdrive.envs.top_down_env import TopDownPGDriveEnv
 
 if __name__ == '__main__':
-    env = TopDownPGDriveEnv(dict(
-        # environment_num=100,
+    env = TopDownPGDriveEnv(
+        dict(
+            # environment_num=100,
+            use_render=True,
+            # manual_control=True,
+            auto_termination=False,
 
-        use_render=True,
-        # manual_control=True,
-        auto_termination=False,
-
-        # Extremely easy environment
-        environment_num=1,
-        traffic_density=0.0,
-        map="S",
-        start_seed=5000,
-        # frame_stack=tune.grid_search([1, 3, 5, 7]),
-        # frame_stack=tune.grid_search([1, 3, 5]),
-
-    ))
+            # Extremely easy environment
+            environment_num=1,
+            traffic_density=0.0,
+            map="S",
+            start_seed=5000,
+            # frame_stack=tune.grid_search([1, 3, 5, 7]),
+            # frame_stack=tune.grid_search([1, 3, 5]),
+        )
+    )
     env.reset()
     try:
         ep_reward = 0
