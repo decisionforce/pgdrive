@@ -17,6 +17,8 @@ class Parameter:
     lane_num = "lane_num"
     change_lane_num = "change_lane_num"
     decrease_increase = "decrease_increase"
+    left_exit_angle = "left_exit_angle"
+    right_exit_angle = "right_exit_angle"
 
     # vehicle
     vehicle_length = "v_len"
@@ -104,4 +106,12 @@ class BlockParameterSpace:
     FORK_PARAMETER = {
         Parameter.length: PGBoxSpace(min=20, max=40),  # accelerate/decelerate part length
         Parameter.lane_num: PGDiscreteSpace(2)
+    }
+    T_INTERSECTION_V2 = {
+        Parameter.radius: PGConstantSpace(10),
+        Parameter.t_intersection_type: PGDiscreteSpace(number=3),  # 3 different t type for previous socket
+        Parameter.change_lane_num: PGDiscreteSpace(2),  # 0,1
+        Parameter.decrease_increase: PGDiscreteSpace(2),  # 0, decrease, 1 increase
+        Parameter.left_exit_angle: PGBoxSpace(min=45, max=135),
+        Parameter.right_exit_angle: PGBoxSpace(min=45, max=135),
     }
