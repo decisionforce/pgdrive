@@ -58,29 +58,29 @@ class TInterSection(InterSection):
         t_type = para[Parameter.t_intersection_type]
         self.add_sockets(self.pre_block_socket)
 
-        start_node = self._sockets[BlockSocket.get_real_index(self._block_name, t_type)].negative_road.end_node
-        end_node = self._sockets[BlockSocket.get_real_index(self._block_name, t_type)].positive_road.start_node
-        for i in range(4):
-            if i == t_type:
-                continue
-            index_i = BlockSocket.get_real_index(self._block_name, i) if i < 3 else self.pre_block_socket_index
-            exit_node = self._sockets[index_i].positive_road.start_node if i != Goal.ADVERSE else self._sockets[
-                index_i].negative_road.start_node
-            pos_lanes = self.block_network.remove_all_roads(start_node, exit_node)
-            entry_node = self._sockets[index_i].negative_road.end_node if i != Goal.ADVERSE else self._sockets[
-                index_i].positive_road.end_node
-            neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
-            # TODO small vis bug may raise in a corner case,
-            #  these code can fix it but will introduce a new get_closest_lane_index bug
-            # if (i + 2) % 4 == t_type:
-            #     # for vis only, solve a bug existing in a corner case,
-            #     for lane in neg_lanes:
-            #         lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
-            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
-            #
-            #     for lane in pos_lanes:
-            #         lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
-            #     self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
+        # start_node = self._sockets[BlockSocket.get_real_index(self._block_name, t_type)].negative_road.end_node
+        # end_node = self._sockets[BlockSocket.get_real_index(self._block_name, t_type)].positive_road.start_node
+        # for i in range(4):
+        #     if i == t_type:
+        #         continue
+        #     index_i = BlockSocket.get_real_index(self._block_name, i) if i < 3 else self.pre_block_socket_index
+        #     exit_node = self._sockets[index_i].positive_road.start_node if i != Goal.ADVERSE else self._sockets[
+        #         index_i].negative_road.start_node
+        #     pos_lanes = self.block_network.remove_all_roads(start_node, exit_node)
+        #     entry_node = self._sockets[index_i].negative_road.end_node if i != Goal.ADVERSE else self._sockets[
+        #         index_i].positive_road.end_node
+        #     neg_lanes = self.block_network.remove_all_roads(entry_node, end_node)
+        #     TODO small vis bug may raise in a corner case,
+        #      these code can fix it but will introduce a new get_closest_lane_index bug
+        #     if (i + 2) % 4 == t_type:
+        #         # for vis only, solve a bug existing in a corner case,
+        #         for lane in neg_lanes:
+        #             lane.reset_start_end(lane.start, lane.position(lane.length / 2, 0))
+        #         self.block_network.add_road(Road(Decoration.start, Decoration.end), neg_lanes)
+        #
+        #         for lane in pos_lanes:
+        #             lane.reset_start_end(lane.position(lane.length / 2, 0), lane.end)
+        #         self.block_network.add_road(Road(Decoration.start, Decoration.end), pos_lanes)
 
         self._change_vis(t_type)
         self._sockets.pop(self.pre_block_socket.index)

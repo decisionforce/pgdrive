@@ -60,6 +60,10 @@ class InterSection(Block):
              self.road_node(2, 0), _attach_road.start_node]
         )
 
+        # Consider a single intersection block. You have maximally 4 possible starting point to start driving:
+        # the lanes that facing west/east/north/south. So each "part" here means three set of lanes that all start at
+        # the starting point I mentioned above. For each part, there are a left set, a forward set and a right set of
+        # lanes. That's the reason the next line is a for loop with 4.
         for i in range(4):
             right_lane, success = self._create_part(
                 attach_lanes, attach_road, para[Parameter.radius], intersect_nodes, i
@@ -81,6 +85,9 @@ class InterSection(Block):
 
     def _create_part(self, attach_lanes, attach_road: Road, radius: float, intersect_nodes: deque,
                      part_idx) -> (StraightLane, bool):
+        """
+        Build one of the exits.
+        """
         lane_num = self.lane_num_intersect if part_idx == 0 or part_idx == 2 else self.positive_lane_num
         non_cross = True
         attach_left_lane = attach_lanes[0]
