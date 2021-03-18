@@ -19,6 +19,7 @@ class Parameter:
     decrease_increase = "decrease_increase"
     left_exit_angle = "left_exit_angle"
     right_exit_angle = "right_exit_angle"
+    forward_exit_angle = "forward_exit_angle"
 
     # vehicle
     vehicle_length = "v_len"
@@ -88,6 +89,14 @@ class BlockParameterSpace:
         Parameter.radius: PGConstantSpace(10),
         Parameter.change_lane_num: PGDiscreteSpace(number=2),  # 0, 1
         Parameter.decrease_increase: PGDiscreteSpace(number=2)  # 0, decrease, 1 increase
+    }
+    INTERSECTION_V2 = {
+        Parameter.radius: PGConstantSpace(10),
+        Parameter.change_lane_num: PGDiscreteSpace(number=2),  # 0, 1
+        Parameter.decrease_increase: PGDiscreteSpace(number=2),  # 0, decrease, 1 increase
+        Parameter.left_exit_angle: PGBoxSpace(min=45, max=135),
+        Parameter.right_exit_angle: PGBoxSpace(min=45, max=135),
+        Parameter.forward_exit_angle: PGBoxSpace(min=45, max=135)
     }
     ROUNDABOUT = {
         Parameter.radius_exit: PGBoxSpace(min=5, max=15),  # TODO Should we reduce this?
