@@ -718,6 +718,7 @@ class BaseVehicle(DynamicElement):
         if self.render:
             self.vehicle_panel.remove_display_region(self.pg_world)
             self.collision_info_np.detachNode()
+            self.routing_localization.arrow_node_path.detachNode()
         for sensor in self.image_sensors.values():
             sensor.remove_display_region(self.pg_world)
 
@@ -725,6 +726,7 @@ class BaseVehicle(DynamicElement):
         if self.render:
             self.vehicle_panel.add_to_display(self.pg_world, self.vehicle_panel.default_region)
             self.collision_info_np.reparentTo(self.pg_world.aspect2d)
+            self.routing_localization.arrow_node_path.reparentTo(self.pg_world.aspect2d)
         for sensor in self.image_sensors.values():
             sensor.add_to_display(self.pg_world, sensor.default_region)
 
