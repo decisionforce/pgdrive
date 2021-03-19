@@ -13,7 +13,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.3,
+                "traffic_density": 0.1,
                 "traffic_mode": "hybrid",
                 "start_seed": 5,
                 "pg_world_config": {
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render(text=info)
-        if d:
-            print("Reset")
-            env.reset()
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()

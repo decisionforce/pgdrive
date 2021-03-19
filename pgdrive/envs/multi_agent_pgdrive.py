@@ -13,7 +13,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         config.update(
             {
                 "environment_num": 1,
-                "traffic_density": 0.1,
+                "traffic_density": 0.2,
                 "start_seed": 5,
                 "map": "TrOCXR",
                 "target_vehicle_configs": {
@@ -21,22 +21,22 @@ class MultiAgentPGDrive(PGDriveEnv):
                         "born_longitude": 10,
                         "born_lateral": 1.5,
                         "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
-                        "show_lidar": True
+                        # "show_lidar": True
                     },
                     "agent1": {
                         "born_longitude": 10,
-                        "show_lidar": True,
+                        # "show_lidar": True,
                         "born_lateral": -1,
                     },
                     "agent2": {
                         "born_longitude": 10,
                         "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 2),
-                        "show_lidar": True,
+                        # "show_lidar": True,
                         "born_lateral": 1,
                     },
                     "agent3": {
                         "born_longitude": 10,
-                        "show_lidar": True,
+                        # "show_lidar": True,
                         "born_lateral": 2,
                     }
                 },
