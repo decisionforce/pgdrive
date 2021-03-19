@@ -77,7 +77,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    env = MultiAgentPGDrive({"use_render": True, "manual_control": True, "pg_world_config": {"pstats": False}})
+    env = MultiAgentPGDrive(
+        {"use_render": True, "debug": True, "manual_control": True, "pg_world_config": {"pstats": False}})
     o = env.reset()
     for i in range(1, 100000):
         o, r, d, info = env.step({"agent0": [-1, 0], "agent1": [0, 0], "agent2": [-1, 0], "agent3": [0, 0]})
