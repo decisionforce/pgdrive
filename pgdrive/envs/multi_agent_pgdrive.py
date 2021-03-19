@@ -19,7 +19,7 @@ class MultiAgentPGDrive(PGDriveEnv):
                 "target_vehicle_configs": {
                     "agent0": {
                         "born_longitude": 10,
-                        "born_lateral":1.5,
+                        "born_lateral": 1.5,
                         "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
                         "show_lidar": True
                     },
@@ -27,7 +27,6 @@ class MultiAgentPGDrive(PGDriveEnv):
                         "born_longitude": 10,
                         "show_lidar": True,
                         "born_lateral": -1,
-
                     },
                     "agent2": {
                         "born_longitude": 10,
@@ -78,7 +77,7 @@ class MultiAgentPGDrive(PGDriveEnv):
 
 
 if __name__ == "__main__":
-    env = MultiAgentPGDrive({"use_render": True, "manual_control": True, "pg_world_config":{"pstats":False}})
+    env = MultiAgentPGDrive({"use_render": True, "manual_control": True, "pg_world_config": {"pstats": False}})
     o = env.reset()
     for i in range(1, 100000):
         o, r, d, info = env.step({"agent0": [-1, 0], "agent1": [0, 0], "agent2": [-1, 0], "agent3": [0, 0]})
