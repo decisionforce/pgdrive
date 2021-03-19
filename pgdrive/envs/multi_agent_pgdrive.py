@@ -13,7 +13,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         config.update(
             {
                 "environment_num": 1,
-                "traffic_density": 0.,
+                "traffic_density": 0.1,
                 "start_seed": 5,
                 "map": "TrOCXR",
                 "target_vehicle_configs": {
@@ -44,7 +44,7 @@ class MultiAgentPGDrive(PGDriveEnv):
             }
         )
         # Some collision bugs still exist, always set to False now!!!!
-        config.extend_config_with_unknown_keys({"crash_done": False})
+        config.extend_config_with_unknown_keys({"crash_done": True})
         return config
 
     def __init__(self, config=None):

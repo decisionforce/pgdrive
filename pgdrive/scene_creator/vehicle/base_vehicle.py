@@ -219,7 +219,7 @@ class BaseVehicle(DynamicElement):
 
     def _init_step_info(self):
         # done info will be initialized every frame
-        self.chassis_np.node().init_collision_info()
+        self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).init_collision_info()
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
         # self.step_info = {"reward": 0, "cost": 0}
@@ -598,8 +598,6 @@ class BaseVehicle(DynamicElement):
             name.remove(BodyName.Ego_vehicle_beneath)
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
-            elif name[0] == BodyName.Sidewalk:
-                self.crash_sidewalk = True
             contacts.add(name[0])
         if self.render:
             self.render_collision_info(contacts)
@@ -747,11 +745,12 @@ class BaseVehicle(DynamicElement):
 
     @property
     def crash_vehicle(self):
-        return self.chassis_np.node().crash_vehicle
+        return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).crash_vehicle
 
     @property
     def crash_object(self):
-        return self.chassis_np.node().crash_object
+        return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).crash_object
 
+    @property
     def crash_sidewalk(self):
-        return self.chassis_np.node().crash_sidewalk
+        return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).crash_sidewalk

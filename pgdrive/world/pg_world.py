@@ -7,7 +7,7 @@ import gltf
 from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode
-from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs
+from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallbackObject
 from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION
 from pgdrive.pg_config import PGConfig
 from pgdrive.pg_config.cam_mask import CamMask
@@ -180,7 +180,7 @@ class PGWorld(ShowBase.ShowBase):
         self.physics_world = PGPhysicsWorld()
 
         # collision callback
-        self.pg_world.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(pg_collision_callback))
+        self.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(pg_collision_callback))
 
         # for real time simulation
         self.force_fps = ForceFPS(self, start=False)
