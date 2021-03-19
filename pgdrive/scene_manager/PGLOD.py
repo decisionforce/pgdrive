@@ -42,8 +42,9 @@ class PGLOD:
         cls._cull_elements(objects, poses, pg_world, cls.LOD_OBJECT_VIS_DIST, cls.LOD_OBJECT_PHYSICS_DIST)
 
     @staticmethod
-    def _cull_elements(elements: list, poses: List[tuple], pg_world: PGWorld, vis_distance: float,
-                       physics_distance: float):
+    def _cull_elements(
+        elements: list, poses: List[tuple], pg_world: PGWorld, vis_distance: float, physics_distance: float
+    ):
         for obj in elements:
             v_p = obj.position
             if not PGLOD.all_distance_greater_than(vis_distance, poses, v_p):
