@@ -715,14 +715,16 @@ class BaseVehicle(DynamicElement):
         return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
-        if self.vehicle_panel is not None:
+        if self.render:
             self.vehicle_panel.remove_display_region(self.pg_world)
+            self.collision_info_np.detachNode()
         for sensor in self.image_sensors.values():
             sensor.remove_display_region(self.pg_world)
 
     def add_to_display(self):
-        if self.vehicle_panel is not None:
+        if self.render:
             self.vehicle_panel.add_to_display(self.pg_world, self.vehicle_panel.default_region)
+            self.collision_info_np.reparentTo(self.pg_world.aspect2d)
         for sensor in self.image_sensors.values():
             sensor.add_to_display(self.pg_world, sensor.default_region)
 

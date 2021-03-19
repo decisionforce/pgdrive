@@ -174,7 +174,6 @@ class PGWorld(ShowBase.ShowBase):
         # some render attribute
         self.pbrpipe = None
         self.light = None
-        self.collision_info_np = None
 
         # physics world
         self.physics_world = PGPhysicsWorld()

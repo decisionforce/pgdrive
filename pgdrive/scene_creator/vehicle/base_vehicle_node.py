@@ -7,8 +7,6 @@ class BaseVehilceNode(BulletRigidBodyNode):
     Collision Properties should place here, info here can used for collision callback
     """
 
-    CALLBACK_ADDED = False
-
     def __init__(self, body_name: str):
         BulletRigidBodyNode.__init__(self, body_name)
         BulletRigidBodyNode.setPythonTag(self, body_name, self)

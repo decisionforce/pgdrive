@@ -10,8 +10,6 @@ def pg_collision_callback(contact):
     # now it only process BaseVehicle collision
     node0 = contact.getNode0()
     node1 = contact.getNode1()
-    if not (node0.hasPythonTag(BodyName.Ego_vehicle) or node1.hasPythonTag(BodyName.Ego_vehicle)):
-        return
 
     nodes = [node0, node1]
     another_nodes = [node1, node0]

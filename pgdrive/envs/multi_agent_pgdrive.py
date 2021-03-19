@@ -68,11 +68,11 @@ class MultiAgentPGDrive(PGDriveEnv):
             actions.pop(id)
 
         o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
-        for id, done in d.items():
-            if done and id in self.vehicles.keys():
-                v = self.vehicles.pop(id)
-                v.prepare_step([0, -1])
-                self.done_vehicles[id] = v
+        # for id, done in d.items():
+        #     if done and id in self.vehicles.keys():
+        #         v = self.vehicles.pop(id)
+        #         v.prepare_step([0, -1])
+        #         self.done_vehicles[id] = v
         return o, r, d, i
 
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step({"agent0": [-1, 0], "agent1": [0, 0], "agent2": [-1, 0], "agent3": [0, 0]})
         # o, r, d, info = env.step([0,1])
         env.render(text=d)
-        if len(env.vehicles) == 0:
-            print("Reset")
-            env.reset()
+        # if len(env.vehicles) == 0:
+        #     print("Reset")
+        #     env.reset()
     env.close()
