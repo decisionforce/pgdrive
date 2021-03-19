@@ -598,6 +598,8 @@ class BaseVehicle(DynamicElement):
             name.remove(BodyName.Ego_vehicle_beneath)
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
+            if name[0] == BodyName.Sidewalk:
+                self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).crash_sidewalk = True
             contacts.add(name[0])
         if self.render:
             self.render_collision_info(contacts)

@@ -20,8 +20,6 @@ def pg_collision_callback(contact):
                 nodes[i].getPythonTag(BodyName.Ego_vehicle).crash_vehicle = True
             elif another_node_name in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
                 nodes[i].getPythonTag(BodyName.Ego_vehicle).crash_object = True
-            elif another_node_name == BodyName.Sidewalk:
-                nodes[i].getPythonTag(BodyName.Ego_vehicle).crash_sidewalk = True
             # TODO update this
             # self._frame_objects_crashed.append(node.getPythonTag(name[0]))
             logging.debug("{} crash with {}".format(nodes[i].getName(),another_nodes[i].getName()))
