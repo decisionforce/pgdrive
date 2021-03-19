@@ -7,9 +7,9 @@ from typing import Optional
 
 import gym
 import numpy as np
-from panda3d.bullet import BulletVehicle, BulletBoxShape, BulletRigidBodyNode, ZUp, BulletGhostNode
+from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
-
+from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName
 from pgdrive.pg_config import PGConfig
 from pgdrive.pg_config.cam_mask import CamMask
@@ -92,7 +92,7 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+            self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -150,10 +150,7 @@ class BaseVehicle(DynamicElement):
         self.attach_to_pg_world(self.pg_world.pbr_render, self.pg_world.physics_world)
 
         # step info
-        self.crash_vehicle = None
-        self.crash_object = None
         self.out_of_route = None
-        self.crash_side_walk = None
         self.on_lane = None
         # self.step_info = None
         self._init_step_info()
@@ -222,9 +219,7 @@ class BaseVehicle(DynamicElement):
 
     def _init_step_info(self):
         # done info will be initialized every frame
-        self.crash_vehicle = False
-        self.crash_object = False
-        self.crash_side_walk = False
+        self.chassis_np.node().init_collision_info()
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
         # self.step_info = {"reward": 0, "cost": 0}
@@ -450,8 +445,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -487,7 +482,7 @@ class BaseVehicle(DynamicElement):
 
     def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
         para = self.get_config()
-        chassis = BulletRigidBodyNode(BodyName.Ego_vehicle)
+        chassis = BaseVehilceNode(BodyName.Ego_vehicle)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
         chassis_shape = BulletBoxShape(
             Vec3(
@@ -504,8 +499,7 @@ class BaseVehicle(DynamicElement):
         self.chassis_np.setPos(Vec3(*self.born_place, 1))
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
         chassis.setDeactivationEnabled(False)
-        chassis.notifyCollisions(True)  # advance collision check
-        self.pg_world.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(self._collision_check))
+        chassis.notifyCollisions(True)  # advance collision check, do callback in pg_collision_callback
         self.dynamic_nodes.append(chassis)
 
         chassis_beneath = BulletGhostNode(BodyName.Ego_vehicle_beneath)
@@ -604,27 +598,11 @@ class BaseVehicle(DynamicElement):
             name.remove(BodyName.Ego_vehicle_beneath)
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
-            elif name[0] == BodyName.Side_walk:
-                self.crash_side_walk = True
+            elif name[0] == BodyName.Sidewalk:
+                self.crash_sidewalk = True
             contacts.add(name[0])
         if self.render:
             self.render_collision_info(contacts)
-
-    def _collision_check(self, contact):
-        """
-        It may lower the performance if overdone
-        """
-        node0 = contact.getNode0().getName()
-        node1 = contact.getNode1().getName()
-        name = [node0, node1]
-        name.remove(BodyName.Ego_vehicle)
-        if name[0] in [BodyName.Traffic_vehicle, BodyName.Ego_vehicle]:
-            self.crash_vehicle = True
-        elif name[0] in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
-            node = contact.getNode0() if contact.getNode0().hasPythonTag(name[0]) else contact.getNode1()
-            self.crash_object = True if not node.getPythonTag(name[0]).crashed else False
-            self._frame_objects_crashed.append(node.getPythonTag(name[0]))
-        logging.debug("Crash with {}".format(name[0]))
 
     @staticmethod
     def _init_collision_info_render(pg_world):
@@ -707,7 +685,7 @@ class BaseVehicle(DynamicElement):
         return {
             "heading": self.heading_theta,
             "position": self.position.tolist(),
-            "done": self.crash_vehicle or self.out_of_route or self.crash_side_walk or not self.on_lane
+            "done": self.crash_vehicle or self.out_of_route or self.crash_sidewalk or not self.on_lane
         }
 
     def set_state(self, state: dict):
@@ -721,7 +699,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -736,7 +714,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.vehicle_panel is not None:
@@ -766,3 +744,14 @@ class BaseVehicle(DynamicElement):
                and self.routing_localization.map.lane_width / 2 >= lat >= (
                        0.5 - self.routing_localization.map.lane_num) * self.routing_localization.map.lane_width
         return flag
+
+    @property
+    def crash_vehicle(self):
+        return self.chassis_np.node().crash_vehicle
+
+    @property
+    def crash_object(self):
+        return self.chassis_np.node().crash_object
+
+    def crash_sidewalk(self):
+        return self.chassis_np.node().crash_sidewalk

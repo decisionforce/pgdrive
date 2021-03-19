@@ -1,4 +1,5 @@
 import logging
+from pgdrive.world.collision_callback import pg_collision_callback
 import time
 from typing import Optional, Union
 
@@ -170,13 +171,16 @@ class PGWorld(ShowBase.ShowBase):
         self.pbr_worldNP = self.pbr_render.attachNewNode("pbrNP")
         self.debug_node = None
 
-        # some render attr
+        # some render attribute
         self.pbrpipe = None
         self.light = None
         self.collision_info_np = None
 
         # physics world
         self.physics_world = PGPhysicsWorld()
+
+        # collision callback
+        self.pg_world.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(pg_collision_callback))
 
         # for real time simulation
         self.force_fps = ForceFPS(self, start=False)
