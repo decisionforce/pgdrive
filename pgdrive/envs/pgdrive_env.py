@@ -381,6 +381,9 @@ class PGDriveEnv(gym.Env):
             episode_data=episode_data
         )
 
+        if self.main_camera is not None:
+            self.main_camera.reset()
+
         return self._get_reset_return()
 
     def _get_reset_return(self):

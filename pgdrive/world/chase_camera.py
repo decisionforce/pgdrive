@@ -1,4 +1,5 @@
 import queue
+from collections import deque
 from typing import Tuple
 
 import numpy as np
@@ -27,6 +28,11 @@ class ChaseCamera:
         self.inputs.watchWithModifiers('up', 'k')
         self.inputs.watchWithModifiers('down', 'j')
 
+        self.direction_running_mean = deque(maxlen=20)
+
+    def reset(self):
+        self.direction_running_mean.clear()
+
     def renew_camera_place(self, vehicle, task):
         if self.inputs.isSet("up"):
             self.camera_height += 1.0
@@ -37,6 +43,9 @@ class ChaseCamera:
             forward_dir = vehicle.system.get_forward_vector()
         else:
             forward_dir = self._dir_of_lane(vehicle.routing_localization.current_ref_lanes[0], vehicle.position)
+
+        self.direction_running_mean.append(forward_dir)
+        forward_dir = np.mean(self.direction_running_mean, axis=0)
 
         camera_pos = list(self.camera_queue.get())
         camera_pos[2] += self.camera_height
