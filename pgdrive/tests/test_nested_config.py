@@ -14,34 +14,21 @@ def test_nested_config():
     else:
         raise ValueError("Test failed!")
 
-    # we don't do a recursive check now
 
-    # try:
-    #     config = PGDriveEnv.default_config()
-    #     config.update(dict(
-    #         traffic_density=0.1,
-    #         map_config=dict(bbb=0),
-    #         general_penalty=0.0,
-    #     ))
-    # except KeyError:
-    #     print("Test passed!")
-    # else:
-    #     raise ValueError("Test failed!")
+def test_config_consistency():
+    term = "success_reward"
+    env = PGDriveEnv({term: -999})
+    env.reset()
 
-    # config = PGDriveEnv.default_config()
-    # config["pg_world_config"] = {
-    #     "use_render": False,
-    # }
-    # # Should OK
-    # config.update(dict(pg_world_config=dict(use_render=True), ))
-    # # Should not OK
-    # try:
-    #     config.update(dict(pg_world_config=dict(bbb=0), ))
-    # except KeyError:
-    #     print("Test passed!")
-    # else:
-    #     raise ValueError("Test failed!")
+    values = {
+        "outer": env.config[term],
+        "vehicle_config": env.config["vehicle_config"][term],
+        "multiagent": env.config["target_vehicle_configs"][env.DEFAULT_AGENT][term],
+    }
+    for key, val in values.items():
+        assert -999 == val, (key, val)
 
 
 if __name__ == '__main__':
     test_nested_config()
+    test_config_consistency()
