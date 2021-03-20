@@ -28,7 +28,6 @@ pg_reward_scheme_v2 = dict(
     crash_object_penalty=2.,
     driving_reward=1.0,
     speed_reward=0.5,
-
     use_lateral_factor=True,
     use_reward_v1=True
 )
@@ -235,7 +234,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnvV2()
     try:
