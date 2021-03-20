@@ -677,6 +677,11 @@ class PGDriveEnv(gym.Env):
 
     def _sync_config_to_vehicle_config(self):
         assert self.num_agents == 1, "Only support single-agent sync now!"
+
+        default_config = BaseVehicle.get_vehicle_config()
+
+
+
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         vehicle_config = merge_dicts(old_dict=vehicle_config, new_dict=self.config, raise_error=False)
         self.config["target_vehicle_configs"][DEFAULT_AGENT] = vehicle_config

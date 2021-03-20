@@ -59,19 +59,19 @@ class BaseVehicle(DynamicElement):
     def _default_vehicle_config(cls) -> PGConfig:
         vehicle_config = dict(
             # ===== vehicle module config =====
-            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-            show_lidar=False,
-            mini_map=(84, 84, 250),  # buffer length, width
-            rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_mark=True,
-            increment_steering=False,
+            # lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
+            # show_lidar=False,
+            # mini_map=(84, 84, 250),  # buffer length, width
+            # rgb_cam=(84, 84),  # buffer length, width
+            # depth_cam=(84, 84, True),  # buffer length, width, view_ground
+            # show_navi_mark=True,
+            # increment_steering=False,
             wheel_friction=0.6,
 
             # ===== use image =====
-            image_source="rgb_cam",  # take effect when only when use_image == True
-            use_image=False,
-            rgb_clip=True,
+            # image_source="rgb_cam",  # take effect when only when use_image == True
+            # use_image=False,
+            # rgb_clip=True,
 
             # ===== vehicle born =====
             born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
@@ -79,13 +79,13 @@ class BaseVehicle(DynamicElement):
             born_lateral=0.0,
 
             # ==== others ====
-            overtake_stat=False,  # we usually set to True when evaluation
-            action_check=False,
-            use_saver=False,
-            save_level=0.5,
+            # overtake_stat=False,  # we usually set to True when evaluation
+            # action_check=False,
+            # use_saver=False,
+            # save_level=0.5,
         )
-        vehicle_config.update(pg_reward_scheme)
-        vehicle_config.update(pg_cost_scheme)
+        # vehicle_config.update(pg_reward_scheme)
+        # vehicle_config.update(pg_cost_scheme)
         return PGConfig(vehicle_config)
 
     LENGTH = None
