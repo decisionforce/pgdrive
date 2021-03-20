@@ -9,7 +9,7 @@ from pgdrive.envs.pgdrive_env import PGDriveEnv as PGDriveEnvV1
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.traffic_manager import TrafficMode
-from pgdrive.utils import clip
+from pgdrive.utils import clip, merge_dicts
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -126,7 +126,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     @staticmethod
     def default_config() -> PGConfig:
-        env_config = PGDriveEnvV1.default_config()
         env_config = dict(
             # ===== Generalization =====
             start_seed=0,
@@ -178,6 +177,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             vehicle_config=BaseVehicle.get_vehicle_config(),
             rgb_clip=True
         )
+
         # ===== Update the observation =====
         # See: https://github.com/decisionforce/pgdrive/issues/297
         env_config["vehicle_config"]["lidar"]["num_lasers"] = 120
@@ -218,12 +218,14 @@ class PGDriveEnvV2(PGDriveEnvV1):
             ret[v_id] = self.observations[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
-    # def get_observation(self, vehicle_config: Union[dict, PGConfig]):
-    #     if vehicle_config["use_image"]:
-    #         o = ImageStateObservation(vehicle_config)
-    #     else:
-    #         o = LidarStateObservation(vehicle_config)
-    #     return o
+    def _sync_config_to_vehicle_config(self):
+        assert self.num_agents == 1, "Only support single-agent sync now!"
+        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
+        vehicle_config = merge_dicts(
+            old_dict=self.config, new_dict=vehicle_config, new_keys_allowed=True, raise_error=False)
+        vehicle_config.pop("vehicle_config")
+        self.config["target_vehicle_configs"][DEFAULT_AGENT] = vehicle_config
+
 
 
 if __name__ == '__main__':
@@ -235,7 +237,7 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-    env = PGDriveEnvV2()
+    env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)

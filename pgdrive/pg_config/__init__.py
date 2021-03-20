@@ -1,5 +1,6 @@
 import numpy as np
-import copy
+
+from pgdrive.utils import merge_dicts
 
 
 def _check_keys(new_config, old_config, prefix=""):
@@ -41,6 +42,7 @@ class PGConfig:
     For these <key, value> items, use PGConfig["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
+
     def __init__(self, config: dict):
         self._config = config
         self._types = dict()
@@ -104,7 +106,9 @@ class PGConfig:
         :param extra_config: extra configs
         :return: None
         """
-        self._config.update(extra_config)
+        self._config = merge_dicts(
+            self._config, extra_config, new_keys_allowed=True, raise_error=False, use_pgconfig=False
+        )
 
     def items(self):
         return self._config.items()
