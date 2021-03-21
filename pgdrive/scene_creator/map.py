@@ -1,6 +1,7 @@
 import copy
 import json
 import logging
+import random
 import os
 from typing import List
 
@@ -51,6 +52,7 @@ class Map:
     # define string in json and config
     SEED = "seed"
     LANE_WIDTH = "lane_width"
+    LANE_WIDTH_RAND_RANGE = "lane_width_rand_range"
     LANE_NUM = "lane_num"
     BLOCK_ID = "id"
     BLOCK_SEQUENCE = "block_sequence"
@@ -69,6 +71,11 @@ class Map:
             self.config.update(map_config)
         self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
         self.lane_width = self.config[self.LANE_WIDTH]
+        self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
+        self.lane_width = self.lane_width * random.uniform(
+            1 - self.lane_width_rand_range,
+            1 + self.lane_width_rand_range
+        )
         self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
         self.road_network = RoadNetwork()
@@ -104,6 +111,7 @@ class Map:
                 Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
                 Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
                 Map.LANE_WIDTH: 3.5,
+                Map.LANE_WIDTH_RAND_RANGE: 0,
                 Map.LANE_NUM: 3,
                 Map.SEED: 10,
                 "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
@@ -168,6 +176,7 @@ class Map:
                 self.SEED: self.random_seed,
                 self.LANE_NUM: self.lane_num,
                 self.LANE_WIDTH: self.lane_width,
+                self.LANE_WIDTH_RAND_RANGE: self.lane_width_rand_range,
                 self.BLOCK_SEQUENCE: map_config
             }
         )
@@ -187,11 +196,13 @@ class Map:
         """
         self.config[self.LANE_NUM] = map_config[self.LANE_NUM]
         self.config[self.LANE_WIDTH] = map_config[self.LANE_WIDTH]
+        self.config[self.LANE_WIDTH_RAND_RANGE] = map_config[self.LANE_WIDTH_RAND_RANGE]
         self.config[self.SEED] = map_config[self.SEED]
         blocks_config = map_config[self.BLOCK_SEQUENCE]
 
         # update the property
         self.lane_width = self.config[self.LANE_WIDTH]
+        self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
         self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
         return blocks_config
