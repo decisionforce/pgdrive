@@ -73,8 +73,7 @@ class Map:
         self.lane_width = self.config[self.LANE_WIDTH]
         self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
         self.lane_width = self.lane_width * random.uniform(
-            1 - self.lane_width_rand_range,
-            1 + self.lane_width_rand_range
+            1 - self.lane_width_rand_range, 1 + self.lane_width_rand_range
         )
         self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
