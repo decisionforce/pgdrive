@@ -108,7 +108,7 @@ class Map:
         return PGConfig(
             {
                 Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
+                Map.GENERATE_PARA: 3,  # it can be a file path / block num / block ID sequence
                 Map.LANE_WIDTH: 3.5,
                 Map.LANE_WIDTH_RAND_RANGE: 0,
                 Map.LANE_NUM: 3,
