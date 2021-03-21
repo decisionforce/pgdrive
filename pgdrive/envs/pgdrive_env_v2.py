@@ -22,14 +22,17 @@ pg_cost_scheme_v2 = dict(
 
 pg_reward_scheme_v2 = dict(
     # ===== Reward Scheme =====
-    success_reward=20.,
-    out_of_road_penalty=0.,  # Use v2!
-    crash_vehicle_penalty=10.,
-    crash_object_penalty=2.,
+    success_reward=20,
+    out_of_road_penalty=5,
+    crash_vehicle_penalty=10,
+    crash_object_penalty=2,
+    acceleration_penalty=0.0,
+    steering_penalty=0.1,
+    low_speed_penalty=0.0,
     driving_reward=1.0,
-    speed_reward=0.5,
-    use_lateral_factor=True,
-    use_reward_v1=True
+    general_penalty=0.0,
+    speed_reward=0.1,
+use_lateral=True
 )
 
 
@@ -40,7 +43,7 @@ def pg_reward_function_v2(vehicle):
     :return: reward
     """
     step_info = dict()
-
+    action = vehicle.last_current_action[1]
     # Reward for moving forward in current lane
     current_lane = vehicle.lane
     long_last, _ = current_lane.local_coordinates(vehicle.last_position)
@@ -48,38 +51,41 @@ def pg_reward_function_v2(vehicle):
 
     # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
     reward = 0.0
-    if vehicle.vehicle_config["use_lateral_factor"]:
+    if vehicle.vehicle_config["use_lateral"]:
         lateral_factor = clip(1 - 2 * abs(lateral_now) / vehicle.routing_localization.map.lane_width, 0.0, 1.0)
     else:
         lateral_factor = 1.0
-
     reward += vehicle.vehicle_config["driving_reward"] * (long_now - long_last) * lateral_factor
+
+    # Penalty for frequent steering
+    steering_change = abs(vehicle.last_current_action[0][0] - vehicle.last_current_action[1][0])
+    steering_penalty = vehicle.vehicle_config["steering_penalty"] * steering_change * vehicle.speed / 20
+    reward -= steering_penalty
+
+    # Penalty for frequent acceleration / brake
+    acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1])**2)
+    reward -= acceleration_penalty
+
+    # Penalty for waiting
+    low_speed_penalty = 0
+    if vehicle.speed < 1:
+        low_speed_penalty = vehicle.vehicle_config["low_speed_penalty"]  # encourage car
+    reward -= low_speed_penalty
+    reward -= vehicle.vehicle_config["general_penalty"]
 
     reward += vehicle.vehicle_config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
     step_info["step_reward"] = reward
 
     # for done
-    # if vehicle.crash_vehicle:
-    #     reward -= vehicle.vehicle_config["crash_vehicle_penalty"]
-    # elif vehicle.crash_object:
-    #     reward -= vehicle.vehicle_config["crash_object_penalty"]
-    # elif vehicle.arrive_destination:
-    #     reward += vehicle.vehicle_config["success_reward"]
+    if vehicle.crash_vehicle:
+        reward -= vehicle.vehicle_config["crash_vehicle_penalty"]
+    elif vehicle.crash_object:
+        reward -= vehicle.vehicle_config["crash_object_penalty"]
+    elif vehicle.out_of_route:
+        reward -= vehicle.vehicle_config["out_of_road_penalty"]
+    elif vehicle.arrive_destination:
+        reward += vehicle.vehicle_config["success_reward"]
 
-    if vehicle.vehicle_config["use_reward_v1"]:
-        if vehicle.crash_vehicle:
-            reward -= 0.0
-        elif vehicle.crash_object:
-            reward -= 0.0
-        elif vehicle.arrive_destination:
-            reward += 0.0
-    else:
-        if vehicle.crash_vehicle:
-            reward -= 5.0
-        elif vehicle.crash_object:
-            reward -= 5.0
-        elif vehicle.arrive_destination:
-            reward += 20.0
 
     return reward, step_info
 
