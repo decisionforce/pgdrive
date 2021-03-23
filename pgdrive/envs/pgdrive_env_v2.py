@@ -29,8 +29,8 @@ pg_reward_scheme_v2 = dict(
     acceleration_penalty=0.0,
     driving_reward=1.0,
     general_penalty=0.0,
-    speed_reward=0.1,
-    use_lateral=True
+    speed_reward=0.5,
+    use_lateral=False
 )
 
 
