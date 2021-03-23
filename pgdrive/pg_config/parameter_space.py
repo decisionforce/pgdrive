@@ -107,5 +107,5 @@ class BlockParameterSpace:
     }
     BOTTLENECK_PARAMETER = {
         Parameter.length: PGBoxSpace(min=20, max=20),  # the length of straigh part
-        Parameter.lane_num: PGDiscreteSpace(min=1, max=1),  # the lane num increased or descreased now fix to 1
+        Parameter.lane_num: PGConstantSpace(1),  # the lane num increased or descreased now fix to 1
     }

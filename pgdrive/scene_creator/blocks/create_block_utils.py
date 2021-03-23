@@ -155,7 +155,10 @@ def CreateAdverseRoad(
     roadnet_to_get_road: "RoadNetwork",  # mostly, block network
     roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global network
     ignore_start: str = None,
-    ignore_end: str = None
+    ignore_end: str = None,
+    center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
+    side_lane_line_type=LineType.SIDE,
+    inner_lane_line_type=LineType.BROKEN
 ) -> (str, str, bool):
     adverse_road = -positive_road
     lanes = get_lanes_on_road(positive_road, roadnet_to_get_road)
@@ -190,11 +193,11 @@ def CreateAdverseRoad(
         roadnet_to_get_road,
         roadnet_to_check_cross,
         ignore_start=ignore_start,
-        ignore_end=ignore_end
+        ignore_end=ignore_end,
+        side_lane_line_type=side_lane_line_type,
+        inner_lane_line_type=inner_lane_line_type,
+        center_line_type=center_line_type
     )
-    inner_lane = roadnet_to_get_road.get_lane((adverse_road.start_node, adverse_road.end_node, 0))
-    inner_lane.line_types = [LineType.NONE, LineType.BROKEN] if len(lanes) > 1 else [LineType.NONE, LineType.SIDE]
-    positive_road.get_lanes(roadnet_to_get_road)[0].line_color = [LineColor.YELLOW, LineColor.GREY]
     return success
 
 
