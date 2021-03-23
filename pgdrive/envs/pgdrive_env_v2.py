@@ -210,10 +210,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
         assert self.num_agents == 1, "Only support single-agent sync now!"
         vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         vehicle_config = merge_dicts(
-            old_dict=self.config, new_dict=vehicle_config, new_keys_allowed=True, raise_error=False)
+            old_dict=self.config, new_dict=vehicle_config, new_keys_allowed=True, raise_error=False
+        )
         vehicle_config.pop("vehicle_config")
         self.config["target_vehicle_configs"][DEFAULT_AGENT] = vehicle_config
-
 
 
 if __name__ == '__main__':
