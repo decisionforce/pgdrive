@@ -84,8 +84,6 @@ class BaseVehicle(DynamicElement):
             use_saver=False,
             save_level=0.5,
         )
-        # vehicle_config.update(pg_reward_scheme)
-        # vehicle_config.update(pg_cost_scheme)
         return PGConfig(vehicle_config)
 
     LENGTH = None
