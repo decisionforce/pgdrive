@@ -64,7 +64,7 @@ class InBottleneck(Bottleneck):
 
         circular_lane_num = self.positive_lane_num - straight_lane_num
 
-        # part 1, straight part
+        # part 1, straight road 0
         basic_lane = self.positive_lanes[straight_lane_num - 1]
         ref_lane = ExtendStraightLane(basic_lane, self.BOTTLENECK_LEN, [LineType.NONE, LineType.NONE])
         straight_road = Road(start_ndoe, self.road_node(0, 0))
@@ -74,6 +74,17 @@ class InBottleneck(Bottleneck):
         no_cross = CreateAdverseRoad(straight_road, self.block_network, self._global_network,
                                      inner_lane_line_type=LineType.NONE,
                                      side_lane_line_type=LineType.NONE,
+                                     center_line_type=LineType.CONTINUOUS) and no_cross
+
+        # extend for socket ,part 1 road 1
+        ref_lane = ExtendStraightLane(ref_lane, parameters[Parameter.length], [LineType.NONE, LineType.NONE])
+        straight_road = Road(self.road_node(0, 0), self.road_node(0, 1))
+        no_cross = CreateRoadFrom(ref_lane, straight_lane_num, straight_road, self.block_network, self._global_network,
+                                  center_line_type=LineType.CONTINUOUS, side_lane_line_type=LineType.SIDE,
+                                  inner_lane_line_type=LineType.BROKEN) and no_cross
+        no_cross = CreateAdverseRoad(straight_road, self.block_network, self._global_network,
+                                     inner_lane_line_type=LineType.BROKEN,
+                                     side_lane_line_type=LineType.SIDE,
                                      center_line_type=LineType.CONTINUOUS) and no_cross
 
         # part 2, circular part
