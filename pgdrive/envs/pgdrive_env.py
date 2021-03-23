@@ -720,7 +720,6 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-
     env = PGDriveEnv()
     try:
         obs = env.reset()

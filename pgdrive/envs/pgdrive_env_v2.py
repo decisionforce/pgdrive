@@ -206,6 +206,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             ret[v_id] = self.observations[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
+
 if __name__ == '__main__':
 
     def _act(env, action):
@@ -214,7 +215,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:
