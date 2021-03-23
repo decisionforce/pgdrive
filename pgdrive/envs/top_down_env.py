@@ -1,4 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.top_down_observation import TopDownMultiChannel, TopDownObservation
@@ -30,6 +31,26 @@ class TopDownPGDriveEnv(TopDownSingleFramePGDriveEnv):
         )
 
 
+class TopDownPGDriveEnvV2(PGDriveEnvV2):
+    @classmethod
+    def default_config(cls) -> PGConfig:
+        config = PGDriveEnvV2.default_config()
+        config["vehicle_config"]["lidar"] = {"num_lasers": 0, "distance": 0}  # Remove lidar
+        config.extend_config_with_unknown_keys({"frame_skip": 5, "frame_stack": 5, "post_stack": 5, "rgb_clip": False})
+        return config
+
+    def get_observation(self, _=None):
+        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
+        return TopDownMultiChannel(
+            vehicle_config,
+            self,
+            self.config["rgb_clip"],
+            frame_stack=self.config["frame_stack"],
+            post_stack=self.config["post_stack"],
+            frame_skip=self.config["frame_skip"],
+        )
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
@@ -48,7 +69,8 @@ if __name__ == '__main__':
     # env.close()
 
     # Test multi-channel frames
-    env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
+    env = TopDownPGDriveEnvV2(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
+    # env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
     # env = TopDownPGDriveEnv(dict(use_render=True, manual_control=True))
     env.reset()
     names = [
