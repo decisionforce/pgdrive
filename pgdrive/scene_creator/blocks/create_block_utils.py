@@ -198,6 +198,7 @@ def CreateAdverseRoad(
         inner_lane_line_type=inner_lane_line_type,
         center_line_type=center_line_type
     )
+    positive_road.get_lanes(roadnet_to_get_road)[0].line_color = [LineColor.YELLOW, LineColor.GREY]
     return success
 
 
