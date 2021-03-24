@@ -4,8 +4,8 @@ from pgdrive.utils.scene_utils import check_lane_on_road
 from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
 from pgdrive.pg_config.pg_space import PGSpace
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
-from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, sharpbend, \
-    ExtendStraightLane
+from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, create_bend_straight, \
+    ExtendStraightLane, create_wave_lanes
 from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.road.road import Road
 
@@ -20,25 +20,6 @@ class Bottleneck(Block):
 
     # property of bottleneck
     BOTTLENECK_LEN = 20  # Add to parameter sapce in the future
-
-    @staticmethod
-    def _wave_lanes(pre_lane, lateral_dist: float, length: float, lane_width, toward_left=True):
-        """
-        Prodeuce two lanes in adverse direction
-        :param pre_lane: Previous abstract lane
-        :param lateral_dist: the dist moved in previous lane's lateral direction
-        :param length: the length in the previous lane's longitude direction
-        :return: List[Circular lane]
-        """
-        angle = np.pi - 2 * np.arctan(length / (2 * lateral_dist))
-        radius = length / (2 * np.sin(angle))
-        circular_lane_1, pre_lane = sharpbend(pre_lane, 10, radius, angle, False if toward_left else True,
-                                              lane_width,
-                                              [LineType.NONE, LineType.NONE])
-        pre_lane.reset_start_end(pre_lane.position(-10, 0), pre_lane.position(pre_lane.length - 10, 0))
-        circular_lane_2, _ = sharpbend(pre_lane, 5, radius, angle, True if toward_left else True, lane_width,
-                                       [LineType.NONE, LineType.NONE])
-        return circular_lane_1, circular_lane_2
 
 
 class InBottleneck(Bottleneck):
@@ -56,6 +37,7 @@ class InBottleneck(Bottleneck):
     def _try_plug_into_previous_block(self) -> bool:
         no_cross = True
         parameters = self.get_config()
+        # add to parameter space
         lane_num_changed = 2
 
         start_ndoe = self.pre_block_socket.positive_road.end_node
@@ -78,36 +60,56 @@ class InBottleneck(Bottleneck):
 
         # extend for socket ,part 1 road 1
         ref_lane = ExtendStraightLane(ref_lane, parameters[Parameter.length], [LineType.NONE, LineType.NONE])
-        straight_road = Road(self.road_node(0, 0), self.road_node(0, 1))
-        no_cross = CreateRoadFrom(ref_lane, straight_lane_num, straight_road, self.block_network, self._global_network,
+        socket_road = Road(self.road_node(0, 0), self.road_node(0, 1))
+        no_cross = CreateRoadFrom(ref_lane, straight_lane_num, socket_road, self.block_network, self._global_network,
                                   center_line_type=LineType.CONTINUOUS, side_lane_line_type=LineType.SIDE,
                                   inner_lane_line_type=LineType.BROKEN) and no_cross
-        no_cross = CreateAdverseRoad(straight_road, self.block_network, self._global_network,
+        no_cross = CreateAdverseRoad(socket_road, self.block_network, self._global_network,
                                      inner_lane_line_type=LineType.BROKEN,
                                      side_lane_line_type=LineType.SIDE,
                                      center_line_type=LineType.CONTINUOUS) and no_cross
 
+        negative_sockect_road = -socket_road
+        self.add_sockets(BlockSocket(socket_road, negative_sockect_road))
+
         # part 2, circular part
         for index, lane in enumerate(self.positive_lanes[straight_lane_num:], 1):
             lateral_dist = index * self.lane_width / 2
-
-            circular_1, circular_2 = self._wave_lanes(lane, lateral_dist, self.BOTTLENECK_LEN, self.lane_width)
+            inner_node = self.road_node(1, index)
             side_line_type = LineType.SIDE if index == self.positive_lane_num - straight_lane_num else LineType.NONE
-            road = Road(start_ndoe, self.road_node(1, index))
-            no_cross = CreateRoadFrom(circular_1, 1, road, self.block_network,
+
+            # positive part
+            circular_1, circular_2 = create_wave_lanes(lane, lateral_dist, self.BOTTLENECK_LEN, self.lane_width)
+            road_1 = Road(start_ndoe, inner_node)
+            no_cross = CreateRoadFrom(circular_1, 1, road_1, self.block_network,
                                       self._global_network,
                                       center_line_type=LineType.NONE,
                                       side_lane_line_type=side_line_type,
                                       inner_lane_line_type=LineType.NONE) and no_cross
-            road = Road(start_ndoe, self.road_node(2, index))
-            no_cross = CreateRoadFrom(circular_2, 1, road, self.block_network,
+            road_2 = Road(inner_node, self.road_node(0, 0))
+            no_cross = CreateRoadFrom(circular_2, 1, road_2, self.block_network,
                                       self._global_network,
                                       center_line_type=LineType.NONE,
                                       side_lane_line_type=side_line_type,
                                       inner_lane_line_type=LineType.NONE) and no_cross
 
-        # FIXME
-        self.add_sockets(BlockSocket(straight_road, -straight_road))
+            # adverse part
+            lane = negative_sockect_road.get_lanes(self.block_network)[-1]
+            circular_2, circular_1 = create_wave_lanes(lane, lateral_dist, self.BOTTLENECK_LEN, self.lane_width, False)
+            road_2 = -road_2
+            no_cross = CreateRoadFrom(circular_2, 1, road_2, self.block_network,
+                                      self._global_network,
+                                      center_line_type=LineType.NONE,
+                                      side_lane_line_type=side_line_type,
+                                      inner_lane_line_type=LineType.NONE) and no_cross
+
+            road_1 = -road_1
+            no_cross = CreateRoadFrom(circular_1, 1, road_1, self.block_network,
+                                      self._global_network,
+                                      center_line_type=LineType.NONE,
+                                      side_lane_line_type=side_line_type,
+                                      inner_lane_line_type=LineType.NONE) and no_cross
+
         return no_cross
 
 
