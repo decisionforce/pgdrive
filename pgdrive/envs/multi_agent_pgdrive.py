@@ -78,6 +78,38 @@ class MultiAgentPGDrive(PGDriveEnv):
                 self.done_vehicles[id] = v
         return o, r, d, i
 
+    def reward_function(self, vehicle):
+        """
+           Override this func to get a new reward function
+           :param vehicle: BaseVehicle
+           :return: reward
+           """
+        step_info = dict()
+
+        # Reward for moving forward in current lane
+        current_lane = vehicle.lane
+        long_last, _ = current_lane.local_coordinates(vehicle.last_position)
+        long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
+
+        reward = 0.0
+
+        # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
+
+        lateral_factor = 1.0
+
+        reward += vehicle.vehicle_config["driving_reward"] * (long_now - long_last) * lateral_factor
+
+        reward += vehicle.vehicle_config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
+        step_info["step_reward"] = reward
+
+        if vehicle.crash_vehicle:
+            reward = -vehicle.vehicle_config["crash_vehicle_penalty"]
+        elif vehicle.crash_object:
+            reward = -vehicle.vehicle_config["crash_object_penalty"]
+        elif vehicle.arrive_destination:
+            reward = +vehicle.vehicle_config["success_reward"]
+
+        return reward, step_info
 
 if __name__ == "__main__":
     env = MultiAgentPGDrive(
@@ -91,11 +123,16 @@ if __name__ == "__main__":
         }
     )
     o = env.reset()
+    total_r = 0
     for i in range(1, 100000):
         o, r, d, info = env.step({"agent0": [-1, 0], "agent1": [0, 0], "agent2": [-1, 0], "agent3": [0, 0]})
+        for r_ in r.values():
+            total_r += r_
         # o, r, d, info = env.step([0,1])
+        d.update({"total_r":total_r})
         env.render(text=d)
         if len(env.vehicles) == 0:
+            total_r = 0
             print("Reset")
             env.reset()
     env.close()
