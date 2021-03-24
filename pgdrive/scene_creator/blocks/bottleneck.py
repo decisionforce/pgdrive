@@ -22,7 +22,7 @@ class Bottleneck(Block):
     BOTTLENECK_LEN = 20  # Add to parameter sapce in the future
 
 
-class InBottleneck(Bottleneck):
+class Merge(Bottleneck):
     """
     -----\
           \
@@ -156,7 +156,7 @@ class InBottleneck(Bottleneck):
         return no_cross
 
 
-class OutBottleneck(Bottleneck):
+class Split(Bottleneck):
     """
                         /-----
                        /
