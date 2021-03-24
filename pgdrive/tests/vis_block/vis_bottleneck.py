@@ -13,7 +13,7 @@ if __name__ == "__main__":
     global_network = RoadNetwork()
     b = FirstBlock(global_network, 3.0, 1, test.render, test.world, 1)
     for i in range(1, 13):
-        tp = InBottleneck if i % 3==0 else OutBottleneck
+        tp = InBottleneck if i % 3 == 0 else OutBottleneck
         b = tp(i, b.get_socket(0), global_network, i)
         b.construct_block(test.render, test.world)
     test.show_bounding_box(global_network)
