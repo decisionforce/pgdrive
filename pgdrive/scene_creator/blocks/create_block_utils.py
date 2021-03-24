@@ -213,20 +213,24 @@ def block_socket_merge(
     global_network.graph[socket_2.positive_road.start_node][socket_1.negative_road.start_node] = \
         global_network.graph[socket_2.positive_road.start_node].pop(socket_2.positive_road.end_node)
 
-def create_wave_lanes(pre_lane, lateral_dist: float, length: float, lane_width, toward_left=True):
+
+def create_wave_lanes(pre_lane, lateral_dist: float, wave_length: float, last_straight_length: float, lane_width,
+                      toward_left=True):
     """
     Prodeuce two lanes in adverse direction
     :param pre_lane: Previous abstract lane
     :param lateral_dist: the dist moved in previous lane's lateral direction
-    :param length: the length in the previous lane's longitude direction
+    :param wave_length: the length of two circular lanes in the previous lane's longitude direction
+    :param following_lane_length: the length of last straight lane
     :return: List[Circular lane]
     """
-    angle = np.pi - 2 * np.arctan(length / (2 * lateral_dist))
-    radius = length / (2 * np.sin(angle))
+    angle = np.pi - 2 * np.arctan(wave_length / (2 * lateral_dist))
+    radius = wave_length / (2 * np.sin(angle))
     circular_lane_1, pre_lane = create_bend_straight(pre_lane, 10, radius, angle, False if toward_left else True,
                                                      lane_width,
                                                      [LineType.NONE, LineType.NONE])
     pre_lane.reset_start_end(pre_lane.position(-10, 0), pre_lane.position(pre_lane.length - 10, 0))
-    circular_lane_2, _ = create_bend_straight(pre_lane, 5, radius, angle, True if toward_left else False, lane_width,
-                                              [LineType.NONE, LineType.NONE])
-    return circular_lane_1, circular_lane_2
+    circular_lane_2, straight_lane = create_bend_straight(pre_lane, last_straight_length, radius, angle,
+                                                          True if toward_left else False, lane_width,
+                                                          [LineType.NONE, LineType.NONE])
+    return circular_lane_1, circular_lane_2, straight_lane
