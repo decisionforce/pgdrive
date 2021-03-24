@@ -15,7 +15,7 @@ class MultiAgentPGDrive(PGDriveEnv):
                 "environment_num": 1,
                 "traffic_density": 0.,
                 "start_seed": 10,
-                "map": "y",
+                "map": "yY",
                 "target_vehicle_configs": {
                     "agent0": {
                         "born_longitude": 10,
@@ -56,6 +56,9 @@ class MultiAgentPGDrive(PGDriveEnv):
         if vehicle.crash_vehicle and not self.config["crash_done"]:
             done = False
             done_info["crash_vehicle"] = False
+        elif vehicle.out_of_route and vehicle.on_lane and not vehicle.crash_sidewalk:
+            done = False
+            done_info["out_of_road"] = False
         return done, done_info
 
     def step(self, actions):
@@ -80,7 +83,7 @@ if __name__ == "__main__":
     env = MultiAgentPGDrive(
         {
             "use_render": True,
-            "debug": True,
+            "debug": False,
             "manual_control": True,
             "pg_world_config": {
                 "pstats": False
