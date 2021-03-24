@@ -37,8 +37,7 @@ class InBottleneck(Bottleneck):
     def _try_plug_into_previous_block(self) -> bool:
         no_cross = True
         parameters = self.get_config()
-        # add to parameter space
-        lane_num_changed = 2
+        lane_num_changed = parameters[Parameter.lane_num]+1
 
         start_ndoe = self.pre_block_socket.positive_road.end_node
         straight_lane_num = int(self.positive_lane_num - lane_num_changed)
@@ -129,8 +128,7 @@ class OutBottleneck(Bottleneck):
     def _try_plug_into_previous_block(self) -> bool:
         no_cross = True
         parameters = self.get_config()
-        # TODO add to parameter space
-        lane_num_changed = 2
+        lane_num_changed = parameters[Parameter.lane_num]+1
 
         start_ndoe = self.pre_block_socket.positive_road.end_node
         straight_lane_num = self.positive_lane_num
@@ -211,8 +209,4 @@ class OutBottleneck(Bottleneck):
                                       center_line_type=LineType.NONE,
                                       side_lane_line_type=side_line_type,
                                       inner_lane_line_type=LineType.NONE) and no_cross
-
-
-
-
         return no_cross
