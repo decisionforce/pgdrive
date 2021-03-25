@@ -111,6 +111,7 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         return reward, step_info
 
+
 if __name__ == "__main__":
     env = MultiAgentPGDrive(
         {
@@ -129,7 +130,7 @@ if __name__ == "__main__":
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])
-        d.update({"total_r":total_r})
+        d.update({"total_r": total_r})
         env.render(text=d)
         if len(env.vehicles) == 0:
             total_r = 0
