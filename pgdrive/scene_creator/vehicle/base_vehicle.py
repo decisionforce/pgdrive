@@ -8,7 +8,6 @@ import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
-from pgdrive import PGConfig
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
@@ -21,7 +20,7 @@ from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import safe_clip
+from pgdrive.utils import PGConfig, safe_clip
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement

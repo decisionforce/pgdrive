@@ -1,8 +1,7 @@
 import logging
 
-from pgdrive import PGConfig
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.utils import get_np_random
+from pgdrive.utils import PGConfig, get_np_random
 
 
 class ChangeDensityEnv(PGDriveEnv):
