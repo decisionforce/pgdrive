@@ -1,7 +1,7 @@
 import numpy as np
 from pgdrive.constants import Decoration
 from pgdrive.pg_config.parameter_space import Parameter, BlockParameterSpace
-from pgdrive.pg_config.pg_space import PGSpace
+from pgdrive.utils.pg_space import PGSpace
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import ExtendStraightLane, CreateRoadFrom, CreateAdverseRoad, \
     create_bend_straight

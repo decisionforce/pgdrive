@@ -1,4 +1,4 @@
-from pgdrive.pg_config.pg_space import PGBoxSpace, PGDiscreteSpace, PGConstantSpace
+from pgdrive.utils.pg_space import PGBoxSpace, PGDiscreteSpace, PGConstantSpace
 
 
 class Parameter:
