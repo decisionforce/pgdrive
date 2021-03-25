@@ -1,4 +1,4 @@
-from pgdrive.pg_config.parameter_space import Parameter
+from pgdrive.utils.pg_space import Parameter
 from pgdrive.scene_creator.blocks.t_intersection import TInterSection
 
 

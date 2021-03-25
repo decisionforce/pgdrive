@@ -1,6 +1,6 @@
 from panda3d.core import LVector4, NodePath, DirectionalLight, AmbientLight
 
-from pgdrive.pg_config import PGConfig
+from pgdrive import PGConfig
 from pgdrive.constants import CamMask
 from pgdrive.utils.element import DynamicElement
 

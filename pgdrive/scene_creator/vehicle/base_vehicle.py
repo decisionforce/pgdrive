@@ -10,9 +10,8 @@ from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
 from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
-from pgdrive.pg_config import PGConfig
-from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
-from pgdrive.utils.pg_space import PGSpace
+from pgdrive import PGConfig
+from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane

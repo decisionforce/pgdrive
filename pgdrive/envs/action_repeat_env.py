@@ -2,7 +2,7 @@ import numpy as np
 from gym.spaces import Box
 
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config import PGConfig
+from pgdrive import PGConfig
 
 
 class ActionRepeat(PGDriveEnv):

@@ -140,7 +140,7 @@ class Block(Element, BlockDefault):
 
     def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld):
         assert set(config.keys()) == self.PARAMETER_SPACE.parameters, \
-            "Make sure the parameters' name are as same as what defined in parameter_space.py"
+            "Make sure the parameters' name are as same as what defined in pg_space.py"
         self.set_config(config)
         success = self._sample_topology()
         self._create_in_world()

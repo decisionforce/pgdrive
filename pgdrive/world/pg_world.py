@@ -9,7 +9,7 @@ from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode
 from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallbackObject
 from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask
-from pgdrive.pg_config import PGConfig
+from pgdrive import PGConfig
 from pgdrive.utils import is_mac, setup_logger
 from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.world.force_fps import ForceFPS

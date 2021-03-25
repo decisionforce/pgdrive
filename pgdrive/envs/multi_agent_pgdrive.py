@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config import PGConfig
+from pgdrive import PGConfig
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.utils import setup_logger
 

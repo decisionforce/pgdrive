@@ -3,7 +3,7 @@ from typing import Union
 
 from panda3d.core import NodePath
 
-from pgdrive.pg_config.pg_blocks import PGBlock
+from pgdrive.scene_creator.pg_blocks import PGBlock
 from pgdrive.scene_creator.algorithm.BIG import BIG
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock

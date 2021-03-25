@@ -11,7 +11,7 @@ import numpy as np
 from panda3d.core import PNMImage
 
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
-from pgdrive.pg_config import PGConfig
+from pgdrive import PGConfig
 from pgdrive.rl_utils import pg_cost_function, pg_done_function, pg_reward_function
 from pgdrive.rl_utils.cost import pg_cost_scheme
 from pgdrive.rl_utils.observation_type import LidarStateObservation, ImageStateObservation
