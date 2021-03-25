@@ -110,8 +110,20 @@ class PGConfig:
         raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
                          "config_with_unknown_keys.")
 
-    def TMP_update(self, new_dict: Union[dict, "PGConfig"]):
-        pass
+    def TMP_update(self, new_dict: Union[dict, "PGConfig"], allow_unknown_keys=False):
+        for k, v in new_dict.items():
+            if k in self:
+                if isinstance(self[k], PGConfig):
+                    if not isinstance(v, (dict, PGConfig)):
+                        raise TypeError("Type error! The item {} has original type {} and updating type {}.".format(
+                            k, type(self[k]), type(v)
+                        ))
+                    self[k].TMP_update(v)
+                else:
+                    setattr(self, k, v)
+            else:
+                raise NotImplementedError("allow_unknown_keys is not functioning now!")
+        return self
 
     def items(self):
         return self._config.items()
