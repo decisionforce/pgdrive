@@ -67,7 +67,6 @@ class PGConfig:
     For these <key, value> items, use PGConfig["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
-
     def __init__(self, config: Union[dict, "PGConfig"]):
         if isinstance(config, PGConfig):
             config = PGConfig.get_dict()
@@ -112,9 +111,11 @@ class PGConfig:
             if allow_overwrite:
                 return False
             else:
-                raise TypeError("Type error! The item {} has original type {} and updating type {}.".format(
-                    k, type(self[k]), type(v)
-                ))
+                raise TypeError(
+                    "Type error! The item {} has original type {} and updating type {}.".format(
+                        k, type(self[k]), type(v)
+                    )
+                )
         self[k].update(v, allow_overwrite=allow_overwrite)
         return True
 
@@ -146,14 +147,17 @@ class PGConfig:
         return ret
 
     def extend_config_with_unknown_keys(self, extra_config: dict) -> None:
-        raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
-                         "config_with_unknown_keys.")
+        raise ValueError(
+            "This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
+            "config_with_unknown_keys."
+        )
 
     def _check_and_raise_key_error(self, key):
         if key not in self._config:
             raise KeyError(
                 "'{}' does not exist in existing config. "
-                "Please use config.update(..., allow_overwrite=True) to update the config.".format(key))
+                "Please use config.update(..., allow_overwrite=True) to update the config.".format(key)
+            )
 
     def __getitem__(self, item):
         self._check_and_raise_key_error(item)

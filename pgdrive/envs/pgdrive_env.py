@@ -94,7 +94,6 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
         # use_topdown=False,  # Render the top-down view image in screen or buffer
         pstats=False
-
     ),
     record_episode=False,
 
@@ -177,13 +176,16 @@ class PGDriveEnv(gym.Env):
         # obs. action space
 
         self.observations = {
-            v_id: self.get_observation(v_config) for v_id, v_config in self.config["target_vehicle_configs"].items()
+            v_id: self.get_observation(v_config)
+            for v_id, v_config in self.config["target_vehicle_configs"].items()
         }
         self.observation_space = gym.spaces.Dict(
-            {v_id: obs.observation_space for v_id, obs in self.observations.items()}
+            {v_id: obs.observation_space
+             for v_id, obs in self.observations.items()}
         )
         self.action_space = gym.spaces.Dict(
-            {id: BaseVehicle.get_action_space_before_init() for id in self.config["target_vehicle_configs"].keys()}
+            {id: BaseVehicle.get_action_space_before_init()
+             for id in self.config["target_vehicle_configs"].keys()}
         )
 
         if self.num_agents == 1:
@@ -409,7 +411,6 @@ class PGDriveEnv(gym.Env):
         return step_info['cost'], step_info
 
     def reward_function(self, vehicle):
-
         """
         Override this func to get a new reward function
         :param vehicle: BaseVehicle
@@ -433,7 +434,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -832,8 +833,7 @@ class PGDriveEnv(gym.Env):
         # local_default_vehicle_config.pop("vehicle_config")
         if self.num_agents == 1:
             self.config["target_vehicle_configs"].update(
-                {DEFAULT_AGENT: self.config["vehicle_config"]},
-                allow_overwrite=False
+                {DEFAULT_AGENT: self.config["vehicle_config"]}, allow_overwrite=False
             )
             # merge_dicts(
             #     old_dict=local_default_vehicle_config,
@@ -865,7 +865,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:

@@ -142,7 +142,8 @@ class PGWorld(ShowBase.ShowBase):
         if self.mode == RENDER_MODE_ONSCREEN:
             self.disableMouse()
 
-        if not self.world_config["debug_physics_world"] and (self.mode in [RENDER_MODE_ONSCREEN, RENDER_MODE_OFFSCREEN]):
+        if not self.world_config["debug_physics_world"] and (self.mode in [RENDER_MODE_ONSCREEN, RENDER_MODE_OFFSCREEN
+                                                                           ]):
             initialize_asset_loader(self)
             gltf.patch_loader(self.loader)
 
