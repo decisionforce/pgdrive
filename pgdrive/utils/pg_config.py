@@ -1,5 +1,6 @@
-import numpy as np
+from typing import Optional, Union
 
+import numpy as np
 from pgdrive.utils.utils import merge_dicts
 
 
@@ -42,14 +43,19 @@ class PGConfig:
     For these <key, value> items, use PGConfig["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
+
     def __init__(self, config: dict):
         self._config = config
         self._types = dict()
 
     def update(self, new_dict: dict):
-        _recursive_check_keys(new_dict, self._config)
-        for key, value in new_dict.items():
-            self[key] = value
+        raise ValueError("This function is deprecated.")
+        # _recursive_check_keys(new_dict, self._config)
+        # for key, value in new_dict.items():
+        #     self[key] = value
+
+    def merge(self, new_dict: Union[dict, "PGConfig", None]) -> "PGConfig":
+        return merge_dicts(self, new_dict, allow_new_keys=False, raise_error=True, return_pgconfig=True)
 
     def __getitem__(self, item):
         assert item in self._config, "KeyError: {} doesn't exist in config".format(item)
@@ -106,7 +112,7 @@ class PGConfig:
         :return: None
         """
         self._config = merge_dicts(
-            self._config, extra_config, new_keys_allowed=True, raise_error=False, use_pgconfig=False
+            self._config, extra_config, allow_new_keys=True, raise_error=False, return_pgconfig=False
         )
 
     def items(self):

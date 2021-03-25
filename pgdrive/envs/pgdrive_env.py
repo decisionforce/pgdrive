@@ -680,17 +680,19 @@ class PGDriveEnv(gym.Env):
             o = LidarStateObservation(vehicle_config)
         return o
 
+
+
     def _sync_config_to_vehicle_config(self):
         local_default_vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         local_default_vehicle_config = merge_dicts(
-            old_dict=self.config, new_dict=local_default_vehicle_config, new_keys_allowed=True, raise_error=False
+            old_dict=self.config, new_dict=local_default_vehicle_config, allow_new_keys=True, raise_error=False
         )
         local_default_vehicle_config.pop("vehicle_config")
         if self.num_agents == 1:
             self.config["target_vehicle_configs"][DEFAULT_AGENT] = merge_dicts(
                 old_dict=local_default_vehicle_config,
                 new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(DEFAULT_AGENT, {}),
-                new_keys_allowed=True,
+                allow_new_keys=True,
                 raise_error=False
             )
         else:
@@ -700,7 +702,7 @@ class PGDriveEnv(gym.Env):
                 self.config["target_vehicle_configs"][k] = merge_dicts(
                     old_dict=local_default_vehicle_config,
                     new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(k, {}),
-                    new_keys_allowed=True,
+                    allow_new_keys=True,
                     raise_error=False
                 )
 

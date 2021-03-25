@@ -56,7 +56,7 @@ class PGWorld(ShowBase.ShowBase):
         # Setup config and Panda3d
         self.pg_config = self.default_config()
         if config is not None:
-            self.pg_config.update(config)
+            self.pg_config.merge(config)
         if self.pg_config["pstats"]:
             # pstats debug provided by panda3d
             loadPrcFileData("", "want-pstats 1")
