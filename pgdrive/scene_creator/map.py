@@ -19,9 +19,10 @@ pygame = import_pygame()
 
 
 def parse_map_config(easy_map_config, original_map_config):
-    if original_map_config:
+    # if original_map_config:
         # Do not override map config if user defines one.
-        return original_map_config
+        # return original_map_config
+    # TODO(pzh) This part is problematic!
     original_map_config = original_map_config or dict()
     if isinstance(easy_map_config, int):
         original_map_config[Map.GENERATE_METHOD] = BigGenerateMethod.BLOCK_NUM
@@ -62,9 +63,12 @@ class Map:
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        self.config = self.default_config()
-        if map_config:
-            self.config.update(map_config)
+        # self.config = self.default_config()
+        # if map_config:
+        #     self.config.update(map_config)
+
+        self.config = PGConfig(map_config)
+
         self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
         self.lane_width = self.config[self.LANE_WIDTH]
         self.lane_num = self.config[self.LANE_NUM]
@@ -95,18 +99,18 @@ class Map:
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
 
-    @staticmethod
-    def default_config():
-        return PGConfig(
-            {
-                Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-                Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
-                Map.LANE_WIDTH: 3.5,
-                Map.LANE_NUM: 3,
-                Map.SEED: 10,
-                "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
-            }
-        )
+    # @staticmethod
+    # def default_config():
+    #     return PGConfig(
+    #         {
+    #             Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+    #             Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
+    #             Map.LANE_WIDTH: 3.5,
+    #             Map.LANE_NUM: 3,
+    #             Map.SEED: 10,
+    #             "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
+    #         }
+    #     )
 
     def _big_generate(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
         big_map = BIG(

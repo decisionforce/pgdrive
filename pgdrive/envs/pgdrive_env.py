@@ -30,7 +30,14 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
     # ===== Map Config =====
     map=3,  # int or string: an easy way to fill map_config
-    map_config=dict(),
+    map_config={
+        Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
+        Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
+        Map.LANE_WIDTH: 3.5,
+        Map.LANE_NUM: 3,
+        Map.SEED: 10,
+        "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
+    },
     load_map_from_json=True,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
@@ -156,6 +163,7 @@ class PGDriveEnv(gym.Env):
     def default_config() -> PGConfig:
         config = PGConfig(PGDriveEnvV1_DEFAULT_CONFIG)
         config.register_type("map", str, int)
+        config["map_config"].register_type("type", str, int)
         return config
 
     def __init__(self, config: dict = None):
@@ -434,7 +442,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -833,7 +841,7 @@ class PGDriveEnv(gym.Env):
         # local_default_vehicle_config.pop("vehicle_config")
         if self.num_agents == 1:
             self.config["target_vehicle_configs"].update(
-                {DEFAULT_AGENT: self.config["vehicle_config"]}, allow_overwrite=False
+                {DEFAULT_AGENT: self.config["vehicle_config"]}, allow_overwrite=True
             )
             # merge_dicts(
             #     old_dict=local_default_vehicle_config,
@@ -865,6 +873,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

@@ -69,7 +69,7 @@ class PGConfig:
     """
     def __init__(self, config: Union[dict, "PGConfig"]):
         if isinstance(config, PGConfig):
-            config = PGConfig.get_dict()
+            config = config.get_dict()
         self._config = self._internal_dict_to_config(copy.deepcopy(config))
         self._types = dict()
         for k, v in self._config.items():
@@ -98,9 +98,9 @@ class PGConfig:
                 if not allow_overwrite:
                     self._check_and_raise_key_error(k)
                 else:
-                    self._config[k] = None  # Placeholder
+                    self._config[k] = v  # Placeholder
             success = False
-            if isinstance(self[k], PGConfig):
+            if isinstance(self._config[k], (dict, PGConfig)):
                 success = self._update_dict_item(k, v, allow_overwrite)
             if not success:
                 self._update_single_item(k, v, allow_overwrite)
@@ -120,7 +120,7 @@ class PGConfig:
         return True
 
     def _update_single_item(self, k, v, allow_overwrite):
-        assert not isinstance(v, (dict, PGConfig))
+        assert not isinstance(v, (dict, PGConfig)), (k, type(v), allow_overwrite)
         if allow_overwrite:
             self._config[k] = v
         setattr(self, k, v)
@@ -200,3 +200,6 @@ class PGConfig:
 
     def __repr__(self):
         return str(self._config)
+
+    def __len__(self):
+        return len(self._config)
