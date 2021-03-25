@@ -1,5 +1,5 @@
-from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive import PGConfig
+from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.rl_utils.done import pg_done_function
 
 

@@ -1,8 +1,7 @@
 import numpy as np
 from gym.spaces import Box
-
-from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive import PGConfig
+from pgdrive.envs.pgdrive_env import PGDriveEnv
 
 
 class ActionRepeat(PGDriveEnv):

@@ -3,12 +3,12 @@ import logging
 import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
 from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
-from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.math_utils import clip, norm
+from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 
 

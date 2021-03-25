@@ -5,8 +5,8 @@ from typing import Dict
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
 from pgdrive import PGConfig
-from pgdrive.utils.pg_space import PGSpace
 from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.utils.pg_space import PGSpace
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 
 
