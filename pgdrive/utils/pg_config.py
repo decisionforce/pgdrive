@@ -1,3 +1,6 @@
+import copy
+from typing import Union
+
 import numpy as np
 from pgdrive.utils.utils import merge_dicts
 
@@ -46,6 +49,15 @@ def _recursive_check_keys(new_config, old_config, prefix=""):
                 _recursive_check_keys(new, old, new_prefix)
 
 
+def config_to_dict(config: "PGConfig") -> dict:
+    ret = dict()
+    for k, v in config.items():
+        if isinstance(v, PGConfig):
+            v = config_to_dict(v)
+        ret[k] = v
+    return ret
+
+
 class PGConfig:
     """
     This class aims to check whether user config exists if default config system,
@@ -56,9 +68,22 @@ class PGConfig:
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
 
-    def __init__(self, config: dict):
-        self._config = config
+    def __init__(self, config: Union[dict, "PGConfig"]):
+        if isinstance(config, PGConfig):
+            config = PGConfig.get_dict()
+        self._config = self.dict_to_config(copy.deepcopy(config))
         self._types = dict()
+        for k, v in self._config.items():
+            setattr(self, k, v)
+
+    @classmethod
+    def dict_to_config(cls, d: dict) -> "PGConfig":
+        ret = dict()
+        for k, v in d.items():
+            if isinstance(v, dict):
+                v = cls(v)
+            ret[k] = v
+        return ret
 
     def clear(self):
         self._config.clear()
@@ -84,6 +109,9 @@ class PGConfig:
     def update(self, new_dict: dict):
         raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
                          "config_with_unknown_keys.")
+
+    def TMP_update(self, new_dict: Union[dict, "PGConfig"]):
+        pass
 
     def items(self):
         return self._config.items()
@@ -124,6 +152,14 @@ class PGConfig:
             self._config[key] = value
         else:
             self._config[key].update(value)
+
+        super(PGConfig, self).__setattr__(key, value)
+
+    def __setattr__(self, key, value):
+        if key not in ["_config", "_types"]:
+            self.__setitem__(key, value)
+        else:
+            super(PGConfig, self).__setattr__(key, value)
 
     def __contains__(self, item):
         return item in self._config
