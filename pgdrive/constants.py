@@ -1,4 +1,4 @@
-from panda3d.core import Vec4
+from panda3d.core import Vec4, BitMask32
 
 PG_EDITION = "PGDrive v0.1.4"
 DEFAULT_AGENT = "default_agent"
@@ -72,3 +72,13 @@ class Goal:
     STRAIGHT = 1
     LEFT = 2
     ADVERSE = 3  # Useless now
+
+
+class CamMask:
+    MainCam = BitMask32.bit(9)
+    Shadow = BitMask32.bit(10)
+    RgbCam = BitMask32.bit(11)
+    MiniMap = BitMask32.bit(12)
+    PARA_VIS = BitMask32.bit(13)
+    DepthCam = BitMask32.bit(14)
+    ScreenshotCam = BitMask32.bit(15)
