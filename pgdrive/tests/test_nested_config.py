@@ -14,7 +14,7 @@ def test_recursive_config():
     assert isinstance(c.aa.bb, PGConfig)
     assert isinstance(c.aa.bb.cc, int)
 
-    c.TMP_update({
+    c.update({
         "aa": {
             "bb": {
                 "cc": 101
@@ -24,7 +24,7 @@ def test_recursive_config():
     assert c.aa.bb.cc == 101
 
     try:
-        c.TMP_update({
+        c.update({
             "aa": {
                 "bb": 102
             }
@@ -33,6 +33,32 @@ def test_recursive_config():
         pass
     else:
         raise ValueError()
+
+    try:
+        c.update({
+            "aa": {
+                "bbd": 102
+            }
+        })
+    except KeyError:
+        pass
+    else:
+        raise ValueError()
+
+    c.update({
+        "aa": {
+            "bbd": 103
+        }
+    }, allow_overwrite=True)
+    assert c.aa.bbd == 103
+    assert c.aa.bb.cc == 101
+
+    c.update({
+        "aa": {
+            "bb": 102
+        }
+    }, allow_overwrite=True)
+    assert c.aa.bb == 102
 
 
 if __name__ == '__main__':

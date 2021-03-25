@@ -831,7 +831,10 @@ class PGDriveEnv(gym.Env):
         # )
         # local_default_vehicle_config.pop("vehicle_config")
         if self.num_agents == 1:
-            self.config["target_vehicle_configs"][DEFAULT_AGENT] = self.config["vehicle_config"]
+            self.config["target_vehicle_configs"].update(
+                {DEFAULT_AGENT: self.config["vehicle_config"]},
+                allow_overwrite=False
+            )
             # merge_dicts(
             #     old_dict=local_default_vehicle_config,
             #     new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(DEFAULT_AGENT, {}),

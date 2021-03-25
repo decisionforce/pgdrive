@@ -71,19 +71,10 @@ class PGConfig:
     def __init__(self, config: Union[dict, "PGConfig"]):
         if isinstance(config, PGConfig):
             config = PGConfig.get_dict()
-        self._config = self.dict_to_config(copy.deepcopy(config))
+        self._config = self._internal_dict_to_config(copy.deepcopy(config))
         self._types = dict()
         for k, v in self._config.items():
             setattr(self, k, v)
-
-    @classmethod
-    def dict_to_config(cls, d: dict) -> "PGConfig":
-        ret = dict()
-        for k, v in d.items():
-            if isinstance(v, dict):
-                v = cls(v)
-            ret[k] = v
-        return ret
 
     def clear(self):
         self._config.clear()
@@ -102,28 +93,36 @@ class PGConfig:
     def get_dict(self):
         return self._config
 
-    def extend_config_with_unknown_keys(self, extra_config: dict) -> None:
-        raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
-                         "config_with_unknown_keys.")
-
-    def update(self, new_dict: dict):
-        raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
-                         "config_with_unknown_keys.")
-
-    def TMP_update(self, new_dict: Union[dict, "PGConfig"], allow_unknown_keys=False):
+    def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=False):
         for k, v in new_dict.items():
-            if k in self:
-                if isinstance(self[k], PGConfig):
-                    if not isinstance(v, (dict, PGConfig)):
-                        raise TypeError("Type error! The item {} has original type {} and updating type {}.".format(
-                            k, type(self[k]), type(v)
-                        ))
-                    self[k].TMP_update(v)
+            if k not in self:
+                if not allow_overwrite:
+                    self._check_and_raise_key_error(k)
                 else:
-                    setattr(self, k, v)
-            else:
-                raise NotImplementedError("allow_unknown_keys is not functioning now!")
+                    self._config[k] = None  # Placeholder
+            success = False
+            if isinstance(self[k], PGConfig):
+                success = self._update_dict_item(k, v, allow_overwrite)
+            if not success:
+                self._update_single_item(k, v, allow_overwrite)
         return self
+
+    def _update_dict_item(self, k, v, allow_overwrite):
+        if not isinstance(v, (dict, PGConfig)):
+            if allow_overwrite:
+                return False
+            else:
+                raise TypeError("Type error! The item {} has original type {} and updating type {}.".format(
+                    k, type(self[k]), type(v)
+                ))
+        self[k].update(v, allow_overwrite=allow_overwrite)
+        return True
+
+    def _update_single_item(self, k, v, allow_overwrite):
+        assert not isinstance(v, (dict, PGConfig))
+        if allow_overwrite:
+            self._config[k] = v
+        setattr(self, k, v)
 
     def items(self):
         return self._config.items()
@@ -137,8 +136,27 @@ class PGConfig:
     def pop(self, key):
         self._config.pop(key)
 
+    @classmethod
+    def _internal_dict_to_config(cls, d: dict) -> dict:
+        ret = dict()
+        for k, v in d.items():
+            if isinstance(v, dict):
+                v = cls(v)
+            ret[k] = v
+        return ret
+
+    def extend_config_with_unknown_keys(self, extra_config: dict) -> None:
+        raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
+                         "config_with_unknown_keys.")
+
+    def _check_and_raise_key_error(self, key):
+        if key not in self._config:
+            raise KeyError(
+                "'{}' does not exist in existing config. "
+                "Please use config.update(..., allow_overwrite=True) to update the config.".format(key))
+
     def __getitem__(self, item):
-        assert item in self._config, "KeyError: {} doesn't exist in config".format(item)
+        self._check_and_raise_key_error(item)
         ret = self._config[item]
         if isinstance(ret, np.ndarray) and len(ret) == 1:
             # handle 1-d box shape sample
@@ -146,7 +164,7 @@ class PGConfig:
         return ret
 
     def __setitem__(self, key, value):
-        assert key in self._config, "KeyError: {} doesn't exist in config".format(key)
+        self._check_and_raise_key_error(key)
         if self._config[key] is not None and value is not None:
             type_correct = isinstance(value, type(self._config[key]))
             if isinstance(self._config[key], PGConfig):
@@ -160,10 +178,10 @@ class PGConfig:
             if key in self._types:
                 type_correct = type_correct or (type(value) in self._types[key])
             assert type_correct, "TypeError: {}:{}".format(key, value)
-        if not isinstance(self._config[key], dict):
-            self._config[key] = value
-        else:
-            self._config[key].update(value)
+
+        # if isinstance(self._config[key], (dict, PGConfig)):
+        #     value = self._internal_dict_to_config(value)
+        self._config[key] = value
 
         super(PGConfig, self).__setattr__(key, value)
 
