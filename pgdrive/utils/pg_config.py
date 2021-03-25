@@ -1,7 +1,19 @@
-from typing import Optional, Union
-
 import numpy as np
 from pgdrive.utils.utils import merge_dicts
+
+
+def merge_config_with_unknown_keys(old_dict, new_dict):
+    return merge_config(old_dict, new_dict, new_keys_allowed=True)
+
+
+def merge_config(old_dict, new_dict, new_keys_allowed=False):
+    from pgdrive.utils import PGConfig
+    if isinstance(old_dict, PGConfig):
+        old_dict = old_dict.get_dict()
+    if isinstance(new_dict, PGConfig):
+        new_dict = new_dict.get_dict()
+    merged = merge_dicts(old_dict, new_dict, allow_new_keys=new_keys_allowed)
+    return PGConfig(merged)
 
 
 def _check_keys(new_config, old_config, prefix=""):
@@ -48,14 +60,42 @@ class PGConfig:
         self._config = config
         self._types = dict()
 
-    def update(self, new_dict: dict):
-        raise ValueError("This function is deprecated.")
-        # _recursive_check_keys(new_dict, self._config)
-        # for key, value in new_dict.items():
-        #     self[key] = value
+    def clear(self):
+        self._config.clear()
 
-    def merge(self, new_dict: Union[dict, "PGConfig", None]) -> "PGConfig":
-        return merge_dicts(self, new_dict, allow_new_keys=False, raise_error=True, return_pgconfig=True)
+    def add(self, key, value):
+        assert key not in self._config, "KeyError: {} exists in config".format(key)
+        self._config[key] = value
+
+    def register_type(self, key, *types):
+        """
+        Register special types for item in config. This is used for mixed type declaration.
+        """
+        assert key in self._config
+        self._types[key] = set(types)
+
+    def get_dict(self):
+        return self._config
+
+    def extend_config_with_unknown_keys(self, extra_config: dict) -> None:
+        raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
+                         "config_with_unknown_keys.")
+
+    def update(self, new_dict: dict):
+        raise ValueError("This function is deprecated. Please explicitly use pgdrive.utils.merge_config or merge_"
+                         "config_with_unknown_keys.")
+
+    def items(self):
+        return self._config.items()
+
+    def values(self):
+        return self._config.values()
+
+    def keys(self):
+        return self._config.keys()
+
+    def pop(self, key):
+        self._config.pop(key)
 
     def __getitem__(self, item):
         assert item in self._config, "KeyError: {} doesn't exist in config".format(item)
@@ -88,41 +128,5 @@ class PGConfig:
     def __contains__(self, item):
         return item in self._config
 
-    def clear(self):
-        self._config.clear()
-
-    def add(self, key, value):
-        assert key not in self._config, "KeyError: {} exists in config".format(key)
-        self._config[key] = value
-
-    def register_type(self, key, *types):
-        """
-        Register special types for item in config. This is used for mixed type declaration.
-        """
-        assert key in self._config
-        self._types[key] = set(types)
-
-    def get_dict(self):
-        return self._config
-
-    def extend_config_with_unknown_keys(self, extra_config: dict) -> None:
-        """
-        This method will merge a new dict to PgConfig without checking the type and existence
-        :param extra_config: extra configs
-        :return: None
-        """
-        self._config = merge_dicts(
-            self._config, extra_config, allow_new_keys=True, raise_error=False, return_pgconfig=False
-        )
-
-    def items(self):
-        return self._config.items()
-
-    def values(self):
-        return self._config.values()
-
-    def keys(self):
-        return self._config.keys()
-
-    def pop(self, key):
-        self._config.pop(key)
+    def __repr__(self):
+        return str(self._config)

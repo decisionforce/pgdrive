@@ -68,20 +68,6 @@ def concat_step_infos(step_info_list):
     return old_dict
 
 
-def merge_pgconfig_with_unkown_keys(old_dict, new_dict):
-    return merge_pgconfig(old_dict, new_dict, new_keys_allowed=True)
-
-
-def merge_pgconfig(old_dict, new_dict, new_keys_allowed=False):
-    from pgdrive.utils import PGConfig
-    if isinstance(old_dict, PGConfig):
-        old_dict = old_dict.get_dict()
-    if isinstance(new_dict, PGConfig):
-        new_dict = new_dict.get_dict()
-    merged = merge_dicts(old_dict, new_dict, allow_new_keys=new_keys_allowed)
-    return PGConfig(merged)
-
-
 # The following two functions is copied from ray/tune/utils/util.py, raise_error and pgconfig support is added by us!
 def merge_dicts(old_dict, new_dict, allow_new_keys=False):
     """
