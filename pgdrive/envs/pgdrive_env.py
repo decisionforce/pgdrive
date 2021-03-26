@@ -43,7 +43,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
     # ==== agents config =====
     num_agents=1,
-    target_vehicle_configs={},  # agent_id: vehicle_config
+    # target_vehicle_configs={},  # agent_id: vehicle_config
 
     # ===== Observation =====
     use_topdown=False,  # Use top-down view
@@ -167,7 +167,12 @@ class PGDriveEnv(gym.Env):
         return config
 
     def __init__(self, config: dict = None):
-        self.config = merge_config(self.default_config(), new_dict=config, new_keys_allowed=False)
+        default_config = self.default_config()
+        # check_success, check_keys = default_config.check_keys(config)
+        # assert check_success, check_keys
+
+        self.config = default_config.update(config, allow_overwrite=True)
+        # self.config = merge_config(default_config, new_dict=config, new_keys_allowed=False)
         # self.config = self.default_config()
         # if config:
         #     self.config.update(config)
@@ -175,25 +180,20 @@ class PGDriveEnv(gym.Env):
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
 
-        self._sync_config_to_vehicle_config([])
-        assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
+        # self._sync_config_to_vehicle_config([])
+        # assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
 
         # FIXME!!
         # self.config.extend_config_with_unknown_keys({"use_image": True if self.use_image_sensor else False})
 
         # obs. action space
 
-        self.observations = {
-            v_id: self.get_observation(v_config)
-            for v_id, v_config in self.config["target_vehicle_configs"].items()
-        }
+        self.observations = self.get_observations()
         self.observation_space = gym.spaces.Dict(
-            {v_id: obs.observation_space
-             for v_id, obs in self.observations.items()}
+            {v_id: obs.observation_space for v_id, obs in self.observations.items()}
         )
         self.action_space = gym.spaces.Dict(
-            {id: BaseVehicle.get_action_space_before_init()
-             for id in self.config["target_vehicle_configs"].keys()}
+            {v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()}
         )
 
         if self.num_agents == 1:
@@ -242,6 +242,14 @@ class PGDriveEnv(gym.Env):
         self.current_track_vehicle: Optional[BaseVehicle] = None
         self.current_track_vehicle_id: Optional[str] = None
 
+    def get_observations(self):
+        return {
+            self.DEFAULT_AGENT: self.get_observation(self.config["vehicle_config"])
+            # v_id: self.get_observation(v_config)
+            # for v_id, v_config in self.config["target_vehicle_configs"].items()
+        }
+
+
     def lazy_init(self):
         """
         Only init once in runtime, variable here exists till the close_env is called
@@ -277,13 +285,9 @@ class PGDriveEnv(gym.Env):
                 raise ValueError("No such a controller type: {}".format(self.config["controller"]))
 
         # init vehicle
-        self.vehicles = {
-            agent_id: BaseVehicle(self.pg_world, v_config)
-            for agent_id, v_config in self.config["target_vehicle_configs"].items()
-        }
-
+        self.vehicles = self.get_vehicles()
         self.init_track_vehicle()
-        self._sync_config_to_vehicle_config()
+        # self._sync_config_to_vehicle_config()
 
     def init_track_vehicle(self):
         # first tracked vehicles
@@ -318,6 +322,14 @@ class PGDriveEnv(gym.Env):
         for v_id, v in self.vehicles.items():
             actions[v_id], saver_info[v_id] = self.saver(v_id, v, actions)
         return actions, saver_info
+
+    def get_vehicles(self):
+        return {
+            self.DEFAULT_AGENT: BaseVehicle(self.pg_world, self.config["vehicle_config"])
+            # agent_id: BaseVehicle(self.pg_world, v_config)
+            # for agent_id, v_config in self.config["target_vehicle_configs"].items()
+        }
+
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
 
@@ -832,37 +844,37 @@ class PGDriveEnv(gym.Env):
             o = LidarStateObservation(vehicle_config)
         return o
 
-    def _sync_config_to_vehicle_config(self, sync_keys=None):
-        sync_keys = set(sync_keys or ())
-
-        # merge_config_with_unknown_keys()
-        # local_default_vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
-        # local_default_vehicle_config = merge_config_with_unknown_keys(
-        #     old_dict=self.config, new_dict=local_default_vehicle_config, allow_new_keys=True, raise_error=False
-        # )
-        # local_default_vehicle_config.pop("vehicle_config")
-
-        general_vehicle_config = self.config["vehicle_config"].copy()
-        assert isinstance(general_vehicle_config, PGConfig)
-        general_vehicle_config = general_vehicle_config.update(
-            {k: self.config[k] for k in sync_keys}, allow_overwrite=True)
-
-        if self.num_agents == 1:
-            self.config["target_vehicle_configs"].update(
-                {DEFAULT_AGENT: general_vehicle_config}, allow_overwrite=True
-            )
-            # merge_dicts(
-            #     old_dict=local_default_vehicle_config,
-            #     new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(DEFAULT_AGENT, {}),
-            #     allow_new_keys=True,
-            #     raise_error=False
-            # )
-        else:
-            # TODO This is only a workaround!
-            self.config["target_vehicle_configs"].update(
-                {"agent{}".format(i): general_vehicle_config for i in range(self.num_agents)},
-                allow_overwrite=True
-            )
+    # def _sync_config_to_vehicle_config(self, sync_keys=None):
+    #     sync_keys = set(sync_keys or ())
+    #
+    #     # merge_config_with_unknown_keys()
+    #     # local_default_vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
+    #     # local_default_vehicle_config = merge_config_with_unknown_keys(
+    #     #     old_dict=self.config, new_dict=local_default_vehicle_config, allow_new_keys=True, raise_error=False
+    #     # )
+    #     # local_default_vehicle_config.pop("vehicle_config")
+    #
+    #     general_vehicle_config = self.config["vehicle_config"].copy()
+    #     assert isinstance(general_vehicle_config, PGConfig)
+    #     general_vehicle_config = general_vehicle_config.update(
+    #         {k: self.config[k] for k in sync_keys}, allow_overwrite=True)
+    #
+    #     if self.num_agents == 1:
+    #         self.config["target_vehicle_configs"].update(
+    #             {DEFAULT_AGENT: general_vehicle_config}, allow_overwrite=True
+    #         )
+    #         # merge_dicts(
+    #         #     old_dict=local_default_vehicle_config,
+    #         #     new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(DEFAULT_AGENT, {}),
+    #         #     allow_new_keys=True,
+    #         #     raise_error=False
+    #         # )
+    #     else:
+    #         # TODO This is only a workaround!
+    #         self.config["target_vehicle_configs"].update(
+    #             {"agent{}".format(i): general_vehicle_config for i in range(self.num_agents)},
+    #             allow_overwrite=True
+    #         )
 
             # for i in range(self.num_agents):
             #

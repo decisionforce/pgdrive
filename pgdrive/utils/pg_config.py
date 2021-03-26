@@ -81,8 +81,11 @@ class PGConfig:
         self._config.clear()
 
     def add(self, key, value):
+        raise ValueError("Deprecated!")
         assert key not in self._config, "KeyError: {} exists in config".format(key)
-        self._config[key] = value
+        if isinstance(value, (dict, PGConfig)):
+            value = PGConfig(value)
+        self.__setitem__(key, value)
 
     def register_type(self, key, *types):
         """
@@ -95,6 +98,7 @@ class PGConfig:
         return self._config
 
     def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=False):
+        new_dict = new_dict or dict()
         new_dict = copy.deepcopy(new_dict)
         for k, v in new_dict.items():
             if k not in self:
@@ -210,3 +214,13 @@ class PGConfig:
 
     def __len__(self):
         return len(self._config)
+
+    def check_keys(self, new_dict):
+        if isinstance(new_dict, (dict, PGConfig)):
+            for k, v in new_dict.items():
+                if k not in self:
+                    return False, k
+                else:
+                    return self.check_keys(v)
+        else:
+            return True, None

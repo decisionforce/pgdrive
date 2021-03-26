@@ -33,5 +33,21 @@ def test_recursive_config():
     assert c.aa.bb == 102
 
 
+def test_partially_update():
+    c = PGConfig({"aa": {"bb": {"cc": 100}}})
+
+    try:
+        c.update({"aa": {"bb": {"dd": 101}}}, allow_overwrite=False)
+    except KeyError:
+        pass
+    else:
+        raise ValueError()
+
+    c.update({"aa": {"bb": {"dd": 101}}}, allow_overwrite=True)
+    assert c.aa.bb.cc == 100
+    assert c.aa.bb.dd == 101
+
+
 if __name__ == '__main__':
     test_recursive_config()
+    test_partially_update()
