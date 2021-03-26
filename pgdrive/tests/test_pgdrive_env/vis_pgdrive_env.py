@@ -26,14 +26,15 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                # "debug":True,
+                "debug":True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
                     Map.GENERATE_PARA: 10,
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 },
-                "driving_reward": 1.0
+                "driving_reward": 1.0,
+                "vehicle_config":{"show_lidar":True}
             }
         )
 

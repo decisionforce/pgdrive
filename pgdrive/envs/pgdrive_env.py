@@ -652,7 +652,7 @@ class PGDriveEnv(gym.Env):
                     #     throttle = saver_a[1]
 
                     # for collision
-                    lidar_p = vehicle.lidar.get_cloud_points()
+                    lidar_p = vehicle.lidar.get_dynamic_cloud_points()
                     left = int(vehicle.lidar.num_lasers / 4)
                     right = int(vehicle.lidar.num_lasers / 4 * 3)
                     if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]

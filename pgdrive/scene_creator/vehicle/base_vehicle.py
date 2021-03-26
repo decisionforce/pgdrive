@@ -262,6 +262,7 @@ class BaseVehicle(DynamicElement):
                 obj.crashed = True
         # lidar
         if self.lidar is not None:
+            self.lidar.reset()
             self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world)
         if self.routing_localization is not None:
             self.lane, self.lane_index = self.routing_localization.update_navigation_localization(self)
