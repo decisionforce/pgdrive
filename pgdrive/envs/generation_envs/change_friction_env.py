@@ -35,10 +35,7 @@ class ChangeFrictionEnv(PGDriveEnv):
             v_config = self.config["vehicle_config"]
             v_config["wheel_friction"] = parameter["wheel_friction"]
 
-            self.vehicles = {
-                agent_id: BaseVehicle(self.pg_world, v_config)
-                for agent_id, v_config in self.config["target_vehicle_configs"].items()
-            }
+            self.vehicles = self.get_vehicles()
 
             self.init_track_vehicle()
 

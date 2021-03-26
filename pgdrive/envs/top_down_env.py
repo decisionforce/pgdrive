@@ -14,15 +14,13 @@ class TopDownSingleFramePGDriveEnv(PGDriveEnv):
         return config
 
     def get_observation(self, _=None):
-        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
-        return TopDownObservation(vehicle_config, self, self.config["rgb_clip"])
+        return TopDownObservation(self.config["vehicle_config"], self, self.config["rgb_clip"])
 
 
 class TopDownPGDriveEnv(TopDownSingleFramePGDriveEnv):
     def get_observation(self, _=None):
-        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         return TopDownMultiChannel(
-            vehicle_config,
+            self.config["vehicle_config"],
             self,
             self.config["rgb_clip"],
             frame_stack=self.config["frame_stack"],

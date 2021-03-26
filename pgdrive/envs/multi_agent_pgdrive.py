@@ -1,6 +1,7 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
-from pgdrive.utils import PGConfig, setup_logger
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.utils import setup_logger, PGConfig
 
 setup_logger(True)
 
@@ -78,6 +79,18 @@ class MultiAgentPGDrive(PGDriveEnv):
                 v.prepare_step([0, -1])
                 self.done_vehicles[id] = v
         return o, r, d, i
+
+    def get_vehicles(self):
+        # TODO We only support homogenous vehicle config now!
+        return {
+            "agent{}".format(i): BaseVehicle(self.pg_world, self.config["vehicle_config"])
+            for i in range(self.num_agents)
+        }
+
+    def get_observations(self):
+        return {
+            "agent{}".format(i): self.get_observation(self.config["vehicle_config"]) for i in range(self.num_agents)
+        }
 
     # def reward_function(self, vehicle):
     #     """

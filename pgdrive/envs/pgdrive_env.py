@@ -163,7 +163,7 @@ class PGDriveEnv(gym.Env):
     def default_config() -> PGConfig:
         config = PGConfig(PGDriveEnvV1_DEFAULT_CONFIG)
         config.register_type("map", str, int)
-        config["map_config"].register_type("type", str, int)
+        config["map_config"].register_type("config", None)
         return config
 
     def __init__(self, config: dict = None):
@@ -600,7 +600,8 @@ class PGDriveEnv(gym.Env):
             assert len(map_data) > 0, "Can not find map info in episode data"
             for map in map_data:
                 blocks_info = map
-            map_config = {}
+
+            map_config = self.config["map_config"].copy()
             map_config[Map.GENERATE_METHOD] = MapGenerateMethod.PG_MAP_FILE
             map_config[Map.GENERATE_PARA] = blocks_info
             self.current_map = Map(self.pg_world, map_config)

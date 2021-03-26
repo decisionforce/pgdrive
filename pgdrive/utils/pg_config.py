@@ -90,6 +90,7 @@ class PGConfig:
     def register_type(self, key, *types):
         """
         Register special types for item in config. This is used for mixed type declaration.
+        Note that is the type is declared as None, then we will not check type for this item.
         """
         assert key in self._config
         self._types[key] = set(types)
@@ -191,11 +192,11 @@ class PGConfig:
                 # float can be transformed to int
                 type_correct = type_correct or isinstance(value, float)
             if key in self._types:
+                if None in self._types[key]:
+                    type_correct = True
                 type_correct = type_correct or (type(value) in self._types[key])
             assert type_correct, "TypeError: {}:{}".format(key, value)
 
-        # if isinstance(self._config[key], (dict, PGConfig)):
-        #     value = self._internal_dict_to_config(value)
         self._config[key] = value
 
         super(PGConfig, self).__setattr__(key, value)
