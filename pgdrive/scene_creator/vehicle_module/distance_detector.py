@@ -25,12 +25,13 @@ class DistanceDetector:
         self.height = self.DEFAULT_HEIGHT
 
         self.radian_unit = 2 * np.pi / num_lasers
+        self.start_phase_offset = 0
         self.detection_results = []
         self.node_path = parent_node_np.attachNewNode("Could_points")
 
         # override these properties to decide which elements to detect and show
         self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask = BitMask32.bit(CollisionGroup.LaneLine)
+        self.mask = BitMask32.bit(CollisionGroup.BrokenLaneLine)
 
         self.cloud_points = [] if show else None
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
@@ -49,7 +50,7 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
 
-    def perceive(self, vehicle_position, heading_theta, pg_physics_world: PGPhysicsWorld):
+    def perceive(self, vehicle_position, heading_theta, pg_physics_world):
         """
         Call me to update the perception info
         """
@@ -59,14 +60,14 @@ class DistanceDetector:
 
         # lidar calculation use pg coordinates
         mask = self.mask
-        laser_heading = np.arange(0, self.num_lasers) * self.radian_unit + heading_theta
+        laser_heading = np.arange(0, self.num_lasers) * self.radian_unit + heading_theta + self.start_phase_offset
         point_x = self.perceive_distance * np.cos(laser_heading) + vehicle_position[0]
         point_y = self.perceive_distance * np.sin(laser_heading) + vehicle_position[1]
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         for laser_index in range(self.num_lasers):
             # # coordinates problem here! take care
             laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
-            result = pg_physics_world.dynamic_world.rayTestClosest(pg_start_position, laser_end, mask)
+            result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
             self.detection_results.append(result)
             if self.cloud_points is not None:
                 if result.hasHit():
@@ -89,6 +90,21 @@ class DistanceDetector:
         self.node_path.removeNode()
         self.detection_results = None
 
+    def set_start_phase_offset(self, angle:float):
+        """
+        Change the start phase of lidar lasers
+        :param angle: phasse offset in [degree]
+        :return: None
+        """
+        self.start_phase_offset = np.deg2rad(angle)
+
     def __del__(self):
         logging.debug("Lidar is destroyed.")
+
+class SideDetector(DistanceDetector):
+    def __init__(self, parent_node_np: NodePath, num_lasers: int = 2, distance: float = 50, enable_show=False):
+        super(SideDetector, self).__init__(parent_node_np, num_lasers, distance, enable_show)
+        self.set_start_phase_offset(90)
+        self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
+        self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine)
 

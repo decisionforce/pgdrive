@@ -13,7 +13,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": 0.4,
+                "traffic_density": 0.1,
                 "traffic_mode": "hybrid",
                 "start_seed": 5,
                 "pg_world_config": {
@@ -26,7 +26,7 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "debug":False,
+                "debug":True,
                 "map_config": {
                     Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
                     Map.GENERATE_PARA: 10,
@@ -34,7 +34,7 @@ class TestEnv(PGDriveEnv):
                     Map.LANE_NUM: 3,
                 },
                 "driving_reward": 1.0,
-                "vehicle_config":{"show_lidar":True}
+                "vehicle_config":{"show_lidar":False, "show_side_detector":True}
             }
         )
 

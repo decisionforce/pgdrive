@@ -3,7 +3,7 @@ import math
 import time
 from collections import deque
 from typing import Optional
-from pgdrive.scene_creator.vehicle_module.distance_detector import DistanceDetector
+from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
@@ -60,7 +60,8 @@ class BaseVehicle(DynamicElement):
             show_navi_mark=True,
             increment_steering=False,
             wheel_friction=0.6,
-            side_detector=dict(num_lasers=16, distance=50),  # laser num, distance
+            side_detector=dict(num_lasers=2, distance=50),  # laser num, distance
+            show_side_detector=False,
 
             # ===== use image =====
             image_source="rgb_cam",  # take effect when only when use_image == True
@@ -163,8 +164,9 @@ class BaseVehicle(DynamicElement):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
-        self.side_dector = DistanceDetector(self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-                                            self.vehicle_config["side_detector"]["distance"], enable_show=True)
+        self.side_dector = SideDetector(self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+                                            self.vehicle_config["side_detector"]["distance"],
+                                            self.vehicle_config["show_side_detector"])
         if not self.vehicle_config["use_image"]:
             if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
                 self.add_lidar(
@@ -266,11 +268,11 @@ class BaseVehicle(DynamicElement):
                 obj.crashed = True
         # lidar
         if self.lidar is not None:
-            self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world)
+            self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_dector is not None:
-            self.side_dector.perceive(self.position, self.heading_theta, self.pg_world.physics_world)
+            self.side_dector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         self._state_check()
         self.update_dist_to_left_right()
         self._update_energy_consumption()
