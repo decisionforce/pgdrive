@@ -63,4 +63,3 @@ class Lidar(DistanceDetector):
             else:
                 res += [0.0] * 4
         return res
-

@@ -26,7 +26,6 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
-
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -55,7 +54,6 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -348,14 +346,16 @@ class Block(Element, BlockDefault):
                     )
 
                     self._add_lane_line2bullet(
-                        lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight)
+                        lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight
+                    )
 
                 lane_start = lane.position(segment_num * Block.STRIPE_LENGTH * 2, i * lane_width / 2)
                 lane_end = lane.position(lane.length + Block.STRIPE_LENGTH, i * lane_width / 2)
-                middle = (lane_end[0] + lane_start[0])/2,(lane_end[1] + lane_start[1])/2
+                middle = (lane_end[0] + lane_start[0]) / 2, (lane_end[1] + lane_start[1]) / 2
 
                 self._add_lane_line2bullet(
-                    lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight)
+                    lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight
+                )
 
                 if straight:
                     lane_start = lane.position(0, i * lane_width / 2)
@@ -380,20 +380,20 @@ class Block(Element, BlockDefault):
         body_np.node().setIntoCollideMask(BitMask32.bit(mask))
         self.dynamic_nodes.append(body_np.node())
 
-        body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT/2))
+        body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT / 2))
         direction_v = lane_end - lane_start
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-            self,
-            lane_start,
-            lane_end,
-            middle,
-            parent_np: NodePath,
-            color: Vec4,
-            line_type: LineType,
-            straight_stripe=False
+        self,
+        lane_start,
+        lane_end,
+        middle,
+        parent_np: NodePath,
+        color: Vec4,
+        line_type: LineType,
+        straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -415,14 +415,15 @@ class Block(Element, BlockDefault):
             # its scale will change by setScale
             body_height = Block.LANE_LINE_GHOST_HEIGHT
             shape = BulletBoxShape(
-                Vec3(length / 2 if line_type != LineType.BROKEN else length, Block.LANE_LINE_WIDTH / 2, body_height))
+                Vec3(length / 2 if line_type != LineType.BROKEN else length, Block.LANE_LINE_WIDTH / 2, body_height)
+            )
             body_np.node().addShape(shape)
             mask = Block.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else Block.BROKEN_COLLISION_MASK
             body_np.node().setIntoCollideMask(BitMask32.bit(mask))
             self.dynamic_nodes.append(body_np.node())
 
         # position and heading
-        body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT/2))
+        body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT / 2))
         direction_v = lane_end - lane_start
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))

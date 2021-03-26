@@ -49,7 +49,6 @@ class DistanceDetector:
                 ball.getChildren().reparentTo(laser_np)
             # self.node_path.flattenStrong()
 
-
     def perceive(self, vehicle_position, heading_theta, pg_physics_world):
         """
         Call me to update the perception info
@@ -90,7 +89,7 @@ class DistanceDetector:
         self.node_path.removeNode()
         self.detection_results = None
 
-    def set_start_phase_offset(self, angle:float):
+    def set_start_phase_offset(self, angle: float):
         """
         Change the start phase of lidar lasers
         :param angle: phasse offset in [degree]
@@ -101,6 +100,7 @@ class DistanceDetector:
     def __del__(self):
         logging.debug("Lidar is destroyed.")
 
+
 class SideDetector(DistanceDetector):
     def __init__(self, parent_node_np: NodePath, num_lasers: int = 2, distance: float = 50, enable_show=False):
         super(SideDetector, self).__init__(parent_node_np, num_lasers, distance, enable_show)
@@ -108,3 +108,10 @@ class SideDetector(DistanceDetector):
         self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine)
 
+
+class LaneLineDetector(SideDetector):
+    def __init__(self, parent_node_np: NodePath, num_lasers: int = 2, distance: float = 50, enable_show=False):
+        super(SideDetector, self).__init__(parent_node_np, num_lasers, distance, enable_show)
+        self.set_start_phase_offset(90)
+        self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
+        self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine) | BitMask32.bit(CollisionGroup.BrokenLaneLine)
