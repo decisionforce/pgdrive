@@ -175,7 +175,7 @@ class PGDriveEnv(gym.Env):
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
 
-        self._sync_config_to_vehicle_config()
+        self._sync_config_to_vehicle_config([])
         assert len(self.config["target_vehicle_configs"]) == self.num_agents, "assign born place for each vehicle"
 
         # FIXME!!
@@ -220,7 +220,7 @@ class PGDriveEnv(gym.Env):
                 "debug": self.config["debug"],
                 # "force_fps": self.config["force_fps"],
                 "decision_repeat": self.config["decision_repeat"],
-            }
+            }, allow_overwrite=True
         )
         self.pg_world_config = pg_world_config
 
@@ -411,11 +411,11 @@ class PGDriveEnv(gym.Env):
         step_info = dict()
         step_info["cost"] = 0
         if vehicle.crash_vehicle:
-            step_info["cost"] = vehicle.vehicle_config["crash_vehicle_cost"]
+            step_info["cost"] = self.config["crash_vehicle_cost"]
         elif vehicle.crash_object:
-            step_info["cost"] = vehicle.vehicle_config["crash_object_cost"]
+            step_info["cost"] = self.config["crash_object_cost"]
         elif vehicle.out_of_route:
-            step_info["cost"] = vehicle.vehicle_config["out_of_road_cost"]
+            step_info["cost"] = self.config["out_of_road_cost"]
         return step_info['cost'], step_info
 
     def reward_function(self, vehicle):
@@ -434,36 +434,36 @@ class PGDriveEnv(gym.Env):
         # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
         reward = 0.0
         lateral_factor = clip(1 - 2 * abs(lateral_now) / vehicle.routing_localization.map.lane_width, 0.0, 1.0)
-        reward += vehicle.vehicle_config["driving_reward"] * (long_now - long_last) * lateral_factor
+        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
         # Penalty for frequent steering
         steering_change = abs(vehicle.last_current_action[0][0] - vehicle.last_current_action[1][0])
-        steering_penalty = vehicle.vehicle_config["steering_penalty"] * steering_change * vehicle.speed / 20
+        steering_penalty = self.config["steering_penalty"] * steering_change * vehicle.speed / 20
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = vehicle.vehicle_config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
         low_speed_penalty = 0
         if vehicle.speed < 1:
-            low_speed_penalty = vehicle.vehicle_config["low_speed_penalty"]  # encourage car
+            low_speed_penalty = self.config["low_speed_penalty"]  # encourage car
         reward -= low_speed_penalty
-        reward -= vehicle.vehicle_config["general_penalty"]
+        reward -= self.config["general_penalty"]
 
-        reward += vehicle.vehicle_config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
+        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
         step_info["step_reward"] = reward
 
         # for done
         if vehicle.crash_vehicle:
-            reward -= vehicle.vehicle_config["crash_vehicle_penalty"]
+            reward -= self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
-            reward -= vehicle.vehicle_config["crash_object_penalty"]
+            reward -=self.config["crash_object_penalty"]
         elif vehicle.out_of_route:
-            reward -= vehicle.vehicle_config["out_of_road_penalty"]
+            reward -= self.config["out_of_road_penalty"]
         elif vehicle.arrive_destination:
-            reward += vehicle.vehicle_config["success_reward"]
+            reward += self.config["success_reward"]
 
         return reward, step_info
 
@@ -832,16 +832,24 @@ class PGDriveEnv(gym.Env):
             o = LidarStateObservation(vehicle_config)
         return o
 
-    def _sync_config_to_vehicle_config(self):
+    def _sync_config_to_vehicle_config(self, sync_keys=None):
+        sync_keys = set(sync_keys or ())
+
         # merge_config_with_unknown_keys()
         # local_default_vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
         # local_default_vehicle_config = merge_config_with_unknown_keys(
         #     old_dict=self.config, new_dict=local_default_vehicle_config, allow_new_keys=True, raise_error=False
         # )
         # local_default_vehicle_config.pop("vehicle_config")
+
+        general_vehicle_config = self.config["vehicle_config"].copy()
+        assert isinstance(general_vehicle_config, PGConfig)
+        general_vehicle_config = general_vehicle_config.update(
+            {k: self.config[k] for k in sync_keys}, allow_overwrite=True)
+
         if self.num_agents == 1:
             self.config["target_vehicle_configs"].update(
-                {DEFAULT_AGENT: self.config["vehicle_config"]}, allow_overwrite=True
+                {DEFAULT_AGENT: general_vehicle_config}, allow_overwrite=True
             )
             # merge_dicts(
             #     old_dict=local_default_vehicle_config,
@@ -851,14 +859,20 @@ class PGDriveEnv(gym.Env):
             # )
         else:
             # TODO This is only a workaround!
-            for i in range(self.num_agents):
-                k = "agent{}".format(i)
-                self.config["target_vehicle_configs"][k] = merge_dicts(
-                    old_dict=local_default_vehicle_config,
-                    new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(k, {}),
-                    allow_new_keys=True,
-                    raise_error=False
-                )
+            self.config["target_vehicle_configs"].update(
+                {"agent{}".format(i): general_vehicle_config for i in range(self.num_agents)},
+                allow_overwrite=True
+            )
+
+            # for i in range(self.num_agents):
+            #
+            #     k = "agent{}".format(i)
+            #     self.config["target_vehicle_configs"][k] = merge_dicts(
+            #         old_dict=local_default_vehicle_config,
+            #         new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(k, {}),
+            #         allow_new_keys=True,
+            #         raise_error=False
+            #     )
 
 
 def _auto_termination(vehicle, should_done):

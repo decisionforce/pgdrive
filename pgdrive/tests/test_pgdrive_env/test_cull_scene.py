@@ -10,8 +10,9 @@ def test_cull_scene(use_render=False):
             config.update({
                 "target_vehicle_configs": {},
                 "num_agents": 0,
-            })
-            config.extend_config_with_unknown_keys({"crash_done": True})
+                "crash_done": True
+            }, allow_overwrite=True)
+            # config.extend_config_with_unknown_keys({"crash_done": True})
             return config
 
     env = TestCull(
