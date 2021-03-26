@@ -286,7 +286,9 @@ class BaseVehicle(DynamicElement):
         default: 3rd gear, try to use ae^bx to fit it, dp: (90, 8), (130, 12)
         :return: None
         """
-        self.energy_consumption += 3.25 * np.power(np.e, 0.01 * self.speed)
+        distance = norm(*(self.last_position - self.position)) / 1000  # km
+        print(distance)
+        self.energy_consumption += 3.25 * np.power(np.e, 0.01 * self.speed) * distance / 100  # L/100 km
 
     def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
         """
