@@ -444,7 +444,7 @@ class Block(Element, BlockDefault):
         side_np = self.sidewalk_node_path.attachNewNode(body_node)
         shape = BulletBoxShape(Vec3(1 / 2, 1 / 2, 1 / 2))
         body_node.addShape(shape)
-        body_node.setIntoCollideMask(BitMask32.allOff())
+        body_node.setIntoCollideMask(BitMask32.bit(self.CONTINUOUS_COLLISION_MASK))
         self.dynamic_nodes.append(body_node)
 
         if radius == 0:
