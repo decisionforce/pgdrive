@@ -8,12 +8,17 @@ class ChangeFrictionEnv(PGDriveEnv):
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnv.default_config()
-        config.update({
-            "change_friction": True,
-            "friction_min": 0.8,
-            "friction_max": 1.2,
-            "vehicle_config": {"wheel_friction": 1.0}
-        }, allow_overwrite=True)
+        config.update(
+            {
+                "change_friction": True,
+                "friction_min": 0.8,
+                "friction_max": 1.2,
+                "vehicle_config": {
+                    "wheel_friction": 1.0
+                }
+            },
+            allow_overwrite=True
+        )
         return config
 
     def __init__(self, config=None):

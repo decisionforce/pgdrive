@@ -41,9 +41,9 @@ class MultiAgentPGDrive(PGDriveEnv):
                     }
                 },
                 "num_agents": 4,
-
                 "crash_done": True
-            }, allow_overwrite=True
+            },
+            allow_overwrite=True
         )
         # Some collision bugs still exist, always set to False now!!!!
         # config.extend_config_with_unknown_keys({"crash_done": True})
@@ -89,7 +89,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
     def get_observations(self):
         return {
-            "agent{}".format(i): self.get_observation(self.config["vehicle_config"]) for i in range(self.num_agents)
+            "agent{}".format(i): self.get_observation(self.config["vehicle_config"])
+            for i in range(self.num_agents)
         }
 
     # def reward_function(self, vehicle):

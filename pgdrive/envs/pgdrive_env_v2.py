@@ -17,38 +17,35 @@ class PGDriveEnvV2(PGDriveEnvV1):
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV1.default_config()
-        config.update(dict(
-            # ===== Traffic =====
-            traffic_density=0.1,
-            traffic_mode=TrafficMode.Trigger,  # "reborn", "trigger", "hybrid"
-            random_traffic=False,  # Traffic is randomized at default.
+        config.update(
+            dict(
+                # ===== Traffic =====
+                traffic_density=0.1,
+                traffic_mode=TrafficMode.Trigger,  # "reborn", "trigger", "hybrid"
+                random_traffic=False,  # Traffic is randomized at default.
 
-            # ===== Cost Scheme =====
-            crash_vehicle_cost=1.,
-            crash_object_cost=1.,
-            out_of_road_cost=1.,
+                # ===== Cost Scheme =====
+                crash_vehicle_cost=1.,
+                crash_object_cost=1.,
+                out_of_road_cost=1.,
 
-            # ===== Reward Scheme =====
-            # See: https://github.com/decisionforce/pgdrive/issues/283
-            success_reward=10.0,
-            out_of_road_penalty=5.0,
-            crash_vehicle_penalty=5.0,
-            crash_object_penalty=5.0,
-            acceleration_penalty=0.0,
-            driving_reward=1.0,
-            general_penalty=0.0,
-            speed_reward=0.5,
-            use_lateral=False,
+                # ===== Reward Scheme =====
+                # See: https://github.com/decisionforce/pgdrive/issues/283
+                success_reward=10.0,
+                out_of_road_penalty=5.0,
+                crash_vehicle_penalty=5.0,
+                crash_object_penalty=5.0,
+                acceleration_penalty=0.0,
+                driving_reward=1.0,
+                general_penalty=0.0,
+                speed_reward=0.5,
+                use_lateral=False,
 
-            # See: https://github.com/decisionforce/pgdrive/issues/297
-            vehicle_config=dict(
-                lidar=dict(
-                    num_lasers=120,
-                    distance=50,
-                    num_others=0
-                )
+                # See: https://github.com/decisionforce/pgdrive/issues/297
+                vehicle_config=dict(lidar=dict(num_lasers=120, distance=50, num_others=0)),
             ),
-        ), allow_overwrite=True)
+            allow_overwrite=True
+        )
         return config
 
     def __init__(self, config: dict = None):
@@ -145,7 +142,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:

@@ -5,6 +5,7 @@ from pgdrive import PGDriveEnv
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.envs.pgdrive_env import PGDriveEnvV1_DEFAULT_CONFIG
 
+
 @pytest.fixture
 def pg_env():
     env = PGDriveEnv()

@@ -20,8 +20,8 @@ pygame = import_pygame()
 
 def parse_map_config(easy_map_config, original_map_config):
     # if original_map_config:
-        # Do not override map config if user defines one.
-        # return original_map_config
+    # Do not override map config if user defines one.
+    # return original_map_config
     # TODO(pzh) This part is problematic!
     original_map_config = original_map_config or dict()
     if isinstance(easy_map_config, int):

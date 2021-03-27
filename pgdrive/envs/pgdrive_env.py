@@ -190,10 +190,12 @@ class PGDriveEnv(gym.Env):
 
         self.observations = self.get_observations()
         self.observation_space = gym.spaces.Dict(
-            {v_id: obs.observation_space for v_id, obs in self.observations.items()}
+            {v_id: obs.observation_space
+             for v_id, obs in self.observations.items()}
         )
         self.action_space = gym.spaces.Dict(
-            {v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()}
+            {v_id: BaseVehicle.get_action_space_before_init()
+             for v_id in self.observations.keys()}
         )
 
         if self.num_agents == 1:
@@ -220,7 +222,8 @@ class PGDriveEnv(gym.Env):
                 "debug": self.config["debug"],
                 # "force_fps": self.config["force_fps"],
                 "decision_repeat": self.config["decision_repeat"],
-            }, allow_overwrite=True
+            },
+            allow_overwrite=True
         )
         self.pg_world_config = pg_world_config
 
@@ -248,7 +251,6 @@ class PGDriveEnv(gym.Env):
             # v_id: self.get_observation(v_config)
             # for v_id, v_config in self.config["target_vehicle_configs"].items()
         }
-
 
     def lazy_init(self):
         """
@@ -329,7 +331,6 @@ class PGDriveEnv(gym.Env):
             # agent_id: BaseVehicle(self.pg_world, v_config)
             # for agent_id, v_config in self.config["target_vehicle_configs"].items()
         }
-
 
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
 
@@ -454,7 +455,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -471,7 +472,7 @@ class PGDriveEnv(gym.Env):
         if vehicle.crash_vehicle:
             reward -= self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
-            reward -=self.config["crash_object_penalty"]
+            reward -= self.config["crash_object_penalty"]
         elif vehicle.out_of_route:
             reward -= self.config["out_of_road_penalty"]
         elif vehicle.arrive_destination:
@@ -878,15 +879,15 @@ class PGDriveEnv(gym.Env):
     #             allow_overwrite=True
     #         )
 
-            # for i in range(self.num_agents):
-            #
-            #     k = "agent{}".format(i)
-            #     self.config["target_vehicle_configs"][k] = merge_dicts(
-            #         old_dict=local_default_vehicle_config,
-            #         new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(k, {}),
-            #         allow_new_keys=True,
-            #         raise_error=False
-            #     )
+    # for i in range(self.num_agents):
+    #
+    #     k = "agent{}".format(i)
+    #     self.config["target_vehicle_configs"][k] = merge_dicts(
+    #         old_dict=local_default_vehicle_config,
+    #         new_dict=self.config.get_dict().get("target_vehicle_configs", {}).get(k, {}),
+    #         allow_new_keys=True,
+    #         raise_error=False
+    #     )
 
 
 def _auto_termination(vehicle, should_done):
@@ -901,7 +902,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:

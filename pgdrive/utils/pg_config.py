@@ -74,7 +74,6 @@ class PGConfig:
     For these <key, value> items, use PGConfig["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
-
     def __init__(self, config: Union[dict, "PGConfig"]):
         if isinstance(config, PGConfig):
             config = config.get_dict()
@@ -170,8 +169,9 @@ class PGConfig:
         if key not in self._config:
             raise KeyError(
                 "'{}' does not exist in existing config. "
-                "Please use config.update(..., allow_overwrite=True) to update the config. Existing keys: {}."
-                    .format(key, self._config.keys())
+                "Please use config.update(..., allow_overwrite=True) to update the config. Existing keys: {}.".format(
+                    key, self._config.keys()
+                )
             )
 
     def copy(self):
