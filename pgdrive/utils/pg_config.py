@@ -1,8 +1,7 @@
 import copy
-from typing import Union
+from typing import Union, Any
 
 import numpy as np
-
 from pgdrive.utils.utils import merge_dicts
 
 
@@ -50,11 +49,18 @@ def _recursive_check_keys(new_config, old_config, prefix=""):
                 _recursive_check_keys(new, old, new_prefix)
 
 
-def config_to_dict(config: "PGConfig") -> dict:
+def config_to_dict(config: Union[Any, dict, "PGConfig"]) -> dict:
+    # Return the flatten and json-able dict
+    if not isinstance(config, (dict, PGConfig)):
+        return config
     ret = dict()
     for k, v in config.items():
         if isinstance(v, PGConfig):
-            v = config_to_dict(v)
+            v = v.get_dict()
+        elif isinstance(v, dict):
+            v = {sub_k: config_to_dict(sub_v) for sub_k, sub_v in v.items()}
+        elif isinstance(v, np.ndarray):
+            v = v.tolist()
         ret[k] = v
     return ret
 
@@ -96,7 +102,7 @@ class PGConfig:
         self._types[key] = set(types)
 
     def get_dict(self):
-        return self._config
+        return config_to_dict(self._config)
 
     def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=False):
         new_dict = new_dict or dict()
@@ -215,6 +221,9 @@ class PGConfig:
 
     def __len__(self):
         return len(self._config)
+
+    def __iter__(self):
+        return iter(self.keys())
 
     def check_keys(self, new_dict):
         if isinstance(new_dict, (dict, PGConfig)):

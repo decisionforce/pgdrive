@@ -158,9 +158,9 @@ class Map:
         for b in self.blocks:
             assert isinstance(b, Block), "None Set can not be saved to json file"
             b_config = b.get_config()
-            json_config = {}
-            for k, v in b_config._config.items():
-                json_config[k] = v.tolist()[0] if isinstance(v, np.ndarray) else v
+            json_config = b_config.get_dict()
+            # for k, v in b_config._config.items():
+            #     json_config[k] = v.tolist()[0] if isinstance(v, np.ndarray) else v
             json_config[self.BLOCK_ID] = b.ID
             json_config[self.PRE_BLOCK_SOCKET_INDEX] = b.pre_block_socket_index
             map_config.append(json_config)
@@ -191,6 +191,8 @@ class Map:
         self.config[self.LANE_WIDTH] = map_config[self.LANE_WIDTH]
         self.config[self.SEED] = map_config[self.SEED]
         blocks_config = map_config[self.BLOCK_SEQUENCE]
+        for b_id, b in enumerate(blocks_config):
+            blocks_config[b_id] = {k: np.array(v) if isinstance(v, list) else v for k, v in b.items()}
 
         # update the property
         self.lane_width = self.config[self.LANE_WIDTH]

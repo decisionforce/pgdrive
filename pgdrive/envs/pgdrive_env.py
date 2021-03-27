@@ -640,6 +640,7 @@ class PGDriveEnv(gym.Env):
                                       "environment."
 
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
+        assert self.pg_world is not None
         self.pg_world.clear_world()
 
         for seed in range(self.start_seed, self.start_seed + self.env_num):
@@ -656,7 +657,7 @@ class PGDriveEnv(gym.Env):
             assert map is not None
             map_data[seed] = map.save_map()
 
-        return_data = dict(map_config=copy.deepcopy(self.config["map_config"]), map_data=copy.deepcopy(map_data))
+        return_data = dict(map_config=self.config["map_config"].copy().get_dict(), map_data=copy.deepcopy(map_data))
         return return_data
 
     def load_all_maps(self, data):
