@@ -1,4 +1,3 @@
-import copy
 import math
 import time
 from collections import deque
@@ -220,13 +219,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_vehicle_config(cls, new_config=None):
-        raise ValueError()
-        default = copy.deepcopy(cls._default_vehicle_config())
-        if new_config is None:
-            return default
-        # default.update(new_config)
-        default.extend_config_with_unknown_keys(new_config)
-        return default
+        raise ValueError("This function is deprecated!")
 
     def _preprocess_action(self, action):
         if self.vehicle_config["action_check"]:
