@@ -212,7 +212,12 @@ class PGDriveEnv(gym.Env):
             },
             allow_overwrite=True
         )
-        config["vehicle_config"].update({"use_image": config["use_image"]}, allow_overwrite=True)
+        config["vehicle_config"].update(
+            {
+                "use_render": config["use_render"],
+                "use_image": config["use_image"]
+            }, allow_overwrite=True
+        )
         return config
 
     def get_observations(self):

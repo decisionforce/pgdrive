@@ -7,7 +7,7 @@ def _t(num_blocks):
     default_config = PGDriveEnv.default_config()
 
     world_config = default_config["pg_world_config"]
-    world_config["use_render"] = False
+    world_config.update({"use_render": False, "use_image": False, "debug": False}, allow_overwrite=True)
     world = PGWorld(config=world_config)
     try:
         map_config = default_config["map_config"]

@@ -150,7 +150,7 @@ class BaseVehicle(DynamicElement):
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
-        self._add_modules_for_vehicle(pg_world.world_config["use_render"])
+        self._add_modules_for_vehicle(self.vehicle_config["use_render"])
         self.takeover = False
         self._expert_takeover = False
         self.energy_consumption = 0
@@ -220,13 +220,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_vehicle_config(cls, new_config=None):
-        raise ValueError()
-        default = copy.deepcopy(cls._default_vehicle_config())
-        if new_config is None:
-            return default
-        # default.update(new_config)
-        default.extend_config_with_unknown_keys(new_config)
-        return default
+        raise ValueError("This function is deprecated!")
 
     def _preprocess_action(self, action):
         if self.vehicle_config["action_check"]:
