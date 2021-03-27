@@ -107,10 +107,16 @@ class PGConfig:
         new_dict = new_dict or dict()
         new_dict = copy.deepcopy(new_dict)
         for k, v in new_dict.items():
+
+            if k == "map_config":
+                print('ss')
+
             if k not in self:
                 if not allow_overwrite:
                     self._check_and_raise_key_error(k)
                 else:
+                    if isinstance(v, dict):
+                        v = PGConfig(v)
                     self._config[k] = v  # Placeholder
             success = False
             if isinstance(self._config[k], (dict, PGConfig)):
@@ -129,6 +135,8 @@ class PGConfig:
                         k, type(self[k]), type(v)
                     )
                 )
+        if not isinstance(self[k], PGConfig):
+            self[k] = PGConfig(self[k])
         self[k].update(v, allow_overwrite=allow_overwrite)
         return True
 
