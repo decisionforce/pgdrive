@@ -110,19 +110,13 @@ class BasePGDriveEnv(gym.Env):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
 
     def _get_observation_space(self) -> gym.Space:
-        ret = gym.spaces.Dict(
-            {v_id: obs.observation_space
-             for v_id, obs in self.observations.items()}
-        )
+        ret = gym.spaces.Dict({v_id: obs.observation_space for v_id, obs in self.observations.items()})
         if self.num_agents == 1:
             ret = ret[DEFAULT_AGENT]
         return ret
 
     def _get_action_space(self) -> gym.Space:
-        ret = gym.spaces.Dict(
-            {v_id: BaseVehicle.get_action_space_before_init()
-             for v_id in self.observations.keys()}
-        )
+        ret = gym.spaces.Dict({v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()})
         if self.num_agents == 1:
             ret = ret[DEFAULT_AGENT]
         return ret

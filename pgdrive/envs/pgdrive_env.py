@@ -234,15 +234,13 @@ class PGDriveEnv(BasePGDriveEnv):
 
         termination_infos = self.for_each_vehicle(_auto_termination, should_done)
 
-        step_infos = concat_step_infos(
-            [
-                step_infos,
-                done_infos,
-                reward_infos,
-                cost_infos,
-                termination_infos,
-            ]
-        )
+        step_infos = concat_step_infos([
+            step_infos,
+            done_infos,
+            reward_infos,
+            cost_infos,
+            termination_infos,
+        ])
 
         if should_done:
             for k in self.dones:
@@ -314,7 +312,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -496,7 +494,6 @@ class PGDriveEnv(BasePGDriveEnv):
             self.config["load_map_from_json"] = False  # Don't fall into this function again.
             return False
 
-
     def toggle_expert_takeover(self):
         """
         Only take effect whene vehicle num==1
@@ -597,7 +594,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:

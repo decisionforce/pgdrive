@@ -56,6 +56,7 @@ class ChangeFrictionEnv(PGDriveEnv):
         self.done_vehicles = {}
         self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
+
 if __name__ == '__main__':
     env = ChangeFrictionEnv(config={"environment_num": 100, "start_seed": 1000, "change_friction": True})
     env.seed(100000)
