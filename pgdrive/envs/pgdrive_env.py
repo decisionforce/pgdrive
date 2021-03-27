@@ -3,11 +3,9 @@ import json
 import logging
 import os.path as osp
 import sys
-import time
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
-from panda3d.core import PNMImage
 
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
@@ -212,9 +210,6 @@ class PGDriveEnv(BasePGDriveEnv):
             actions[v_id], saver_info[v_id] = self.saver(v_id, v, actions)
         return actions, saver_info
 
-    def _get_vehicles(self):
-        return {self.DEFAULT_AGENT: BaseVehicle(self.pg_world, self.config["vehicle_config"])}
-
     def _get_step_return(self, actions, step_infos):
         """Don't need to copy anything here!"""
         # update obs, dones, rewards, costs, calculate done at first !
@@ -338,10 +333,8 @@ class PGDriveEnv(BasePGDriveEnv):
         return reward, step_info
 
     def _reset_vehicles(self):
-
         self.vehicles.update(self.done_vehicles)
         self.done_vehicles = {}
-
         self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
     def _get_reset_return(self):
@@ -351,36 +344,6 @@ class PGDriveEnv(BasePGDriveEnv):
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
-
-    def close(self):
-        if self.pg_world is not None:
-            if self.main_camera is not None:
-                self.main_camera.destroy(self.pg_world)
-                del self.main_camera
-                self.main_camera = None
-            self.pg_world.clear_world()
-
-            self.scene_manager.destroy(self.pg_world)
-            del self.scene_manager
-            self.scene_manager = None
-
-            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
-            del self.vehicles
-            self.vehicles = dict()
-
-            del self.controller
-            self.controller = None
-
-            self.pg_world.close_world()
-            del self.pg_world
-            self.pg_world = None
-
-        del self.maps
-        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
-        del self.current_map
-        self.current_map = None
-        del self.restored_maps
-        self.restored_maps = dict()
 
     def _update_map(self, episode_data: dict = None):
         if episode_data is not None:
