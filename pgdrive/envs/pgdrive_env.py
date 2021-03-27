@@ -203,12 +203,15 @@ class PGDriveEnv(gym.Env):
     def process_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
         config["map_config"] = parse_map_config(config["map"], config["map_config"])
-        config["pg_world_config"].update({
-            "use_render": config["use_render"],
-            "use_image": config["use_image"],
-            "debug": config["debug"],
-            "decision_repeat": config["decision_repeat"],
-        }, allow_overwrite=True)
+        config["pg_world_config"].update(
+            {
+                "use_render": config["use_render"],
+                "use_image": config["use_image"],
+                "debug": config["debug"],
+                "decision_repeat": config["decision_repeat"],
+            },
+            allow_overwrite=True
+        )
         config["vehicle_config"].update({"use_image": config["use_image"]}, allow_overwrite=True)
         return config
 
@@ -272,8 +275,8 @@ class PGDriveEnv(gym.Env):
         self.pg_world.accept("n", self.chase_another_v)
 
     def preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
-        if self.config["manual_control"] and self.config[
-            "use_render"] and self.current_track_vehicle_id in self.vehicles.keys():
+        if self.config["manual_control"] and self.config["use_render"
+                                                         ] and self.current_track_vehicle_id in self.vehicles.keys():
             action = self.controller.process_input()
             if self.num_agents == 1:
                 actions = action
@@ -417,7 +420,7 @@ class PGDriveEnv(gym.Env):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -453,7 +456,8 @@ class PGDriveEnv(gym.Env):
         :return: when mode is 'rgb', image array is returned
         """
         assert self.config["use_render"] or self.pg_world.mode != RENDER_MODE_NONE, (
-            "render is off now, can not render")
+            "render is off now, can not render"
+        )
         self.pg_world.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting
@@ -814,7 +818,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:
