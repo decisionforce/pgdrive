@@ -16,3 +16,7 @@ def test_safe_env():
         env.close()
     finally:
         env.close()
+
+
+if __name__ == '__main__':
+    test_safe_env()

@@ -2,7 +2,6 @@ import logging
 import os.path as osp
 
 import numpy as np
-
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.pgdrive_env import PGDriveEnv as PGDriveEnvV1
 from pgdrive.scene_manager.traffic_manager import TrafficMode
@@ -43,6 +42,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
                 # See: https://github.com/decisionforce/pgdrive/issues/297
                 vehicle_config=dict(lidar=dict(num_lasers=120, distance=50, num_others=0)),
+
+                # Disable map loading!
+                load_map_from_json=False,
+                _load_map_from_json="",
             ),
             allow_overwrite=True
         )

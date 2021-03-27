@@ -119,7 +119,7 @@ class ObjectsManager(RandomEngine):
                     on_left
                 )
             else:
-                accident_lane_idx = self.np_random.randint(scene_mgr.map.lane_num)
+                accident_lane_idx = self.np_random.randint(scene_mgr.map.config[scene_mgr.map.LANE_NUM])
                 self.break_down_scene(scene_mgr, pg_world, lane, accident_road.lane_index(accident_lane_idx), longitude)
 
     def break_down_scene(
