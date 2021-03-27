@@ -1,6 +1,6 @@
 from panda3d.core import Vec3, NodePath, Shader, RenderState, ShaderAttrib, BitMask32, GeoMipTerrain
 
-from pgdrive.pg_config.cam_mask import CamMask
+from pgdrive.constants import CamMask
 from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.world.image_buffer import ImageBuffer
@@ -41,7 +41,7 @@ class DepthCamera(ImageBuffer):
         self.lens.setAspectRatio(2.0)
 
         # add shader for it
-        if pg_world.pg_config["headless_image"]:
+        if pg_world.world_config["headless_image"]:
             vert_path = AssetLoader.file_path("shaders", "depth_cam_gles.vert.glsl")
             frag_path = AssetLoader.file_path("shaders", "depth_cam_gles.frag.glsl")
         else:

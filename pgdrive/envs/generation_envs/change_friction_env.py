@@ -1,19 +1,24 @@
 import numpy as np
-
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config import PGConfig
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.utils import get_np_random
+from pgdrive.utils import PGConfig, get_np_random
 
 
 class ChangeFrictionEnv(PGDriveEnv):
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnv.default_config()
-        config.add("change_friction", True)
-        config.add("friction_min", 0.8)
-        config.add("friction_max", 1.2)
-        config.update({"vehicle_config": {"wheel_friction": 1.0}})
+        config.update(
+            {
+                "change_friction": True,
+                "friction_min": 0.8,
+                "friction_max": 1.2,
+                "vehicle_config": {
+                    "wheel_friction": 1.0
+                }
+            },
+            allow_overwrite=True
+        )
         return config
 
     def __init__(self, config=None):
@@ -35,10 +40,7 @@ class ChangeFrictionEnv(PGDriveEnv):
             v_config = self.config["vehicle_config"]
             v_config["wheel_friction"] = parameter["wheel_friction"]
 
-            self.vehicles = {
-                agent_id: BaseVehicle(self.pg_world, v_config)
-                for agent_id, v_config in self.config["target_vehicle_configs"].items()
-            }
+            self.vehicles = self.get_vehicles()
 
             self.init_track_vehicle()
 

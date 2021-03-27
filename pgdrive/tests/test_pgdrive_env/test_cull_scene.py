@@ -1,19 +1,14 @@
-from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config import PGConfig
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
-from pgdrive.utils import setup_logger
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.utils import PGConfig
 
 
 def test_cull_scene(use_render=False):
     class TestCull(MultiAgentPGDrive):
         def default_config(self) -> PGConfig:
             config = PGDriveEnv.default_config()
-            config.update({
-                "target_vehicle_configs": {},
-                "num_agents": 0,
-            })
-            config.extend_config_with_unknown_keys({"crash_done": True})
+            config.update({"target_vehicle_configs": {}, "num_agents": 0, "crash_done": True}, allow_overwrite=True)
+            # config.extend_config_with_unknown_keys({"crash_done": True})
             return config
 
     env = TestCull(

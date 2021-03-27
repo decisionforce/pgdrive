@@ -1,11 +1,9 @@
 import numpy as np
-
-from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
-from pgdrive.pg_config.pg_space import PGSpace
 from pgdrive.scene_creator.blocks.block import Block
-from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, sharpbend
+from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, create_bend_straight
 from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.road.road import Road
+from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 
 
 class Curve(Block):
@@ -33,7 +31,7 @@ class Curve(Block):
         direction = parameters[Parameter.dir]
         angle = parameters[Parameter.angle]
         radius = parameters[Parameter.radius]
-        curve, straight = sharpbend(
+        curve, straight = create_bend_straight(
             basic_lane, length, radius, np.deg2rad(angle), direction, basic_lane.width,
             (LineType.BROKEN, LineType.SIDE)
         )

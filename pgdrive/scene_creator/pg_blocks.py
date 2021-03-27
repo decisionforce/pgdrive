@@ -1,3 +1,4 @@
+from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
 from pgdrive.scene_creator.blocks.curve import Curve
 from pgdrive.scene_creator.blocks.fork import InFork, OutFork
 from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraight
@@ -18,6 +19,8 @@ class PGBlock:
         OutRampOnStraight: 0.1,
         InFork: 0.00,
         OutFork: 0.00,
+        Merge: 0.00,
+        Split: 0.00
     }
 
     @classmethod
