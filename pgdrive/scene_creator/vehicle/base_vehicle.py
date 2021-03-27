@@ -1,5 +1,4 @@
 import copy
-import logging
 import math
 import time
 from collections import deque
@@ -8,31 +7,25 @@ from typing import Optional
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
-from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
-from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
-from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName
-from pgdrive.pg_config import PGConfig
-from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.pg_config.collision_group import CollisionGroup
-from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
-from pgdrive.pg_config.pg_space import PGSpace
-from pgdrive.rl_utils.cost import pg_cost_scheme
-from pgdrive.rl_utils.reward import pg_reward_scheme
+from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
+from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
 from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import safe_clip
+from pgdrive.utils import PGConfig, safe_clip
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
@@ -101,8 +94,10 @@ class BaseVehicle(DynamicElement):
         :param random_seed: int
         """
 
-        self.vehicle_config = self.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else self._default_vehicle_config()
+        self.vehicle_config = PGConfig(vehicle_config)
+
+        # self.vehicle_config = self.get_vehicle_config(vehicle_config) \
+        #     if vehicle_config is not None else self._default_vehicle_config()
 
         # observation, action
         self.action_space = self.get_action_space_before_init()
@@ -155,9 +150,10 @@ class BaseVehicle(DynamicElement):
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
-        self._add_modules_for_vehicle(pg_world.pg_config["use_render"])
+        self._add_modules_for_vehicle(pg_world.world_config["use_render"])
         self.takeover = False
         self._expert_takeover = False
+        self.energy_consumption = 0
 
         # overtake_stat
         self.front_vehicles = set()
@@ -224,6 +220,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_vehicle_config(cls, new_config=None):
+        raise ValueError()
         default = copy.deepcopy(cls._default_vehicle_config())
         if new_config is None:
             return default
@@ -273,6 +270,7 @@ class BaseVehicle(DynamicElement):
             self.lane, self.lane_index = self.routing_localization.update_navigation_localization(self)
         self._state_check()
         self.update_dist_to_left_right()
+        self._update_energy_consumption()
         self.out_of_route = True if self.dist_to_right < 0 or self.dist_to_left < 0 else False
         step_info = self._update_overtake_stat()
         step_info.update(
@@ -283,6 +281,17 @@ class BaseVehicle(DynamicElement):
             }
         )
         return step_info
+
+    def _update_energy_consumption(self):
+        """
+        The calculation method is from
+        https://www.researchgate.net/publication/262182035_Reduction_of_Fuel_Consumption_and_Exhaust_Pollutant_Using_Intelligent_Transport_System
+        default: 3rd gear, try to use ae^bx to fit it, dp: (90, 8), (130, 12)
+        :return: None
+        """
+        distance = norm(*(self.last_position - self.position)) / 1000  # km
+        print(distance)
+        self.energy_consumption += 3.25 * np.power(np.e, 0.01 * self.speed) * distance / 100  # L/100 km
 
     def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
         """
@@ -315,6 +324,7 @@ class BaseVehicle(DynamicElement):
         self.last_heading_dir = self.heading
         self.update_dist_to_left_right()
         self.takeover = False
+        self.energy_consumption = 0
 
         # overtake_stat
         self.front_vehicles = set()

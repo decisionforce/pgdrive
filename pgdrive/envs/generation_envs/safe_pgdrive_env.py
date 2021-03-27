@@ -1,6 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config import PGConfig
-from pgdrive.rl_utils.done import pg_done_function
+from pgdrive.utils import PGConfig
 
 
 class SafePGDriveEnv(PGDriveEnv):
@@ -15,11 +14,11 @@ class SafePGDriveEnv(PGDriveEnv):
             "traffic_density": 0.2,
         }
         config = super(SafePGDriveEnv, self).default_config()
-        config.extend_config_with_unknown_keys(extra_config)
+        config.update(extra_config, allow_overwrite=True)
         return config
 
     def done_function(self, vehicle):
-        done, done_info = pg_done_function(vehicle)
+        done, done_info = super(SafePGDriveEnv, self).done_function(vehicle)
         if done_info["crash_vehicle"]:
             done = False
         elif done_info["crash_object"]:

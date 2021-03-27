@@ -2,7 +2,6 @@ import logging
 from typing import List, Tuple, Optional, Dict, AnyStr
 
 import numpy as np
-
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.PGLOD import PGLOD
 from pgdrive.scene_manager.object_manager import ObjectsManager
@@ -111,7 +110,7 @@ class SceneManager:
         :param step_num: Decision of all entities will repeat *step_num* times
         """
         pg_world = self.pg_world
-        dt = pg_world.pg_config["physics_world_step_size"]
+        dt = pg_world.world_config["physics_world_step_size"]
         for i in range(step_num):
             if self.replay_system is None:
                 # not in replay mode
