@@ -25,11 +25,11 @@ def parse_map_config(easy_map_config, original_map_config):
     # TODO(pzh) This part is problematic!
     original_map_config = original_map_config or dict()
     if isinstance(easy_map_config, int):
-        original_map_config[Map.GENERATE_METHOD] = BigGenerateMethod.BLOCK_NUM
-        original_map_config[Map.GENERATE_PARA] = easy_map_config
+        original_map_config[Map.GENERATE_TYPE] = BigGenerateMethod.BLOCK_NUM
+        original_map_config[Map.GENERATE_CONFIG] = easy_map_config
     elif isinstance(easy_map_config, str):
-        original_map_config[Map.GENERATE_METHOD] = BigGenerateMethod.BLOCK_SEQUENCE
-        original_map_config[Map.GENERATE_PARA] = easy_map_config
+        original_map_config[Map.GENERATE_TYPE] = BigGenerateMethod.BLOCK_SEQUENCE
+        original_map_config[Map.GENERATE_CONFIG] = easy_map_config
     else:
         raise ValueError(
             "Unkown easy map config: {} and original map config: {}".format(easy_map_config, original_map_config)
@@ -57,8 +57,8 @@ class Map:
     PRE_BLOCK_SOCKET_INDEX = "pre_block_socket_index"
 
     # generate_method
-    GENERATE_PARA = "config"
-    GENERATE_METHOD = "type"
+    GENERATE_CONFIG = "config"
+    GENERATE_TYPE = "type"
 
     def __init__(self, pg_world: PGWorld, map_config: dict = None):
         """
@@ -71,12 +71,13 @@ class Map:
         self.config = PGConfig(map_config)
 
         self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
-        self.lane_width = self.config[self.LANE_WIDTH]
-        self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
-        self.lane_width = self.lane_width * random.uniform(
-            1 - self.lane_width_rand_range, 1 + self.lane_width_rand_range
-        )
-        self.lane_num = self.config[self.LANE_NUM]
+
+        # self.lane_width = self.config[self.LANE_WIDTH]
+        # self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
+        # self.lane_width = self.lane_width * random.uniform(
+        #     1 - self.lane_width_rand_range, 1 + self.lane_width_rand_range
+        # )
+        # self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
         self.road_network = RoadNetwork()
         self.blocks = []
@@ -93,13 +94,13 @@ class Map:
         We can override this function to introduce other methods!
         """
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
-        generate_type = self.config[self.GENERATE_METHOD]
+        generate_type = self.config[self.GENERATE_TYPE]
         if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:
             self._big_generate(parent_node_path, pg_physics_world)
 
         elif generate_type == MapGenerateMethod.PG_MAP_FILE:
             # other config such as lane width, num and seed will be valid, since they will be read from file
-            blocks_config = self.read_map(self.config[self.GENERATE_PARA])
+            blocks_config = self.read_map(self.config[self.GENERATE_CONFIG])
             self._config_generate(blocks_config, parent_node_path, pg_physics_world)
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
@@ -108,8 +109,8 @@ class Map:
     # def default_config():
     #     return PGConfig(
     #         {
-    #             Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-    #             Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
+    #             Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_NUM,
+    #             Map.GENERATE_CONFIG: None,  # it can be a file path / block num / block ID sequence
     #             Map.LANE_WIDTH: 3.5,
     #             Map.LANE_NUM: 3,
     #             Map.SEED: 10,
@@ -119,15 +120,17 @@ class Map:
 
     def _big_generate(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
         big_map = BIG(
-            self.lane_num, self.lane_width, self.road_network, parent_node_path, pg_physics_world, self.random_seed
+            self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
+            pg_physics_world, self.random_seed
         )
-        big_map.generate(self.config[self.GENERATE_METHOD], self.config[self.GENERATE_PARA])
+        big_map.generate(self.config[self.GENERATE_TYPE], self.config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks
 
     def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
         last_block = FirstBlock(
-            self.road_network, self.lane_width, self.lane_num, parent_node_path, pg_physics_world, 1
+            self.road_network, self.config[self.LANE_WIDTH], self.config[self.LANE_NUM], parent_node_path,
+            pg_physics_world, 1
         )
         self.blocks.append(last_block)
         for block_index, b in enumerate(blocks_config[1:], 1):
@@ -173,9 +176,9 @@ class Map:
         saved_data = copy.deepcopy(
             {
                 self.SEED: self.random_seed,
-                self.LANE_NUM: self.lane_num,
-                self.LANE_WIDTH: self.lane_width,
-                self.LANE_WIDTH_RAND_RANGE: self.lane_width_rand_range,
+                # self.LANE_NUM: self.lane_num,
+                # self.LANE_WIDTH: self.lane_width,
+                # self.LANE_WIDTH_RAND_RANGE: self.lane_width_rand_range,
                 self.BLOCK_SEQUENCE: map_config
             }
         )
@@ -193,18 +196,18 @@ class Map:
         """
         Load the map from a dict
         """
-        self.config[self.LANE_NUM] = map_config[self.LANE_NUM]
-        self.config[self.LANE_WIDTH] = map_config[self.LANE_WIDTH]
-        self.config[self.LANE_WIDTH_RAND_RANGE] = map_config[self.LANE_WIDTH_RAND_RANGE]
+        # self.config[self.LANE_NUM] = map_config[self.LANE_NUM]
+        # self.config[self.LANE_WIDTH] = map_config[self.LANE_WIDTH]
+        # self.config[self.LANE_WIDTH_RAND_RANGE] = map_config[self.LANE_WIDTH_RAND_RANGE]
         self.config[self.SEED] = map_config[self.SEED]
         blocks_config = map_config[self.BLOCK_SEQUENCE]
         for b_id, b in enumerate(blocks_config):
             blocks_config[b_id] = {k: np.array(v) if isinstance(v, list) else v for k, v in b.items()}
 
         # update the property
-        self.lane_width = self.config[self.LANE_WIDTH]
-        self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
-        self.lane_num = self.config[self.LANE_NUM]
+        # self.lane_width = self.config[self.LANE_WIDTH]
+        # self.lane_width_rand_range = self.config[self.LANE_WIDTH_RAND_RANGE]
+        # self.lane_num = self.config[self.LANE_NUM]
         self.random_seed = self.config[self.SEED]
         return blocks_config
 

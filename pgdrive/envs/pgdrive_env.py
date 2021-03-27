@@ -31,8 +31,8 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     # ===== Map Config =====
     map=3,  # int or string: an easy way to fill map_config
     map_config={
-        Map.GENERATE_METHOD: MapGenerateMethod.BIG_BLOCK_NUM,
-        Map.GENERATE_PARA: None,  # it can be a file path / block num / block ID sequence
+        Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_NUM,
+        Map.GENERATE_CONFIG: None,  # it can be a file path / block num / block ID sequence
         Map.LANE_WIDTH: 3.5,
         Map.LANE_NUM: 3,
         Map.SEED: 10,
@@ -446,7 +446,9 @@ class PGDriveEnv(gym.Env):
 
         # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
         reward = 0.0
-        lateral_factor = clip(1 - 2 * abs(lateral_now) / vehicle.routing_localization.map.lane_width, 0.0, 1.0)
+        lateral_factor = clip(
+            1 - 2 * abs(lateral_now) / vehicle.routing_localization.get_current_lane_width(), 0.0, 1.0
+        )
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
         # Penalty for frequent steering
@@ -603,8 +605,8 @@ class PGDriveEnv(gym.Env):
                 blocks_info = map
 
             map_config = self.config["map_config"].copy()
-            map_config[Map.GENERATE_METHOD] = MapGenerateMethod.PG_MAP_FILE
-            map_config[Map.GENERATE_PARA] = blocks_info
+            map_config[Map.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
+            map_config[Map.GENERATE_CONFIG] = blocks_info
             self.current_map = Map(self.pg_world, map_config)
             return
 
@@ -683,8 +685,8 @@ class PGDriveEnv(gym.Env):
             assert str(seed) in data["map_data"]
             assert self.maps[seed] is None
             map_config = {}
-            map_config[Map.GENERATE_METHOD] = MapGenerateMethod.PG_MAP_FILE
-            map_config[Map.GENERATE_PARA] = data["map_data"][str(seed)]
+            map_config[Map.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
+            map_config[Map.GENERATE_CONFIG] = data["map_data"][str(seed)]
             self.restored_maps[seed] = map_config
 
     def load_all_maps_from_json(self, path):

@@ -1,6 +1,6 @@
+from pgdrive import PGDriveEnv
 from pgdrive.scene_creator.city_map import CityMap
 from pgdrive.world.pg_world import PGWorld
-from pgdrive import PGDriveEnv
 
 
 def _t(num_blocks):
@@ -8,10 +8,9 @@ def _t(num_blocks):
 
     world_config = default_config["pg_world_config"]
     world = PGWorld(config=world_config)
-
-    map_config = default_config["map_config"]
-    map_config.update(dict(type="block_num", config=num_blocks))
     try:
+        map_config = default_config["map_config"]
+        map_config.update(dict(type="block_num", config=num_blocks))
         map = CityMap(world, map_config)
     finally:
         world.close_world()

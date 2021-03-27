@@ -378,12 +378,11 @@ class BaseVehicle(DynamicElement):
     def update_dist_to_left_right(self):
         current_reference_lane = self.routing_localization.current_ref_lanes[-1]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
-
-        lateral_to_right = abs(
-            lateral_to_reference) + self.routing_localization.map.lane_width / 2 if lateral_to_reference < 0 \
-            else self.routing_localization.map.lane_width / 2 - abs(lateral_to_reference)
-
-        lateral_to_left = self.routing_localization.map.lane_width * self.routing_localization.map.lane_num - lateral_to_right
+        if lateral_to_reference < 0:
+            lateral_to_right = abs(lateral_to_reference) + self.routing_localization.get_current_lane_width() / 2
+        else:
+            lateral_to_right = self.routing_localization.get_current_lane_width() / 2 - abs(lateral_to_reference)
+        lateral_to_left = self.routing_localization.get_current_lateral_range() - lateral_to_right
         self.dist_to_left, self.dist_to_right = lateral_to_left, lateral_to_right
 
     @property
@@ -753,9 +752,13 @@ class BaseVehicle(DynamicElement):
     @property
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
-        flag = self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5 \
-               and self.routing_localization.map.lane_width / 2 >= lat >= (
-                       0.5 - self.routing_localization.map.lane_num) * self.routing_localization.map.lane_width
+        flag = (
+            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+        ) and (
+            self.routing_localization.get_current_lane_width() / 2 >= lat >=
+            (0.5 - self.routing_localization.get_current_lane_num()) *
+            self.routing_localization.get_current_lane_width()
+        )
         return flag
 
     @property
