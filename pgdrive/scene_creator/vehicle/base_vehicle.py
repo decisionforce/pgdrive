@@ -123,7 +123,7 @@ class BaseVehicle(DynamicElement):
         # modules
         self.image_sensors = {}
         self.lidar: Optional[Lidar] = None
-        self.side_dector: Optional[DistanceDetector] = None
+        self.side_detector: Optional[SideDetector] = None
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
@@ -165,7 +165,7 @@ class BaseVehicle(DynamicElement):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
-        self.side_dector = SideDetector(
+        self.side_detector = SideDetector(
             self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
             self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
         )
@@ -268,8 +268,8 @@ class BaseVehicle(DynamicElement):
             self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
-        if self.side_dector is not None:
-            self.side_dector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+        if self.side_detector is not None:
+            self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         self._state_check()
         self.update_dist_to_left_right()
         self._update_energy_consumption()
@@ -663,8 +663,8 @@ class BaseVehicle(DynamicElement):
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None
-        self.side_dector.destroy()
-        self.side_dector = None
+        self.side_detector.destroy()
+        self.side_detector = None
         if self.lidar is not None:
             self.lidar.destroy()
             self.lidar = None

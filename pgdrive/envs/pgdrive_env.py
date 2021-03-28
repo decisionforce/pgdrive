@@ -68,6 +68,8 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         show_navi_mark=True,
         increment_steering=False,
         wheel_friction=0.6,
+        side_detector=dict(num_lasers=2, distance=50),  # laser num, distance
+        show_side_detector=False,
 
         # ===== use image =====
         image_source="rgb_cam",  # take effect when only when use_image == True
