@@ -2,6 +2,7 @@ import copy
 from typing import Union, Any
 
 import numpy as np
+
 from pgdrive.utils.utils import merge_dicts
 
 
@@ -156,7 +157,9 @@ class PGConfig:
         return self._config.keys()
 
     def pop(self, key):
+        assert hasattr(self, key)
         self._config.pop(key)
+        self.__delattr__(key)
 
     @classmethod
     def _internal_dict_to_config(cls, d: dict) -> dict:
@@ -242,3 +245,8 @@ class PGConfig:
                     return self.check_keys(v)
         else:
             return True, None
+
+    def remove_keys(self, keys):
+        for k in keys:
+            if k in self:
+                self.pop(k)
