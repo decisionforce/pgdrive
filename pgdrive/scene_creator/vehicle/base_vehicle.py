@@ -279,7 +279,9 @@ class BaseVehicle(DynamicElement):
         if self.side_detector is not None:
             self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         if self.lane_line_detector is not None:
-            self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+            self.lane_line_detector.perceive(
+                self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world
+            )
         self._state_check()
         self.update_dist_to_left_right()
         self._update_energy_consumption()

@@ -81,8 +81,9 @@ class DistanceDetector:
                 #     self.cloud_points[laser_index].setColor(1,0,0)
                 self.cloud_points[laser_index].setPos(curpos)
                 f = laser_index / self.num_lasers if self.ANGLE_FACTOR else 1
-                self.cloud_points[laser_index].setColor(f * self.MARK_COLOR[0], f * self.MARK_COLOR[1],
-                                                        f * self.MARK_COLOR[2])
+                self.cloud_points[laser_index].setColor(
+                    f * self.MARK_COLOR[0], f * self.MARK_COLOR[1], f * self.MARK_COLOR[2]
+                )
 
     def get_cloud_points(self):
         return [point.getHitFraction() for point in self.detection_results]
@@ -107,7 +108,6 @@ class DistanceDetector:
 
 
 class SideDetector(DistanceDetector):
-
     def __init__(self, parent_node_np: NodePath, num_lasers: int = 2, distance: float = 50, enable_show=False):
         super(SideDetector, self).__init__(parent_node_np, num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)

@@ -37,8 +37,8 @@ class TestEnv(PGDriveEnv):
                 "vehicle_config": {
                     "show_lidar": False,
                     "show_side_detector": True,
-                    "show_lane_line_detector":True,
-                    "use_lane_line_detector":True,
+                    "show_lane_line_detector": True,
+                    "use_lane_line_detector": True,
                 }
             }
         )
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         info["fuel"] = env.vehicle.energy_consumption
-        env.render(text={"left":env.vehicle.dist_to_left, "right":env.vehicle.dist_to_right})
+        env.render(text={"left": env.vehicle.dist_to_left, "right": env.vehicle.dist_to_right})
         # if d:
         #     print("Reset")
         #     env.reset()
