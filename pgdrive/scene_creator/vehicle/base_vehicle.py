@@ -2,7 +2,7 @@ import math
 import time
 from collections import deque
 from typing import Optional
-from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector
+from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector, LaneLineDetector
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
@@ -59,8 +59,10 @@ class BaseVehicle(DynamicElement):
             show_navi_mark=True,
             increment_steering=False,
             wheel_friction=0.6,
-            side_detector=dict(num_lasers=2, distance=50),  # laser num, distance
+            side_detector=dict(num_lasers=2, distance=20),  # laser num, distance
             show_side_detector=False,
+            lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
+            show_lane_line_detector=False,
 
             # ===== use image =====
             image_source="rgb_cam",  # take effect when only when use_image == True
@@ -124,6 +126,7 @@ class BaseVehicle(DynamicElement):
         self.image_sensors = {}
         self.lidar: Optional[Lidar] = None
         self.side_detector: Optional[SideDetector] = None
+        self.lane_line_detector: Optional[LaneLineDetector] = None
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
@@ -166,6 +169,10 @@ class BaseVehicle(DynamicElement):
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
         self.side_detector = SideDetector(
+            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+        )
+        self.lane_line_detector = LaneLineDetector(
             self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
             self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
         )
@@ -270,6 +277,8 @@ class BaseVehicle(DynamicElement):
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_detector is not None:
             self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+        if self.lane_line_detector is not None:
+            self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         self._state_check()
         self.update_dist_to_left_right()
         self._update_energy_consumption()
@@ -664,7 +673,10 @@ class BaseVehicle(DynamicElement):
         self.routing_localization.destroy()
         self.routing_localization = None
         self.side_detector.destroy()
+        self.lane_line_detector.destroy()
         self.side_detector = None
+        self.lane_line_detector = None
+
         if self.lidar is not None:
             self.lidar.destroy()
             self.lidar = None

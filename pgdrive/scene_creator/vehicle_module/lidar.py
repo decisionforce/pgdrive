@@ -14,6 +14,7 @@ from pgdrive.scene_creator.vehicle_module.distance_detector import DistanceDetec
 
 
 class Lidar(DistanceDetector):
+    ANGLE_FACTOR = True
     Lidar_point_cloud_obs_dim = 240
     DEFAULT_HEIGHT = 0.2
 
