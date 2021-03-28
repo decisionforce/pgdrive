@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.utils import PGConfig
 from pgdrive.world.top_down_observation import TopDownMultiChannel, TopDownObservation
 
@@ -9,19 +9,36 @@ class TopDownSingleFramePGDriveEnv(PGDriveEnv):
     def default_config(cls) -> PGConfig:
         config = PGDriveEnv.default_config()
         config["vehicle_config"]["lidar"] = {"num_lasers": 0, "distance": 0}  # Remove lidar
-        config.extend_config_with_unknown_keys({"frame_skip": 5, "frame_stack": 5, "post_stack": 5, "rgb_clip": False})
+        config.update({"frame_skip": 5, "frame_stack": 5, "post_stack": 5, "rgb_clip": False}, allow_overwrite=True)
         return config
 
-    def get_observation(self, _=None):
-        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
-        return TopDownObservation(vehicle_config, self, self.config["rgb_clip"])
+    def get_single_observation(self, _=None):
+        return TopDownObservation(self.config["vehicle_config"], self, self.config["rgb_clip"])
 
 
 class TopDownPGDriveEnv(TopDownSingleFramePGDriveEnv):
-    def get_observation(self, _=None):
-        vehicle_config = BaseVehicle.get_vehicle_config(self.config["vehicle_config"])
+    def get_single_observation(self, _=None):
         return TopDownMultiChannel(
-            vehicle_config,
+            self.config["vehicle_config"],
+            self,
+            self.config["rgb_clip"],
+            frame_stack=self.config["frame_stack"],
+            post_stack=self.config["post_stack"],
+            frame_skip=self.config["frame_skip"],
+        )
+
+
+class TopDownPGDriveEnvV2(PGDriveEnvV2):
+    @classmethod
+    def default_config(cls) -> PGConfig:
+        config = PGDriveEnvV2.default_config()
+        config["vehicle_config"]["lidar"] = {"num_lasers": 0, "distance": 0}  # Remove lidar
+        config.update({"frame_skip": 5, "frame_stack": 5, "post_stack": 5, "rgb_clip": False}, allow_overwrite=True)
+        return config
+
+    def get_single_observation(self, _=None):
+        return TopDownMultiChannel(
+            self.config["vehicle_config"],
             self,
             self.config["rgb_clip"],
             frame_stack=self.config["frame_stack"],
@@ -48,7 +65,8 @@ if __name__ == '__main__':
     # env.close()
 
     # Test multi-channel frames
-    env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
+    env = TopDownPGDriveEnvV2(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
+    # env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
     # env = TopDownPGDriveEnv(dict(use_render=True, manual_control=True))
     env.reset()
     names = [
