@@ -23,6 +23,7 @@ class SidePassEnv(PGDriveEnv):
             },
             allow_overwrite=True
         )
+        return config
 
     def __init__(self, config=None):
         super(SidePassEnv, self).__init__(config)
