@@ -79,6 +79,7 @@ class BaseVehicle(DynamicElement):
             action_check=False,
             use_saver=False,
             save_level=0.5,
+            use_lane_line_detector=False,
         )
         return PGConfig(vehicle_config)
 
@@ -332,6 +333,8 @@ class BaseVehicle(DynamicElement):
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
+        self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+        self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         self.update_dist_to_left_right()
         self.takeover = False
         self.energy_consumption = 0
@@ -386,14 +389,17 @@ class BaseVehicle(DynamicElement):
     """---------------------------------------- vehicle info ----------------------------------------------"""
 
     def update_dist_to_left_right(self):
-        current_reference_lane = self.routing_localization.current_ref_lanes[-1]
-        _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
-        if lateral_to_reference < 0:
-            lateral_to_right = abs(lateral_to_reference) + self.routing_localization.get_current_lane_width() / 2
+        if not self.vehicle_config["use_lane_line_detector"]:
+            current_reference_lane = self.routing_localization.current_ref_lanes[-1]
+            _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
+            if lateral_to_reference < 0:
+                lateral_to_right = abs(lateral_to_reference) + self.routing_localization.get_current_lane_width() / 2
+            else:
+                lateral_to_right = self.routing_localization.get_current_lane_width() / 2 - abs(lateral_to_reference)
+            lateral_to_left = self.routing_localization.get_current_lateral_range() - lateral_to_right
+            self.dist_to_left, self.dist_to_right = lateral_to_left, lateral_to_right
         else:
-            lateral_to_right = self.routing_localization.get_current_lane_width() / 2 - abs(lateral_to_reference)
-        lateral_to_left = self.routing_localization.get_current_lateral_range() - lateral_to_right
-        self.dist_to_left, self.dist_to_right = lateral_to_left, lateral_to_right
+            self.dist_to_right, self.dist_to_left = self.side_detector.get_cloud_points()
 
     @property
     def position(self):
