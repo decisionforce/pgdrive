@@ -37,17 +37,22 @@ class ObservationType(ABC):
             )
             lateral_to_left /= total_width
             lateral_to_right /= total_width
+
         info = [
-            clip(lateral_to_left, 0.0, 1.0),
-            clip(lateral_to_right, 0.0, 1.0),
-            vehicle.heading_diff(current_reference_lane),
+            # clip(lateral_to_left, 0.0, 1.0),
+            # clip(lateral_to_right, 0.0, 1.0),
+            # vehicle.heading_diff(current_reference_lane),
             # Note: speed can be negative denoting free fall. This happen when emergency brake.
             clip((vehicle.speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
+            clip((vehicle.last_speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
             clip((vehicle.steering / vehicle.max_steering + 1) / 2, 0.0, 1.0),
+            clip((vehicle.last_steering / vehicle.max_steering + 1) / 2, 0.0, 1.0),
             clip((vehicle.last_current_action[0][0] + 1) / 2, 0.0, 1.0),
-            clip((vehicle.last_current_action[0][1] + 1) / 2, 0.0, 1.0)
+            clip((vehicle.last_current_action[0][1] + 1) / 2, 0.0, 1.0),
+            clip(vehicle.yaw_rate, 0.0, 1.0),
+            clip(vehicle.last_yaw_rate, 0.0, 1.0),
         ]
-        heading_dir_last = vehicle.last_heading_dir
+        '''heading_dir_last = vehicle.last_heading_dir
         heading_dir_now = vehicle.heading
         cos_beta = heading_dir_now.dot(heading_dir_last
                                        ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
@@ -63,7 +68,7 @@ class ObservationType(ABC):
         else:
             lateral = vehicle.lane_line_detector.get_cloud_points()[0]
             # print(lateral)
-        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
+        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))'''
         return info
 
     @staticmethod
@@ -189,6 +194,11 @@ class LidarStateObservation(ObservationType):
         if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
             # Number of lidar rays and distance should be positive!
             shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
+        if self.config["lane_line_detector"]["num_lasers"] > 0 and self.config["lane_line_detector"]["distance"] > 0 and self.config["use_lane_line_detector"]:
+            shape[0] += self.config["lane_line_detector"]["num_lasers"]
+        if self.config["side_detector"]["num_lasers"] > 0 and self.config["side_detector"]["distance"] > 0:
+            shape[0] += self.config["side_detector"]["num_lasers"]
+        print(shape[0])
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe(self, vehicle):
@@ -209,11 +219,18 @@ class LidarStateObservation(ObservationType):
         """
         state = self.state_obs.observe(vehicle)
         other_v_info = []
+        side_info = []
+        lane_info = []
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
             other_v_info += vehicle.lidar.get_cloud_points()
-        return np.concatenate((state, np.asarray(other_v_info)))
+        if self.config["lane_line_detector"]["num_lasers"] > 0 and self.config["lane_line_detector"]["distance"] > 0 and \
+                self.config["use_lane_line_detector"]:
+            lane_info += vehicle.lane_line_detector.get_cloud_points()
+        if self.config["side_detector"]["num_lasers"] > 0 and self.config["side_detector"]["distance"] > 0:
+            side_info += vehicle.side_detector.get_cloud_points()
+        return np.concatenate((state, np.asarray(other_v_info),np.asarray(side_info),np.asarray(lane_info)))
 
 
 class ImageStateObservation(ObservationType):

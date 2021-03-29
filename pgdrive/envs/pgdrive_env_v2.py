@@ -42,8 +42,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 use_lateral=False,
 
                 # See: https://github.com/decisionforce/pgdrive/issues/297
-                vehicle_config=dict(lidar=dict(num_lasers=120, distance=50, num_others=0)),
-
+                vehicle_config=dict(lidar=dict(num_lasers=150, distance=50, num_others=0),
+                                    side_detector=dict(num_lasers=50,distance=20),
+                                    use_side_detector=True,
+                                    use_lane_line_detector=False),
                 # Disable map loading!
                 load_map_from_json=False,
                 _load_map_from_json="",
@@ -150,6 +152,7 @@ if __name__ == '__main__':
     env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:
         obs = env.reset()
+        print(env.observation_space,obs.shape)
         assert env.observation_space.contains(obs)
         _act(env, env.action_space.sample())
         for x in [-1, 0, 1]:

@@ -13,7 +13,7 @@ from pgdrive.utils.scene_utils import ray_localization
 
 
 class RoutingLocalizationModule:
-    Navi_obs_dim = 10
+    Navi_obs_dim = 4
     """
     It is necessary to interactive with other traffic vehicles
     """
@@ -147,9 +147,9 @@ class RoutingLocalizationModule:
             res += [
                 clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0, 1.0),
                 clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0, 1.0),
-                clip(bendradius, 0.0, 1.0),
-                clip((dir + 1) / 2, 0.0, 1.0),
-                clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+                #clip(bendradius, 0.0, 1.0),
+                #clip((dir + 1) / 2, 0.0, 1.0),
+                #clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)'''
             ]
 
         if self.show_navi_point:

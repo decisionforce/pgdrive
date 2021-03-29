@@ -32,7 +32,7 @@ from pgdrive.world.pg_world import PGWorld
 
 
 class BaseVehicle(DynamicElement):
-    Ego_state_obs_dim = 9
+    Ego_state_obs_dim = 8
     """
     Vehicle chassis and its wheels index
                     0       1
@@ -136,11 +136,15 @@ class BaseVehicle(DynamicElement):
         # state info
         self.throttle_brake = 0.0
         self.steering = 0
+        self.last_steering = 0
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
         self.dist_to_left = None
         self.dist_to_right = None
+        self.yaw_rate = 0
+        self.last_yaw_rate = 0
+        self.last_speed = 0
 
         # collision info render
         self.collision_info_np = self._init_collision_info_render(pg_world)
@@ -174,8 +178,8 @@ class BaseVehicle(DynamicElement):
             self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
         )
         self.lane_line_detector = LaneLineDetector(
-            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+            self.pg_world.render, self.vehicle_config["lane_line_detector"]["num_lasers"],
+            self.vehicle_config["lane_line_detector"]["distance"], self.vehicle_config["show_lane_line_detector"]
         )
         if not self.vehicle_config["use_image"]:
             if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
@@ -253,9 +257,17 @@ class BaseVehicle(DynamicElement):
         # init step info to store info before each step
         self._init_step_info()
         action, step_info = self._preprocess_action(action)
-
+        self.last_speed = self.speed
         self._frame_objects_crashed = []
         self.last_position = self.position
+        self.last_yaw_rate = self.yaw_rate
+        cos_beta = self.heading.dot(self.last_heading_dir
+                                       ) / (np.linalg.norm(self.heading) * np.linalg.norm(self.last_heading_dir))
+
+        beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
+
+        # print(beta)
+        self.yaw_rate = beta_diff / 0.1
         self.last_heading_dir = self.heading
         self.last_current_action.append(action)  # the real step of physics world is implemented in taskMgr.step()
         if self.increment_steering:
@@ -363,6 +375,7 @@ class BaseVehicle(DynamicElement):
         para = self.get_config()
         steering = action[0]
         self.throttle_brake = action[1]
+        self.last_steering = self.steering
         self.steering = steering
         self.system.setSteeringValue(self.steering * para[Parameter.steering_max], 0)
         self.system.setSteeringValue(self.steering * para[Parameter.steering_max], 1)
