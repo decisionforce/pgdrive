@@ -27,6 +27,7 @@ class MultiAgentPGDrive(PGDriveEnv):
                         "born_longitude": 10,
                         # "show_lidar": True,
                         "born_lateral": -1,
+                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
                     },
                     "agent2": {
                         "born_longitude": 10,
@@ -38,6 +39,7 @@ class MultiAgentPGDrive(PGDriveEnv):
                         "born_longitude": 10,
                         # "show_lidar": True,
                         "born_lateral": 2,
+                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
                     }
                 },
                 "num_agents": 4,
@@ -52,9 +54,10 @@ class MultiAgentPGDrive(PGDriveEnv):
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
 
-    def done_function(self, vehicle):
+    def done_function(self, vehicle_id):
+        vehicle = self.vehicles[vehicle_id]
         # crash will not done
-        done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle)
+        done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
         if vehicle.crash_vehicle and not self.config["crash_done"]:
             done = False
             done_info["crash_vehicle"] = False
@@ -64,6 +67,12 @@ class MultiAgentPGDrive(PGDriveEnv):
         return done, done_info
 
     def step(self, actions):
+        actions = self._preprocess_marl_actions(actions)
+        o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
+        self._after_vehicle_done(d)
+        return o, r, d, i
+
+    def _preprocess_marl_actions(self, actions):
         # remove useless actions
         id_to_remove = []
         for id in actions.keys():
@@ -71,14 +80,14 @@ class MultiAgentPGDrive(PGDriveEnv):
                 id_to_remove.append(id)
         for id in id_to_remove:
             actions.pop(id)
+        return actions
 
-        o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
-        for id, done in d.items():
+    def _after_vehicle_done(self, dones: dict):
+        for id, done in dones.items():
             if done and id in self.vehicles.keys():
                 v = self.vehicles.pop(id)
                 v.prepare_step([0, -1])
                 self.done_vehicles[id] = v
-        return o, r, d, i
 
     def _get_vehicles(self):
         return {
@@ -87,42 +96,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
     def _get_observations(self):
         return {
-            "agent{}".format(i): self.get_single_observation(self.config["vehicle_config"])
-            for i in range(self.num_agents)
-        }
-
-    # def reward_function(self, vehicle):
-    #     """
-    #        Override this func to get a new reward function
-    #        :param vehicle: BaseVehicle
-    #        :return: reward
-    #        """
-    #     step_info = dict()
-    #
-    #     # Reward for moving forward in current lane
-    #     current_lane = vehicle.lane
-    #     long_last, _ = current_lane.local_coordinates(vehicle.last_position)
-    #     long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
-    #
-    #     reward = 0.0
-    #
-    #     # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
-    #
-    #     lateral_factor = 1.0
-    #
-    #     reward += vehicle.vehicle_config["driving_reward"] * (long_now - long_last) * lateral_factor
-    #
-    #     reward += vehicle.vehicle_config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
-    #     step_info["step_reward"] = reward
-    #
-    #     if vehicle.crash_vehicle:
-    #         reward = -vehicle.vehicle_config["crash_vehicle_penalty"]
-    #     elif vehicle.crash_object:
-    #         reward = -vehicle.vehicle_config["crash_object_penalty"]
-    #     elif vehicle.arrive_destination:
-    #         reward = +vehicle.vehicle_config["success_reward"]
-    #
-    #     return reward, step_info
+            name: self.get_single_observation(self.config["vehicle_config"].update(new_config))
+            for name, new_config in self.config["target_vehicle_configs"].items()}
 
 
 if __name__ == "__main__":

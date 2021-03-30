@@ -231,9 +231,9 @@ class PGDriveEnv(BasePGDriveEnv):
         rewards = {}
         for v_id, v in self.vehicles.items():
             obses[v_id] = self.observations[v_id].observe(v)
-            done_function_result, done_infos[v_id] = self.done_function(v)
-            rewards[v_id], reward_infos[v_id] = self.reward_function(v)
-            _, cost_infos[v_id] = self.cost_function(v)
+            done_function_result, done_infos[v_id] = self.done_function(v_id)
+            rewards[v_id], reward_infos[v_id] = self.reward_function(v_id)
+            _, cost_infos[v_id] = self.cost_function(v_id)
             self.dones[v_id] = done_function_result or self.dones[v_id]
 
         should_done = self.config["auto_termination"] and (self.episode_steps >= (self.current_map.num_blocks * 250))
@@ -257,7 +257,8 @@ class PGDriveEnv(BasePGDriveEnv):
         else:
             return obses, rewards, self.dones, step_infos
 
-    def done_function(self, vehicle):
+    def done_function(self, vehicle_id: str):
+        vehicle = self.vehicles[vehicle_id]
         done = False
         done_info = dict(crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
         if vehicle.arrive_destination:
@@ -281,7 +282,8 @@ class PGDriveEnv(BasePGDriveEnv):
         done_info["crash"] = done_info["crash_vehicle"] or done_info["crash_object"]
         return done, done_info
 
-    def cost_function(self, vehicle):
+    def cost_function(self, vehicle_id: str):
+        vehicle = self.vehicles[vehicle_id]
         step_info = dict()
         step_info["cost"] = 0
         if vehicle.crash_vehicle:
@@ -292,12 +294,13 @@ class PGDriveEnv(BasePGDriveEnv):
             step_info["cost"] = self.config["out_of_road_cost"]
         return step_info['cost'], step_info
 
-    def reward_function(self, vehicle):
+    def reward_function(self, vehicle_id):
         """
         Override this func to get a new reward function
-        :param vehicle: BaseVehicle
+        :param vehicle_id: id of BaseVehicle
         :return: reward
         """
+        vehicle = self.vehicles[vehicle_id]
         step_info = dict()
         action = vehicle.last_current_action[1]
         # Reward for moving forward in current lane
@@ -318,7 +321,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -568,6 +571,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
