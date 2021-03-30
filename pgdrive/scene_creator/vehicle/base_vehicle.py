@@ -232,10 +232,6 @@ class BaseVehicle(DynamicElement):
         self.on_lane = True  # on lane surface or not
         # self.step_info = {"reward": 0, "cost": 0}
 
-    @classmethod
-    def get_vehicle_config(cls, new_config=None):
-        raise ValueError("This function is deprecated!")
-
     def _preprocess_action(self, action):
         if self.vehicle_config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
@@ -445,13 +441,6 @@ class BaseVehicle(DynamicElement):
     def velocity_direction(self):
         direction = self.system.getForwardVector()
         return np.asarray([direction[0], -direction[1]])
-
-    @property
-    def forward_direction(self):
-        raise ValueError("This function id deprecated.")
-        # print("This function id deprecated.")
-        # direction = self.vehicle.get_forward_vector()
-        # return np.array([direction[0], -direction[1]])
 
     @property
     def current_road(self):
