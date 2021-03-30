@@ -129,9 +129,7 @@ class PGDriveEnv(BasePGDriveEnv):
     def _process_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
         config["map_config"] = parse_map_config(
-            easy_map_config=config["map"],
-            new_map_config=config["map_config"],
-            default_config=self.default_config_copy
+            easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
         config["pg_world_config"].update(
             {
