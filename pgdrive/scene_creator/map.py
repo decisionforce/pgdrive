@@ -6,7 +6,6 @@ from typing import List
 
 import numpy as np
 from panda3d.core import NodePath
-
 from pgdrive.scene_creator.algorithm.BIG import BIG, BigGenerateMethod
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -40,6 +39,9 @@ class MapGenerateMethod:
 
 
 class Map:
+    """
+    Base class for Map generation!
+    """
     # only used to save and read maps
     FILE_SUFFIX = ".json"
 
@@ -64,9 +66,13 @@ class Map:
         self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
         self.random_seed = self.config[self.SEED]
         self.road_network = RoadNetwork()
+
+        # A flatten representation of blocks, might cause chaos in city-level generation.
         self.blocks = []
 
+        # Generate map and insert blocks
         self._generate(pg_world)
+        assert self.blocks, "The generate methods does not fill blocks!"
 
         #  a trick to optimize performance
         self.road_network.after_init()
@@ -75,41 +81,7 @@ class Map:
         """
         We can override this function to introduce other methods!
         """
-        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
-        generate_type = self.config[self.GENERATE_TYPE]
-        if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:
-            self._big_generate(parent_node_path, pg_physics_world)
-
-        elif generate_type == MapGenerateMethod.PG_MAP_FILE:
-            # other config such as lane width, num and seed will be valid, since they will be read from file
-            blocks_config = self.read_map(self.config[self.GENERATE_CONFIG])
-            self._config_generate(blocks_config, parent_node_path, pg_physics_world)
-        else:
-            raise ValueError("Map can not be created by {}".format(generate_type))
-
-    def _big_generate(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
-        big_map = BIG(
-            self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
-            pg_physics_world, self.random_seed
-        )
-        big_map.generate(self.config[self.GENERATE_TYPE], self.config[self.GENERATE_CONFIG])
-        self.blocks = big_map.blocks
-
-    def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
-        assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
-        last_block = FirstBlock(
-            self.road_network, self.config[self.LANE_WIDTH], self.config[self.LANE_NUM], parent_node_path,
-            pg_physics_world, 1
-        )
-        self.blocks.append(last_block)
-        for block_index, b in enumerate(blocks_config[1:], 1):
-            block_type = PGBlock.get_block(b.pop(self.BLOCK_ID))
-            pre_block_socket_index = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
-            last_block = block_type(
-                block_index, last_block.get_socket(pre_block_socket_index), self.road_network, self.random_seed
-            )
-            last_block.construct_from_config(b, parent_node_path, pg_physics_world)
-            self.blocks.append(last_block)
+        raise NotImplementedError("Please use child class like PGMap to replace Map!")
 
     def load_to_pg_world(self, pg_world: PGWorld):
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
@@ -168,10 +140,52 @@ class Map:
             ret = self.read_map(map_config)
         return ret
 
+    @property
+    def num_blocks(self):
+        return len(self.blocks)
+
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"
         logging.debug("Scene {} is destroyed".format(describe))
 
-    @property
-    def num_blocks(self):
-        return len(self.blocks)
+
+class PGMap(Map):
+    def _generate(self, pg_world):
+        """
+        We can override this function to introduce other methods!
+        """
+        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
+        generate_type = self.config[self.GENERATE_TYPE]
+        if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:
+            self._big_generate(parent_node_path, pg_physics_world)
+
+        elif generate_type == MapGenerateMethod.PG_MAP_FILE:
+            # other config such as lane width, num and seed will be valid, since they will be read from file
+            blocks_config = self.read_map(self.config[self.GENERATE_CONFIG])
+            self._config_generate(blocks_config, parent_node_path, pg_physics_world)
+        else:
+            raise ValueError("Map can not be created by {}".format(generate_type))
+
+    def _big_generate(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
+        big_map = BIG(
+            self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
+            pg_physics_world, self.random_seed
+        )
+        big_map.generate(self.config[self.GENERATE_TYPE], self.config[self.GENERATE_CONFIG])
+        self.blocks = big_map.blocks
+
+    def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
+        assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
+        last_block = FirstBlock(
+            self.road_network, self.config[self.LANE_WIDTH], self.config[self.LANE_NUM], parent_node_path,
+            pg_physics_world, 1
+        )
+        self.blocks.append(last_block)
+        for block_index, b in enumerate(blocks_config[1:], 1):
+            block_type = PGBlock.get_block(b.pop(self.BLOCK_ID))
+            pre_block_socket_index = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
+            last_block = block_type(
+                block_index, last_block.get_socket(pre_block_socket_index), self.road_network, self.random_seed
+            )
+            last_block.construct_from_config(b, parent_node_path, pg_physics_world)
+            self.blocks.append(last_block)
