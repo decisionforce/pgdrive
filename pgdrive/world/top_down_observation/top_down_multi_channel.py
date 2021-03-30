@@ -4,6 +4,7 @@ from collections import deque
 import cv2
 import gym
 import numpy as np
+
 from pgdrive.constants import Decoration, DEFAULT_AGENT
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import import_pygame

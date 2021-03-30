@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from pgdrive import PGDriveEnv
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.envs.pgdrive_env import PGDriveEnvV1_DEFAULT_CONFIG
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 
 
 @pytest.fixture

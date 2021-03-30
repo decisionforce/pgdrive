@@ -1,5 +1,6 @@
-from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.tests.test_envs.test_pgdrive_env import _act
+
+from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 
 
 def test_pgdrive_env_v2():

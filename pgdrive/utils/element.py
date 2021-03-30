@@ -1,14 +1,13 @@
-import copy
 import logging
 from typing import Dict
 
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
+
 from pgdrive.utils import PGConfig
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
-import numpy as np
 
 
 class PhysicsNodeList(list):
