@@ -171,14 +171,14 @@ class BasePGDriveEnv(gym.Env):
     def _step_simulator(self, actions, action_infos):
         # Note that we use shallow update for info dict in this function! This will accelerate system.
         scene_manager_infos = self.scene_manager.prepare_step(actions)
-        action_infos.update(scene_manager_infos)
+        action_infos = merge_dicts(action_infos, scene_manager_infos, allow_new_keys=True, without_copy=True)
 
         # step all entities
         self.scene_manager.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
         scene_manager_step_infos = self.scene_manager.update_state()
-        action_infos.update(scene_manager_step_infos)
+        action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
         return action_infos
 
     def _get_step_return(self, actions, step_infos):
