@@ -1,5 +1,5 @@
 import logging
-
+from pgdrive.scene_creator.road.road import Road
 import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
 from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
@@ -37,7 +37,8 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config[
+            "debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -67,13 +68,18 @@ class RoutingLocalizationModule:
             self.goal_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
-    def update(self, map: Map):
+    def update(self, map: Map, final_road=None):
         self.map = map
 
         # TODO(pzh): I am not sure whether we should change the random state here.
         #  If so, then the vehicle may have different final road in single map, this will avoid it from over-fitting
         #  the map and memorize the routes.
-        self.final_road = np.random.RandomState(map.random_seed).choice(map.blocks[-1].get_socket_list()).positive_road
+        if final_road is None:
+            final_road = np.random.RandomState(map.random_seed).choice(map.blocks[-1].get_socket_list()).positive_road
+        self.set_final_road(final_road, map)
+
+    def set_final_road(self, road: Road, map: Map):
+        self.final_road = road
         self.checkpoints = self.map.road_network.shortest_path(FirstBlock.NODE_1, self.final_road.end_node)
         self.final_lane = self.final_road.get_lanes(map.road_network)[-1]
         self.target_checkpoints_index = [0, 1]
@@ -136,8 +142,8 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max +
-                    self.get_current_lane_num() * self.get_current_lane_width()
+                        BlockParameterSpace.CURVE[Parameter.radius].max +
+                        self.get_current_lane_num() * self.get_current_lane_width()
                 )
                 dir = ref_lane.direction
                 if dir == 1:
