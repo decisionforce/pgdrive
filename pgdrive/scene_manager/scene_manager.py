@@ -1,12 +1,13 @@
 import logging
-from typing import List, Tuple, Optional, Dict, AnyStr
+from typing import List, Tuple, Optional, Dict, AnyStr, Union
 
 import numpy as np
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.PGLOD import PGLOD
 from pgdrive.scene_manager.object_manager import ObjectsManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
-from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
+from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.utils import PGConfig
 from pgdrive.world.pg_world import PGWorld
 
 logger = logging.getLogger(__name__)
@@ -17,13 +18,15 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(
-        self,
-        pg_world: PGWorld,
-        traffic_mode=TrafficMode.Trigger,
-        random_traffic: bool = False,
-        record_episode: bool = False,
-        cull_scene: bool = True,
+            self,
+            pg_world: PGWorld,
+            traffic_config: Union[Dict, "PGConfig"],
+            # traffic_mode=TrafficMode.Trigger,
+            # random_traffic: bool = False,
+            record_episode: bool = False,
+            cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -32,9 +35,8 @@ class SceneManager:
         # scene manager control all movements in pg_world
         self.pg_world = pg_world
 
-        # TODO more manager will be added in the future to manager traffic light/pedestrian
-        self.traffic_mgr = TrafficManager(traffic_mode, random_traffic)
-        self.objects_mgr = ObjectsManager()
+        self.traffic_mgr = self._get_traffic_manager(traffic_config)
+        self.objects_mgr = self._get_object_manager()
 
         # common variable
 
@@ -49,6 +51,12 @@ class SceneManager:
 
         # cull scene
         self.cull_scene = cull_scene
+
+    def _get_traffic_manager(self, traffic_config):
+        return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
+
+    def _get_object_manager(self, object_config=None):
+        return ObjectsManager()
 
     def reset(self, map: Map, target_vehicles, traffic_density: float, accident_prob: float, episode_data=None):
         """
