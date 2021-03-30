@@ -3,8 +3,6 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger, PGConfig
 
-setup_logger(True)
-
 
 class MultiAgentPGDrive(PGDriveEnv):
     @staticmethod
@@ -127,6 +125,7 @@ class MultiAgentPGDrive(PGDriveEnv):
 
 
 if __name__ == "__main__":
+    setup_logger(True)
     env = MultiAgentPGDrive(
         {
             "use_render": True,
