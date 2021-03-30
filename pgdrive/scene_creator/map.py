@@ -1,7 +1,5 @@
 import copy
-import json
 import logging
-import os
 from typing import List
 
 import numpy as np
@@ -11,7 +9,7 @@ from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.pg_blocks import PGBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils import PGConfig, AssetLoader, import_pygame
+from pgdrive.utils import PGConfig, import_pygame
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.world.pg_world import PGWorld
 
@@ -78,9 +76,7 @@ class Map:
         self.road_network.after_init()
 
     def _generate(self, pg_world):
-        """
-        We can override this function to introduce other methods!
-        """
+        """Key function! Please overwrite it!"""
         raise NotImplementedError("Please use child class like PGMap to replace Map!")
 
     def load_to_pg_world(self, pg_world: PGWorld):
@@ -110,17 +106,9 @@ class Map:
         saved_data = copy.deepcopy({self.SEED: self.random_seed, self.BLOCK_SEQUENCE: map_config})
         return saved_data
 
-    def save_map_to_json(self, map_name: str, save_dir: str = os.path.dirname(__file__)):
-        """
-        This func will generate a json file named 'map_name.json', in 'save_dir'
-        """
-        data = self.save_map()
-        with open(AssetLoader.file_path(save_dir, map_name + self.FILE_SUFFIX), 'w') as outfile:
-            json.dump(data, outfile)
-
     def read_map(self, map_config: dict):
         """
-        Load the map from a dict
+        Load the map from a dict. Note that we don't provide a restore function in the base class.
         """
         self.config[self.SEED] = map_config[self.SEED]
         blocks_config = map_config[self.BLOCK_SEQUENCE]
@@ -130,15 +118,6 @@ class Map:
         # update the property
         self.random_seed = self.config[self.SEED]
         return blocks_config
-
-    def read_map_from_json(self, map_file_path: str):
-        """
-        Create map from a .json file, read it to map config and update default properties
-        """
-        with open(map_file_path, "r") as map_file:
-            map_config = json.load(map_file)
-            ret = self.read_map(map_config)
-        return ret
 
     @property
     def num_blocks(self):
