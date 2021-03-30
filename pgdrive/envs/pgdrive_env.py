@@ -140,12 +140,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 "fast_launch_window": config["fast"]
             }
         )
-        config["vehicle_config"].update(
-            {
-                "use_render": config["use_render"],
-                "use_image": config["use_image"]
-            }
-        )
+        config["vehicle_config"].update({"use_render": config["use_render"], "use_image": config["use_image"]})
         return config
 
     def _setup_pg_world(self) -> "PGWorld":
