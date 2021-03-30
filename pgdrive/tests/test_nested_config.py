@@ -70,6 +70,6 @@ def test_config_identical():
 
 
 if __name__ == '__main__':
-    # test_recursive_config()
-    # test_partially_update()
+    test_recursive_config()
+    test_partially_update()
     test_config_identical()

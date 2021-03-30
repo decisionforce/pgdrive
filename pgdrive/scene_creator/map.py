@@ -106,7 +106,7 @@ class Map:
         for b in self.blocks:
             assert isinstance(b, Block), "None Set can not be saved to json file"
             b_config = b.get_config()
-            json_config = b_config.get_dict()
+            json_config = b_config.get_serializable_dict()
             json_config[self.BLOCK_ID] = b.ID
             json_config[self.PRE_BLOCK_SOCKET_INDEX] = b.pre_block_socket_index
             map_config.append(json_config)

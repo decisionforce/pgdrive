@@ -49,7 +49,7 @@ def _recursive_check_keys(new_config, old_config, prefix=""):
                 _recursive_check_keys(new, old, new_prefix)
 
 
-def config_to_dict(config: Union[Any, dict, "PGConfig"]) -> dict:
+def config_to_dict(config: Union[Any, dict, "PGConfig"], serializable=False) -> dict:
     # Return the flatten and json-able dict
     if not isinstance(config, (dict, PGConfig)):
         return config
@@ -58,9 +58,9 @@ def config_to_dict(config: Union[Any, dict, "PGConfig"]) -> dict:
         if isinstance(v, PGConfig):
             v = v.get_dict()
         elif isinstance(v, dict):
-            v = {sub_k: config_to_dict(sub_v) for sub_k, sub_v in v.items()}
-        # elif isinstance(v, np.ndarray):
-        #     v = v.tolist()
+            v = {sub_k: config_to_dict(sub_v, serializable) for sub_k, sub_v in v.items()}
+        elif serializable and isinstance(v, np.ndarray):
+            v = v.tolist()
         ret[k] = v
     return ret
 
@@ -100,7 +100,10 @@ class PGConfig:
         self._types[key] = set(types)
 
     def get_dict(self):
-        return config_to_dict(self._config)
+        return config_to_dict(self._config, serializable=False)
+
+    def get_serializable_dict(self):
+        return config_to_dict(self._config, serializable=True)
 
     def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=False):
         new_dict = new_dict or dict()
@@ -137,8 +140,7 @@ class PGConfig:
 
     def _update_single_item(self, k, v, allow_overwrite):
         assert not isinstance(v, (dict, PGConfig)), (k, type(v), allow_overwrite)
-        if allow_overwrite:
-            self._set_item(k, v, allow_overwrite)
+        self._set_item(k, v, allow_overwrite)
 
     def items(self):
         return self._config.items()
