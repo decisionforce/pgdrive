@@ -175,8 +175,11 @@ class TopDownMultiChannel(TopDownObservation):
     def _transform(self, img):
         # img = np.mean(img, axis=-1)
         # Use Atari-like processing
-        img = np.dot(img[..., :], [0.299, 0.587, 0.114])
+
         # img = img[..., 0]
+        # img = np.dot(img[..., :], [0.299, 0.587, 0.114])
+        img = img[..., 0] * 0.299 + img[..., 1] * 0.587 + img[..., 2] * 0.114
+
         if self.rgb_clip:
             img = img.astype(np.float32) / 255
         else:
