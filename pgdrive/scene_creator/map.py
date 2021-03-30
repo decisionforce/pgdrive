@@ -22,7 +22,7 @@ def parse_map_config(easy_map_config, new_map_config, default_config):
 
     # Return the user specified config if overwritten
     if not default_config["map_config"].is_identical(new_map_config):
-        new_map_config = default_config.copy(unchangeable=False).update(new_map_config, allow_overwrite=True)
+        new_map_config = default_config.copy(unchangeable=False).update(new_map_config)
         assert default_config["map"] == easy_map_config
         return new_map_config
 

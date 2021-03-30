@@ -86,7 +86,7 @@ class Element:
 
     def set_config(self, config: dict):
         # logging.debug("Read config to " + self.class_name)
-        self._config.update(config, allow_overwrite=True)
+        self._config.update(config)
 
     def attach_to_pg_world(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
         if self.render:

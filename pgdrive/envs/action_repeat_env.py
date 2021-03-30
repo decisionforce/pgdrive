@@ -25,7 +25,6 @@ class ActionRepeat(PGDriveEnv):
                 "min_action_repeat": 1,
                 "horizon": 5000,
             },
-            allow_overwrite=True
         )
         # default gamma for ORIGINAL primitive step!
         # Note that we will change this term since ORIGINAL primitive steps is not the internal step!

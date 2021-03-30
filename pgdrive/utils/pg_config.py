@@ -104,7 +104,7 @@ class PGConfig:
     def get_serializable_dict(self):
         return config_to_dict(self._config, serializable=True)
 
-    def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=False):
+    def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=True):
         new_dict = new_dict or dict()
         new_dict = copy.deepcopy(new_dict)
         for k, v in new_dict.items():
@@ -174,7 +174,7 @@ class PGConfig:
         if key not in self._config:
             raise KeyError(
                 "'{}' does not exist in existing config. "
-                "Please use config.update(..., allow_overwrite=True) to update the config. Existing keys: {}.".format(
+                "Please use config.update(...) to update the config. Existing keys: {}.".format(
                     key, self._config.keys()
                 )
             )
