@@ -1,4 +1,5 @@
 import math
+from typing import Union
 import time
 from collections import deque
 from typing import Optional
@@ -51,7 +52,7 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+        self, pg_world: PGWorld, vehicle_config: Union[dict, PGConfig] = None, physics_config: dict = None, random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and

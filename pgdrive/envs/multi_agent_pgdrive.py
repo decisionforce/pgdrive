@@ -1,4 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.utils.pg_config import merge_dicts
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger, PGConfig
@@ -91,13 +92,17 @@ class MultiAgentPGDrive(PGDriveEnv):
 
     def _get_vehicles(self):
         return {
-            name: BaseVehicle(self.pg_world, self.config["vehicle_config"].update(new_config))
+            name: BaseVehicle(self.pg_world, self._get_target_vehicle_config(new_config))
             for name, new_config in self.config["target_vehicle_configs"].items()}
 
     def _get_observations(self):
         return {
-            name: self.get_single_observation(self.config["vehicle_config"].update(new_config))
+            name: self.get_single_observation(self._get_target_vehicle_config(new_config))
             for name, new_config in self.config["target_vehicle_configs"].items()}
+
+    def _get_target_vehicle_config(self, extra_config: dict):
+        vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=True)
+        return PGConfig(vehicle_config)
 
 
 if __name__ == "__main__":
