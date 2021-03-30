@@ -47,42 +47,6 @@ class BaseVehicle(DynamicElement):
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
-    @classmethod
-    def _default_vehicle_config(cls) -> PGConfig:
-        vehicle_config = dict(
-            # ===== vehicle module config =====
-            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-            show_lidar=False,
-            mini_map=(84, 84, 250),  # buffer length, width
-            rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_mark=True,
-            increment_steering=False,
-            wheel_friction=0.6,
-            side_detector=dict(num_lasers=2, distance=20),  # laser num, distance
-            show_side_detector=False,
-            lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
-            show_lane_line_detector=False,
-
-            # ===== use image =====
-            image_source="rgb_cam",  # take effect when only when use_image == True
-            use_image=False,
-            rgb_clip=True,
-
-            # ===== vehicle born =====
-            born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-            born_longitude=5.0,
-            born_lateral=0.0,
-
-            # ==== others ====
-            overtake_stat=False,  # we usually set to True when evaluation
-            action_check=False,
-            use_saver=False,
-            save_level=0.5,
-            use_lane_line_detector=False,
-        )
-        return PGConfig(vehicle_config)
-
     LENGTH = None
     WIDTH = None
 
@@ -231,10 +195,6 @@ class BaseVehicle(DynamicElement):
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
         # self.step_info = {"reward": 0, "cost": 0}
-
-    @classmethod
-    def get_vehicle_config(cls, new_config=None):
-        raise ValueError("This function is deprecated!")
 
     def _preprocess_action(self, action):
         if self.vehicle_config["action_check"]:
