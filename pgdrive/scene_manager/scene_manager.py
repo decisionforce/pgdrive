@@ -18,15 +18,14 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
     def __init__(
-            self,
-            pg_world: PGWorld,
-            traffic_config: Union[Dict, "PGConfig"],
-            # traffic_mode=TrafficMode.Trigger,
-            # random_traffic: bool = False,
-            record_episode: bool = False,
-            cull_scene: bool = True,
+        self,
+        pg_world: PGWorld,
+        traffic_config: Union[Dict, "PGConfig"],
+        # traffic_mode=TrafficMode.Trigger,
+        # random_traffic: bool = False,
+        record_episode: bool = False,
+        cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
