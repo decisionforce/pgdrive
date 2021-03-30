@@ -62,9 +62,10 @@ def random_string(prefix=None):
 
 
 def concat_step_infos(step_info_list):
+    """We only conduct simply shallow update here!"""
     old_dict = dict()
     for new_dict in step_info_list:
-        old_dict = merge_dicts(old_dict, new_dict, allow_new_keys=True)
+        old_dict.update(new_dict)
     return old_dict
 
 

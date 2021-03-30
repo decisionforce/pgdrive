@@ -358,7 +358,7 @@ class BaseVehicle(DynamicElement):
     """------------------------------------------- act -------------------------------------------------"""
 
     def set_act(self, action):
-        para = self.get_config()
+        para = self.get_config(copy=False)
         steering = action[0]
         self.throttle_brake = action[1]
         self.steering = steering
@@ -376,8 +376,8 @@ class BaseVehicle(DynamicElement):
         self._apply_throttle_brake(action[1])
 
     def _apply_throttle_brake(self, throttle_brake):
-        para = self.get_config()
-        max_engine_force = para[Parameter.engine_force_max]
+        para = self.get_config(copy=False)
+        max_engine_force = self._config[Parameter.engine_force_max]
         max_brake_force = para[Parameter.brake_force_max]
         for wheel_index in range(4):
             if throttle_brake >= 0:

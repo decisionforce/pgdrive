@@ -22,7 +22,4 @@ if __name__ == "__main__":
                 "dist_to_right:": env.vehicle.dist_to_right
             }
         )
-        # if d:
-        #     print("Reset")
-        #     env.reset()
     env.close()

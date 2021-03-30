@@ -79,9 +79,10 @@ class Element:
     def class_name(self):
         return self.__class__.__name__
 
-    def get_config(self):
-        assert self._config is not None, "config of " + self.class_name + " is None, can not be read !"
-        return self._config.copy()
+    def get_config(self, copy=True):
+        if copy:
+            return self._config.copy()
+        return self._config
 
     def set_config(self, config: dict):
         # logging.debug("Read config to " + self.class_name)
