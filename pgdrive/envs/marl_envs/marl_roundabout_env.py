@@ -25,7 +25,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "map": "O",
                 "vehicle_config": {
                     "born_longitude": 0,
-                    "born_lateral": 0
+                    "born_lateral": 0,
+                    "use_lane_line_detector":False,
                 },
                 # clear base config
                 "num_agents": 4,
@@ -75,7 +76,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 new_target = self.target_nodes[last_idx]
                 if new_target != dest:
                     v.routing_localization.set_route(v.lane_index[0], new_target)
-
 
 if __name__ == "__main__":
     env = MultiAgentRoundaboutEnv(
