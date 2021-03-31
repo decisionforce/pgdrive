@@ -8,38 +8,34 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     @staticmethod
     def default_config() -> PGConfig:
         config = MultiAgentPGDrive.default_config()
+        config["target_vehicle_configs"] = {}
         config.update(
             {
                 "map": "O",
-                "vehicle_config": {"born_longitude": 4},
+                "vehicle_config": {"born_longitude": 0, "born_lateral":0},
+                # clear base config
                 "target_vehicle_configs": {
                     "agent0": {
-                        "born_longitude": 0,
-                        "born_lateral": 1.5,
-                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 1),
+                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 0),
                         # "show_lidar": True
                         # "show_side_detector": True
                     },
                     "agent1": {
-                        "born_longitude": 0,
                         # "show_lidar": True,
-                        "born_lateral": -1,
-                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 0),
+                        "born_lane_index": (Roundabout.node(1, 1, 0), Roundabout.node(1, 1, 1), 0),
                     },
                     "agent2": {
-                        "born_longitude": 0,
-                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 2),
+                        "born_lane_index": (Roundabout.node(1, 2, 0), Roundabout.node(1, 2, 1), 0),
                         # "show_lidar": True,
-                        "born_lateral": 1,
                     },
                     "agent3": {
-                        "born_longitude": 0,
                         # "show_lidar": True,
-                        "born_lateral": 2,
-                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 0),
+                        "born_lane_index": (Roundabout.node(1, 3, 0), Roundabout.node(1, 3, 1), 0),
                     }
                 },
                 "num_agents": 4,
+                "map_config": {
+                    "lane_num": 1},
             },
             allow_overwrite=True
         )
