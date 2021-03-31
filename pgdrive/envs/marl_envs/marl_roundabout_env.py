@@ -49,7 +49,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                         (self.target_nodes[i], self.target_nodes[i + 1], lane_idx),
                     )
                 )
-        target_agents = get_np_random().choice(
+        target_agents = get_np_random(self.current_seed).choice(
             [i for i in range(len(self.target_nodes) * (config["map_config"]["lane_num"]))],
             config["num_agents"],
             replace=False
