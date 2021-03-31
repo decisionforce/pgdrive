@@ -2,6 +2,7 @@ from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.utils import get_np_random
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.utils import PGConfig
+from pgdrive.scene_creator.map import Map, MapGenerateMethod
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
@@ -28,14 +29,14 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 # clear base config
                 "num_agents": 4,
-                "map_config": {
-                    "lane_num": 3
-                },
             },
             allow_overwrite=True
         )
-        config = self._update_agent_pos_configs(config)
         return config
+
+    def _process_config(self, config) -> "PGConfig":
+        ret_config = super(MultiAgentRoundaboutEnv, self)._process_config(config)
+        return self._update_agent_pos_configs(ret_config)
 
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
@@ -85,6 +86,13 @@ if __name__ == "__main__":
                 "pstats": True
             },
             "crash_done": False,
+            "num_agents": 6,
+            "map_config": {
+                Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                Map.GENERATE_CONFIG: "O",
+                Map.LANE_WIDTH: 3.5,
+                Map.LANE_NUM: 2,
+            }
         }
     )
     o = env.reset()
