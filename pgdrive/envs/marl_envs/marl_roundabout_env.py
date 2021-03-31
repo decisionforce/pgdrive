@@ -55,9 +55,10 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             replace=False
         )
         ret = {}
-        for idx in target_agents:
+        for real_idx, idx in target_agents:
             agent_name, v_config = target_vehicle_configs[idx]
-            ret[agent_name] = dict(born_lane_index=v_config)
+            # for rllib compatibility
+            ret["agent{}".format(real_idx)] = dict(born_lane_index=v_config)
         config["target_vehicle_configs"] = ret
         return config
 
