@@ -83,7 +83,8 @@ if __name__ == "__main__":
             "manual_control": True,
             "pg_world_config": {
                 "pstats": True
-            }
+            },
+            "crash_done": False,
         }
     )
     o = env.reset()

@@ -77,6 +77,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self._after_vehicle_done(d)
         return o, r, d, i
 
+    def reset(self, episode_data: dict = None):
+        for v in self.done_vehicles.values():
+            v.chassis_np.node().setStatic(False)
+        return super(MultiAgentPGDrive, self).reset(episode_data)
+
     def _preprocess_marl_actions(self, actions):
         # remove useless actions
         id_to_remove = []
@@ -93,6 +98,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 v = self.vehicles.pop(id)
                 v.prepare_step([0, -1])
                 self.done_vehicles[id] = v
+        for v in self.done_vehicles.values():
+            if v.speed < 1:
+                v.chassis_np.node().setStatic(True)
 
     def _get_vehicles(self):
         return {
