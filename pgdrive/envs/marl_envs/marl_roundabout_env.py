@@ -43,6 +43,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _after_lazy_init(self):
         super(MultiAgentRoundaboutEnv, self)._after_lazy_init()
+
+        # target nodes contain a sequence of road nodes
+        # they are only used to serve as "destination"
+        # we will only make the point BEHIND the vehicles as the final destination, and we will generate a series of
+        # checkpoints from current position to the destination automatically.
         self.target_nodes = [
             Roundabout.node(1, 0, 0),
             Roundabout.node(1, 0, 1),
