@@ -83,7 +83,7 @@ def merge_dicts(old_dict, new_dict, allow_new_keys=False):
     new_dict = new_dict or dict()
     merged = copy.deepcopy(old_dict)
     _deep_update(
-        merged, new_dict, new_keys_allowed=allow_new_keys, allow_new_subkey_list=[], raise_error=allow_new_keys
+        merged, new_dict, new_keys_allowed=allow_new_keys, allow_new_subkey_list=[], raise_error=not allow_new_keys
     )
     return merged
 
