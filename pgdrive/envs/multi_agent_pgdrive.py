@@ -58,7 +58,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
-        self._target_vehicle_configs = self._
 
     def done_function(self, vehicle_id):
         vehicle = self.vehicles[vehicle_id]
