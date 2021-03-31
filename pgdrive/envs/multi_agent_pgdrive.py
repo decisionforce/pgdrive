@@ -1,13 +1,15 @@
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.utils.pg_config import merge_dicts
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger, PGConfig
-
-setup_logger(True)
+from pgdrive.utils.pg_config import merge_dicts
 
 
 class MultiAgentPGDrive(PGDriveEnvV2):
+    """
+    This serve as the base class for Multi-agent PGDrive!
+    """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -17,14 +19,14 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 "traffic_density": 0.,
                 "start_seed": 10,
                 "map": "yY",
-                "vehicle_config":{"use_lane_line_detector":True},
+                "vehicle_config": {"use_lane_line_detector": True},
                 "target_vehicle_configs": {
                     "agent0": {
                         "born_longitude": 10,
                         "born_lateral": 1.5,
                         "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
                         # "show_lidar": True
-                        "show_side_detector":True
+                        "show_side_detector": True
                     },
                     "agent1": {
                         "born_longitude": 10,
@@ -95,19 +97,25 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def _get_vehicles(self):
         return {
             name: BaseVehicle(self.pg_world, self._get_target_vehicle_config(new_config))
-            for name, new_config in self.config["target_vehicle_configs"].items()}
+            for name, new_config in self.config["target_vehicle_configs"].items()
+        }
 
     def _get_observations(self):
         return {
             name: self.get_single_observation(self._get_target_vehicle_config(new_config))
-            for name, new_config in self.config["target_vehicle_configs"].items()}
+            for name, new_config in self.config["target_vehicle_configs"].items()
+        }
 
     def _get_target_vehicle_config(self, extra_config: dict):
+        """
+        Newly introduce method
+        """
         vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
         return PGConfig(vehicle_config)
 
 
 if __name__ == "__main__":
+    setup_logger(True)
     env = MultiAgentPGDrive(
         {
             "use_render": True,

@@ -1,5 +1,4 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.scene_creator.road.road import Road
 
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.utils import PGConfig
@@ -48,15 +47,16 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _after_lazy_init(self):
         super(MultiAgentRoundaboutEnv, self)._after_lazy_init()
-        self.target_nodes = [Roundabout.node(1, 0, 0),
-                             Roundabout.node(1, 0, 1),
-                             Roundabout.node(1, 1, 0),
-                             Roundabout.node(1, 1, 1),
-                             Roundabout.node(1, 2, 0),
-                             Roundabout.node(1, 2, 1),
-                             Roundabout.node(1, 3, 0),
-                             Roundabout.node(1, 3, 1),
-                             ]
+        self.target_nodes = [
+            Roundabout.node(1, 0, 0),
+            Roundabout.node(1, 0, 1),
+            Roundabout.node(1, 1, 0),
+            Roundabout.node(1, 1, 1),
+            Roundabout.node(1, 2, 0),
+            Roundabout.node(1, 2, 1),
+            Roundabout.node(1, 3, 0),
+            Roundabout.node(1, 3, 1),
+        ]
 
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
