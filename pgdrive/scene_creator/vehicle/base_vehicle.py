@@ -262,7 +262,7 @@ class BaseVehicle(DynamicElement):
         self.last_position = self.position
         self.last_yaw_rate = self.yaw_rate
         cos_beta = self.heading.dot(self.last_heading_dir
-                                       ) / (np.linalg.norm(self.heading) * np.linalg.norm(self.last_heading_dir))
+                                    ) / (np.linalg.norm(self.heading) * np.linalg.norm(self.last_heading_dir))
 
         beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
 

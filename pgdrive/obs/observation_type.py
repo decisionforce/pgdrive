@@ -194,7 +194,8 @@ class LidarStateObservation(ObservationType):
         if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
             # Number of lidar rays and distance should be positive!
             shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
-        if self.config["lane_line_detector"]["num_lasers"] > 0 and self.config["lane_line_detector"]["distance"] > 0 and self.config["use_lane_line_detector"]:
+        if self.config["lane_line_detector"]["num_lasers"] > 0 and self.config["lane_line_detector"][
+                "distance"] > 0 and self.config["use_lane_line_detector"]:
             shape[0] += self.config["lane_line_detector"]["num_lasers"]
         if self.config["side_detector"]["num_lasers"] > 0 and self.config["side_detector"]["distance"] > 0:
             shape[0] += self.config["side_detector"]["num_lasers"]
@@ -230,7 +231,7 @@ class LidarStateObservation(ObservationType):
             lane_info += vehicle.lane_line_detector.get_cloud_points()
         if self.config["side_detector"]["num_lasers"] > 0 and self.config["side_detector"]["distance"] > 0:
             side_info += vehicle.side_detector.get_cloud_points()
-        return np.concatenate((state, np.asarray(other_v_info),np.asarray(side_info),np.asarray(lane_info)))
+        return np.concatenate((state, np.asarray(other_v_info), np.asarray(side_info), np.asarray(lane_info)))
 
 
 class ImageStateObservation(ObservationType):
