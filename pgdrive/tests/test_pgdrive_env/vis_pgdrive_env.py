@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 "left": env.vehicle.dist_to_left,
                 "right": env.vehicle.dist_to_right,
                 "white_lane_line": env.vehicle.on_white_continuous_line,
-                "reward":r,
+                "reward": r,
             }
         )
         # if d:

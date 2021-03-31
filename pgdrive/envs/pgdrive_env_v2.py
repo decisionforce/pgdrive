@@ -151,7 +151,6 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-
     env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:
         obs = env.reset()

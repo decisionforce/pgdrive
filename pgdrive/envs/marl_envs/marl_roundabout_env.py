@@ -39,14 +39,20 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
-        assert config["num_agents"] < config["map_config"]["lane_num"] * len(
-            self.target_nodes), "Too many agents!"
+        assert config["num_agents"] < config["map_config"]["lane_num"] * len(self.target_nodes), "Too many agents!"
         for i in range(-1, len(self.target_nodes) - 1):
             for lane_idx in range(config["map_config"]["lane_num"]):
                 target_vehicle_configs.append(
-                    ("agent_{}_{}".format(i+1, lane_idx), (self.target_nodes[i], self.target_nodes[i + 1], lane_idx),))
+                    (
+                        "agent_{}_{}".format(i + 1, lane_idx),
+                        (self.target_nodes[i], self.target_nodes[i + 1], lane_idx),
+                    )
+                )
         target_agents = get_np_random().choice(
-            [i for i in range(len(self.target_nodes) * (config["map_config"]["lane_num"]))], config["num_agents"],replace=False)
+            [i for i in range(len(self.target_nodes) * (config["map_config"]["lane_num"]))],
+            config["num_agents"],
+            replace=False
+        )
         ret = {}
         for idx in target_agents:
             agent_name, v_config = target_vehicle_configs[idx]
