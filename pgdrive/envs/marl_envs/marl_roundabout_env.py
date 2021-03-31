@@ -55,7 +55,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             replace=False
         )
         ret = {}
-        for real_idx, idx in target_agents:
+        for real_idx, idx in enumerate(target_agents):
             agent_name, v_config = target_vehicle_configs[idx]
             # for rllib compatibility
             ret["agent{}".format(real_idx)] = dict(born_lane_index=v_config)
