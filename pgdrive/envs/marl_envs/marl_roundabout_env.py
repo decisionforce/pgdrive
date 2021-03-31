@@ -12,7 +12,10 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         config.update(
             {
                 "map": "O",
-                "vehicle_config": {"born_longitude": 0, "born_lateral":0},
+                "vehicle_config": {
+                    "born_longitude": 0,
+                    "born_lateral": 0
+                },
                 # clear base config
                 "target_vehicle_configs": {
                     "agent0": {
@@ -35,7 +38,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 "num_agents": 4,
                 "map_config": {
-                    "lane_num": 1},
+                    "lane_num": 1
+                },
             },
             allow_overwrite=True
         )

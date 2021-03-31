@@ -37,8 +37,7 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config[
-            "debug_physics_world"]
+        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -77,8 +76,8 @@ class RoutingLocalizationModule:
         if start_road_node is None:
             start_road_node = FirstBlock.NODE_1
         if final_road_node is None:
-            final_road_node = np.random.RandomState(map.random_seed).choice(
-                map.blocks[-1].get_socket_list()).positive_road.end_node
+            final_road_node = np.random.RandomState(map.random_seed
+                                                    ).choice(map.blocks[-1].get_socket_list()).positive_road.end_node
         self.set_route(start_road_node, final_road_node)
 
     def set_route(self, start_road_node: str, end_road_node: str):
@@ -146,8 +145,8 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                        BlockParameterSpace.CURVE[Parameter.radius].max +
-                        self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
                 )
                 dir = ref_lane.direction
                 if dir == 1:

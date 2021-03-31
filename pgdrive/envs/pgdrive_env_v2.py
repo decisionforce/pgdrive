@@ -81,7 +81,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
         done_info["crash"] = done_info["crash_vehicle"] or done_info["crash_object"]
         return done, done_info
 
-    def cost_function(self, vehicle_id:str):
+    def cost_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
         step_info = dict()
         step_info["cost"] = 0
@@ -149,7 +149,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:

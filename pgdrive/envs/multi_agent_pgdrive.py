@@ -9,7 +9,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
-
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -19,7 +18,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 "traffic_density": 0.,
                 "start_seed": 10,
                 "map": "yY",
-                "vehicle_config": {"use_lane_line_detector": True},
+                "vehicle_config": {
+                    "use_lane_line_detector": True
+                },
                 "target_vehicle_configs": {
                     "agent0": {
                         "born_longitude": 10,
