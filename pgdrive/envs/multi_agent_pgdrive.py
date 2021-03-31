@@ -50,8 +50,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 },
                 "num_agents": 4,
                 "crash_done": True
-            },
-            allow_overwrite=True
+            }
         )
         # Some collision bugs still exist, always set to False now!!!!
         # config.extend_config_with_unknown_keys({"crash_done": True})
