@@ -8,4 +8,4 @@ from pgdrive.envs.remote_pgdrive_env import RemotePGDrive
 from pgdrive.envs.top_down_env import TopDownSingleFramePGDriveEnv, TopDownPGDriveEnv, TopDownPGDriveEnvV2
 
 # For compatibility
-GeneralizationRacing = PGDriveEnvV2
+GeneralizationRacing = PGDriveEnv
