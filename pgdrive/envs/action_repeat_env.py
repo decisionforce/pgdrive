@@ -2,12 +2,10 @@ import numpy as np
 from gym.spaces import Box
 
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.pg_config import PGConfig
+from pgdrive.utils import PGConfig
 
 
 class ActionRepeat(PGDriveEnv):
-    ORIGINAL_ACTION_REPEAT = 5
-
     @classmethod
     def default_config(cls) -> PGConfig:
         config = PGDriveEnv.default_config()
@@ -16,20 +14,21 @@ class ActionRepeat(PGDriveEnv):
         config["decision_repeat"] = 1
 
         # Speed reward_function is given for current state, so its magnitude need to be reduced
-        config["speed_reward"] = config["speed_reward"] / cls.ORIGINAL_ACTION_REPEAT
+        original_action_repeat = PGDriveEnv.default_config()["decision_repeat"]
+        config["speed_reward"] = config["speed_reward"] / original_action_repeat
 
         # Set the interval from 0.02s to 1s
-        config.add("fixed_action_repeat", 0)  # 0 stands for using varying action repeat.
-        config.add("max_action_repeat", 50)
-        config.add("min_action_repeat", 1)
-        config.add("horizon", 5000)  # How many primitive steps within one episode
-
+        config.update({
+            "fixed_action_repeat": 0,
+            "max_action_repeat": 50,
+            "min_action_repeat": 1,
+            "horizon": 5000,
+        }, )
         # default gamma for ORIGINAL primitive step!
         # Note that we will change this term since ORIGINAL primitive steps is not the internal step!
         # It still contains ORIGINAL_ACTION_STEP internal steps!
         # So we will modify this gamma to make sure it behaves like the one applied to ORIGINAL primitive steps.
         # config.add("gamma", 0.99)
-
         return config
 
     def __init__(self, config: dict = None):
@@ -67,8 +66,6 @@ class ActionRepeat(PGDriveEnv):
                 (action_repeat - self.low) / (self.high - self.low) *
                 (self.action_repeat_high - self.action_repeat_low) + self.action_repeat_low
             )
-            # print("[DEBUG] raw action: {}, input action: {}, action repeat: {}".format(
-            # action, action[-1], action_repeat))
             assert action_repeat > 0
         else:
             action_repeat = self.fixed_action_repeat

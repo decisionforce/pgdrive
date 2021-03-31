@@ -25,8 +25,16 @@ class RoadNetwork:
         self.indices = []
         self._graph_helper = None
         self.debug = debug
+        self.is_initialized = False
+
+    def after_init(self):
+        assert not self.is_initialized
+        self._update_indices()
+        self._init_graph_helper()
+        self.is_initialized = True
 
     def add(self, other):
+        assert not self.is_initialized, "Adding new blocks should be done before road network initialization!"
         set_1 = set(self.graph) - {Decoration.start, Decoration.end}
         set_2 = set(other.graph) - {Decoration.start, Decoration.end}
         if len(set_1.intersection(set_2)) == 0:
@@ -154,7 +162,7 @@ class RoadNetwork:
             self.graph[_from][_to] = []
         self.graph[_from][_to].append(lane)
 
-    def build_helper(self):
+    def _init_graph_helper(self):
         self._graph_helper = GraphLookupTable(self.graph, self.debug)
 
     def get_lane(self, index: LaneIndex) -> AbstractLane:
@@ -169,7 +177,7 @@ class RoadNetwork:
             _id = 0
         return self.graph[_from][_to][_id]
 
-    def update_indices(self):
+    def _update_indices(self):
         indexes = []
         for _from, to_dict in self.graph.items():
             for _to, lanes in to_dict.items():
@@ -379,16 +387,6 @@ class RoadNetwork:
                 for _to, lanes in _to_dict.items():
                     if lane_num is None or len(lanes) == lane_num:
                         ret.append(Road(_from, _to))
-        return ret
-
-    def __iadd__(self, other):
-        raise ValueError("Deprecated function, use road_network.add(other) instead!")
-
-    def __add__(self, other):
-        raise ValueError("Deprecated function, use road_network.add(other) instead!")
-        ret = RoadNetwork()
-        ret.graph = self.graph
-        ret += other
         return ret
 
 

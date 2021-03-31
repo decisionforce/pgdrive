@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple, Optional, Dict, AnyStr
+from typing import List, Tuple, Optional, Dict, AnyStr, Union
 
 import numpy as np
 
@@ -7,7 +7,8 @@ from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.PGLOD import PGLOD
 from pgdrive.scene_manager.object_manager import ObjectsManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
-from pgdrive.scene_manager.traffic_manager import TrafficManager, TrafficMode
+from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.utils import PGConfig
 from pgdrive.world.pg_world import PGWorld
 
 logger = logging.getLogger(__name__)
@@ -21,8 +22,9 @@ class SceneManager:
     def __init__(
         self,
         pg_world: PGWorld,
-        traffic_mode=TrafficMode.Trigger,
-        random_traffic: bool = False,
+        traffic_config: Union[Dict, "PGConfig"],
+        # traffic_mode=TrafficMode.Trigger,
+        # random_traffic: bool = False,
         record_episode: bool = False,
         cull_scene: bool = True,
     ):
@@ -33,9 +35,8 @@ class SceneManager:
         # scene manager control all movements in pg_world
         self.pg_world = pg_world
 
-        # TODO more manager will be added in the future to manager traffic light/pedestrian
-        self.traffic_mgr = TrafficManager(traffic_mode, random_traffic)
-        self.objects_mgr = ObjectsManager()
+        self.traffic_mgr = self._get_traffic_manager(traffic_config)
+        self.objects_mgr = self._get_object_manager()
 
         # common variable
 
@@ -50,6 +51,12 @@ class SceneManager:
 
         # cull scene
         self.cull_scene = cull_scene
+
+    def _get_traffic_manager(self, traffic_config):
+        return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
+
+    def _get_object_manager(self, object_config=None):
+        return ObjectsManager()
 
     def reset(self, map: Map, target_vehicles, traffic_density: float, accident_prob: float, episode_data=None):
         """
@@ -111,7 +118,7 @@ class SceneManager:
         :param step_num: Decision of all entities will repeat *step_num* times
         """
         pg_world = self.pg_world
-        dt = pg_world.pg_config["physics_world_step_size"]
+        dt = pg_world.world_config["physics_world_step_size"]
         for i in range(step_num):
             if self.replay_system is None:
                 # not in replay mode
@@ -124,28 +131,23 @@ class SceneManager:
         #  panda3d render and garbage collecting loop
         pg_world.taskMgr.step()
 
-    def update_state(self) -> bool:
+    def update_state(self) -> Dict:
         """
         Update states after finishing movement
         :return: if this episode is done
         """
-        dones = {k: False for k in self.target_vehicles.keys()}
-        # done = False
 
         if self.replay_system is not None:
             self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
             # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         else:
-            global_done = self.traffic_mgr.update_state(self, self.pg_world)
-            if global_done:
-                dones = {k: True for k in self.target_vehicles.keys()}
+            self.traffic_mgr.update_state(self, self.pg_world)
 
         if self.record_system is not None:
             # didn't record while replay
             self.record_system.record_frame(self.traffic_mgr.get_global_states())
 
         step_infos = self.for_each_target_vehicle(lambda v: v.update_state())
-        # self.ego_vehicle.update_state()
 
         # cull distant blocks
         poses = [v.position for v in self.target_vehicles.values()]
@@ -158,7 +160,7 @@ class SceneManager:
             PGLOD.cull_distant_traffic_vehicles(self.traffic_mgr.traffic_vehicles, poses, self.pg_world)
             PGLOD.cull_distant_objects(self.objects_mgr._spawned_objects, poses, self.pg_world)
 
-        return dones, step_infos
+        return step_infos
 
     def for_each_target_vehicle(self, func):
         """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""

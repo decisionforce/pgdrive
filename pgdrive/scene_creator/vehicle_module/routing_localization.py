@@ -2,14 +2,14 @@ import logging
 
 import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
-from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN
-from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.pg_config.parameter_space import BlockParameterSpace, Parameter
+
+from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.math_utils import clip, norm
+from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 
 
@@ -38,7 +38,7 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.pg_config["debug_physics_world"]
+        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -89,7 +89,7 @@ class RoutingLocalizationModule:
             start = self.checkpoints[L]
             end = self.checkpoints[L + 1]
             target_lanes = self.map.road_network.graph[start][end]
-            idx = self.map.lane_num // 2 - 1
+            idx = self.get_current_lane_num() // 2 - 1
             ref_lane = target_lanes[idx]
             for tll in range(3, int(ref_lane.length), 3):
                 check_point = ref_lane.position(tll, 0)
@@ -119,7 +119,7 @@ class RoutingLocalizationModule:
         lanes_heading = []
         for lanes_id, lanes in enumerate([target_lanes_1, target_lanes_2]):
             ref_lane = lanes[0]
-            later_middle = (float(self.map.lane_num) / 2 - 0.5) * self.map.lane_width
+            later_middle = (float(self.get_current_lane_num()) / 2 - 0.5) * self.get_current_lane_width()
             check_point = ref_lane.position(ref_lane.length, later_middle)
             if lanes_id == 0:
                 # calculate ego v lane heading
@@ -137,7 +137,8 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max + self.map.lane_num * self.map.lane_width
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -218,3 +219,13 @@ class RoutingLocalizationModule:
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
+
+    def get_current_lateral_range(self) -> float:
+        """Return the maximum lateral distance from left to right."""
+        return self.get_current_lane_width() * self.get_current_lane_num()
+
+    def get_current_lane_width(self) -> float:
+        return self.map.config[self.map.LANE_WIDTH]
+
+    def get_current_lane_num(self) -> float:
+        return self.map.config[self.map.LANE_NUM]

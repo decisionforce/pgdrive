@@ -3,8 +3,8 @@ from typing import Union
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
-from pgdrive.constants import BodyName
-from pgdrive.pg_config.collision_group import CollisionGroup
+
+from pgdrive.constants import BodyName, CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -52,7 +52,7 @@ class PGTrafficVehicle(DynamicElement):
         self.vehicle_node = TrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model))
         chassis_shape = BulletBoxShape(Vec3(self.LENGTH / 2, self.WIDTH / 2, self.HEIGHT / 2))
         self.index = index
-        self.vehicle_node.addShape(chassis_shape, TransformState.makePos(Point3(0, 0, self.HEIGHT / 2 + 0.2)))
+        self.vehicle_node.addShape(chassis_shape, TransformState.makePos(Point3(0, 0, self.HEIGHT / 2)))
         self.vehicle_node.setMass(800.0)
         self.vehicle_node.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
         self.vehicle_node.setKinematic(False)

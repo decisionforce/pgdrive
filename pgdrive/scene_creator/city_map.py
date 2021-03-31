@@ -3,11 +3,11 @@ from typing import Union
 
 from panda3d.core import NodePath
 
-from pgdrive.pg_config.pg_blocks import PGBlock
 from pgdrive.scene_creator.algorithm.BIG import BIG
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.pg_blocks import PGBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 
@@ -147,7 +147,8 @@ class CityMap(Map):
     def _generate(self, pg_world):
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         big_map = CityBIG(
-            self.lane_num, self.lane_width, self.road_network, parent_node_path, pg_physics_world, self.random_seed
+            self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
+            pg_physics_world, self.random_seed
         )
-        big_map.generate(self.config[self.GENERATE_METHOD], self.config[self.GENERATE_PARA])
+        big_map.generate(self.config[self.GENERATE_TYPE], self.config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks

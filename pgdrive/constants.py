@@ -1,4 +1,5 @@
-from panda3d.core import Vec4
+from panda3d.bullet import BulletWorld
+from panda3d.core import Vec4, BitMask32
 
 PG_EDITION = "PGDrive v0.1.4"
 DEFAULT_AGENT = "default_agent"
@@ -31,7 +32,8 @@ COLLISION_INFO_COLOR = dict(
 
 
 class BodyName:
-    Continuous_line = "Continuous Line"
+    White_continuous_line = "White Continuous Line"
+    Yellow_continuous_line = "Yellow Continuous Line"
     Broken_line = "Broken Line"
     Sidewalk = "Sidewalk"
     Ground = "Ground"
@@ -45,7 +47,8 @@ class BodyName:
 
 COLOR = {
     BodyName.Sidewalk: "red",
-    BodyName.Continuous_line: "orange",
+    BodyName.White_continuous_line: "orange",
+    BodyName.Yellow_continuous_line: "red",
     BodyName.Broken_line: "yellow",
     BodyName.Traffic_vehicle: "red",
     BodyName.Traffic_cone: "orange",
@@ -72,3 +75,75 @@ class Goal:
     STRAIGHT = 1
     LEFT = 2
     ADVERSE = 3  # Useless now
+
+
+class CamMask:
+    MainCam = BitMask32.bit(9)
+    Shadow = BitMask32.bit(10)
+    RgbCam = BitMask32.bit(11)
+    MiniMap = BitMask32.bit(12)
+    PARA_VIS = BitMask32.bit(13)
+    DepthCam = BitMask32.bit(14)
+    ScreenshotCam = BitMask32.bit(15)
+
+
+class CollisionGroup:
+    Terrain = 2
+    EgoVehicle = 1
+    EgoVehicleBeneath = 6
+    BrokenLaneLine = 3
+    ContinuousLaneLine = 7
+    TrafficVehicle = 4
+    LaneSurface = 5  # useless now, since it is in another physics world
+
+    @classmethod
+    def collision_rules(cls):
+        return [
+            # terrain collision
+            (cls.Terrain, cls.Terrain, False),
+            (cls.Terrain, cls.BrokenLaneLine, False),
+            (cls.Terrain, cls.LaneSurface, False),
+            (cls.Terrain, cls.EgoVehicle, True),
+            (cls.Terrain, cls.EgoVehicleBeneath, False),
+            (cls.Terrain, cls.TrafficVehicle, False),
+            (cls.Terrain, cls.ContinuousLaneLine, False),
+
+            # block collision
+            (cls.BrokenLaneLine, cls.BrokenLaneLine, False),
+            (cls.BrokenLaneLine, cls.LaneSurface, False),
+            (cls.BrokenLaneLine, cls.EgoVehicle, False),
+            (cls.BrokenLaneLine, cls.EgoVehicleBeneath, True),
+            # change it after we design a new traffic system !
+            (cls.BrokenLaneLine, cls.TrafficVehicle, False),
+            (cls.BrokenLaneLine, cls.ContinuousLaneLine, False),
+
+            # traffic vehicles collision
+            (cls.TrafficVehicle, cls.TrafficVehicle, False),
+            (cls.TrafficVehicle, cls.LaneSurface, False),
+            (cls.TrafficVehicle, cls.EgoVehicle, True),
+            (cls.TrafficVehicle, cls.EgoVehicleBeneath, True),
+            (cls.TrafficVehicle, cls.ContinuousLaneLine, False),
+
+            # ego vehicle collision
+            (cls.EgoVehicle, cls.EgoVehicle, True),
+            (cls.EgoVehicle, cls.EgoVehicleBeneath, False),
+            (cls.EgoVehicle, cls.LaneSurface, False),
+            (cls.EgoVehicle, cls.ContinuousLaneLine, False),
+
+            # lane surface
+            (cls.LaneSurface, cls.LaneSurface, False),
+            (cls.LaneSurface, cls.EgoVehicleBeneath, False),
+            (cls.LaneSurface, cls.ContinuousLaneLine, False),
+
+            # vehicle beneath
+            (cls.EgoVehicleBeneath, cls.EgoVehicleBeneath, False),
+            (cls.EgoVehicleBeneath, cls.ContinuousLaneLine, True),
+
+            # continuous lane line
+            (cls.ContinuousLaneLine, cls.ContinuousLaneLine, False),
+        ]
+
+    @classmethod
+    def set_collision_rule(cls, dynamic_world: BulletWorld):
+        for rule in cls.collision_rules():
+            dynamic_world.setGroupCollisionFlag(*rule)

@@ -1,4 +1,4 @@
-from pgdrive.pg_config.collision_group import CollisionGroup
+from pgdrive.constants import CollisionGroup
 from pgdrive.scene_creator.lane.abs_lane import LineType
 
 
@@ -24,8 +24,12 @@ class BlockDefault:
     LAND_COLOR = (0.4, 0.4, 0.4, 1)
     NAVI_COLOR = (0.709, 0.09, 0, 1)
 
+    # for detection
+    LANE_LINE_GHOST_HEIGHT = 0.4
+
     # lane line collision group
-    LANE_LINE_COLLISION_MASK = CollisionGroup.LaneLine
+    CONTINUOUS_COLLISION_MASK = CollisionGroup.ContinuousLaneLine
+    BROKEN_COLLISION_MASK = CollisionGroup.BrokenLaneLine
 
     # for creating complex block, for example Intersection and roundabout consist of 4 part, which contain several road
     PART_IDX = 0

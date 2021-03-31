@@ -1,5 +1,3 @@
-import copy
-import logging
 import math
 import time
 from collections import deque
@@ -8,31 +6,27 @@ from typing import Optional
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
-from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, PythonCallbackObject, TextNode
-from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
-from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName
-from pgdrive.pg_config import PGConfig
-from pgdrive.pg_config.cam_mask import CamMask
-from pgdrive.pg_config.collision_group import CollisionGroup
-from pgdrive.pg_config.parameter_space import Parameter, VehicleParameterSpace
-from pgdrive.pg_config.pg_space import PGSpace
-from pgdrive.rl_utils.cost import pg_cost_scheme
-from pgdrive.rl_utils.reward import pg_reward_scheme
+from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
+
+from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
 from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
+from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector, LaneLineDetector
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import safe_clip
+from pgdrive.utils import PGConfig, safe_clip
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
@@ -67,6 +61,10 @@ class BaseVehicle(DynamicElement):
             show_navi_mark=True,
             increment_steering=False,
             wheel_friction=0.6,
+            side_detector=dict(num_lasers=2, distance=20),  # laser num, distance
+            show_side_detector=False,
+            lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
+            show_lane_line_detector=False,
 
             # ===== use image =====
             image_source="rgb_cam",  # take effect when only when use_image == True
@@ -83,6 +81,7 @@ class BaseVehicle(DynamicElement):
             action_check=False,
             use_saver=False,
             save_level=0.5,
+            use_lane_line_detector=False,
         )
         return PGConfig(vehicle_config)
 
@@ -101,8 +100,10 @@ class BaseVehicle(DynamicElement):
         :param random_seed: int
         """
 
-        self.vehicle_config = self.get_vehicle_config(vehicle_config) \
-            if vehicle_config is not None else self._default_vehicle_config()
+        self.vehicle_config = PGConfig(vehicle_config)
+
+        # self.vehicle_config = self.get_vehicle_config(vehicle_config) \
+        #     if vehicle_config is not None else self._default_vehicle_config()
 
         # observation, action
         self.action_space = self.get_action_space_before_init()
@@ -127,6 +128,8 @@ class BaseVehicle(DynamicElement):
         # modules
         self.image_sensors = {}
         self.lidar: Optional[Lidar] = None
+        self.side_detector: Optional[SideDetector] = None
+        self.lane_line_detector: Optional[LaneLineDetector] = None
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
@@ -155,9 +158,10 @@ class BaseVehicle(DynamicElement):
 
         # others
         self._frame_objects_crashed = []  # inner loop, object will only be crashed for once
-        self._add_modules_for_vehicle(pg_world.pg_config["use_render"])
+        self._add_modules_for_vehicle(self.vehicle_config["use_render"])
         self.takeover = False
         self._expert_takeover = False
+        self.energy_consumption = 0
 
         # overtake_stat
         self.front_vehicles = set()
@@ -167,6 +171,14 @@ class BaseVehicle(DynamicElement):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
+        self.side_detector = SideDetector(
+            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+        )
+        self.lane_line_detector = LaneLineDetector(
+            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+        )
         if not self.vehicle_config["use_image"]:
             if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
                 self.add_lidar(
@@ -222,15 +234,6 @@ class BaseVehicle(DynamicElement):
         self.on_lane = True  # on lane surface or not
         # self.step_info = {"reward": 0, "cost": 0}
 
-    @classmethod
-    def get_vehicle_config(cls, new_config=None):
-        default = copy.deepcopy(cls._default_vehicle_config())
-        if new_config is None:
-            return default
-        # default.update(new_config)
-        default.extend_config_with_unknown_keys(new_config)
-        return default
-
     def _preprocess_action(self, action):
         if self.vehicle_config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
@@ -268,12 +271,19 @@ class BaseVehicle(DynamicElement):
                 obj.crashed = True
         # lidar
         if self.lidar is not None:
-            self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world)
+            self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         if self.routing_localization is not None:
-            self.lane, self.lane_index = self.routing_localization.update_navigation_localization(self)
+            self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
+        if self.side_detector is not None:
+            self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+        if self.lane_line_detector is not None:
+            self.lane_line_detector.perceive(
+                self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world
+            )
         self._state_check()
         self.update_dist_to_left_right()
-        self.out_of_route = True if self.dist_to_right < 0 or self.dist_to_left < 0 else False
+        self._update_energy_consumption()
+        self.out_of_route = self._out_of_route()
         step_info = self._update_overtake_stat()
         step_info.update(
             {
@@ -283,6 +293,20 @@ class BaseVehicle(DynamicElement):
             }
         )
         return step_info
+
+    def _out_of_route(self):
+        left, right = self._dist_to_route_left_right()
+        return True if right < 0 or left < 0 else False
+
+    def _update_energy_consumption(self):
+        """
+        The calculation method is from
+        https://www.researchgate.net/publication/262182035_Reduction_of_Fuel_Consumption_and_Exhaust_Pollutant_Using_Intelligent_Transport_System
+        default: 3rd gear, try to use ae^bx to fit it, dp: (90, 8), (130, 12)
+        :return: None
+        """
+        distance = norm(*(self.last_position - self.position)) / 1000  # km
+        self.energy_consumption += 3.25 * np.power(np.e, 0.01 * self.speed) * distance / 100  # L/100 km
 
     def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
         """
@@ -313,8 +337,11 @@ class BaseVehicle(DynamicElement):
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
+        self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+        self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
         self.update_dist_to_left_right()
         self.takeover = False
+        self.energy_consumption = 0
 
         # overtake_stat
         self.front_vehicles = set()
@@ -331,7 +358,7 @@ class BaseVehicle(DynamicElement):
     """------------------------------------------- act -------------------------------------------------"""
 
     def set_act(self, action):
-        para = self.get_config()
+        para = self.get_config(copy=False)
         steering = action[0]
         self.throttle_brake = action[1]
         self.steering = steering
@@ -349,8 +376,8 @@ class BaseVehicle(DynamicElement):
         self._apply_throttle_brake(action[1])
 
     def _apply_throttle_brake(self, throttle_brake):
-        para = self.get_config()
-        max_engine_force = para[Parameter.engine_force_max]
+        para = self.get_config(copy=False)
+        max_engine_force = self._config[Parameter.engine_force_max]
         max_brake_force = para[Parameter.brake_force_max]
         for wheel_index in range(4):
             if throttle_brake >= 0:
@@ -366,15 +393,20 @@ class BaseVehicle(DynamicElement):
     """---------------------------------------- vehicle info ----------------------------------------------"""
 
     def update_dist_to_left_right(self):
+        if not self.vehicle_config["use_lane_line_detector"]:
+            self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
+        else:
+            self.dist_to_right, self.dist_to_left = self.side_detector.get_cloud_points()
+
+    def _dist_to_route_left_right(self):
         current_reference_lane = self.routing_localization.current_ref_lanes[-1]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
-
-        lateral_to_right = abs(
-            lateral_to_reference) + self.routing_localization.map.lane_width / 2 if lateral_to_reference < 0 \
-            else self.routing_localization.map.lane_width / 2 - abs(lateral_to_reference)
-
-        lateral_to_left = self.routing_localization.map.lane_width * self.routing_localization.map.lane_num - lateral_to_right
-        self.dist_to_left, self.dist_to_right = lateral_to_left, lateral_to_right
+        if lateral_to_reference < 0:
+            lateral_to_right = abs(lateral_to_reference) + self.routing_localization.get_current_lane_width() / 2
+        else:
+            lateral_to_right = self.routing_localization.get_current_lane_width() / 2 - abs(lateral_to_reference)
+        lateral_to_left = self.routing_localization.get_current_lateral_range() - lateral_to_right
+        return lateral_to_left, lateral_to_right
 
     @property
     def position(self):
@@ -411,13 +443,6 @@ class BaseVehicle(DynamicElement):
     def velocity_direction(self):
         direction = self.system.getForwardVector()
         return np.asarray([direction[0], -direction[1]])
-
-    @property
-    def forward_direction(self):
-        raise ValueError("This function id deprecated.")
-        # print("This function id deprecated.")
-        # direction = self.vehicle.get_forward_vector()
-        # return np.array([direction[0], -direction[1]])
 
     @property
     def current_road(self):
@@ -599,6 +624,10 @@ class BaseVehicle(DynamicElement):
                 continue
             if name[0] == BodyName.Sidewalk:
                 self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).crash_sidewalk = True
+            elif name[0] == BodyName.White_continuous_line:
+                self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_white_continuous_line = True
+            elif name[0] == BodyName.Yellow_continuous_line:
+                self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_yellow_continuous_line = True
             contacts.add(name[0])
         if self.render:
             self.render_collision_info(contacts)
@@ -653,6 +682,11 @@ class BaseVehicle(DynamicElement):
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None
+        self.side_detector.destroy()
+        self.lane_line_detector.destroy()
+        self.side_detector = None
+        self.lane_line_detector = None
+
         if self.lidar is not None:
             self.lidar.destroy()
             self.lidar = None
@@ -743,9 +777,13 @@ class BaseVehicle(DynamicElement):
     @property
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
-        flag = self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5 \
-               and self.routing_localization.map.lane_width / 2 >= lat >= (
-                       0.5 - self.routing_localization.map.lane_num) * self.routing_localization.map.lane_width
+        flag = (
+            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+        ) and (
+            self.routing_localization.get_current_lane_width() / 2 >= lat >=
+            (0.5 - self.routing_localization.get_current_lane_num()) *
+            self.routing_localization.get_current_lane_width()
+        )
         return flag
 
     @property
@@ -759,3 +797,11 @@ class BaseVehicle(DynamicElement):
     @property
     def crash_sidewalk(self):
         return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).crash_sidewalk
+
+    @property
+    def on_yellow_continuous_line(self):
+        return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_yellow_continuous_line
+
+    @property
+    def on_white_continuous_line(self):
+        return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_white_continuous_line
