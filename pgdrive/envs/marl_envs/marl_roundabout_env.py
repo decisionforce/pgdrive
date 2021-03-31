@@ -1,6 +1,7 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+from pgdrive.scene_creator.road.road import Road
 
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.utils import PGConfig
 
 
@@ -11,40 +12,62 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         config.update(
             {
                 "map": "O",
+                "vehicle_config": {"born_longitude": 4},
                 "target_vehicle_configs": {
                     "agent0": {
-                        "born_longitude": 10,
+                        "born_longitude": 0,
                         "born_lateral": 1.5,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
+                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 1),
                         # "show_lidar": True
                         # "show_side_detector": True
                     },
                     "agent1": {
-                        "born_longitude": 10,
+                        "born_longitude": 0,
                         # "show_lidar": True,
                         "born_lateral": -1,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 0),
                     },
                     "agent2": {
-                        "born_longitude": 10,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 2),
+                        "born_longitude": 0,
+                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 2),
                         # "show_lidar": True,
                         "born_lateral": 1,
                     },
                     "agent3": {
-                        "born_longitude": 10,
+                        "born_longitude": 0,
                         # "show_lidar": True,
                         "born_lateral": 2,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+                        "born_lane_index": (Roundabout.node(1, 0, 0), Roundabout.node(1, 0, 1), 0),
                     }
                 },
                 "num_agents": 4,
             },
             allow_overwrite=True
         )
-        # Some collision bugs still exist, always set to False now!!!!
-        # config.extend_config_with_unknown_keys({"crash_done": True})
         return config
+
+    def _after_lazy_init(self):
+        super(MultiAgentRoundaboutEnv, self)._after_lazy_init()
+        self.target_nodes = [Roundabout.node(1, 0, 0),
+                             Roundabout.node(1, 0, 1),
+                             Roundabout.node(1, 1, 0),
+                             Roundabout.node(1, 1, 1),
+                             Roundabout.node(1, 2, 0),
+                             Roundabout.node(1, 2, 1),
+                             Roundabout.node(1, 3, 0),
+                             Roundabout.node(1, 3, 1),
+                             ]
+
+    def step(self, actions):
+        o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
+        self._update_target()
+        return o, r, d, i
+
+    def _update_target(self):
+        for v_id, v in self.vehicles.items():
+            if v.lane_index[0] in self.target_nodes:
+                last_idx = self.target_nodes.index(v.lane_index[0]) - 2
+                v.routing_localization.set_route(v.lane_index[0], self.target_nodes[last_idx])
 
 
 if __name__ == "__main__":
