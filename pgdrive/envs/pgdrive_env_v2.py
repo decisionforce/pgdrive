@@ -103,7 +103,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
         step_info = dict()
 
         # Reward for moving forward in current lane
-        current_lane = vehicle.lane
+        current_lane = vehicle.lane if vehicle.lane in vehicle.routing_localization.current_ref_lanes else \
+        vehicle.routing_localization.current_ref_lanes[0]
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
@@ -149,6 +150,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnvV2({"vehicle_config": {"use_lateral_factor": "Haha", "use_reward_v1": "Fuck"}})
     try:

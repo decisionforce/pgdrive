@@ -304,7 +304,8 @@ class PGDriveEnv(BasePGDriveEnv):
         step_info = dict()
         action = vehicle.last_current_action[1]
         # Reward for moving forward in current lane
-        current_lane = vehicle.lane
+        current_lane = vehicle.lane if vehicle.lane in vehicle.routing_localization.current_ref_lanes else \
+            vehicle.routing_localization.current_ref_lanes[0]
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
