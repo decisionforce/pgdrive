@@ -17,9 +17,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         Roundabout.node(1, 3, 1),
     ]
 
-    def default_config(self) -> PGConfig:
+    @staticmethod
+    def default_config() -> PGConfig:
         config = MultiAgentPGDrive.default_config()
-        config["target_vehicle_configs"] = {}
         config.update(
             {
                 "map": "O",
@@ -35,8 +35,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         )
         return config
 
-    def _process_config(self, config) -> "PGConfig":
-        ret_config = super(MultiAgentRoundaboutEnv, self)._process_config(config)
+    def _process_extra_config(self, config) -> "PGConfig":
+        ret_config = super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
         return self._update_agent_pos_configs(ret_config)
 
     def _update_agent_pos_configs(self, config):
@@ -60,7 +60,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             agent_name, v_config = target_vehicle_configs[idx]
             # for rllib compatibility
             ret["agent{}".format(real_idx)] = dict(born_lane_index=v_config)
-        config["target_vehicle_configs"] = ret
+        config.update({"target_vehicle_configs": ret}, allow_overwrite=False, recursive_update=False)
         return config
 
     def step(self, actions):
@@ -76,6 +76,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 new_target = self.target_nodes[last_idx]
                 if new_target != dest:
                     v.routing_localization.set_route(v.lane_index[0], new_target)
+
 
 if __name__ == "__main__":
     env = MultiAgentRoundaboutEnv(
