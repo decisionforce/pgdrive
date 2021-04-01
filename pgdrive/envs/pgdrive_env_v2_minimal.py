@@ -8,21 +8,93 @@ from pgdrive.utils import PGConfig
 class MinimalObservation(LidarStateObservation):
     def __init__(self, vehicle_config):
         super(MinimalObservation, self).__init__(vehicle_config)
-        self.remove_indices = {
-            # last actions
-            5,
-            6,
-            # whether centering laterally
-            8,
-            # 9, 10, 14, 15 are the relative position to the checkpoints
-            # The following are bend radius, dir, angle and so on.
-            11,
-            12,
-            13,
-            16,
-            17,
-            18
-        }
+
+        if vehicle_config["state_set"] == 0:
+            self.remove_indices = {}
+        elif vehicle_config["state_set"] == 1:
+            self.remove_indices = {
+                # last actions
+                5,
+                6,
+                # whether centering laterally
+                8,
+                # 9, 10, 14, 15 are the relative position to the checkpoints
+                # The following are bend radius, dir, angle and so on.
+                11,
+                12,
+                13,
+                16,
+                17,
+                18
+            }
+        elif vehicle_config["state_set"] == 2:
+            self.remove_indices = {
+                # last actions
+                5,
+                6,
+                # whether centering laterally
+                8,
+                # 9, 10, 14, 15 are the relative position to the checkpoints
+                # The following are bend radius, dir, angle and so on.
+                11,
+                12,
+                13,
+                14,  # add
+                15,  # add
+                16,
+                17,
+                18,
+            }
+        elif vehicle_config["state_set"] == 3:  # keep last action
+            self.remove_indices = {
+                # last actions
+                # 5,
+                # 6,
+                # whether centering laterally
+                8,
+                # 9, 10, 14, 15 are the relative position to the checkpoints
+                # The following are bend radius, dir, angle and so on.
+                11,
+                12,
+                13,
+                16,
+                17,
+                18,
+            }
+        elif vehicle_config["state_set"] == 4:  # keep last action and centering
+            self.remove_indices = {
+                # last actions
+                # 5,
+                # 6,
+                # whether centering laterally
+                # 8,
+                # 9, 10, 14, 15 are the relative position to the checkpoints
+                # The following are bend radius, dir, angle and so on.
+                11,
+                12,
+                13,
+                16,
+                17,
+                18,
+            }
+        elif vehicle_config["state_set"] == 5:
+            self.remove_indices = {
+                # last actions
+                # 5,
+                # 6,
+                # whether centering laterally
+                # 8,
+                # 9, 10, 14, 15 are the relative position to the checkpoints
+                # The following are bend radius, dir, angle and so on.
+                # 11,
+                # 12,
+                # 13,
+                14,
+                15,
+                16,
+                17,
+                18,
+            }
 
     @property
     def observation_space(self):
@@ -69,6 +141,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
     def default_config(cls) -> PGConfig:
         config = super(PGDriveEnvV2Minimal, cls).default_config()
         config["vehicle_config"]["lidar"]["num_others"] = 4
+        config["vehicle_config"]["state_set"] = 0
         return config
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
