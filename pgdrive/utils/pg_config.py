@@ -103,6 +103,13 @@ class PGConfig:
         return config_to_dict(self._config, serializable=True)
 
     def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=True, recursive_update=True):
+        """
+        Update this dict with extra configs
+        :param new_dict: extra configs
+        :param allow_overwrite: whether allowing to add new keys to existing configs or not
+        :param recursive_update: Deep update will be applied to dict/PGConfig values
+        :return: None
+        """
         new_dict = new_dict or dict()
         new_dict = copy.deepcopy(new_dict)
         for k, v in new_dict.items():
