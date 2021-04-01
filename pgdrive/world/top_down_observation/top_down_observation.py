@@ -206,6 +206,7 @@ class TopDownObservation(ObservationType):
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
+            raise ValueError("We force to return values in [0, 1] if image-like observation is used!")
             return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
 
     def observe(self, vehicle: BaseVehicle):
@@ -215,5 +216,6 @@ class TopDownObservation(ObservationType):
         if self.rgb_clip:
             img = img.astype(np.float32) / 255
         else:
+            raise ValueError("We force to return values in [0, 1] if image-like observation is used!")
             img = img.astype(np.uint8)
         return np.transpose(img, (1, 0, 2))

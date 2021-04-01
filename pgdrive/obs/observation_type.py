@@ -132,6 +132,7 @@ class ImageObservation(ObservationType):
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
+            raise ValueError("We force to return values in [0, 1] if image-like observation is used!")
             return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
 
     def observe(self, image_buffer: ImageBuffer):
