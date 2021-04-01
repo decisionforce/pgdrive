@@ -127,6 +127,11 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
+        if not config["rgb_clip"]:
+            logging.warning(
+                "You have set rgb_clip = False, which means the observation will be uint8 values in [0, 255]. "
+                "Please make sure you have parsed them later before feeding them to network!"
+            )
         config["map_config"] = parse_map_config(
             easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
@@ -308,7 +313,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -558,6 +563,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
