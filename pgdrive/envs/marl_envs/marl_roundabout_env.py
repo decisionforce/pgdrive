@@ -26,7 +26,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "vehicle_config": {
                     "born_longitude": 0,
                     "born_lateral": 0,
-                    "use_lane_line_detector":False,
+                    "use_lane_line_detector": False,
                 },
                 # clear base config
                 "num_agents": 4,
@@ -98,6 +98,7 @@ if __name__ == "__main__":
         }
     )
     o = env.reset()
+    env.main_camera.set_follow_lane(True)
     total_r = 0
     for i in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())
