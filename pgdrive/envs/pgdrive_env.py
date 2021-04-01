@@ -127,7 +127,6 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
-        assert config["rgb_clip"], "We force to return values in [0, 1] if image-like observation is used!"
         config["map_config"] = parse_map_config(
             easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
