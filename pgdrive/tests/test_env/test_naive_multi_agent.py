@@ -1,6 +1,6 @@
 import gym
 
-from pgdrive import PGDriveEnv
+from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 
 
 def _a(env, action):
@@ -26,7 +26,7 @@ def test_naive_multi_agent_pgdrive():
     # _step(env)
     # env.close()
 
-    env = PGDriveEnv(
+    env = MultiAgentPGDrive(
         config={
             "num_agents": 10,
             "target_vehicle_configs": {"agent{}".format(i): {

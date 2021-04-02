@@ -127,6 +127,10 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
+        config = self.default_config().update(config, allow_overwrite=False)
+        return config
+
+    def _post_process_config(self, config):
         if not config["rgb_clip"]:
             logging.warning(
                 "You have set rgb_clip = False, which means the observation will be uint8 values in [0, 255]. "
@@ -564,6 +568,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
