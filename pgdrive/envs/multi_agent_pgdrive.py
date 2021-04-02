@@ -60,8 +60,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         super(MultiAgentPGDrive, self).__init__(config)
 
     def _process_extra_config(self, config) -> "PGConfig":
-        ret_config = self.default_config().update(config, allow_overwrite=False,
-                                                  stop_recursive_update=["target_vehicle_configs"])
+        ret_config = self.default_config().update(
+            config, allow_overwrite=False, stop_recursive_update=["target_vehicle_configs"]
+        )
         return ret_config
 
     def done_function(self, vehicle_id):
@@ -150,7 +151,8 @@ if __name__ == "__main__":
                     # "show_lidar": True,
                     "born_lateral": -1,
                     "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-                },}
+                },
+            }
         }
     )
     o = env.reset()
