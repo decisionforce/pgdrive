@@ -24,7 +24,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
     @classmethod
     def default_config(cls) -> PGConfig:
         config = super(PGDriveEnvV2Minimal, cls).default_config()
-        config["vehicle_config"]["lidar"]["num_others"] = 4
+        config["vehicle_config"]["lidar"]["num_others"] = 2
         config["vehicle_config"]["state_set"] = 0
         return config
 
