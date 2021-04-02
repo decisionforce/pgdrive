@@ -72,7 +72,7 @@ class BasePGDriveEnv(gym.Env):
     # ===== Intialization =====
     def __init__(self, config: dict = None):
         self.default_config_copy = PGConfig(self.default_config(), unchangeable=True)
-        self.config = self._process_extra_config(self.default_config().update(config))
+        self.config = self._process_extra_config(self.default_config().update(config, allow_overwrite=False))
 
         self.num_agents = self.config["num_agents"]
         assert isinstance(self.num_agents, int) and self.num_agents > 0
