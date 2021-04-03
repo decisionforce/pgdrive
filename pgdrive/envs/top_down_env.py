@@ -67,9 +67,9 @@ if __name__ == '__main__':
     # env.close()
 
     # Test multi-channel frames
-    env = TopDownPGDriveEnvV2(dict(
-        environment_num=1, map="SS", traffic_density=0.5, frame_stack=5, frame_skip=5, resolution_size=64
-    ))
+    env = TopDownPGDriveEnvV2(
+        dict(environment_num=1, map="SS", traffic_density=0.5, frame_stack=5, frame_skip=5, resolution_size=64)
+    )
     # env = TopDownPGDriveEnv(dict(environment_num=1, map="XTO", traffic_density=0.1, frame_stack=5))
     # env = TopDownPGDriveEnv(dict(use_render=True, manual_control=True))
     env.reset()

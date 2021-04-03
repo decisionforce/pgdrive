@@ -27,8 +27,14 @@ class TopDownMultiChannel(TopDownObservation):
     CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation", "past_pos"]
 
     def __init__(
-        self, vehicle_config, env, clip_rgb: bool, frame_stack: int = 5, post_stack: int = 5, frame_skip: int = 5,
-            resolution=None
+        self,
+        vehicle_config,
+        env,
+        clip_rgb: bool,
+        frame_stack: int = 5,
+        post_stack: int = 5,
+        frame_skip: int = 5,
+        resolution=None
     ):
         super(TopDownMultiChannel, self).__init__(vehicle_config, env, clip_rgb, resolution=resolution)
         self.num_stacks = 4 + frame_stack
