@@ -146,8 +146,8 @@ class BaseVehicle(DynamicElement):
 
         if self.vehicle_config["lane_line_detector"]["num_lasers"] > 0:
             self.lane_line_detector = LaneLineDetector(
-                self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-                self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+                self.pg_world.render, self.vehicle_config["lane_line_detector"]["num_lasers"],
+                self.vehicle_config["lane_line_detector"]["distance"], self.vehicle_config["show_lane_line_detector"]
             )
 
         if not self.vehicle_config["use_image"]:
@@ -367,8 +367,7 @@ class BaseVehicle(DynamicElement):
     """---------------------------------------- vehicle info ----------------------------------------------"""
 
     def update_dist_to_left_right(self):
-        if self.lane_line_detector:
-            raise ValueError()  # FIXME please fix this!!!!!!!!
+        if self.side_detector:
             self.dist_to_right, self.dist_to_left = self.side_detector.get_cloud_points()
         else:
             self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
