@@ -373,7 +373,6 @@ class BaseVehicle(DynamicElement):
         else:
             self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
 
-
     def _dist_to_route_left_right(self):
         current_reference_lane = self.routing_localization.current_ref_lanes[-1]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
