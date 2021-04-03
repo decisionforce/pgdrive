@@ -8,7 +8,7 @@ from typing import Union, Dict, AnyStr, Optional, Tuple
 import numpy as np
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
-from pgdrive.obs.observation_type import LidarStateObservation, ImageStateObservation
+from pgdrive.obs import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle

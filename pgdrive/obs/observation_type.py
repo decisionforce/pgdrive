@@ -2,7 +2,6 @@ from abc import ABC
 
 import gym
 import numpy as np
-
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.utils.math_utils import clip
@@ -22,50 +21,6 @@ class ObservationType(ABC):
 
     def observe(self, *args, **kwargs):
         raise NotImplementedError
-
-    @staticmethod
-    def vehicle_state(vehicle):
-        """
-        Wrap vehicle states to list
-        """
-        # update out of road
-        current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
-        lateral_to_left, lateral_to_right = vehicle.dist_to_left, vehicle.dist_to_right
-        if not vehicle.vehicle_config["use_lane_line_detector"]:
-            total_width = float(
-                (vehicle.routing_localization.get_current_lane_num() + 1) *
-                vehicle.routing_localization.get_current_lane_width()
-            )
-            lateral_to_left /= total_width
-            lateral_to_right /= total_width
-        info = [
-            clip(lateral_to_left, 0.0, 1.0),
-            clip(lateral_to_right, 0.0, 1.0),
-            vehicle.heading_diff(current_reference_lane),
-            # Note: speed can be negative denoting free fall. This happen when emergency brake.
-            clip((vehicle.speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
-            clip((vehicle.steering / vehicle.max_steering + 1) / 2, 0.0, 1.0),
-            clip((vehicle.last_current_action[0][0] + 1) / 2, 0.0, 1.0),
-            clip((vehicle.last_current_action[0][1] + 1) / 2, 0.0, 1.0)
-        ]
-        heading_dir_last = vehicle.last_heading_dir
-        heading_dir_now = vehicle.heading
-        cos_beta = heading_dir_now.dot(heading_dir_last
-                                       ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
-
-        beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
-
-        # print(beta)
-        yaw_rate = beta_diff / 0.1
-        # print(yaw_rate)
-        info.append(clip(yaw_rate, 0.0, 1.0))
-        if not vehicle.vehicle_config["use_lane_line_detector"]:
-            _, lateral = vehicle.lane.local_coordinates(vehicle.position)
-        else:
-            lateral = vehicle.lane_line_detector.get_cloud_points()[0]
-            # print(lateral)
-        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
-        return info
 
     def reset(self, env, vehicle=None):
         pass
@@ -113,44 +68,40 @@ class StateObservation(ObservationType):
         ego_state = self.vehicle_state(vehicle)
         return np.asarray(ego_state + navi_info, dtype=np.float32)
 
-
-class ImageObservation(ObservationType):
-    """
-    Use only image info as input
-    """
-    STACK_SIZE = 3  # use continuous 3 image as the input
-
-    def __init__(self, config, image_source: str, clip_rgb: bool):
-        self.image_source = image_source
-        super(ImageObservation, self).__init__(config)
-        self.rgb_clip = clip_rgb
-        self.state = np.zeros(self.observation_space.shape)
-
-    @property
-    def observation_space(self):
-        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE, )
-        if self.rgb_clip:
-            return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
+    @staticmethod
+    def vehicle_state(vehicle):
+        """
+        Wrap vehicle states to list
+        """
+        # update out of road
+        current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
+        lateral_to_left, lateral_to_right = vehicle.dist_to_left, vehicle.dist_to_right
+        info = [
+            clip(lateral_to_left, 0.0, 1.0),
+            clip(lateral_to_right, 0.0, 1.0),
+            vehicle.heading_diff(current_reference_lane),
+            # Note: speed can be negative denoting free fall. This happen when emergency brake.
+            clip((vehicle.speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
+            clip((vehicle.steering / vehicle.max_steering + 1) / 2, 0.0, 1.0),
+            clip((vehicle.last_current_action[0][0] + 1) / 2, 0.0, 1.0),
+            clip((vehicle.last_current_action[0][1] + 1) / 2, 0.0, 1.0)
+        ]
+        heading_dir_last = vehicle.last_heading_dir
+        heading_dir_now = vehicle.heading
+        cos_beta = heading_dir_now.dot(heading_dir_last
+                                       ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
+        beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
+        # print(beta)
+        yaw_rate = beta_diff / 0.1
+        # print(yaw_rate)
+        info.append(clip(yaw_rate, 0.0, 1.0))
+        if not vehicle.vehicle_config["use_lane_line_detector"]:
+            _, lateral = vehicle.lane.local_coordinates(vehicle.position)
         else:
-            return gym.spaces.Box(0, 255, shape=shape, dtype=np.uint8)
-
-    def observe(self, image_buffer: ImageBuffer):
-        new_obs = image_buffer.get_pixels_array(self.rgb_clip)
-        self.state = np.roll(self.state, -1, axis=-1)
-        self.state[:, :, -1] = new_obs
-        return self.state
-
-    def get_image(self):
-        return self.state.copy()[:, :, -1]
-
-    def reset(self, env, vehicle=None):
-        """
-        Clear stack
-        :param env: PGDrive
-        :param vehicle: BaseVehicle
-        :return: None
-        """
-        self.state = np.zeros(self.observation_space.shape)
+            lateral = vehicle.lane_line_detector.get_cloud_points()[0]
+            # print(lateral)
+        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
+        return info
 
 
 class LidarStateObservation(ObservationType):
@@ -189,35 +140,3 @@ class LidarStateObservation(ObservationType):
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
             other_v_info += vehicle.lidar.get_cloud_points()
         return np.concatenate((state, np.asarray(other_v_info)))
-
-
-class ImageStateObservation(ObservationType):
-    """
-    Use ego state info, navigation info and front cam image/top down image as input
-    The shape needs special handling
-    """
-    IMAGE = "image"
-    STATE = "state"
-
-    def __init__(self, vehicle_config):
-        config = vehicle_config
-        super(ImageStateObservation, self).__init__(config)
-        self.img_obs = ImageObservation(config, config["image_cource"], config["rgb_clip"])
-        self.state_obs = StateObservation(config)
-
-    @property
-    def observation_space(self):
-        # TODO it should be specified by different vehicle
-        return gym.spaces.Dict(
-            {
-                self.IMAGE: self.img_obs.observation_space,
-                self.STATE: self.state_obs.observation_space
-            }
-        )
-
-    def observe(self, vehicle: BaseVehicle):
-        image_buffer = vehicle.image_sensors[self.img_obs.image_source]
-        return {self.IMAGE: self.img_obs.observe(image_buffer), self.STATE: self.state_obs.observe(vehicle)}
-
-
-# Note that the top-down view observation is provided in pgdrive/world/top_down_observation/top_down_observation.py
