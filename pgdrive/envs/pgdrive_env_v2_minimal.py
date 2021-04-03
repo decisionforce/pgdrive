@@ -1,7 +1,8 @@
 import gym
 import numpy as np
+
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.obs.observation_type import LidarStateObservation, ObservationType
+from pgdrive.obs import LidarStateObservation, ObservationType
 from pgdrive.utils import PGConfig
 
 
@@ -25,7 +26,9 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
     def default_config(cls) -> PGConfig:
         config = super(PGDriveEnvV2Minimal, cls).default_config()
         config["vehicle_config"]["lidar"]["num_others"] = 2
-        config["vehicle_config"]["state_set"] = 0
+        assert config["vehicle_config"]["lidar"]["num_lasers"] == 120
+        config["vehicle_config"]["side_detector"]["num_lasers"] = 0
+        config["vehicle_config"]["lane_line_detector"]["num_lasers"] = 0
         return config
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
@@ -40,6 +43,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnvV2Minimal()
     try:
