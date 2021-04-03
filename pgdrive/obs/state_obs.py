@@ -9,31 +9,37 @@ PERCEIVE_DIST = 50
 
 
 class StateObservation(ObservationType):
+    Ego_state_obs_dim = 6
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
     @property
     def observation_space(self):
         # Navi info + Other states
-        shape = BaseVehicle.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        shape = self.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim + self.get_side_detector_dim()
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         """
         Ego states: [
-                    Distance to left yellow Continuous line,
-                    Distance to right Side Walk,
+                    [Distance to left yellow Continuous line,
+                    Distance to right Side Walk], if NOT use lane_line detector else:
+                    [Side_detector cloud_points]
+
                     Difference of heading between ego vehicle and current lane,
                     Current speed,
                     Current steering,
                     Throttle/brake of last frame,
                     Steering of last frame,
                     Yaw Rate,
-                    Lateral Position on current lane.
-                    ], dim = 9
+
+                     [Lateral Position on current lane.], if use lane_line detector, else:
+                     [lane_line_detector cloud points]
+                    ], dim >= 9
         Navi info: [
                     Projection of distance between ego vehicle and checkpoint on ego vehicle's heading direction,
                     Projection of distance between ego vehicle and checkpoint on ego vehicle's side direction,
@@ -56,11 +62,21 @@ class StateObservation(ObservationType):
         Wrap vehicle states to list
         """
         # update out of road
+        info = []
+        if vehicle.side_detector is not None:
+            info += vehicle.side_detector.get_cloud_points()
+        else:
+            lateral_to_left, lateral_to_right, = vehicle.dist_to_left, vehicle.dist_to_right
+            total_width = float(
+                (vehicle.routing_localization.get_current_lane_num() + 1) *
+                vehicle.routing_localization.get_current_lane_width()
+            )
+            lateral_to_left /= total_width
+            lateral_to_right /= total_width
+            info += [clip(lateral_to_left, 0.0, 1.0), clip(lateral_to_right, 0.0, 1.0)]
+
         current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
-        lateral_to_left, lateral_to_right = vehicle.dist_to_left, vehicle.dist_to_right
-        info = [
-            clip(lateral_to_left, 0.0, 1.0),
-            clip(lateral_to_right, 0.0, 1.0),
+        info += [
             vehicle.heading_diff(current_reference_lane),
             # Note: speed can be negative denoting free fall. This happen when emergency brake.
             clip((vehicle.speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
@@ -78,15 +94,22 @@ class StateObservation(ObservationType):
         # print(yaw_rate)
         info.append(clip(yaw_rate, 0.0, 1.0))
 
-        if vehicle.side_detector:
-            raise ValueError()  # FIXME please check this!!!
-            lateral = vehicle.lane_line_detector.get_cloud_points()[0]
+        if vehicle.lane_line_detector is not None:
+            info += vehicle.lane_line_detector.get_cloud_points()
         else:
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
-        # print(lateral)
+            info.append(
+                clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
 
-        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
         return info
+
+    def get_side_detector_dim(self):
+        dim = 0
+        dim += 2 if self.config["side_detector"]["num_lasers"] == 0 else \
+            self.config["side_detector"]["num_lasers"]
+        dim += 1 if self.config["lane_line_detector"]["num_lasers"] == 0 else \
+            self.config["lane_line_detector"]["num_lasers"]
+        return dim
 
 
 class LidarStateObservation(ObservationType):
