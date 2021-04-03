@@ -8,7 +8,7 @@ from typing import Union, Dict, AnyStr, Optional, Tuple
 import numpy as np
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
-from pgdrive.obs.observation_type import LidarStateObservation, ImageStateObservation
+from pgdrive.obs import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -67,9 +67,9 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         show_navi_mark=True,
         increment_steering=False,
         wheel_friction=0.6,
-        side_detector=dict(num_lasers=2, distance=50),  # laser num, distance
+        side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
         show_side_detector=False,
-        lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
+        lane_line_detector=dict(num_lasers=0, distance=20),  # laser num, distance
         show_lane_line_detector=False,
 
         # ===== use image =====
@@ -87,7 +87,6 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         action_check=False,
         use_saver=False,
         save_level=0.5,
-        use_lane_line_detector=False,
     ),
     rgb_clip=True,
 
@@ -127,6 +126,10 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
+        config = self.default_config().update(config, allow_overwrite=False)
+        return config
+
+    def _post_process_config(self, config):
         if not config["rgb_clip"]:
             logging.warning(
                 "You have set rgb_clip = False, which means the observation will be uint8 values in [0, 255]. "
@@ -144,7 +147,13 @@ class PGDriveEnv(BasePGDriveEnv):
                 "fast_launch_window": config["fast"]
             }
         )
-        config["vehicle_config"].update({"use_render": config["use_render"], "use_image": config["use_image"]})
+        config["vehicle_config"].update(
+            {
+                "use_render": config["use_render"],
+                "use_image": config["use_image"],
+                "rgb_clip": config["rgb_clip"]
+            }
+        )
         return config
 
     def _setup_pg_world(self) -> "PGWorld":
@@ -209,7 +218,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         saver_info = dict()
         for v_id, v in self.vehicles.items():
-            actions[v_id], saver_info[v_id] = self.saver(v_id, v, actions)
+            actions[v_id], saver_info[v_id] = self.saver(v_id, actions)
         return actions, saver_info
 
     def _get_step_return(self, actions, step_infos):
@@ -481,7 +490,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
                 return
 
-    def saver(self, v_id: str, vehicle: BaseVehicle, actions):
+    def saver(self, v_id: str, actions):
         """
         Rule to enable saver
         :param v_id: id of a vehicle
@@ -489,6 +498,7 @@ class PGDriveEnv(BasePGDriveEnv):
         :param actions: original actions of all vehicles
         :return: a new action to override original action
         """
+        vehicle = self.vehicles[v_id]
         action = actions[v_id]
         steering = action[0]
         throttle = action[1]

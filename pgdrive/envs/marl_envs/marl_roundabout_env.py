@@ -26,7 +26,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "vehicle_config": {
                     "born_longitude": 0,
                     "born_lateral": 0,
-                    "use_lane_line_detector": False,
                 },
                 # clear base config
                 "num_agents": 4,
@@ -35,9 +34,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         )
         return config
 
-    def _process_extra_config(self, config) -> "PGConfig":
-        ret_config = super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
-        return self._update_agent_pos_configs(ret_config)
+    def _process_extra_config(self, config):
+        config = self._update_agent_pos_configs(config)
+        return super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
 
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
@@ -60,7 +59,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             agent_name, v_config = target_vehicle_configs[idx]
             # for rllib compatibility
             ret["agent{}".format(real_idx)] = dict(born_lane_index=v_config)
-        config.update({"target_vehicle_configs": ret}, allow_overwrite=False, recursive_update=False)
+        config["target_vehicle_configs"] = ret
         return config
 
     def step(self, actions):
@@ -88,7 +87,7 @@ if __name__ == "__main__":
                 "pstats": True
             },
             "crash_done": False,
-            "num_agents": 6,
+            "num_agents": 12,
             "map_config": {
                 Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                 Map.GENERATE_CONFIG: "O",

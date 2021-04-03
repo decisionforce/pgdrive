@@ -82,7 +82,7 @@ class PGConfig:
         self._config = self._internal_dict_to_config(copy.deepcopy(config))
         self._types = dict()
         for k, v in self._config.items():
-            setattr(self, k, v)
+            self._set_item(k, v, allow_overwrite=True)
         self._unchangeable = unchangeable
 
     def clear(self):
@@ -102,33 +102,44 @@ class PGConfig:
     def get_serializable_dict(self):
         return config_to_dict(self._config, serializable=True)
 
-    def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=True, recursive_update=True):
+    def update(self, new_dict: Union[dict, "PGConfig"], allow_overwrite=True, stop_recursive_update=None):
         """
         Update this dict with extra configs
         :param new_dict: extra configs
         :param allow_overwrite: whether allowing to add new keys to existing configs or not
-        :param recursive_update: Deep update will be applied to dict/PGConfig values
+        :param stop_recursive_update: Deep update and recursive-check will NOT be applied to keys in stop_recursive_update
         :return: None
         """
+        stop_recursive_update = stop_recursive_update or []
         new_dict = new_dict or dict()
         new_dict = copy.deepcopy(new_dict)
+        if not allow_overwrite:
+            old_keys = set(self._config)
+            new_keys = set(new_dict)
+            diff = new_keys.difference(old_keys)
+            if len(diff) > 0:
+                raise KeyError(
+                    "'{}' does not exist in existing config. "
+                    "Please use config.update(...) to update the config. Existing keys: {}.".format(
+                        diff, self._config.keys()
+                    )
+                )
         for k, v in new_dict.items():
             if k not in self:
-                if not allow_overwrite:
-                    self._check_and_raise_key_error(k)
-                else:
-                    if isinstance(v, dict):
-                        v = PGConfig(v)
-                    self._config[k] = v  # Placeholder
+                if isinstance(v, dict):
+                    v = PGConfig(v)
+                self._config[k] = v  # Placeholder
             success = False
             if isinstance(self._config[k], (dict, PGConfig)):
-                if recursive_update:
+                if k not in stop_recursive_update:
                     success = self._update_dict_item(k, v, allow_overwrite)
                 else:
                     self._set_item(k, v, allow_overwrite)
                     success = True
             if not success:
                 self._update_single_item(k, v, allow_overwrite)
+            if k in self._config and not hasattr(self, k):
+                self.__setattr__(k, self._config[k])
         return self
 
     def _update_dict_item(self, k, v, allow_overwrite):
