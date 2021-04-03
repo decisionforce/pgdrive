@@ -18,7 +18,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 "traffic_density": 0.,
                 "start_seed": 10,
                 "map": "yY",
-                "vehicle_config": {"lane_line_detector": {"num_lasers": 100}},
+                "vehicle_config": {
+                    "lane_line_detector": {
+                        "num_lasers": 100
+                    }
+                },
                 "target_vehicle_configs": {
                     "agent0": {
                         "born_longitude": 10,
