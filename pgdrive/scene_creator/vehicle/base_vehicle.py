@@ -1,16 +1,13 @@
 import math
-from typing import Union
 import time
 from collections import deque
-from typing import Optional
+from typing import Union, Optional
 
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
-
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -54,11 +51,11 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self,
-        pg_world: PGWorld,
-        vehicle_config: Union[dict, PGConfig] = None,
-        physics_config: dict = None,
-        random_seed: int = 0
+            self,
+            pg_world: PGWorld,
+            vehicle_config: Union[dict, PGConfig] = None,
+            physics_config: dict = None,
+            random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -140,14 +137,19 @@ class BaseVehicle(DynamicElement):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
-        self.side_detector = SideDetector(
-            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
-        )
-        self.lane_line_detector = LaneLineDetector(
-            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
-        )
+
+        if self.vehicle_config["side_detector"]["num_lasers"] > 0:
+            self.side_detector = SideDetector(
+                self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+                self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+            )
+
+        if self.vehicle_config["lane_line_detector"]["num_lasers"] > 0:
+            self.lane_line_detector = LaneLineDetector(
+                self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+                self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+            )
+
         if not self.vehicle_config["use_image"]:
             if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
                 self.add_lidar(
@@ -438,8 +440,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -701,7 +703,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -716,7 +718,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -747,12 +749,12 @@ class BaseVehicle(DynamicElement):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property

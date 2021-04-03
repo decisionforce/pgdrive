@@ -67,9 +67,9 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         show_navi_mark=True,
         increment_steering=False,
         wheel_friction=0.6,
-        side_detector=dict(num_lasers=2, distance=50),  # laser num, distance
+        side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
         show_side_detector=False,
-        lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
+        lane_line_detector=dict(num_lasers=0, distance=20),  # laser num, distance
         show_lane_line_detector=False,
 
         # ===== use image =====
