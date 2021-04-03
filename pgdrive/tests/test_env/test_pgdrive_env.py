@@ -95,4 +95,5 @@ def test_zombie():
 
 
 if __name__ == '__main__':
-    pytest.main(["-s", "test_pgdrive_env.py"])
+    # pytest.main(["-s", "test_pgdrive_env.py"])
+    test_zombie()
