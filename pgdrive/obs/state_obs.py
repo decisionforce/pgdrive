@@ -77,11 +77,14 @@ class StateObservation(ObservationType):
         yaw_rate = beta_diff / 0.1
         # print(yaw_rate)
         info.append(clip(yaw_rate, 0.0, 1.0))
-        if not vehicle.vehicle_config["use_lane_line_detector"]:
-            _, lateral = vehicle.lane.local_coordinates(vehicle.position)
-        else:
+
+        if vehicle.side_detector:
+            raise ValueError()  # FIXME please check this!!!
             lateral = vehicle.lane_line_detector.get_cloud_points()[0]
-            # print(lateral)
+        else:
+            _, lateral = vehicle.lane.local_coordinates(vehicle.position)
+        # print(lateral)
+
         info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
         return info
 

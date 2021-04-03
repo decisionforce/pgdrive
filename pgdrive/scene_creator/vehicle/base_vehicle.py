@@ -308,8 +308,11 @@ class BaseVehicle(DynamicElement):
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
-        self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
-        self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+
+        # Fixme: Where do we perceive the things?
+        # self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+        # self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+
         self.update_dist_to_left_right()
         self.takeover = False
         self.energy_consumption = 0
@@ -364,10 +367,12 @@ class BaseVehicle(DynamicElement):
     """---------------------------------------- vehicle info ----------------------------------------------"""
 
     def update_dist_to_left_right(self):
-        if not self.vehicle_config["use_lane_line_detector"]:
-            self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
-        else:
+        if self.lane_line_detector:
+            raise ValueError()  # FIXME please fix this!!!!!!!!
             self.dist_to_right, self.dist_to_left = self.side_detector.get_cloud_points()
+        else:
+            self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
+
 
     def _dist_to_route_left_right(self):
         current_reference_lane = self.routing_localization.current_ref_lanes[-1]
@@ -653,8 +658,13 @@ class BaseVehicle(DynamicElement):
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None
-        self.side_detector.destroy()
-        self.lane_line_detector.destroy()
+
+        if self.side_detector is not None:
+            self.side_detector.destroy()
+
+        if self.lane_line_detector is not None:
+            self.lane_line_detector.destroy()
+
         self.side_detector = None
         self.lane_line_detector = None
 
