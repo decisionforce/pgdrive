@@ -1,6 +1,7 @@
 import gym
 import numpy as np
-from pgdrive.obs.observation_type import ObservationType, StateObservation
+from pgdrive.obs.observation_type import ObservationType
+from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.world.image_buffer import ImageBuffer
 
@@ -34,9 +35,6 @@ class ImageStateObservation(ObservationType):
         return {self.IMAGE: self.img_obs.observe(image_buffer), self.STATE: self.state_obs.observe(vehicle)}
 
 
-# Note that the top-down view observation is provided in pgdrive/world/top_down_observation/top_down_observation.py
-
-
 class ImageObservation(ObservationType):
     """
     Use only image info as input
@@ -51,7 +49,7 @@ class ImageObservation(ObservationType):
 
     @property
     def observation_space(self):
-        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE, )
+        shape = tuple(self.config[self.image_source][0:2]) + (self.STACK_SIZE,)
         if self.rgb_clip:
             return gym.spaces.Box(-0.0, 1.0, shape=shape, dtype=np.float32)
         else:
