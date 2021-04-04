@@ -2,11 +2,17 @@ import gym
 import numpy as np
 
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.obs import LidarStateObservation, ObservationType
+from pgdrive.obs import LidarStateObservation
+from pgdrive.obs.observation_type import ObservationType
 from pgdrive.utils import PGConfig
+from pgdrive.utils.math_utils import clip
+
+DISTANCE = 50
 
 
 class MinimalObservation(LidarStateObservation):
+    _traffic_vehicle_state_dim = 15
+
     def __init__(self, config):
         super(MinimalObservation, self).__init__(vehicle_config=config)
         self._state_obs_dim = list(self.state_obs.observation_space.shape)[0]
@@ -14,7 +20,7 @@ class MinimalObservation(LidarStateObservation):
     @property
     def observation_space(self):
         shape = list(self.state_obs.observation_space.shape)
-        shape[0] = shape[0] + self.config["lidar"]["num_others"] * (shape[0] + 4)
+        shape[0] = shape[0] + self.config["lidar"]["num_others"] * self._traffic_vehicle_state_dim
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe(self, vehicle):
@@ -44,11 +50,31 @@ class MinimalObservation(LidarStateObservation):
                 relative_velocity = ego_vehicle.projection(vehicle.velocity - ego_vehicle.velocity)
                 res.append(clip((relative_velocity[0] / ego_vehicle.max_speed + 1) / 2, 0.0, 1.0))
                 res.append(clip((relative_velocity[1] / ego_vehicle.max_speed + 1) / 2, 0.0, 1.0))
-
-                res.extend(self.state_obs.observe(vehicle))
+                res.extend(self.traffic_vehicle_state(vehicle))
             else:
-                res += [0.0] * (4 + self._state_obs_dim)
+                res += [0.0] * self._traffic_vehicle_state_dim
         return res
+
+    def traffic_vehicle_state(self, vehicle):
+        s = []
+        state = vehicle.to_dict()
+        s.append(state['vx'] / vehicle.MAX_SPEED)
+        s.append(state['vy'] / vehicle.MAX_SPEED)
+        s.append(state["cos_h"])
+        s.append(state["sin_h"])
+        s.append(state["cos_d"])
+        s.append(state["sin_d"])
+        s.append(vehicle.target_speed / vehicle.MAX_SPEED)
+        s.append(np.cos(vehicle.heading))
+        s.append(np.sin(vehicle.heading))
+        s.append(vehicle.action["steering"])
+        s.append(vehicle.action["acceleration"])
+        s = [self._to_zero_and_one(v) for v in s]
+        return s
+
+    @staticmethod
+    def _to_zero_and_one(v):
+        return (clip(v, -1, +1) + 1) / 2
 
 
 class PGDriveEnvV2Minimal(PGDriveEnvV2):
@@ -81,14 +107,13 @@ if __name__ == '__main__':
         assert isinstance(info, dict)
 
 
-    env = PGDriveEnvV2Minimal({"num_others": 0})
+    env = PGDriveEnvV2Minimal({"num_others": 10, "map": "SSS"})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
         _act(env, env.action_space.sample())
-        for x in [-1, 0, 1]:
-            env.reset()
-            for y in [-1, 0, 1]:
-                _act(env, [x, y])
+        env.reset()
+        for _ in range(100):
+            _act(env, [0, 1])
     finally:
         env.close()

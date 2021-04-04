@@ -62,7 +62,7 @@ class StateObservation(ObservationType):
         """
         # update out of road
         info = []
-        if vehicle.side_detector is not None:
+        if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
             info += vehicle.side_detector.get_cloud_points()
         else:
             lateral_to_left, lateral_to_right, = vehicle.dist_to_left, vehicle.dist_to_right
