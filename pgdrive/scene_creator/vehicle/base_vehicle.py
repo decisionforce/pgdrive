@@ -1,15 +1,13 @@
 import math
 import time
 from collections import deque
-from typing import Optional
+from typing import Union, Optional
 
 import gym
 import numpy as np
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
 from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
-
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -34,7 +32,6 @@ from pgdrive.world.pg_world import PGWorld
 
 
 class BaseVehicle(DynamicElement):
-    Ego_state_obs_dim = 9
     """
     Vehicle chassis and its wheels index
                     0       1
@@ -49,47 +46,15 @@ class BaseVehicle(DynamicElement):
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
-    @classmethod
-    def _default_vehicle_config(cls) -> PGConfig:
-        vehicle_config = dict(
-            # ===== vehicle module config =====
-            lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
-            show_lidar=False,
-            mini_map=(84, 84, 250),  # buffer length, width
-            rgb_cam=(84, 84),  # buffer length, width
-            depth_cam=(84, 84, True),  # buffer length, width, view_ground
-            show_navi_mark=True,
-            increment_steering=False,
-            wheel_friction=0.6,
-            side_detector=dict(num_lasers=2, distance=20),  # laser num, distance
-            show_side_detector=False,
-            lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
-            show_lane_line_detector=False,
-
-            # ===== use image =====
-            image_source="rgb_cam",  # take effect when only when use_image == True
-            use_image=False,
-            rgb_clip=True,
-
-            # ===== vehicle born =====
-            born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-            born_longitude=5.0,
-            born_lateral=0.0,
-
-            # ==== others ====
-            overtake_stat=False,  # we usually set to True when evaluation
-            action_check=False,
-            use_saver=False,
-            save_level=0.5,
-            use_lane_line_detector=False,
-        )
-        return PGConfig(vehicle_config)
-
     LENGTH = None
     WIDTH = None
 
     def __init__(
-        self, pg_world: PGWorld, vehicle_config: dict = None, physics_config: dict = None, random_seed: int = 0
+        self,
+        pg_world: PGWorld,
+        vehicle_config: Union[dict, PGConfig] = None,
+        physics_config: dict = None,
+        random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -171,14 +136,19 @@ class BaseVehicle(DynamicElement):
         # add self module for training according to config
         vehicle_config = self.vehicle_config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
-        self.side_detector = SideDetector(
-            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
-        )
-        self.lane_line_detector = LaneLineDetector(
-            self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
-            self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
-        )
+
+        if self.vehicle_config["side_detector"]["num_lasers"] > 0:
+            self.side_detector = SideDetector(
+                self.pg_world.render, self.vehicle_config["side_detector"]["num_lasers"],
+                self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
+            )
+
+        if self.vehicle_config["lane_line_detector"]["num_lasers"] > 0:
+            self.lane_line_detector = LaneLineDetector(
+                self.pg_world.render, self.vehicle_config["lane_line_detector"]["num_lasers"],
+                self.vehicle_config["lane_line_detector"]["distance"], self.vehicle_config["show_lane_line_detector"]
+            )
+
         if not self.vehicle_config["use_image"]:
             if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
                 self.add_lidar(
@@ -315,10 +285,10 @@ class BaseVehicle(DynamicElement):
         else, vehicle will be reset to born place
         """
         if pos is None:
-            self.born_place = map.road_network.get_lane(
-                self.vehicle_config["born_lane_index"]
-            ).position(self.vehicle_config["born_longitude"], self.vehicle_config["born_lateral"])
-            pos = self.born_place
+            lane = map.road_network.get_lane(self.vehicle_config["born_lane_index"])
+            pos = lane.position(self.vehicle_config["born_longitude"], self.vehicle_config["born_lateral"])
+            heading = np.rad2deg(lane.heading_at(self.vehicle_config["born_longitude"]))
+            self.born_place = pos
         heading = -np.deg2rad(heading) - np.pi / 2
         self.chassis_np.setPos(panda_position(Vec3(*pos, 1)))
         self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
@@ -337,8 +307,7 @@ class BaseVehicle(DynamicElement):
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
         self.last_position = self.born_place
         self.last_heading_dir = self.heading
-        self.side_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
-        self.lane_line_detector.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+
         self.update_dist_to_left_right()
         self.takeover = False
         self.energy_consumption = 0
@@ -393,10 +362,7 @@ class BaseVehicle(DynamicElement):
     """---------------------------------------- vehicle info ----------------------------------------------"""
 
     def update_dist_to_left_right(self):
-        if not self.vehicle_config["use_lane_line_detector"]:
-            self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
-        else:
-            self.dist_to_right, self.dist_to_left = self.side_detector.get_cloud_points()
+        self.dist_to_left, self.dist_to_right = self._dist_to_route_left_right()
 
     def _dist_to_route_left_right(self):
         current_reference_lane = self.routing_localization.current_ref_lanes[-1]
@@ -682,8 +648,13 @@ class BaseVehicle(DynamicElement):
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None
-        self.side_detector.destroy()
-        self.lane_line_detector.destroy()
+
+        if self.side_detector is not None:
+            self.side_detector.destroy()
+
+        if self.lane_line_detector is not None:
+            self.lane_line_detector.destroy()
+
         self.side_detector = None
         self.lane_line_detector = None
 

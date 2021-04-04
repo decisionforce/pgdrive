@@ -1,16 +1,19 @@
+"""
+We implement this top-down view render based on eleurent/Highway-Env
+See more information on its Github page: https://github.com/eleurent/highway-env
+"""
 import os
 import sys
 from typing import Tuple
 
 import gym
 import numpy as np
-
 from pgdrive.constants import Decoration, DEFAULT_AGENT, PG_EDITION
 from pgdrive.obs.observation_type import ObservationType
+from pgdrive.obs.top_down_obs_impl import WorldSurface, ObservationWindow, COLOR_BLACK, \
+    VehicleGraphics, LaneGraphics
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import import_pygame
-from pgdrive.world.top_down_observation.top_down_obs_impl import WorldSurface, ObservationWindow, COLOR_BLACK, \
-    VehicleGraphics, LaneGraphics
 
 pygame = import_pygame()
 
@@ -24,13 +27,14 @@ class TopDownObservation(ObservationType):
     MAP_RESOLUTION = (2000, 2000)  # pix x pix
     MAX_RANGE = (50, 50)  # maximum detection distance = 50 M
 
-    def __init__(self, vehicle_config, env, clip_rgb: bool):
+    def __init__(self, vehicle_config, env, clip_rgb: bool, resolution=None):
+        self.resolution = resolution or self.RESOLUTION
         super(TopDownObservation, self).__init__(vehicle_config, env)
         self.rgb_clip = clip_rgb
         self.num_stacks = 3
 
         # self.obs_shape = (64, 64)
-        self.obs_shape = self.RESOLUTION
+        self.obs_shape = self.resolution
 
         self.pygame = import_pygame()
 
@@ -50,10 +54,10 @@ class TopDownObservation(ObservationType):
         pygame.display.set_caption(PG_EDITION + " (Top-down)")
         # main_window_position means the left upper location.
         os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}' \
-            .format(main_window_position[0] - self.RESOLUTION[0], main_window_position[1])
+            .format(main_window_position[0] - self.resolution[0], main_window_position[1])
         # Used for display only!
         self.screen = pygame.display.set_mode(
-            (self.RESOLUTION[0] * 2, self.RESOLUTION[1] * 2)
+            (self.resolution[0] * 2, self.resolution[1] * 2)
         ) if self.onscreen else None
 
         # canvas
@@ -61,7 +65,7 @@ class TopDownObservation(ObservationType):
         self.init_obs_window()
 
     def init_obs_window(self):
-        self.obs_window = ObservationWindow(self.MAX_RANGE, self.RESOLUTION)
+        self.obs_window = ObservationWindow(self.MAX_RANGE, self.resolution)
 
     def init_canvas(self):
         self.canvas_runtime = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))

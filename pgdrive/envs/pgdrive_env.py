@@ -6,10 +6,9 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
-
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
-from pgdrive.obs.observation_type import LidarStateObservation, ImageStateObservation
+from pgdrive.obs import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -68,9 +67,9 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         show_navi_mark=True,
         increment_steering=False,
         wheel_friction=0.6,
-        side_detector=dict(num_lasers=2, distance=50),  # laser num, distance
+        side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
         show_side_detector=False,
-        lane_line_detector=dict(num_lasers=2, distance=20),  # laser num, distance
+        lane_line_detector=dict(num_lasers=0, distance=20),  # laser num, distance
         show_lane_line_detector=False,
 
         # ===== use image =====
@@ -88,7 +87,6 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         action_check=False,
         use_saver=False,
         save_level=0.5,
-        use_lane_line_detector=False,
     ),
     rgb_clip=True,
 
@@ -126,8 +124,17 @@ class PGDriveEnv(BasePGDriveEnv):
         self.current_track_vehicle: Optional[BaseVehicle] = None
         self.current_track_vehicle_id: Optional[str] = None
 
-    def _process_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
+    def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
+        config = self.default_config().update(config, allow_overwrite=False)
+        return config
+
+    def _post_process_config(self, config):
+        if not config["rgb_clip"]:
+            logging.warning(
+                "You have set rgb_clip = False, which means the observation will be uint8 values in [0, 255]. "
+                "Please make sure you have parsed them later before feeding them to network!"
+            )
         config["map_config"] = parse_map_config(
             easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
@@ -140,7 +147,13 @@ class PGDriveEnv(BasePGDriveEnv):
                 "fast_launch_window": config["fast"]
             }
         )
-        config["vehicle_config"].update({"use_render": config["use_render"], "use_image": config["use_image"]})
+        config["vehicle_config"].update(
+            {
+                "use_render": config["use_render"],
+                "use_image": config["use_image"],
+                "rgb_clip": config["rgb_clip"]
+            }
+        )
         return config
 
     def _setup_pg_world(self) -> "PGWorld":
@@ -177,14 +190,7 @@ class PGDriveEnv(BasePGDriveEnv):
             self.main_camera = ChaseCamera(self.pg_world.cam, self.config["camera_height"], 7, self.pg_world)
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.chase(self.current_track_vehicle, self.pg_world)
-        self.pg_world.accept("n", self.chase_another_v)
-
-        # for manual_control and main camera type
-        if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
-            self.main_camera = ChaseCamera(self.pg_world.cam, self.config["camera_height"], 7, self.pg_world)
-            self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
-            self.main_camera.chase(self.current_track_vehicle, self.pg_world)
-        self.pg_world.accept("n", self.chase_another_v)
+        self.pg_world.accept("q", self.chase_another_v)
 
     def _get_observations(self):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
@@ -212,7 +218,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         saver_info = dict()
         for v_id, v in self.vehicles.items():
-            actions[v_id], saver_info[v_id] = self.saver(v_id, v, actions)
+            actions[v_id], saver_info[v_id] = self.saver(v_id, actions)
         return actions, saver_info
 
     def _get_step_return(self, actions, step_infos):
@@ -225,9 +231,9 @@ class PGDriveEnv(BasePGDriveEnv):
         rewards = {}
         for v_id, v in self.vehicles.items():
             obses[v_id] = self.observations[v_id].observe(v)
-            done_function_result, done_infos[v_id] = self.done_function(v)
-            rewards[v_id], reward_infos[v_id] = self.reward_function(v)
-            _, cost_infos[v_id] = self.cost_function(v)
+            done_function_result, done_infos[v_id] = self.done_function(v_id)
+            rewards[v_id], reward_infos[v_id] = self.reward_function(v_id)
+            _, cost_infos[v_id] = self.cost_function(v_id)
             self.dones[v_id] = done_function_result or self.dones[v_id]
 
         should_done = self.config["auto_termination"] and (self.episode_steps >= (self.current_map.num_blocks * 250))
@@ -251,7 +257,8 @@ class PGDriveEnv(BasePGDriveEnv):
         else:
             return obses, rewards, self.dones, step_infos
 
-    def done_function(self, vehicle):
+    def done_function(self, vehicle_id: str):
+        vehicle = self.vehicles[vehicle_id]
         done = False
         done_info = dict(crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
         if vehicle.arrive_destination:
@@ -275,7 +282,8 @@ class PGDriveEnv(BasePGDriveEnv):
         done_info["crash"] = done_info["crash_vehicle"] or done_info["crash_object"]
         return done, done_info
 
-    def cost_function(self, vehicle):
+    def cost_function(self, vehicle_id: str):
+        vehicle = self.vehicles[vehicle_id]
         step_info = dict()
         step_info["cost"] = 0
         if vehicle.crash_vehicle:
@@ -286,16 +294,18 @@ class PGDriveEnv(BasePGDriveEnv):
             step_info["cost"] = self.config["out_of_road_cost"]
         return step_info['cost'], step_info
 
-    def reward_function(self, vehicle):
+    def reward_function(self, vehicle_id):
         """
         Override this func to get a new reward function
-        :param vehicle: BaseVehicle
+        :param vehicle_id: id of BaseVehicle
         :return: reward
         """
+        vehicle = self.vehicles[vehicle_id]
         step_info = dict()
         action = vehicle.last_current_action[1]
         # Reward for moving forward in current lane
-        current_lane = vehicle.lane
+        current_lane = vehicle.lane if vehicle.lane in vehicle.routing_localization.current_ref_lanes else \
+            vehicle.routing_localization.current_ref_lanes[0]
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
@@ -480,7 +490,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 self.main_camera.chase(self.current_track_vehicle, self.pg_world)
                 return
 
-    def saver(self, v_id: str, vehicle: BaseVehicle, actions):
+    def saver(self, v_id: str, actions):
         """
         Rule to enable saver
         :param v_id: id of a vehicle
@@ -488,6 +498,7 @@ class PGDriveEnv(BasePGDriveEnv):
         :param actions: original actions of all vehicles
         :return: a new action to override original action
         """
+        vehicle = self.vehicles[v_id]
         action = actions[v_id]
         steering = action[0]
         throttle = action[1]
