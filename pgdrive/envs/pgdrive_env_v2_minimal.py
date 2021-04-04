@@ -12,6 +12,7 @@ DISTANCE = 50
 
 class MinimalObservation(LidarStateObservation):
     _traffic_vehicle_state_dim = 15
+    _traffic_vehicle_state_dim_wo_extra = 4
 
     def __init__(self, config):
         super(MinimalObservation, self).__init__(vehicle_config=config)
@@ -20,7 +21,10 @@ class MinimalObservation(LidarStateObservation):
     @property
     def observation_space(self):
         shape = list(self.state_obs.observation_space.shape)
-        shape[0] = shape[0] + self.config["lidar"]["num_others"] * self._traffic_vehicle_state_dim
+        if self.config["use_extra_state"]:
+            shape[0] = shape[0] + self.config["lidar"]["num_others"] * self._traffic_vehicle_state_dim
+        else:
+            shape[0] = shape[0] + self.config["lidar"]["num_others"] * self._traffic_vehicle_state_dim_wo_extra
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe(self, vehicle):
@@ -50,9 +54,14 @@ class MinimalObservation(LidarStateObservation):
                 relative_velocity = ego_vehicle.projection(vehicle.velocity - ego_vehicle.velocity)
                 res.append(clip((relative_velocity[0] / ego_vehicle.max_speed + 1) / 2, 0.0, 1.0))
                 res.append(clip((relative_velocity[1] / ego_vehicle.max_speed + 1) / 2, 0.0, 1.0))
-                res.extend(self.traffic_vehicle_state(vehicle))
+
+                if self.config["use_extra_state"]:
+                    res.extend(self.traffic_vehicle_state(vehicle))
             else:
-                res += [0.0] * self._traffic_vehicle_state_dim
+                if self.config["use_extra_state"]:
+                    res += [0.0] * self._traffic_vehicle_state_dim
+                else:
+                    res += [0.0] * self._traffic_vehicle_state_dim_wo_extra
         return res
 
     def traffic_vehicle_state(self, vehicle):
