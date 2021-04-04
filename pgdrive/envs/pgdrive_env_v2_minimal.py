@@ -90,7 +90,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
     @classmethod
     def default_config(cls) -> PGConfig:
         config = super(PGDriveEnvV2Minimal, cls).default_config()
-        config.update({"num_others": 4})
+        config.update({"num_others": 4, "use_extra_state": False})
         config["vehicle_config"]["side_detector"]["num_lasers"] = 0
         config["vehicle_config"]["lane_line_detector"]["num_lasers"] = 0
         return config
@@ -103,6 +103,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
         assert config["vehicle_config"]["lidar"]["num_others"] == 0
         assert config["vehicle_config"]["lidar"]["num_lasers"] == 120
         config["vehicle_config"]["lidar"]["num_others"] = config["num_others"]
+        config["vehicle_config"]["use_extra_state"] = config["use_extra_state"]
         return config
 
 
@@ -116,7 +117,7 @@ if __name__ == '__main__':
         assert isinstance(info, dict)
 
 
-    env = PGDriveEnvV2Minimal({"num_others": 10, "map": "SSS"})
+    env = PGDriveEnvV2Minimal({"num_others": 0, "map": "SSS", "use_extra_state": True})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
