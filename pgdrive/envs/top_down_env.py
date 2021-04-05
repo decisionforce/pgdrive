@@ -1,7 +1,7 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.utils import PGConfig
 from pgdrive.obs import TopDownMultiChannel, TopDownObservation
+from pgdrive.utils import PGConfig
 
 
 class TopDownSingleFramePGDriveEnv(PGDriveEnv):
@@ -79,9 +79,10 @@ if __name__ == '__main__':
     ]
     for _ in range(40):
         o, *_ = env.step([-0.00, 0.2])
-        # assert env.observation_space.contains(o)
+        assert env.observation_space.contains(o)
     for _ in range(10000):
-        o, *_ = env.step([0.1, 1])
+        o, r, d, i = env.step([0.1, 1])
+        print("Velocity: ", i["velocity"])
 
         fig, axes = plt.subplots(1, o.shape[-1], figsize=(15, 3))
 
@@ -95,7 +96,6 @@ if __name__ == '__main__':
         for o_i in range(o.shape[-1]):
             axes[o_i].imshow(o[..., o_i], cmap="gray", vmin=0, vmax=1)
             axes[o_i].set_title(names[o_i])
-        axes[-1]
 
         fig.suptitle("Multi-channel Top-down Observation")
         plt.show()
