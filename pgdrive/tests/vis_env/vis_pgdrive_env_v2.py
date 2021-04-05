@@ -5,8 +5,9 @@ if __name__ == "__main__":
     setup_logger(True)
     env = PGDriveEnvV2(
         {
-            "start_seed": 700,
-            "map": "X",
+            "start_seed": 0,
+            "environment_num": 5,
+            "camera_height": 500,
             "fast": True,
             "use_render": True,
             "manual_control": True,
