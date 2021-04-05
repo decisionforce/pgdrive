@@ -58,10 +58,22 @@ class MinimalObservation(LidarStateObservation):
         heading_dir_now = vehicle.heading
 
         # Add more information about the road
-        info.append(clip(current_reference_lane.heading, 0.0, 1.0))
+        if hasattr(current_reference_lane, "heading"):
+            info.append(clip(current_reference_lane.heading, 0.0, 1.0))
+        else:
+            info.append(0.0)
         info.append(clip(current_reference_lane.length / DISTANCE, 0.0, 1.0))
-        info.append(self._to_zero_and_one(current_reference_lane.direction[0]))
-        info.append(self._to_zero_and_one(current_reference_lane.direction[1]))
+        if hasattr(current_reference_lane, "direction"):
+            dir = current_reference_lane.direction
+            if isinstance(dir, int):
+                info.append(self._to_zero_and_one(dir))
+            elif len(dir) == 2:
+                info.append(self._to_zero_and_one(dir[0]))
+                info.append(self._to_zero_and_one(dir[1]))
+            else:
+                info.extend([0.0, 0.0])
+        else:
+            info.extend([0.0, 0.0])
 
         cos_beta = heading_dir_now.dot(heading_dir_last
                                        ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))

@@ -1,4 +1,5 @@
 import numpy as np
+
 from pgdrive.envs.pgdrive_env_v2_minimal import PGDriveEnvV2Minimal
 
 
@@ -27,5 +28,22 @@ def test_pgdrive_env_v2_minimal():
     _test(PGDriveEnvV2Minimal({"num_others": 0, "use_extra_state": False, "traffic_density": 0.5}))
 
 
+def test_pgdrive_env_v2_minimal_long_run():
+    try:
+        for m in ["X", "O", "C", "S", "R", "r", "T"]:
+            env = PGDriveEnvV2Minimal({"map": m})
+            obs = env.reset()
+            for _ in range(300):
+                o, r, d, i = env.step([0, 1])
+                if d:
+                    break
+            env.close()
+    finally:
+        if "env" in locals():
+            env = locals()["env"]
+            env.close()
+
+
 if __name__ == '__main__':
-    test_pgdrive_env_v2_minimal()
+    # test_pgdrive_env_v2_minimal()
+    test_pgdrive_env_v2_minimal_long_run()
