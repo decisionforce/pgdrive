@@ -188,7 +188,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
-        reward = 0.0
 
         # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
         if self.config["use_lateral"]:
@@ -199,9 +198,11 @@ class PGDriveEnvV2(PGDriveEnvV1):
             lateral_factor = 1.0
         current_road = Road(*vehicle.lane_index[:-1])
         positive_road = 1 if not current_road.is_negative_road() else -1
-        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor * positive_road
 
-        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
+        reward = 0.0
+        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor * positive_road
+        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed) * positive_road
+
         step_info["step_reward"] = reward
 
         if vehicle.crash_vehicle:
