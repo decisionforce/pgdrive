@@ -130,6 +130,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
         assert self.config["vehicle_config"]["lidar"]["num_others"] == 0
         assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
 
+    def _is_out_of_road(self, vehicle):
+        # A specified function to determine whether this vehicle should be done.
+        return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
         done = False
@@ -143,7 +147,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             logging.info("Episode ended! Reason: crash. ")
             done_info["crash_vehicle"] = True
         # elif vehicle.out_of_route or not vehicle.on_lane or vehicle.crash_sidewalk:
-        elif vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk:
+        elif self._is_out_of_road(vehicle):
             done = True
             logging.info("Episode ended! Reason: out_of_road.")
             done_info["out_of_road"] = True
@@ -164,7 +168,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             step_info["cost"] = self.config["crash_vehicle_cost"]
         elif vehicle.crash_object:
             step_info["cost"] = self.config["crash_object_cost"]
-        elif vehicle.out_of_route:
+        elif self._is_out_of_road(vehicle):
             step_info["cost"] = self.config["out_of_road_cost"]
         return step_info['cost'], step_info
 
@@ -202,7 +206,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             reward = -self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
             reward = -self.config["crash_object_penalty"]
-        elif vehicle.out_of_route:
+        elif self._is_out_of_road(vehicle):
             reward = -self.config["out_of_road_penalty"]
         elif vehicle.arrive_destination:
             reward = +self.config["success_reward"]
