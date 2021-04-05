@@ -67,6 +67,7 @@ class MinimalObservation(LidarStateObservation):
             dir = current_reference_lane.direction
             if isinstance(dir, int):
                 info.append(self._to_zero_and_one(dir))
+                info.append(0.0)
             elif len(dir) == 2:
                 info.append(self._to_zero_and_one(dir[0]))
                 info.append(self._to_zero_and_one(dir[1]))
