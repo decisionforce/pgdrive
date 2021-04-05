@@ -115,7 +115,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 vehicle_config=dict(
                     lidar=dict(num_lasers=120, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
                     side_detector=dict(num_lasers=6, distance=50),  # laser num, distance
-                    lane_line_detector=dict(num_lasers=6, distance=20),  # laser num, distance
+                    lane_line_detector=dict(num_lasers=20, distance=50),  # laser num, distance
                 ),
 
                 # Disable map loading!
