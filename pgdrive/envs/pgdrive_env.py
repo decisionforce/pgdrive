@@ -128,8 +128,6 @@ class PGDriveEnv(BasePGDriveEnv):
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
         config = self.default_config().update(config, allow_overwrite=False)
-        assert config["vehicle_config"]["lidar"]["gaussian_noise"] == 0.0, "Only supported in V2!"
-        assert config["vehicle_config"]["lidar"]["dropout_prob"] == 0.0, "Only supported in V2!"
         return config
 
     def _post_process_config(self, config):
