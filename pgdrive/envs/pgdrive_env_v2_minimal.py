@@ -124,6 +124,7 @@ class MinimalObservation(LidarStateObservation):
         return res
 
     def traffic_vehicle_state(self, vehicle):
+        vid = id(vehicle)
         s = []
         state = vehicle.to_dict()
         s.append(state['vx'] / vehicle.MAX_SPEED)
@@ -137,7 +138,7 @@ class MinimalObservation(LidarStateObservation):
         s.append(np.cos(vehicle.heading))
         s.append(np.sin(vehicle.heading))
         s.append(vehicle.action["steering"])
-        s.append(vehicle.action["acceleration"])
+        s.append(vehicle.action["acceleration"] / 5)
         s = [self._to_zero_and_one(v) for v in s]
         return s
 
@@ -150,8 +151,8 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
     @classmethod
     def default_config(cls) -> PGConfig:
         config = super(PGDriveEnvV2Minimal, cls).default_config()
-        config.update({"num_others": 4, "use_extra_state": False})
-        config["vehicle_config"]["side_detector"]["num_lasers"] = 0
+        config.update({"num_others": 4, "use_extra_state": True})
+        config["vehicle_config"]["side_detector"]["num_lasers"] = 2
         config["vehicle_config"]["lane_line_detector"]["num_lasers"] = 0
         return config
 

@@ -17,7 +17,8 @@ def test_pgdrive_env_v2_minimal():
             assert env.observation_space.contains(obs)
             _act(env, env.action_space.sample())
             env.reset()
-            for _ in range(100):
+            for c in range(100):
+                print(c)
                 _act(env, [0, 1])
         finally:
             env.close()
@@ -33,7 +34,10 @@ def test_pgdrive_env_v2_minimal_long_run():
         for m in ["X", "O", "C", "S", "R", "r", "T"]:
             env = PGDriveEnvV2Minimal({"map": m})
             o = env.reset()
-            for _ in range(300):
+            for c in range(300):
+                print(c)
+                if c > 100:
+                    print(c)
                 assert env.observation_space.contains(o)
                 o, r, d, i = env.step([0, 1])
                 if d:
