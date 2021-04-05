@@ -15,7 +15,7 @@ class LidarStateObservationV2(LidarStateObservation):
 
     @property
     def observation_space(self):
-        shape = [21, ]
+        shape = [5 + 4 + self.config["lane_line_detector"]["num_lasers"] + self.config["side_detector"]["num_lasers"], ]
         if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
             # Number of lidar rays and distance should be positive!
             shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
@@ -127,6 +127,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     def __init__(self, config: dict = None):
         super(PGDriveEnvV2, self).__init__(config=config)
+        assert self.config["vehicle_config"]["lidar"]["num_others"] == 0
+        assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
 
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
@@ -232,7 +234,7 @@ if __name__ == '__main__':
         assert isinstance(info, dict)
 
 
-    env = PGDriveEnvV2()
+    env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
