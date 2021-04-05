@@ -15,7 +15,9 @@ class LidarStateObservationV2(LidarStateObservation):
 
     @property
     def observation_space(self):
-        shape = [5 + 4 + self.config["lane_line_detector"]["num_lasers"] + self.config["side_detector"]["num_lasers"], ]
+        shape = [
+            5 + 4 + self.config["lane_line_detector"]["num_lasers"] + self.config["side_detector"]["num_lasers"],
+        ]
         if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
             # Number of lidar rays and distance should be positive!
             shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
@@ -26,8 +28,7 @@ class LidarStateObservationV2(LidarStateObservation):
         other_v_info = []
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
-                other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle,
-                                                                            self.config["lidar"]["num_others"])
+                other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
             other_v_info += self._add_noise_to_cloud_points(vehicle.lidar.get_cloud_points())
         return np.concatenate((state, np.asarray(other_v_info)))
 
@@ -236,7 +237,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
     try:

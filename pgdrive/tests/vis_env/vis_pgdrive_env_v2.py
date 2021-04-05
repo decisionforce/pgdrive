@@ -3,17 +3,20 @@ from pgdrive.utils import setup_logger
 
 if __name__ == "__main__":
     setup_logger(True)
-    env = PGDriveEnvV2({
-        "start_seed": 700,
-        "map": "X",
-        "fast": True,
-        "use_render": True,
-        "manual_control": True,
-        "vehicle_config": {
-            "show_side_detector": True,
-            "show_lane_line_detector": True,
-            "show_navi_mark": True
-        }})
+    env = PGDriveEnvV2(
+        {
+            "start_seed": 700,
+            "map": "X",
+            "fast": True,
+            "use_render": True,
+            "manual_control": True,
+            "vehicle_config": {
+                "show_side_detector": True,
+                "show_lane_line_detector": True,
+                "show_navi_mark": True
+            }
+        }
+    )
 
     o = env.reset()
     print("vehicle num", len(env.scene_manager.traffic_mgr.vehicles))
