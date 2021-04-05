@@ -390,7 +390,8 @@ class ObservationWindowMultiChannel:
             for k in ["traffic_flow", "target_vehicle"]
         }
         self.sub_observations["road_network"] = ObservationWindow(
-            max_range=max_range, resolution=(resolution[0] * 2, resolution[1] * 2)
+            max_range=max_range,
+            resolution=(resolution[0] * 2, resolution[1] * 2)
             # max_range=max_range, resolution=resolution
         )
 

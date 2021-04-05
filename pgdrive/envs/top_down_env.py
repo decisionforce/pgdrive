@@ -74,8 +74,8 @@ if __name__ == '__main__':
     # env = TopDownPGDriveEnv(dict(use_render=True, manual_control=True))
     env.reset()
     names = [
-        "road_network", "navigation", "past_pos", "traffic t", "traffic t-1", "traffic t-2",
-        "traffic t-3", "traffic t-4"
+        "road_network", "navigation", "past_pos", "traffic t", "traffic t-1", "traffic t-2", "traffic t-3",
+        "traffic t-4"
     ]
     for _ in range(40):
         o, *_ = env.step([-0.00, 0.2])

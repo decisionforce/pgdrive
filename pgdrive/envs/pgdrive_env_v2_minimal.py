@@ -63,16 +63,14 @@ class MinimalObservation(LidarStateObservation):
         info.append(self._to_zero_and_one(current_reference_lane.direction[0]))
         info.append(self._to_zero_and_one(current_reference_lane.direction[1]))
 
-        cos_beta = heading_dir_now.dot(
-            heading_dir_last) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
+        cos_beta = heading_dir_now.dot(heading_dir_last
+                                       ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
         beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
         yaw_rate = beta_diff / 0.1
         info.append(clip(yaw_rate, 0.0, 1.0))
 
         long, lateral = vehicle.lane.local_coordinates(vehicle.position)
-        info.append(
-            clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0)
-        )
+        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
         info.append(clip(long / DISTANCE, 0.0, 1.0))
         return info
 
@@ -81,9 +79,7 @@ class MinimalObservation(LidarStateObservation):
         other_v_info = []
         if self.config["lidar"]["num_others"] > 0:
             other_v_info += self.overwritten_get_surrounding_vehicles_info(
-                lidar=vehicle.lidar,
-                ego_vehicle=vehicle,
-                num_others=self.config["lidar"]["num_others"]
+                lidar=vehicle.lidar, ego_vehicle=vehicle, num_others=self.config["lidar"]["num_others"]
             )
         return np.concatenate((state, np.asarray(other_v_info)))
 
@@ -98,10 +94,8 @@ class MinimalObservation(LidarStateObservation):
             if vehicle is not None:
                 relative_position = ego_vehicle.projection(vehicle.position - ego_vehicle.position)
                 relative_velocity = ego_vehicle.projection(vehicle.velocity - ego_vehicle.velocity)
-                res.append(clip(
-                    norm(relative_position[0], relative_position[1]) / lidar.perceive_distance, 0.0, 1.0))
-                res.append(clip(
-                    norm(relative_velocity[0], relative_velocity[1]) / ego_vehicle.max_speed, 0.0, 1.0))
+                res.append(clip(norm(relative_position[0], relative_position[1]) / lidar.perceive_distance, 0.0, 1.0))
+                res.append(clip(norm(relative_velocity[0], relative_velocity[1]) / ego_vehicle.max_speed, 0.0, 1.0))
                 res.append(clip((relative_position[0] / lidar.perceive_distance + 1) / 2, 0.0, 1.0))
                 res.append(clip((relative_position[1] / lidar.perceive_distance + 1) / 2, 0.0, 1.0))
                 res.append(clip((relative_velocity[0] / ego_vehicle.max_speed + 1) / 2, 0.0, 1.0))
@@ -169,11 +163,16 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-
-    env = PGDriveEnvV2Minimal({
-        "use_render": False, "fast": True, "num_others": 4, "map": "SSS", "use_extra_state": True,
-        "traffic_density": 0.1
-    })
+    env = PGDriveEnvV2Minimal(
+        {
+            "use_render": False,
+            "fast": True,
+            "num_others": 4,
+            "map": "SSS",
+            "use_extra_state": True,
+            "traffic_density": 0.1
+        }
+    )
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)

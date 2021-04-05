@@ -157,8 +157,8 @@ class TopDownMultiChannel(TopDownObservation):
             p = p.rotate(np.rad2deg(ego_heading) + 90)
             p = (p[1], p[0])
             p = (
-                clip(p[0] + self.resolution[0] / 2, -self.resolution[0], self.resolution[0]),
-                clip(p[1] + self.resolution[1] / 2, -self.resolution[1], self.resolution[1])
+                clip(p[0] + self.resolution[0] / 2, -self.resolution[0],
+                     self.resolution[0]), clip(p[1] + self.resolution[1] / 2, -self.resolution[1], self.resolution[1])
             )
             # p = self.canvas_background.pos2pix(p[0], p[1])
             self.canvas_past_pos.fill((255, 255, 255), (p, (1, 1)))
