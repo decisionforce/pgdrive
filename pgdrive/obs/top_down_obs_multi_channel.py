@@ -24,7 +24,8 @@ class TopDownMultiChannel(TopDownObservation):
     MAP_RESOLUTION = (2000, 2000)  # pix x pix
     MAX_RANGE = (50, 50)  # maximum detection distance = 50 M
 
-    CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation", "past_pos"]
+    # CHANNEL_NAMES = ["road_network", "traffic_flow", "target_vehicle", "navigation", "past_pos"]
+    CHANNEL_NAMES = ["road_network", "traffic_flow", "navigation", "past_pos"]
 
     def __init__(
         self,
@@ -37,6 +38,7 @@ class TopDownMultiChannel(TopDownObservation):
         resolution=None
     ):
         super(TopDownMultiChannel, self).__init__(vehicle_config, env, clip_rgb, resolution=resolution)
+        # super(TopDownMultiChannel, self).__init__(vehicle_config, env, clip_rgb, resolution=(resolution[0] * 2, resolution[1] * 2))
         self.num_stacks = 4 + frame_stack
         self.stack_traffic_flow = deque([], maxlen=(frame_stack - 1) * frame_skip + 1)
         self.stack_past_pos = deque(
@@ -99,6 +101,9 @@ class TopDownMultiChannel(TopDownObservation):
         self.canvas_background.move_display_window_to(centering_pos)
         self.canvas_road_network.move_display_window_to(centering_pos)
 
+        # self.draw_navigation(self.canvas_navigation)
+        self.draw_navigation(self.canvas_background, (64, 64, 64))
+
         for _from in self.road_network.graph.keys():
             decoration = True if _from == Decoration.start else False
             for _to in self.road_network.graph[_from].keys():
@@ -111,7 +116,14 @@ class TopDownMultiChannel(TopDownObservation):
 
         self._should_draw_map = False
 
-        self.draw_navigation()
+
+        vehicle = self.scene_manager.target_vehicles[DEFAULT_AGENT]
+        VehicleGraphics.display(
+            vehicle=vehicle,
+            surface=self.canvas_ego,  # Draw target vehicle in this canvas!
+            heading=vehicle.heading_theta,
+            color=(255, 255, 255)
+        )
 
     def _refresh(self, canvas, pos, clip_size):
         canvas.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
@@ -125,7 +137,7 @@ class TopDownMultiChannel(TopDownObservation):
 
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
 
-        self._refresh(self.canvas_ego, pos, clip_size)
+        # self._refresh(self.canvas_ego, pos, clip_size)
         self._refresh(self.canvas_runtime, pos, clip_size)
         self.canvas_past_pos.fill(COLOR_BLACK)
 
@@ -134,12 +146,6 @@ class TopDownMultiChannel(TopDownObservation):
         ego_heading = vehicle.heading_theta
         ego_heading = ego_heading if abs(ego_heading) > 2 * np.pi / 180 else 0
 
-        VehicleGraphics.display(
-            vehicle=vehicle,
-            surface=self.canvas_ego,  # Draw target vehicle in this canvas!
-            heading=ego_heading,
-            color=VehicleGraphics.GREEN
-        )
         for v in self.scene_manager.traffic_mgr.vehicles:
             if v is vehicle:
                 continue
@@ -158,14 +164,14 @@ class TopDownMultiChannel(TopDownObservation):
             p = p.rotate(np.rad2deg(ego_heading) + 90)
             p = (p[1], p[0])
             p = (p[0] + self.resolution[0] / 2, p[1] + self.resolution[1] / 2)
-            pygame.draw.circle(self.canvas_past_pos, color=COLOR_WHITE, radius=1, center=p)
+            pygame.draw.circle(self.canvas_past_pos, color=(255, 255, 255), radius=1, center=p)
 
         ret = self.obs_window.render(
             canvas_dict=dict(
                 road_network=self.canvas_road_network,  # TODO
                 traffic_flow=self.canvas_runtime,
                 target_vehicle=self.canvas_ego,  # TODO
-                navigation=self.canvas_navigation,
+                # navigation=self.canvas_navigation,
             ),
             position=pos,
             heading=vehicle.heading_theta
@@ -195,6 +201,7 @@ class TopDownMultiChannel(TopDownObservation):
     def observe(self, vehicle: BaseVehicle):
         self.render()
         surface_dict = self.get_observation_window()
+        surface_dict["road_network"] = pygame.transform.smoothscale(surface_dict["road_network"], self.resolution)
         img_dict = {k: pygame.surfarray.array3d(surface) for k, surface in surface_dict.items()}
 
         # Gray scale
@@ -210,27 +217,47 @@ class TopDownMultiChannel(TopDownObservation):
 
         # Reorder
         img_road_network = img_dict["road_network"]
-        img_road_network = cv2.resize(img_road_network, self.resolution, interpolation=cv2.INTER_LINEAR)
+        if self.rgb_clip:
+            img_road_network = np.clip(img_road_network * 2, 0, 1.0)
+        else:
+            img_road_network = np.clip(img_road_network * 2, 0, 255)
+
+
         img = [
             img_road_network,
-            img_dict["navigation"],
-            img_dict["target_vehicle"],
+            # img_navigation,
+            # img_dict["navigation"],
+            # img_dict["target_vehicle"],
             img_dict["past_pos"],
         ]  # + list(self.stack_traffic_flow)
 
-        for i in self._get_stack_indices(len(self.stack_traffic_flow)):
+        # Stacked traffic flow
+        # stacked = np.zeros_like(img_navigation)
+        indices = self._get_stack_indices(len(self.stack_traffic_flow))
+        # for i in reversed(indices):
+        #     stacked = self.stack_traffic_flow[i] + stacked / 2
+        # if self.rgb_clip:
+        #     stacked = np.clip(stacked, 0.0, 1.0)
+        # else:
+        #     stacked = np.clip(stacked, 0, 255)
+        for i in indices:
             img.append(self.stack_traffic_flow[i])
+
 
         # Stack
         img = np.stack(img, axis=2)
+        # img = (img * 255).astype(np.uint8)
+        # img = cv2.resize(img, (int(self.resolution[0] / 2), int(self.resolution[1] / 2)), interpolation=cv2.INTER_LINEAR)
+        # if self.rgb_clip:
+        #     img = (img.astype(np.float32) / 255.0)
         return np.transpose(img, (1, 0, 2))
 
-    def draw_navigation(self):
+    def draw_navigation(self, canvas, color=(128, 128, 128)):
         checkpoints = self.target_vehicle.routing_localization.checkpoints
         for i, c in enumerate(checkpoints[:-1]):
             lanes = self.road_network.graph[c][checkpoints[i + 1]]
             for lane in lanes:
-                LaneGraphics.simple_draw(lane, self.canvas_navigation, color=(255, 255, 255))
+                LaneGraphics.simple_draw(lane, canvas, color=color)
 
     def _get_stack_indices(self, length):
         num = int(math.ceil(length / self.frame_skip))
