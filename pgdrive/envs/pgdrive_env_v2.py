@@ -1,5 +1,5 @@
 import logging
-
+from pgdrive.scene_creator.road.road import Road
 import gym
 import numpy as np
 from pgdrive.constants import DEFAULT_AGENT
@@ -197,8 +197,9 @@ class PGDriveEnvV2(PGDriveEnvV1):
             )
         else:
             lateral_factor = 1.0
-
-        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
+        current_road = Road(*vehicle.lane_index[:-1])
+        positive_road = 1 if not current_road.is_negative_road() else -1
+        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor * positive_road
 
         reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
         step_info["step_reward"] = reward
