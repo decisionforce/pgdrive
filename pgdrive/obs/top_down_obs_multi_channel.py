@@ -37,7 +37,9 @@ class TopDownMultiChannel(TopDownObservation):
         resolution=None,
         max_distance=50
     ):
-        super(TopDownMultiChannel, self).__init__(vehicle_config, env, clip_rgb, resolution=resolution)
+        super(TopDownMultiChannel, self).__init__(
+            vehicle_config, env, clip_rgb, resolution=resolution, max_distance=max_distance
+        )
         self.num_stacks = 2 + frame_stack
         self.stack_traffic_flow = deque([], maxlen=(frame_stack - 1) * frame_skip + 1)
         self.stack_past_pos = deque(
