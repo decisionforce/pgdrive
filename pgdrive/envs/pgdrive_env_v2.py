@@ -16,7 +16,7 @@ class LidarStateObservationV2(LidarStateObservation):
     @property
     def observation_space(self):
         shape = [
-            5 + 4 + self.config["lane_line_detector"]["num_lasers"] + self.config["side_detector"]["num_lasers"],
+            6 + 4 + self.config["lane_line_detector"]["num_lasers"] + self.config["side_detector"]["num_lasers"],
         ]
         if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
             # Number of lidar rays and distance should be positive!
