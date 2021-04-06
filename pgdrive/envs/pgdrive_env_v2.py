@@ -30,6 +30,7 @@ class LidarStateObservationV2(LidarStateObservation):
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
             other_v_info += self._add_noise_to_cloud_points(vehicle.lidar.get_cloud_points())
+            # print("Current lidar min: ", min(other_v_info))
         return np.concatenate((state, np.asarray(other_v_info)))
 
     def _add_noise_to_cloud_points(self, points):
@@ -51,6 +52,8 @@ class LidarStateObservationV2(LidarStateObservation):
             info += vehicle.side_detector.get_cloud_points()
         else:
             raise ValueError()
+
+        # print("Current side detector min: ", min(info))
 
         # current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
         info += [
@@ -109,9 +112,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
                 # See: https://github.com/decisionforce/pgdrive/issues/297
                 vehicle_config=dict(
+                    wheel_friction=0.8,
                     lidar=dict(num_lasers=120, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
-                    side_detector=dict(num_lasers=6, distance=50),  # laser num, distance
-                    lane_line_detector=dict(num_lasers=20, distance=50),  # laser num, distance
+                    side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
+                    lane_line_detector=dict(num_lasers=0, distance=50),  # laser num, distance
                 ),
 
                 # Disable map loading!
@@ -235,10 +239,23 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-    env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
+    # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
+    env = PGDriveEnvV2(dict(
+        environment_num=100, start_seed=5000, camera_height=50, debug=True, manual_control=True, fast=True,
+        use_render=True, vehicle_config=dict(wheel_friction=0.8), traffic_density=0.5, map="X"
+    ))
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
+
+        for _ in range(100000000):
+            # o, r, d, i = env.step(env.action_space.sample())
+            o, r, d, i = env.step([0, 1])
+            env.render(text="Reward: {:.3f}.\nInfo: {}".format(
+                r,
+                "Cost: {}, Arr: {}, Done: {}".format(i['cost'], i['arrive_dest'], d)
+            ))
+
         _act(env, env.action_space.sample())
         for x in [-1, 0, 1]:
             env.reset()
