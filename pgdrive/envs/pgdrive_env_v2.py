@@ -184,7 +184,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
-
         # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
         if self.config["use_lateral"]:
             lateral_factor = clip(
