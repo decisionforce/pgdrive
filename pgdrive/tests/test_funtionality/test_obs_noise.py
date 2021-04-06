@@ -12,7 +12,7 @@ def test_obs_noise():
         obs_cls = env.observations[env.DEFAULT_AGENT]
         assert isinstance(obs_cls, LidarStateObservation)
         ret = obs_cls._add_noise_to_cloud_points([0.5, 0.5, 0.5])
-        assert np.all(np.array(ret) == 0.0)
+        np.testing.assert_almost_equal(np.array(ret), 0.0)
         assert env.observation_space.contains(obs)
         _act(env, env.action_space.sample())
         for x in [-1, 0, 1]:
