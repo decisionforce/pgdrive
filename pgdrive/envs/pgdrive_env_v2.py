@@ -52,9 +52,7 @@ class LidarStateObservationV2(LidarStateObservation):
             info += vehicle.side_detector.get_cloud_points()
         else:
             raise ValueError()
-
-        # print("Current side detector min: ", min(info))
-
+        # print("Current side detector min: {}, max: {}, mean: {}".format(min(info), max(info), np.mean(info)))
         # current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
         info += [
             # vehicle.heading_diff(current_reference_lane),
@@ -133,7 +131,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
-        return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+        # return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+        return vehicle.on_yellow_continuous_line or vehicle.on_white_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
 
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
@@ -241,8 +240,12 @@ if __name__ == '__main__':
 
     # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
     env = PGDriveEnvV2(dict(
-        environment_num=100, start_seed=5000, camera_height=50, debug=True, manual_control=True, fast=True,
-        use_render=True, vehicle_config=dict(wheel_friction=0.8), traffic_density=0.5, map="X"
+        environment_num=100, start_seed=5000, camera_height=50, debug=True,
+        manual_control=True, fast=True, use_render=True,
+        vehicle_config=dict(
+            wheel_friction=0.8,
+            side_detector=dict(num_lasers=120, distance=50),
+        ), traffic_density=0.5, map="X"
     ))
     try:
         obs = env.reset()
@@ -250,16 +253,18 @@ if __name__ == '__main__':
 
         for _ in range(100000000):
             # o, r, d, i = env.step(env.action_space.sample())
-            o, r, d, i = env.step([0, 1])
-            env.render(text="Reward: {:.3f}.\nInfo: {}".format(
-                r,
-                "Cost: {}, Arr: {}, Done: {}".format(i['cost'], i['arrive_dest'], d)
-            ))
+            o, r, d, i = env.step([1, 1])
+            # env.render(text="Reward: {:.3f}.\nInfo: {}".format(
+            #     r,
+            #     "Cost: {}, Arr: {}, Done: {}".format(i['cost'], i['arrive_dest'], d)
+            # ))
+            # if d:
+            #     break
 
-        _act(env, env.action_space.sample())
-        for x in [-1, 0, 1]:
-            env.reset()
-            for y in [-1, 0, 1]:
-                _act(env, [x, y])
+        # _act(env, env.action_space.sample())
+        # for x in [-1, 0, 1]:
+        #     env.reset()
+        #     for y in [-1, 0, 1]:
+        #         _act(env, [x, y])
     finally:
         env.close()
