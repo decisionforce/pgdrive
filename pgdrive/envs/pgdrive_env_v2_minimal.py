@@ -101,6 +101,10 @@ class MinimalObservation(LidarStateObservation):
         surrounding_vehicles.sort(
             key=lambda v: norm(ego_vehicle.position[0] - v.position[0], ego_vehicle.position[1] - v.position[1])
         )
+
+        # dis = [(str(v), norm(ego_vehicle.position[0] - v.position[0], ego_vehicle.position[1] - v.position[1])) for v in
+        #        surrounding_vehicles]
+
         surrounding_vehicles += [None] * num_others
         res = []
         for vehicle in surrounding_vehicles[:num_others]:
@@ -153,6 +157,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
         config = super(PGDriveEnvV2Minimal, cls).default_config()
         config.update({"num_others": 4, "use_extra_state": True})
         config["vehicle_config"]["lidar"]["distance"] = 200
+        config["vehicle_config"]["lidar"]["num_lasers"] = 200
         config["vehicle_config"]["side_detector"]["num_lasers"] = 0
         config["vehicle_config"]["side_detector"]["distance"] = 200
         config["vehicle_config"]["lane_line_detector"]["num_lasers"] = 0
@@ -164,7 +169,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
     def _post_process_config(self, config):
         config = super(PGDriveEnvV2Minimal, self)._post_process_config(config)
         assert config["vehicle_config"]["lidar"]["num_others"] == 0
-        assert config["vehicle_config"]["lidar"]["num_lasers"] == 120
+        assert config["vehicle_config"]["lidar"]["num_lasers"] > 0
         config["vehicle_config"]["lidar"]["num_others"] = config["num_others"]
         config["vehicle_config"]["use_extra_state"] = config["use_extra_state"]
         return config

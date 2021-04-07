@@ -127,7 +127,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
     def __init__(self, config: dict = None):
         super(PGDriveEnvV2, self).__init__(config=config)
         # assert self.config["vehicle_config"]["lidar"]["num_others"] == 0
-        assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
+        # assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
 
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
