@@ -132,7 +132,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
         # return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
-        return vehicle.on_yellow_continuous_line or vehicle.on_white_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+        return vehicle.on_yellow_continuous_line or vehicle.on_white_continuous_line or \
+               (not vehicle.on_lane) or vehicle.crash_sidewalk
 
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
@@ -239,14 +240,23 @@ if __name__ == '__main__':
         assert isinstance(info, dict)
 
     # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
-    env = PGDriveEnvV2(dict(
-        environment_num=100, start_seed=5000, camera_height=50, debug=True,
-        manual_control=True, fast=True, use_render=True,
-        vehicle_config=dict(
-            wheel_friction=0.8,
-            side_detector=dict(num_lasers=120, distance=50),
-        ), traffic_density=0.5, map="X"
-    ))
+    env = PGDriveEnvV2(
+        dict(
+            environment_num=100,
+            start_seed=5000,
+            camera_height=50,
+            debug=True,
+            manual_control=True,
+            fast=True,
+            use_render=True,
+            vehicle_config=dict(
+                wheel_friction=0.8,
+                side_detector=dict(num_lasers=120, distance=50),
+            ),
+            traffic_density=0.5,
+            map="X"
+        )
+    )
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)

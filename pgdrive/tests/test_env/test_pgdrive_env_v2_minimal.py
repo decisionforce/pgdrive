@@ -32,7 +32,18 @@ def test_pgdrive_env_v2_minimal():
 def test_pgdrive_env_v2_minimal_long_run():
     try:
         for m in ["X", "O", "C", "S", "R", "r", "T"]:
-            env = PGDriveEnvV2Minimal({"map": m, "fast": True, "use_render": False, "debug": True, "camera_height": 100, "vehicle_config": {"show_lidar": True}})
+            env = PGDriveEnvV2Minimal(
+                {
+                    "map": m,
+                    "fast": True,
+                    "use_render": False,
+                    "debug": True,
+                    "camera_height": 100,
+                    "vehicle_config": {
+                        "show_lidar": True
+                    }
+                }
+            )
             o = env.reset()
             for c in range(300):
                 print(c)

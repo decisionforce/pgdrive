@@ -73,7 +73,7 @@ def get_result(env):
 
 if __name__ == '__main__':
 
-    for friction in [0.6, 0.8, 1.0,  1.2, 2.0]:
+    for friction in [0.6, 0.8, 1.0, 1.2, 2.0]:
         # for friction in [0.9, 1.0, 1.1]:
         env = PGDriveEnvV2(
             {
