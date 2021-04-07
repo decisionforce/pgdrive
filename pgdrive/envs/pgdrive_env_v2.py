@@ -112,7 +112,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 vehicle_config=dict(
                     wheel_friction=0.8,
                     lidar=dict(num_lasers=120, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
-                    side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
+                    side_detector=dict(num_lasers=120, distance=50),  # laser num, distance
                     lane_line_detector=dict(num_lasers=0, distance=50),  # laser num, distance
                 ),
 
