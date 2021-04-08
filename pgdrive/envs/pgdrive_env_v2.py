@@ -99,7 +99,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             dict(
                 # ===== Traffic =====
                 traffic_density=0.1,
-                traffic_mode=TrafficMode.Trigger,  # "reborn", "trigger", "hybrid"
+                traffic_mode=TrafficMode.Reborn,  # "reborn", "trigger", "hybrid"
                 random_traffic=False,  # Traffic is randomized at default.
 
                 # ===== Cost Scheme =====
@@ -124,8 +124,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 # See: https://github.com/decisionforce/pgdrive/issues/297
                 vehicle_config=dict(
                     wheel_friction=0.8,
-                    lidar=dict(num_lasers=120, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
-                    side_detector=dict(num_lasers=120, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
+                    lidar=dict(num_lasers=240, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
+                    side_detector=dict(num_lasers=240, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                     lane_line_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                 ),
 
