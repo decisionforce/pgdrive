@@ -33,7 +33,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 # clear base config
                 "num_agents": 1,
-                "auto_termination":False
+                "auto_termination": False
             },
             allow_overwrite=True
         )
@@ -54,6 +54,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
         self.all_lane_index = []
+        self.next_agent_id = config["num_agents"]
         assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
                 config["map_config"]["lane_num"] * len(self.target_nodes), config["num_agents"]
@@ -97,18 +98,20 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def _after_vehicle_done(self, dones: dict):
         for id, done in dones.items():
             if done and id in self.vehicles.keys():
-                new_id = "agent{}".format(len(self.vehicles))
+                if self.current_track_vehicle_id == id:
+                    self.chase_another_v()
+                new_id = "agent{}".format(self.next_agent_id)
+                self.next_agent_id += 1
                 v = self.vehicles.pop(id)
                 obs = self.observations.pop(id)
                 self.observations[new_id] = obs
                 self.action_space = self._get_action_space()
                 self.observation_space = self._get_observation_space()
-                born_lane_index = get_np_random().choice(len((self.all_lane_index)),1)[0]
-                v.vehicle_config["born_lane_index"]=self.all_lane_index[born_lane_index]
+                born_lane_index = get_np_random().choice(len((self.all_lane_index)), 1)[0]
+                v.vehicle_config["born_lane_index"] = self.all_lane_index[born_lane_index]
                 v.reset(self.current_map)
                 self.vehicles[new_id] = v
                 self.dones[new_id] = False
-
 
 
 if __name__ == "__main__":
