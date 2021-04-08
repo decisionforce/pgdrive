@@ -22,6 +22,7 @@ class RoutingLocalizationModule:
     PRE_NOTIFY_DIST = 40
     MARK_COLOR = COLLISION_INFO_COLOR["green"][1]
     MIN_ALPHA = 0.15
+    CKPT_UPDATE_RANGE = 5
     FORCE_CALCULATE = False
 
     def __init__(self, pg_world, show_navi_point: False):
@@ -38,7 +39,8 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config[
+            "debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -120,7 +122,8 @@ class RoutingLocalizationModule:
             if self.FORCE_CALCULATE:
                 lane_index, _ = self.map.road_network.get_closest_lane_index(position)
                 lane = self.map.road_network.get_lane(lane_index)
-        self._update_target_checkpoints(lane_index)
+        long, _ = lane.local_coordinates(position)
+        self._update_target_checkpoints(lane_index, long)
 
         target_road_1_start = self.checkpoints[self.target_checkpoints_index[0]]
         target_road_1_end = self.checkpoints[self.target_checkpoints_index[0] + 1]
@@ -152,8 +155,8 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max +
-                    self.get_current_lane_num() * self.get_current_lane_width()
+                        BlockParameterSpace.CURVE[Parameter.radius].max +
+                        self.get_current_lane_num() * self.get_current_lane_width()
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -203,7 +206,7 @@ class RoutingLocalizationModule:
                 if self.left_arrow.hasParent():
                     self.left_arrow.detachNode()
 
-    def _update_target_checkpoints(self, ego_lane_index):
+    def _update_target_checkpoints(self, ego_lane_index, ego_lane_longitude):
         # print(current_road_start_point, self.vehicle.lane_index[1])
         # print(self.checkpoints[self.target_checkpoints_index[0]], self.checkpoints[self.target_checkpoints_index[1]])
         if self.target_checkpoints_index[0] == self.target_checkpoints_index[1]:
@@ -211,15 +214,15 @@ class RoutingLocalizationModule:
             return
 
         # arrive to second checkpoint
-        current_road_end_point = ego_lane_index[1]
-        if current_road_end_point in self.checkpoints[self.target_checkpoints_index[1] + 1:]:
-            idx = self.checkpoints.index(current_road_end_point, self.target_checkpoints_index[1] + 1)
-            self.target_checkpoints_index = [idx - 1]
-            if idx == len(self.checkpoints) - 1:
-                self.target_checkpoints_index.append(idx - 1)
-            else:
+        current_road_start_point = ego_lane_index[0]
+        if current_road_start_point in self.checkpoints[self.target_checkpoints_index[
+            1]:] and ego_lane_longitude < self.CKPT_UPDATE_RANGE:
+            idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1], -1)
+            self.target_checkpoints_index = [idx]
+            if idx + 1 == len(self.checkpoints) - 1:
                 self.target_checkpoints_index.append(idx)
-            # print(self.target_checkpoints_index)
+            else:
+                self.target_checkpoints_index.append(idx + 1)
 
     def get_navi_info(self):
         return self.navi_info

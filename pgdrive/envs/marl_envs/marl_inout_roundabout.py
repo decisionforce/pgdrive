@@ -86,6 +86,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         # when agent re-joined to the game, call this to set the new route to destination
         for v in self.vehicles.values():
             end_road = -get_np_random().choice(self.born_roads)
+            # use this line to always choose adverse exits!
+            # v.routing_localization.set_route(v.lane_index[0], (-Road(*v.lane_index[:-1])).end_node)
             v.routing_localization.set_route(v.lane_index[0], end_road.end_node)
 
 
