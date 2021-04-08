@@ -1,4 +1,5 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+import gym
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
@@ -96,11 +97,17 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def _after_vehicle_done(self, dones: dict):
         for id, done in dones.items():
             if done and id in self.vehicles.keys():
-                v = self.vehicles[id]
+                new_id = "agent{}".format(len(self.vehicles))
+                v = self.vehicles.pop(id)
+                obs = self.observations.pop(id)
+                self.observations[new_id] = obs
+                self.action_space = self._get_action_space()
+                self.observation_space = self._get_observation_space()
                 born_lane_index = get_np_random().choice(len((self.all_lane_index)),1)[0]
                 v.vehicle_config["born_lane_index"]=self.all_lane_index[born_lane_index]
                 v.reset(self.current_map)
-                self.dones[id] = False
+                self.vehicles[new_id] = v
+                self.dones[new_id] = False
 
 
 
@@ -127,7 +134,7 @@ if __name__ == "__main__":
     # env.main_camera.set_follow_lane(True)
     total_r = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({key:(0,1) for key in env.vehicles.keys()})
+        o, r, d, info = env.step(env.action_space.sample())
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])dddd
