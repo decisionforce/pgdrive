@@ -160,6 +160,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
         config.update({"num_others": 4, "use_extra_state": True})
         config["vehicle_config"]["lidar"]["distance"] = 0
         config["vehicle_config"]["lidar"]["num_lasers"] = 0
+        config["vehicle_config"]["lidar"]["num_others"] = 0
         config["vehicle_config"]["side_detector"]["num_lasers"] = 0
         config["vehicle_config"]["side_detector"]["distance"] = 0
         config["vehicle_config"]["lane_line_detector"]["num_lasers"] = 0
