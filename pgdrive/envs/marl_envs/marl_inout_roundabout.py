@@ -32,6 +32,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 # clear base config
                 "num_agents": 1,
+                "auto_termination":False
             },
             allow_overwrite=True
         )
@@ -51,6 +52,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
+        self.all_lane_index = []
         assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
                 config["map_config"]["lane_num"] * len(self.target_nodes), config["num_agents"]
@@ -59,6 +61,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
                 target_vehicle_configs.append(("agent_{}_{}".format(i + 1, lane_idx), road.lane_index(lane_idx)))
+                self.all_lane_index.append(road.lane_index(lane_idx))
         target_agents = get_np_random().choice(
             [i for i in range(len(self.born_roads) * (config["map_config"]["lane_num"]))],
             config["num_agents"],
@@ -90,6 +93,16 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             # v.routing_localization.set_route(v.lane_index[0], (-Road(*v.lane_index[:-1])).end_node)
             v.routing_localization.set_route(v.lane_index[0], end_road.end_node)
 
+    def _after_vehicle_done(self, dones: dict):
+        for id, done in dones.items():
+            if done and id in self.vehicles.keys():
+                v = self.vehicles[id]
+                born_lane_index = get_np_random().choice(len((self.all_lane_index)),1)[0]
+                v.vehicle_config["born_lane_index"]=self.all_lane_index[born_lane_index]
+                v.reset(self.current_map)
+                self.dones[id] = False
+
+
 
 if __name__ == "__main__":
     env = MultiAgentRoundaboutEnv(
@@ -114,7 +127,7 @@ if __name__ == "__main__":
     # env.main_camera.set_follow_lane(True)
     total_r = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step(env.action_space.sample())
+        o, r, d, info = env.step({key:(0,1) for key in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])dddd
