@@ -1,92 +1,12 @@
 import logging
 
-import gym
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.pgdrive_env import PGDriveEnv as PGDriveEnvV1
-from pgdrive.obs import ImageStateObservation, ObservationType, LidarStateObservation
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import PGConfig, clip
-
-
-class LidarStateObservationV2(LidarStateObservation):
-    def __init__(self, vehicle_config):
-        super(LidarStateObservationV2, self).__init__(vehicle_config)
-
-    @property
-    def observation_space(self):
-        shape = [
-            6 + 4 + self.config["lane_line_detector"]["num_lasers"] + self.config["side_detector"]["num_lasers"],
-        ]
-        if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
-            # Number of lidar rays and distance should be positive!
-            shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
-        return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
-
-    def observe(self, vehicle):
-        state = self.state_observe(vehicle)
-        other_v_info = []
-        if vehicle.lidar is not None:
-            if self.config["lidar"]["num_others"] > 0:
-                other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
-            other_v_info += self._add_noise_to_cloud_points(
-                vehicle.lidar.get_cloud_points(),
-                gaussian_noise=self.config["lidar"]["gaussian_noise"],
-                dropout_prob=self.config["lidar"]["dropout_prob"]
-            )
-            # print("Current lidar min: ", min(other_v_info))
-        return np.concatenate((state, np.asarray(other_v_info)))
-
-    def state_observe(self, vehicle):
-        navi_info = vehicle.routing_localization.get_navi_info()
-        navi_info = [navi_info[0], navi_info[1], navi_info[5], navi_info[6]]  # Only keep the checkpoints information!
-        ego_state = self.vehicle_state(vehicle)
-        return np.asarray(ego_state + navi_info, dtype=np.float32)
-
-    def vehicle_state(self, vehicle):
-        """
-        Wrap vehicle states to list
-        """
-        # update out of road
-        info = []
-        if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
-            info += self._add_noise_to_cloud_points(
-                vehicle.side_detector.get_cloud_points(),
-                gaussian_noise=self.config["side_detector"]["gaussian_noise"],
-                dropout_prob=self.config["side_detector"]["dropout_prob"]
-            )
-        else:
-            pass
-            # raise ValueError()
-        # print("Current side detector min: {}, max: {}, mean: {}".format(min(info), max(info), np.mean(info)))
-        # current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
-        info += [
-            # vehicle.heading_diff(current_reference_lane),
-            # Note: speed can be negative denoting free fall. This happen when emergency brake.
-            clip((vehicle.speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
-            clip((vehicle.throttle_brake + 1) / 2, 0.0, 1.0),
-            clip((vehicle.steering / vehicle.max_steering + 1) / 2, 0.0, 1.0),
-            clip((vehicle.last_current_action[0][0] + 1) / 2, 0.0, 1.0),
-            clip((vehicle.last_current_action[0][1] + 1) / 2, 0.0, 1.0)
-        ]
-        heading_dir_last = vehicle.last_heading_dir
-        heading_dir_now = vehicle.heading
-        cos_beta = heading_dir_now.dot(heading_dir_last
-                                       ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
-        beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
-        # print(beta)
-        yaw_rate = beta_diff / 0.1
-        # print(yaw_rate)
-        info.append(clip(yaw_rate, 0.0, 1.0))
-
-        if vehicle.lane_line_detector is not None:
-            info += self._add_noise_to_cloud_points(
-                vehicle.lane_line_detector.get_cloud_points(),
-                gaussian_noise=self.config["lane_line_detector"]["gaussian_noise"],
-                dropout_prob=self.config["lane_line_detector"]["dropout_prob"]
-            )
-        return info
 
 
 class PGDriveEnvV2(PGDriveEnvV1):
@@ -124,8 +44,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 # See: https://github.com/decisionforce/pgdrive/issues/297
                 vehicle_config=dict(
                     wheel_friction=0.8,
-                    lidar=dict(num_lasers=240, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
-                    side_detector=dict(num_lasers=240, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
+                    lidar=dict(num_lasers=240, distance=50, num_others=4, gaussian_noise=0.0, dropout_prob=0.0),
+                    side_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                     lane_line_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                 ),
 
@@ -247,13 +167,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
             ret[v_id] = self.observations[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
-        if self.config["use_image"]:
-            o = ImageStateObservation(vehicle_config)
-        else:
-            o = LidarStateObservationV2(vehicle_config)
-        return o
-
 
 if __name__ == '__main__':
 
@@ -264,52 +177,15 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-    # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
-    env = PGDriveEnvV2(
-        dict(
-            environment_num=1,
 
-            start_seed=5000,
-            camera_height=50,
-            debug=True,
-            manual_control=True,
-            fast=True,
-            use_render=True,
-
-            traffic_density=0.1,
-            traffic_mode=TrafficMode.Reborn,  # "reborn", "trigger", "hybrid"
-            random_traffic=True,  # Traffic is randomized at default.
-
-            vehicle_config=dict(show_lidar=True),
-
-            # gaussian_noise=0.77,
-            # vehicle_config=dict(
-            # wheel_friction=0.8,
-            # side_detector=dict(num_lasers=120, distance=50),
-            # ),
-            # traffic_density=0.5,
-            # map="X"
-        )
-    )
+    env = PGDriveEnvV2()
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
-
-        for _ in range(100000000):
-            # o, r, d, i = env.step(env.action_space.sample())
-            o, r, d, i = env.step([1, 1])
-            # env.reset()
-            # env.render(text="Reward: {:.3f}.\nInfo: {}".format(
-            #     r,
-            #     "Cost: {}, Arr: {}, Done: {}".format(i['cost'], i['arrive_dest'], d)
-            # ))
-            # if d:
-            #     break
-
-        # _act(env, env.action_space.sample())
-        # for x in [-1, 0, 1]:
-        #     env.reset()
-        #     for y in [-1, 0, 1]:
-        #         _act(env, [x, y])
+        _act(env, env.action_space.sample())
+        for x in [-1, 0, 1]:
+            env.reset()
+            for y in [-1, 0, 1]:
+                _act(env, [x, y])
     finally:
         env.close()
