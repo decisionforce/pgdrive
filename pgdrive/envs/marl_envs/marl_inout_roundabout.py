@@ -57,7 +57,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.next_agent_id = config["num_agents"]
         assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                config["map_config"]["lane_num"] * len(self.target_nodes), config["num_agents"]
+                config["map_config"]["lane_num"] * len(self.born_roads), config["num_agents"]
             )
         )
         for i, road in enumerate(self.born_roads):
