@@ -118,7 +118,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 general_penalty=0.0,
                 speed_reward=0.5,
                 use_lateral=False,
-
                 gaussian_noise=0.0,
                 dropout_prob=0.0,
 
@@ -265,7 +264,6 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-
     # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
     env = PGDriveEnvV2(
         dict(
@@ -276,11 +274,10 @@ if __name__ == '__main__':
             manual_control=True,
             fast=True,
             use_render=True,
-
             gaussian_noise=0.77,
             # vehicle_config=dict(
-                # wheel_friction=0.8,
-                # side_detector=dict(num_lasers=120, distance=50),
+            # wheel_friction=0.8,
+            # side_detector=dict(num_lasers=120, distance=50),
             # ),
             traffic_density=0.5,
             map="X"
