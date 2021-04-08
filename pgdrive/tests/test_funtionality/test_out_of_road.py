@@ -11,7 +11,7 @@ def test_out_of_road():
                 dict(
                     map="SSSSSSSSSSS",
                     vehicle_config=dict(side_detector=dict(num_lasers=120, distance=distance)),
-                    use_render=True,
+                    use_render=False,
                     fast=True
                 )
             )

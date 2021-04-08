@@ -57,7 +57,8 @@ class LidarStateObservationV2(LidarStateObservation):
                 dropout_prob=self.config["side_detector"]["dropout_prob"]
             )
         else:
-            raise ValueError()
+            pass
+            # raise ValueError()
         # print("Current side detector min: {}, max: {}, mean: {}".format(min(info), max(info), np.mean(info)))
         # current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
         info += [
@@ -144,11 +145,11 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     def _post_process_config(self, config):
         config = super(PGDriveEnvV2, self)._post_process_config(config)
-        if config["gaussian_noise"] > 0:
+        if config.get("gaussian_noise", 0) > 0:
             config["vehicle_config"]["lidar"]["gaussian_noise"] = config["gaussian_noise"]
             config["vehicle_config"]["side_detector"]["gaussian_noise"] = config["gaussian_noise"]
             config["vehicle_config"]["lane_line_detector"]["gaussian_noise"] = config["gaussian_noise"]
-        if config["dropout_prob"] > 0:
+        if config.get("dropout_prob", 0) > 0:
             config["vehicle_config"]["lidar"]["dropout_prob"] = config["dropout_prob"]
             config["vehicle_config"]["side_detector"]["dropout_prob"] = config["dropout_prob"]
             config["vehicle_config"]["lane_line_detector"]["dropout_prob"] = config["dropout_prob"]
