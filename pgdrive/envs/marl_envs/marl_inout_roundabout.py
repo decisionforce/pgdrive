@@ -7,11 +7,12 @@ from pgdrive.utils import get_np_random, PGConfig
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
-    born_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
-                  -Road(Roundabout.node(1, 0, 2), Roundabout.node(1, 0, 3)),
-                  -Road(Roundabout.node(1, 1, 2), Roundabout.node(1, 1, 3)),
-                  -Road(Roundabout.node(1, 2, 2), Roundabout.node(1, 2, 3)),
-                  ]
+    born_roads = [
+        Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
+        -Road(Roundabout.node(1, 0, 2), Roundabout.node(1, 0, 3)),
+        -Road(Roundabout.node(1, 1, 2), Roundabout.node(1, 1, 3)),
+        -Road(Roundabout.node(1, 2, 2), Roundabout.node(1, 2, 3)),
+    ]
 
     @staticmethod
     def default_config() -> PGConfig:
@@ -57,12 +58,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         )
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
-                target_vehicle_configs.append(
-                    (
-                        "agent_{}_{}".format(i + 1, lane_idx),
-                        road.lane_index(lane_idx)
-                    )
-                )
+                target_vehicle_configs.append(("agent_{}_{}".format(i + 1, lane_idx), road.lane_index(lane_idx)))
         target_agents = get_np_random().choice(
             [i for i in range(len(self.born_roads) * (config["map_config"]["lane_num"]))],
             config["num_agents"],

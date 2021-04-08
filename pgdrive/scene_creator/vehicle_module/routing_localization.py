@@ -216,7 +216,7 @@ class RoutingLocalizationModule:
             idx = self.checkpoints.index(current_road_end_point, self.target_checkpoints_index[1] + 1)
             self.target_checkpoints_index = [idx - 1]
             if idx == len(self.checkpoints) - 1:
-                self.target_checkpoints_index.append(idx-1)
+                self.target_checkpoints_index.append(idx - 1)
             else:
                 self.target_checkpoints_index.append(idx)
             # print(self.target_checkpoints_index)
