@@ -81,7 +81,7 @@ def create_seed(a=None, max_bytes=8):
         a += hashlib.sha512(a).digest()
         a = _bigint_from_bytes(a[:max_bytes])
     elif isinstance(a, int):
-        a = a % 2 ** (8 * max_bytes)
+        a = a % 2**(8 * max_bytes)
     else:
         raise logging.error('Invalid type for seed: {} ({})'.format(type(a), a))
 
@@ -96,7 +96,7 @@ def _bigint_from_bytes(bytes):
     unpacked = struct.unpack("{}I".format(int_count), bytes)
     accum = 0
     for i, val in enumerate(unpacked):
-        accum += 2 ** (sizeof_int * 8 * i) * val
+        accum += 2**(sizeof_int * 8 * i) * val
     return accum
 
 
@@ -109,6 +109,6 @@ def _int_list_from_bigint(bigint):
 
     ints = []
     while bigint > 0:
-        bigint, mod = divmod(bigint, 2 ** 32)
+        bigint, mod = divmod(bigint, 2**32)
         ints.append(mod)
     return ints
