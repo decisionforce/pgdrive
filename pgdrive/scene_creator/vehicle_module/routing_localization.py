@@ -82,6 +82,12 @@ class RoutingLocalizationModule:
         self.set_route(start_road_node, final_road_node)
 
     def set_route(self, start_road_node: str, end_road_node: str):
+        """
+        Find a shorest path from start road to end road
+        :param start_road_node: start road node
+        :param end_road_node: end road node
+        :return: None
+        """
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
         # update routing info
         self.final_road = Road(self.checkpoints[-2], end_road_node)
@@ -198,7 +204,6 @@ class RoutingLocalizationModule:
                     self.left_arrow.detachNode()
 
     def _update_target_checkpoints(self, ego_lane_index):
-        current_road_start_point = ego_lane_index[0]
         # print(current_road_start_point, self.vehicle.lane_index[1])
         # print(self.checkpoints[self.target_checkpoints_index[0]], self.checkpoints[self.target_checkpoints_index[1]])
         if self.target_checkpoints_index[0] == self.target_checkpoints_index[1]:
@@ -206,13 +211,14 @@ class RoutingLocalizationModule:
             return
 
         # arrive to second checkpoint
-        if current_road_start_point in self.checkpoints[self.target_checkpoints_index[1]:]:
-            idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1], -1)
-            self.target_checkpoints_index = [idx]
-            if idx + 1 == len(self.checkpoints) - 1:
-                self.target_checkpoints_index.append(idx)
+        current_road_end_point = ego_lane_index[1]
+        if current_road_end_point in self.checkpoints[self.target_checkpoints_index[1] + 1:]:
+            idx = self.checkpoints.index(current_road_end_point, self.target_checkpoints_index[1] + 1)
+            self.target_checkpoints_index = [idx - 1]
+            if idx == len(self.checkpoints) - 1:
+                self.target_checkpoints_index.append(idx-1)
             else:
-                self.target_checkpoints_index.append(idx + 1)
+                self.target_checkpoints_index.append(idx)
             # print(self.target_checkpoints_index)
 
     def get_navi_info(self):
