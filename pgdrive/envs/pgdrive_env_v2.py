@@ -280,6 +280,8 @@ if __name__ == '__main__':
             traffic_mode=TrafficMode.Reborn,  # "reborn", "trigger", "hybrid"
             random_traffic=True,  # Traffic is randomized at default.
 
+            vehicle_config=dict(show_lidar=True),
+
             # gaussian_noise=0.77,
             # vehicle_config=dict(
             # wheel_friction=0.8,
@@ -296,6 +298,7 @@ if __name__ == '__main__':
         for _ in range(100000000):
             # o, r, d, i = env.step(env.action_space.sample())
             o, r, d, i = env.step([1, 1])
+            # env.reset()
             # env.render(text="Reward: {:.3f}.\nInfo: {}".format(
             #     r,
             #     "Cost: {}, Arr: {}, Done: {}".format(i['cost'], i['arrive_dest'], d)
