@@ -267,20 +267,26 @@ if __name__ == '__main__':
     # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
     env = PGDriveEnvV2(
         dict(
-            environment_num=100,
+            environment_num=1,
+
             start_seed=5000,
             camera_height=50,
             debug=True,
             manual_control=True,
             fast=True,
             use_render=True,
-            gaussian_noise=0.77,
+
+            traffic_density=0.1,
+            traffic_mode=TrafficMode.Reborn,  # "reborn", "trigger", "hybrid"
+            random_traffic=True,  # Traffic is randomized at default.
+
+            # gaussian_noise=0.77,
             # vehicle_config=dict(
             # wheel_friction=0.8,
             # side_detector=dict(num_lasers=120, distance=50),
             # ),
-            traffic_density=0.5,
-            map="X"
+            # traffic_density=0.5,
+            # map="X"
         )
     )
     try:
