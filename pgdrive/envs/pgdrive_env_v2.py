@@ -1,10 +1,11 @@
 import logging
-from pgdrive.scene_creator.road.road import Road
+
 import gym
 import numpy as np
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.pgdrive_env import PGDriveEnv as PGDriveEnvV1
 from pgdrive.obs import ImageStateObservation, ObservationType, LidarStateObservation
+from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import PGConfig, clip
 
@@ -29,12 +30,13 @@ class LidarStateObservationV2(LidarStateObservation):
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
-            other_v_info += self._add_noise_to_cloud_points(vehicle.lidar.get_cloud_points())
+            other_v_info += self._add_noise_to_cloud_points(
+                vehicle.lidar.get_cloud_points(),
+                gaussian_noise=self.config["lidar"]["gaussian_noise"],
+                dropout_prob=self.config["lidar"]["dropout_prob"]
+            )
             # print("Current lidar min: ", min(other_v_info))
         return np.concatenate((state, np.asarray(other_v_info)))
-
-    def _add_noise_to_cloud_points(self, points):
-        return super(LidarStateObservationV2, self)._add_noise_to_cloud_points(points)
 
     def state_observe(self, vehicle):
         navi_info = vehicle.routing_localization.get_navi_info()
@@ -49,7 +51,11 @@ class LidarStateObservationV2(LidarStateObservation):
         # update out of road
         info = []
         if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
-            info += vehicle.side_detector.get_cloud_points()
+            info += self._add_noise_to_cloud_points(
+                vehicle.side_detector.get_cloud_points(),
+                gaussian_noise=self.config["side_detector"]["gaussian_noise"],
+                dropout_prob=self.config["side_detector"]["dropout_prob"]
+            )
         else:
             raise ValueError()
         # print("Current side detector min: {}, max: {}, mean: {}".format(min(info), max(info), np.mean(info)))
@@ -74,7 +80,11 @@ class LidarStateObservationV2(LidarStateObservation):
         info.append(clip(yaw_rate, 0.0, 1.0))
 
         if vehicle.lane_line_detector is not None:
-            info += vehicle.lane_line_detector.get_cloud_points()
+            info += self._add_noise_to_cloud_points(
+                vehicle.lane_line_detector.get_cloud_points(),
+                gaussian_noise=self.config["lane_line_detector"]["gaussian_noise"],
+                dropout_prob=self.config["lane_line_detector"]["dropout_prob"]
+            )
         return info
 
 
@@ -108,12 +118,15 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 speed_reward=0.5,
                 use_lateral=False,
 
+                gaussian_noise=0.0,
+                dropout_prob=0.0,
+
                 # See: https://github.com/decisionforce/pgdrive/issues/297
                 vehicle_config=dict(
                     wheel_friction=0.8,
                     lidar=dict(num_lasers=120, distance=50, num_others=0, gaussian_noise=0.0, dropout_prob=0.0),
-                    side_detector=dict(num_lasers=120, distance=50),  # laser num, distance
-                    lane_line_detector=dict(num_lasers=0, distance=50),  # laser num, distance
+                    side_detector=dict(num_lasers=120, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
+                    lane_line_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                 ),
 
                 # Disable map loading!
@@ -128,6 +141,18 @@ class PGDriveEnvV2(PGDriveEnvV1):
         super(PGDriveEnvV2, self).__init__(config=config)
         # assert self.config["vehicle_config"]["lidar"]["num_others"] == 0
         # assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
+
+    def _post_process_config(self, config):
+        config = super(PGDriveEnvV2, self)._post_process_config(config)
+        if config["gaussian_noise"] > 0:
+            config["vehicle_config"]["lidar"]["gaussian_noise"] = config["gaussian_noise"]
+            config["vehicle_config"]["side_detector"]["gaussian_noise"] = config["gaussian_noise"]
+            config["vehicle_config"]["lane_line_detector"]["gaussian_noise"] = config["gaussian_noise"]
+        if config["dropout_prob"] > 0:
+            config["vehicle_config"]["lidar"]["dropout_prob"] = config["dropout_prob"]
+            config["vehicle_config"]["side_detector"]["dropout_prob"] = config["dropout_prob"]
+            config["vehicle_config"]["lane_line_detector"]["dropout_prob"] = config["dropout_prob"]
+        return config
 
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
@@ -239,6 +264,7 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
+
     # env = PGDriveEnvV2(dict(vehicle_config=dict(side_detector=dict(num_lasers=8))))
     env = PGDriveEnvV2(
         dict(
@@ -249,10 +275,12 @@ if __name__ == '__main__':
             manual_control=True,
             fast=True,
             use_render=True,
-            vehicle_config=dict(
-                wheel_friction=0.8,
-                side_detector=dict(num_lasers=120, distance=50),
-            ),
+
+            gaussian_noise=0.77,
+            # vehicle_config=dict(
+                # wheel_friction=0.8,
+                # side_detector=dict(num_lasers=120, distance=50),
+            # ),
             traffic_density=0.5,
             map="X"
         )

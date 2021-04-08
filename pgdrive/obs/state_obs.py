@@ -11,6 +11,7 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -18,7 +19,7 @@ class StateObservation(ObservationType):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         """
@@ -144,20 +145,24 @@ class LidarStateObservation(ObservationType):
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
-            other_v_info += self._add_noise_to_cloud_points(vehicle.lidar.get_cloud_points())
+            other_v_info += self._add_noise_to_cloud_points(
+                vehicle.lidar.get_cloud_points(),
+                gaussian_noise=self.config["lidar"]["gaussian_noise"],
+                dropout_prob=self.config["lidar"]["dropout_prob"]
+            )
         return np.concatenate((state, np.asarray(other_v_info)))
 
-    def _add_noise_to_cloud_points(self, points):
-        if self.config["lidar"]["gaussian_noise"] > 0.0:
+    def _add_noise_to_cloud_points(self, points, gaussian_noise, dropout_prob):
+        if gaussian_noise > 0.0:
             points = np.asarray(points)
             points = np.clip(
-                points + np.random.normal(loc=0.0, scale=self.config["lidar"]["gaussian_noise"], size=points.shape),
+                points + np.random.normal(loc=0.0, scale=gaussian_noise, size=points.shape),
                 0.0, 1.0
             )
 
-        if self.config["lidar"]["dropout_prob"] > 0.0:
-            assert self.config["lidar"]["dropout_prob"] <= 1.0
+        if dropout_prob > 0.0:
+            assert dropout_prob <= 1.0
             points = np.asarray(points)
-            points[np.random.uniform(0, 1, size=points.shape) < self.config["lidar"]["dropout_prob"]] = 0.0
+            points[np.random.uniform(0, 1, size=points.shape) < dropout_prob] = 0.0
 
         return list(points)
