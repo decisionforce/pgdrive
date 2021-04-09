@@ -38,6 +38,8 @@ class TestEnv(PGDriveEnv):
                     "show_lidar": True,
                     "show_side_detector": True,
                     "show_lane_line_detector": True,
+                    "side_detector": dict(num_lasers=2, distance=50),
+                    "lane_line_detector": dict(num_lasers=2, distance=50),
                 }
             }
         )
