@@ -585,9 +585,10 @@ class BaseVehicle(DynamicElement):
         """
         Check States and filter to update info
         """
-        result = self.pg_world.physics_world.static_world.contactTest(self.chassis_beneath_np.node(), True)
+        result_1 = self.pg_world.physics_world.static_world.contactTest(self.chassis_beneath_np.node(), True)
+        result_2= self.pg_world.physics_world.dynamic_world.contactTest(self.chassis_beneath_np.node(), True)
         contacts = set()
-        for contact in result.getContacts():
+        for contact in result_1.getContacts() + result_2.getContacts():
             node0 = contact.getNode0()
             node1 = contact.getNode1()
             name = [node0.getName(), node1.getName()]
