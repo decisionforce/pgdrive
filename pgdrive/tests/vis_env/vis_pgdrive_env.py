@@ -19,7 +19,7 @@ class TestEnv(PGDriveEnv):
                     # "debug_physics_world": True,
                     "pstats": True
                 },
-                "cull_scene":True,
+                "cull_scene": True,
                 # "controller":"joystick",
                 "manual_control": True,
                 "use_render": True,
