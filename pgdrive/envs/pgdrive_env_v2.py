@@ -19,7 +19,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             dict(
                 # ===== Traffic =====
                 traffic_density=0.1,
-                traffic_mode=TrafficMode.hybrid,  # "reborn", "trigger", "hybrid"
+                traffic_mode=TrafficMode.Hybrid,  # "Reborn", "Trigger", "Hybrid"
                 random_traffic=False,  # Traffic is randomized at default.
 
                 # ===== Cost Scheme =====
