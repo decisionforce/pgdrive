@@ -20,8 +20,9 @@ class Lidar(DistanceDetector):
 
     def get_surrounding_vehicles(self) -> Set[IDMVehicle]:
         vehicles = set()
-        for ret in self.detection_results:
-            if ret.hasHit() and ret.getNode().hasPythonTag(BodyName.Traffic_vehicle):
+        objs = self.get_detected_objects()
+        for ret in objs:
+            if ret.getNode().hasPythonTag(BodyName.Traffic_vehicle):
                 vehicles.add(ret.getNode().getPythonTag(BodyName.Traffic_vehicle).kinematic_model)
         return vehicles
 

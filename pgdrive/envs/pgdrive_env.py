@@ -47,7 +47,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
     # ===== Traffic =====
     traffic_density=0.1,
-    traffic_mode=TrafficMode.Trigger,  # "reborn", "trigger", "hybrid"
+    traffic_mode=TrafficMode.Trigger,  # "Reborn", "Trigger", "Hybrid"
     random_traffic=False,  # Traffic is randomized at default.
 
     # ===== Object =====
@@ -59,7 +59,8 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     # ===== Single-agent vehicle config =====
     vehicle_config=dict(
         # ===== vehicle module config =====
-        lidar=dict(num_lasers=240, distance=50, num_others=4),  # laser num, distance, other vehicle info num
+        # laser num, distance, other vehicle info num
+        lidar=dict(num_lasers=240, distance=50, num_others=4, gaussian_noise=0.0, dropout_prob=0.0),
         show_lidar=False,
         mini_map=(84, 84, 250),  # buffer length, width
         rgb_cam=(84, 84),  # buffer length, width
@@ -127,6 +128,8 @@ class PGDriveEnv(BasePGDriveEnv):
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
         config = self.default_config().update(config, allow_overwrite=False)
+        if config["vehicle_config"]["lidar"]["distance"] > 50:
+            config["pg_world_config"]["max_distance"] = config["vehicle_config"]["lidar"]["distance"]
         return config
 
     def _post_process_config(self, config):
@@ -549,9 +552,9 @@ class PGDriveEnv(BasePGDriveEnv):
         saver_info = {
             "takeover_start": True if not pre_save and vehicle.takeover else False,
             "takeover_end": True if pre_save and not vehicle.takeover else False,
-            "takeover": vehicle.takeover
+            "takeover": vehicle.takeover if pre_save else False
         }
-        return (steering, throttle), saver_info
+        return (steering, throttle) if saver_info["takeover"] else action, saver_info
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         if self.config["use_image"]:

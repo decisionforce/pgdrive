@@ -1,4 +1,5 @@
 import math
+from pgdrive.scene_creator.road.road import Road
 import time
 from collections import deque
 from typing import Union, Optional
@@ -241,7 +242,12 @@ class BaseVehicle(DynamicElement):
                 obj.crashed = True
         # lidar
         if self.lidar is not None:
-            self.lidar.perceive(self.position, self.heading_theta, self.pg_world.physics_world.dynamic_world)
+            self.lidar.perceive(
+                self.position,
+                self.heading_theta,
+                self.pg_world.physics_world.dynamic_world,
+                extra_filter_node=[self.chassis_np.node()]
+            )
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_detector is not None:
@@ -412,7 +418,7 @@ class BaseVehicle(DynamicElement):
 
     @property
     def current_road(self):
-        return self.lane_index[0:-1]
+        return Road(*self.lane_index[0:-1])
 
     """---------------------------------------- some math tool ----------------------------------------------"""
 

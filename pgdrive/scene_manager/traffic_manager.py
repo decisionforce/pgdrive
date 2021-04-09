@@ -61,7 +61,7 @@ class TrafficManager(RandomEngine):
         """
 
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-        self.update_random_seed(map.random_seed)
+        self.update_random_seed(map.random_seed if not self.random_traffic else None)
 
         # clear traffic in last episdoe
         # self._clear_traffic(pg_world)
@@ -180,9 +180,7 @@ class TrafficManager(RandomEngine):
         self._spawned_vehicles = []
 
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-        self.update_random_seed(map.random_seed)
-        if self.random_traffic:
-            self.random_seed = None
+        self.update_random_seed(map.random_seed if not self.random_traffic else None)
 
         # single agent env
         # self.ego_vehicle = controllable_vehicles[0] if len(controllable_vehicles) == 1 else None
@@ -329,8 +327,7 @@ class TrafficManager(RandomEngine):
             vehicle_num += len(vehicles_on_block)
         self.block_triggered_vehicles.reverse()
 
-    @staticmethod
-    def _get_available_reborn_lanes(map: Map) -> list:
+    def _get_available_reborn_lanes(self, map: Map) -> list:
         """
         Used to find some reborn lanes
         :param map: select born lanes from this map

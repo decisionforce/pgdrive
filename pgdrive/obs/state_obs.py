@@ -1,15 +1,13 @@
 import gym
 import numpy as np
+
 from pgdrive.obs.observation_type import ObservationType
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.utils.math_utils import clip
 
-PERCEIVE_DIST = 50
-
 
 class StateObservation(ObservationType):
-    Ego_state_obs_dim = 6
+    ego_state_obs_dim = 6
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
@@ -19,7 +17,7 @@ class StateObservation(ObservationType):
     @property
     def observation_space(self):
         # Navi info + Other states
-        shape = self.Ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim + self.get_side_detector_dim()
+        shape = self.ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim + self.get_side_detector_dim()
         return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):
@@ -62,7 +60,7 @@ class StateObservation(ObservationType):
         """
         # update out of road
         info = []
-        if vehicle.side_detector is not None:
+        if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
             info += vehicle.side_detector.get_cloud_points()
         else:
             lateral_to_left, lateral_to_right, = vehicle.dist_to_left, vehicle.dist_to_right
@@ -141,10 +139,29 @@ class LidarStateObservation(ObservationType):
         :param vehicle: BaseVehicle
         :return: observation in 9 + 10 + 16 + 240 dim
         """
-        state = self.state_obs.observe(vehicle)
+        state = self.state_observe(vehicle)
         other_v_info = []
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
-            other_v_info += vehicle.lidar.get_cloud_points()
+            other_v_info += self._add_noise_to_cloud_points(
+                vehicle.lidar.get_cloud_points(),
+                gaussian_noise=self.config["lidar"]["gaussian_noise"],
+                dropout_prob=self.config["lidar"]["dropout_prob"]
+            )
         return np.concatenate((state, np.asarray(other_v_info)))
+
+    def state_observe(self, vehicle):
+        return self.state_obs.observe(vehicle)
+
+    def _add_noise_to_cloud_points(self, points, gaussian_noise, dropout_prob):
+        if gaussian_noise > 0.0:
+            points = np.asarray(points)
+            points = np.clip(points + np.random.normal(loc=0.0, scale=gaussian_noise, size=points.shape), 0.0, 1.0)
+
+        if dropout_prob > 0.0:
+            assert dropout_prob <= 1.0
+            points = np.asarray(points)
+            points[np.random.uniform(0, 1, size=points.shape) < dropout_prob] = 0.0
+
+        return list(points)

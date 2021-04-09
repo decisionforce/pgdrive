@@ -24,17 +24,17 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "debug": False,
+                "debug": True,
                 "fast": False,
                 "map_config": {
-                    Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_NUM,
-                    Map.GENERATE_CONFIG: 10,
+                    Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                    Map.GENERATE_CONFIG: "O",
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 },
                 "driving_reward": 1.0,
                 "vehicle_config": {
-                    "show_lidar": False,
+                    "show_lidar": True,
                     "show_side_detector": True,
                     "show_lane_line_detector": True,
                 }
