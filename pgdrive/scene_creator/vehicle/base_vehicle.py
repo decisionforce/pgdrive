@@ -601,6 +601,8 @@ class BaseVehicle(DynamicElement):
                 self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_white_continuous_line = True
             elif name[0] == BodyName.Yellow_continuous_line:
                 self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_yellow_continuous_line = True
+            elif name[0] == BodyName.Broken_line:
+                self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_broken_line = True
             contacts.add(name[0])
         if self.render:
             self.render_collision_info(contacts)
@@ -783,3 +785,7 @@ class BaseVehicle(DynamicElement):
     @property
     def on_white_continuous_line(self):
         return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_white_continuous_line
+
+    @property
+    def on_broken_line(self):
+        return self.chassis_np.node().getPythonTag(BodyName.Ego_vehicle).on_broken_line
