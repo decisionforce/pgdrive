@@ -10,7 +10,6 @@ def test_reward_cost_done():
         out_of_road_cost=5555,
         crash_vehicle_cost=6666,
         crash_object_cost=7777,
-
     )
 
     # Success
