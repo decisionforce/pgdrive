@@ -4,7 +4,6 @@ import numpy as np
 
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.pgdrive_env import PGDriveEnv as PGDriveEnvV1
-from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import PGConfig, clip
 
@@ -50,6 +49,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 ),
 
                 # Disable map loading!
+                auto_termination=False,
                 load_map_from_json=False,
                 _load_map_from_json="",
             )
@@ -65,10 +65,16 @@ class PGDriveEnvV2(PGDriveEnvV1):
     def _post_process_config(self, config):
         config = super(PGDriveEnvV2, self)._post_process_config(config)
         if config.get("gaussian_noise", 0) > 0:
+            assert config["vehicle_config"]["lidar"]["gaussian_noise"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["side_detector"]["gaussian_noise"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["lane_line_detector"]["gaussian_noise"] == 0, "You already provide config!"
             config["vehicle_config"]["lidar"]["gaussian_noise"] = config["gaussian_noise"]
             config["vehicle_config"]["side_detector"]["gaussian_noise"] = config["gaussian_noise"]
             config["vehicle_config"]["lane_line_detector"]["gaussian_noise"] = config["gaussian_noise"]
         if config.get("dropout_prob", 0) > 0:
+            assert config["vehicle_config"]["lidar"]["dropout_prob"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["side_detector"]["dropout_prob"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["lane_line_detector"]["dropout_prob"] == 0, "You already provide config!"
             config["vehicle_config"]["lidar"]["dropout_prob"] = config["dropout_prob"]
             config["vehicle_config"]["side_detector"]["dropout_prob"] = config["dropout_prob"]
             config["vehicle_config"]["lane_line_detector"]["dropout_prob"] = config["dropout_prob"]
@@ -176,6 +182,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnvV2()
     try:
