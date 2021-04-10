@@ -51,11 +51,11 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-            self,
-            pg_world: PGWorld,
-            vehicle_config: Union[dict, PGConfig] = None,
-            physics_config: dict = None,
-            random_seed: int = 0
+        self,
+        pg_world: PGWorld,
+        vehicle_config: Union[dict, PGConfig] = None,
+        physics_config: dict = None,
+        random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -440,8 +440,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-                (lateral_norm * forward_direction_norm)
+            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+            (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -711,7 +711,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                ]):
+                                                                                                           ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -726,7 +726,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -757,12 +757,12 @@ class BaseVehicle(DynamicElement):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-               ) and (
-                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
-                       (0.5 - self.routing_localization.get_current_lane_num()) *
-                       self.routing_localization.get_current_lane_width()
-               )
+            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+        ) and (
+            self.routing_localization.get_current_lane_width() / 2 >= lat >=
+            (0.5 - self.routing_localization.get_current_lane_num()) *
+            self.routing_localization.get_current_lane_width()
+        )
         return flag
 
     @property

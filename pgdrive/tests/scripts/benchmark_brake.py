@@ -100,6 +100,6 @@ if __name__ == '__main__':
         acc_time, brake_dist, rotate_dis = get_result(env)
         print(
             "Friction {}. Acceleration time: {:.3f}. Brake distance: {:.3f}. Rotation 90 degree displacement X: {:.3f}, Y: {:.3f}\n\n"
-                .format(friction, acc_time, brake_dist, rotate_dis[0], rotate_dis[1])
+            .format(friction, acc_time, brake_dist, rotate_dis[0], rotate_dis[1])
         )
         env.close()
