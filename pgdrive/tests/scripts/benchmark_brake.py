@@ -1,7 +1,6 @@
 import time
 
 import numpy as np
-
 from pgdrive.envs import PGDriveEnvV2
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 
@@ -73,8 +72,7 @@ def get_result(env):
 
 if __name__ == '__main__':
 
-    for friction in [0.6, 0.8, 1.0, 1.2, 2.0]:
-        # for friction in [0.9, 1.0, 1.1]:
+    for friction in [0.8]:
         env = PGDriveEnvV2(
             {
                 "environment_num": 1,
@@ -83,11 +81,14 @@ if __name__ == '__main__':
                 # "pg_world_config": {
                 #     "debug": False,
                 # },
-                # "manual_control": False,
-                # "use_render": True,
+                # "manual_control": True,
+                "use_render": True,
                 "fast": True,
                 # "use_image": True,
                 "vehicle_config": {
+                    "max_engine_force": 1000,
+                    "max_brake_force": 45,
+                    "max_steering": 40,
                     "wheel_friction": friction
                 },
                 "map_config": {
@@ -99,6 +100,6 @@ if __name__ == '__main__':
         acc_time, brake_dist, rotate_dis = get_result(env)
         print(
             "Friction {}. Acceleration time: {:.3f}. Brake distance: {:.3f}. Rotation 90 degree displacement X: {:.3f}, Y: {:.3f}\n\n"
-            .format(friction, acc_time, brake_dist, rotate_dis[0], rotate_dis[1])
+                .format(friction, acc_time, brake_dist, rotate_dis[0], rotate_dis[1])
         )
         env.close()

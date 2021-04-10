@@ -1,5 +1,4 @@
 import math
-from pgdrive.scene_creator.road.road import Road
 import time
 from collections import deque
 from typing import Union, Optional
@@ -13,6 +12,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehilceNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
 from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
@@ -51,11 +51,11 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self,
-        pg_world: PGWorld,
-        vehicle_config: Union[dict, PGConfig] = None,
-        physics_config: dict = None,
-        random_seed: int = 0
+            self,
+            pg_world: PGWorld,
+            vehicle_config: Union[dict, PGConfig] = None,
+            physics_config: dict = None,
+            random_seed: int = 0
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -80,8 +80,8 @@ class BaseVehicle(DynamicElement):
         if physics_config is not None:
             self.set_config(physics_config)
         self.increment_steering = self.vehicle_config["increment_steering"]
-        self.max_speed = self.get_config()[Parameter.speed_max]
-        self.max_steering = self.get_config()[Parameter.steering_max]
+        self.max_speed = self.vehicle_config["max_speed"]
+        self.max_steering = self.vehicle_config["max_steering"]
 
         self.pg_world = pg_world
         self.node_path = NodePath("vehicle")
@@ -337,8 +337,8 @@ class BaseVehicle(DynamicElement):
         steering = action[0]
         self.throttle_brake = action[1]
         self.steering = steering
-        self.system.setSteeringValue(self.steering * para[Parameter.steering_max], 0)
-        self.system.setSteeringValue(self.steering * para[Parameter.steering_max], 1)
+        self.system.setSteeringValue(self.steering * self.max_steering, 0)
+        self.system.setSteeringValue(self.steering * self.max_steering, 1)
         self._apply_throttle_brake(action[1])
 
     def set_incremental_action(self, action: np.ndarray):
@@ -351,9 +351,8 @@ class BaseVehicle(DynamicElement):
         self._apply_throttle_brake(action[1])
 
     def _apply_throttle_brake(self, throttle_brake):
-        para = self.get_config(copy=False)
-        max_engine_force = self._config[Parameter.engine_force_max]
-        max_brake_force = para[Parameter.brake_force_max]
+        max_engine_force = self.vehicle_config["max_engine_force"]
+        max_brake_force = self.vehicle_config["max_brake_force"]
         for wheel_index in range(4):
             if throttle_brake >= 0:
                 self.system.setBrake(2.0, wheel_index)
@@ -441,8 +440,8 @@ class BaseVehicle(DynamicElement):
             return 0
         # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -712,7 +711,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing.target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -727,7 +726,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -758,12 +757,12 @@ class BaseVehicle(DynamicElement):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property

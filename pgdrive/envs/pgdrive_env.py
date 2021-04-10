@@ -84,6 +84,10 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         born_lateral=0.0,
 
         # ==== others ====
+        max_engine_force=500,
+        max_brake_force=40,
+        max_steering=40,
+        max_speed=120,
         overtake_stat=False,  # we usually set to True when evaluation
         action_check=False,
         use_saver=False,
@@ -325,7 +329,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -576,6 +580,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
