@@ -6,25 +6,30 @@ from pgdrive.utils.pg_config import merge_dicts
 
 
 class MultiAgentIntersectPGDrive(PGDriveEnvV2):
-    DEFAULT_AGENT_NUM = 3
+    # Currently only lane#0, #1 will be supported, #2 will be considered as out-of-road when spawning (hit side-lane)
+    # TODO: Fix by either
+    #  1. Change the side lane calculation to allow more car spawning space
+    #  2. Limit the available slots to (lane_num - 1)
+
+    # Max agents allowed will be (4 * 2) = 8, considering single intersection.MAX_SPOTS = 8
+    DEFAULT_AGENT_NUM = 8
     agent_spawn_tracker = [
         {
             "value": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
             "taken_agent": -1
         },
         {
-            "value": ("-1X0_1_", "-1X0_0_", 0),
-            "taken_agent": -1
-        },
-        {
-            "value": ("-1X1_1_", "-1X1_0_", 0),
-            "taken_agent": -1
-        },
-        {
-            "value": ("-1X2_1_", "-1X2_0_", 0),
+            "value": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
             "taken_agent": -1
         }
     ]
+
+    for i in range(3):
+        for j in range(2):
+            agent_spawn_tracker.append({
+                "value": (f"-1X{i}_1_", f"-1X{i}_0_", j),
+                "taken_agent": -1
+            })
 
     def get_available_spot(self, agent_id):
         try:
@@ -99,7 +104,7 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
         return o, r, d, i
 
     def reset(self, episode_data: dict = None):
-        for idx in range(self.DEFAULT_AGENT_NUM):
+        for idx in range(len(self.agent_spawn_tracker)):
             self.agent_spawn_tracker[idx]["taken_agent"] = -1
         for v in self.done_vehicles.values():
             v.chassis_np.node().setStatic(False)
