@@ -10,13 +10,21 @@ from pgdrive.scene_creator.blocks.straight import Straight
 
 class PGBlock:
     TYPE = {
-        Curve: 0.5,
+        # 0.3 for curves
+        Curve: 0.3,
+
+        # 0.3 for straight
         Straight: 0.1,
-        StdInterSection: 0.075,
-        Roundabout: 0.05,
-        StdTInterSection: 0.075,
         InRampOnStraight: 0.1,
         OutRampOnStraight: 0.1,
+
+        # 0.3 for intersection
+        StdInterSection: 0.15,
+        StdTInterSection: 0.15,
+
+        # 0.1 for roundabout
+        Roundabout: 0.1,
+
         InFork: 0.00,
         OutFork: 0.00,
         Merge: 0.00,
