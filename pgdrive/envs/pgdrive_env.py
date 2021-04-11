@@ -6,6 +6,7 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
@@ -329,7 +330,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -367,7 +368,7 @@ class PGDriveEnv(BasePGDriveEnv):
             ret[v_id] = self.observations[v_id].observe(v)
         return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
 
-    def _update_map(self, episode_data: dict = None):
+    def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
             # Since in episode data map data only contains one map, values()[0] is the map_parameters
             map_data = episode_data["map_data"].values()
@@ -390,7 +391,10 @@ class PGDriveEnv(BasePGDriveEnv):
             self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
-        self.current_seed = get_np_random().randint(self.start_seed, self.start_seed + self.env_num)
+        if force_seed is None:
+            self.current_seed = get_np_random().randint(self.start_seed, self.start_seed + self.env_num)
+        else:
+            self.current_seed = force_seed
         if self.maps.get(self.current_seed, None) is None:
 
             if self.config["load_map_from_json"]:
@@ -580,6 +584,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
