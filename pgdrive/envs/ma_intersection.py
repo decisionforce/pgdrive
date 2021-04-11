@@ -17,8 +17,7 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
         {
             "value": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
             "taken_agent": -1
-        },
-        {
+        }, {
             "value": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
             "taken_agent": -1
         }
@@ -26,10 +25,7 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
 
     for i in range(3):
         for j in range(2):
-            agent_spawn_tracker.append({
-                "value": (f"-1X{i}_1_", f"-1X{i}_0_", j),
-                "taken_agent": -1
-            })
+            agent_spawn_tracker.append({"value": (f"-1X{i}_1_", f"-1X{i}_0_", j), "taken_agent": -1})
 
     def get_available_spot(self, agent_id):
         try:
@@ -43,6 +39,7 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
