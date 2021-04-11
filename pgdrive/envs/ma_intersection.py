@@ -6,7 +6,7 @@ from pgdrive.utils.pg_config import merge_dicts
 
 
 class MultiAgentIntersectPGDrive(PGDriveEnvV2):
-    DEFAULT_AGENT_NUM = 4
+    DEFAULT_AGENT_NUM = 3
     agent_spawn_tracker = [
         {
             "value": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
@@ -41,6 +41,9 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
+        target_vehicle_configs_dict = dict()
+        for agent_id in range(MultiAgentIntersectPGDrive.DEFAULT_AGENT_NUM):
+            target_vehicle_configs_dict[f"agent{agent_id}"] = dict()
         config.update(
             {
                 "environment_num": 1,
@@ -51,12 +54,7 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
                     #     "num_lasers": 100
                     # }
                 },
-                "target_vehicle_configs": {
-                    "agent0": dict(),
-                    "agent1": dict(),
-                    "agent2": dict(),
-                    "agent3": dict()
-                },
+                "target_vehicle_configs": target_vehicle_configs_dict,
                 "num_agents": MultiAgentIntersectPGDrive.DEFAULT_AGENT_NUM,
                 "crash_done": True
             }
