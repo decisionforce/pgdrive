@@ -19,7 +19,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 # ===== Traffic =====
                 traffic_density=0.1,
                 traffic_mode=TrafficMode.Hybrid,  # "Reborn", "Trigger", "Hybrid"
-                random_traffic=False,  # Traffic is randomized at default.
+                random_traffic=True,  # Traffic is randomized at default.
 
                 # ===== Cost Scheme =====
                 crash_vehicle_cost=1.,
