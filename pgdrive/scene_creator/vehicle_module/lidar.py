@@ -18,15 +18,14 @@ class Lidar(DistanceDetector):
         self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(PGTrafficVehicle.COLLISION_MASK) | BitMask32.bit(CollisionGroup.EgoVehicle)
 
-    def get_surrounding_vehicles(self) -> Set[IDMVehicle]:
+    def get_surrounding_vehicles(self) -> Set:
         vehicles = set()
         objs = self.get_detected_objects()
         for ret in objs:
             if ret.getNode().hasPythonTag(BodyName.Traffic_vehicle):
                 vehicles.add(ret.getNode().getPythonTag(BodyName.Traffic_vehicle).kinematic_model)
-            # elif ret.getNode().hasPythonTag(BodyName.Base_vehicle):
-            #     vehicles.add()
-
+            elif ret.getNode().hasPythonTag(BodyName.Base_vehicle):
+                vehicles.add(ret.getNode().getPythonTag(BodyName.Base_vehicle))
         return vehicles
 
     # def _get_surrounding_objects(self) -> Set[Object]:
@@ -50,7 +49,7 @@ class Lidar(DistanceDetector):
         res = []
         for vehicle in surrounding_vehicles[:num_others]:
             if vehicle is not None:
-                assert isinstance(vehicle, IDMVehicle), "Now PGDrive Doesn't support other vehicle type"
+                # assert isinstance(vehicle, IDMVehicle or Base), "Now PGDrive Doesn't support other vehicle type"
                 relative_position = ego_vehicle.projection(vehicle.position - ego_vehicle.position)
                 # It is possible that the centroid of other vehicle is too far away from ego but lidar shed on it.
                 # So the distance may greater than perceive distance.

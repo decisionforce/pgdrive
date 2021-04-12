@@ -1,7 +1,9 @@
 from panda3d.bullet import BulletRigidBodyNode
+from pgdrive.utils.coordinates_shift import pgdrive_vector, pgdrive_heading
+from pgdrive.utils.math_utils import clip, norm
 
 
-class BaseVehilceNode(BulletRigidBodyNode):
+class BaseVehicleNode(BulletRigidBodyNode):
     """
     Collision Properties should place here, info here can used for collision callback
     """
@@ -24,3 +26,13 @@ class BaseVehilceNode(BulletRigidBodyNode):
         self.on_yellow_continuous_line = False
         self.on_white_continuous_line = False
         self.on_broken_line = False
+
+    @property
+    def position(self):
+        return pgdrive_vector(self.getShapePos(0))
+
+    @property
+    def velocity(self):
+        velocity = self.get_linear_velocity()
+        return pgdrive_vector(velocity)
+

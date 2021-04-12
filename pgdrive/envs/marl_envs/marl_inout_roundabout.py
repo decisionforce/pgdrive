@@ -67,7 +67,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     "lidar": {
                         "num_lasers": 120,
                         "distance": 50,
-                        "num_others": 0,
+                        "num_others": 4,
                     },
                     "show_lidar": False,
                     "born_longitude": 5,
