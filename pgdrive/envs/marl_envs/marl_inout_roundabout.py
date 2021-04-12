@@ -288,7 +288,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentRoundaboutEnv({"num_agents": 36})
+    env = MultiAgentRoundaboutEnv({"num_agents": 16})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -307,5 +307,5 @@ def _profile():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
-    # _profile()
+    # _vis()
+    _profile()
