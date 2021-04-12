@@ -1,4 +1,3 @@
-import numpy as np
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 
 
@@ -67,7 +66,33 @@ def test_ma_roundabout_env():
 
 def test_ma_roundabout_horizon():
     # test horizon
-    env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 2, "vehicle_config": {"lidar": {"num_others": 2}}})
+    env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 4, "vehicle_config": {"lidar": {"num_others": 2}}})
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        last_keys = set(env.vehicles.keys())
+        for step in range(1000):
+            act = {k: [1, 1] for k in env.vehicles.keys()}
+            o, r, d, i = _act(env, act)
+            new_keys = set(env.vehicles.keys())
+            if step == 0:
+                assert not any(d.values())
+            if any(d.values()):
+                assert len(last_keys) <= 4  # num of agents
+                assert len(new_keys) <= 4  # num of agents
+                for k in new_keys.difference(last_keys):
+                    assert k in o
+                    assert k in d
+                print("Step {}, Done: {}".format(step, d))
+            if d["__all__"]:
+                break
+            last_keys = new_keys
+    finally:
+        env.close()
+
+
+def test_ma_roundabout_reset():
+    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 4})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -76,14 +101,17 @@ def test_ma_roundabout_horizon():
             o, r, d, i = _act(env, act)
             if step == 0:
                 assert not any(d.values())
-            if any(d.values()):
-                print("Step {}, Done: {}".format(step, d))
             if d["__all__"]:
-                break
+                obs = env.reset()
+                assert env.observation_space.contains(obs)
+                assert set(env.observation_space.spaces.keys()) == set(env.action_space.spaces.keys()) == \
+                       set(env.observations.keys()) == set(obs.keys()) == \
+                       set(env.config["target_vehicle_configs"].keys())
     finally:
         env.close()
 
 
 if __name__ == '__main__':
-    test_ma_roundabout_env()
+    # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
+    test_ma_roundabout_reset()

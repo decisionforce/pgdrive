@@ -9,6 +9,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -61,6 +62,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
         self.is_multi_agent = True  # Force set it to True
+        self.done_observations = dict()
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(
@@ -93,14 +95,21 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Multi-agent related reset
         # avoid create new observation!
+        obses = list(self.done_observations.values()) + list(self.observations.values())
         self.observations = {
-            k: v
-            for k, v in zip(self.config["target_vehicle_configs"].keys(), self.observations.values())
+            k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)
         }
+        self.done_observations = dict()
         self.observation_space = self._get_observation_space()
         self.action_space = self._get_action_space()
-        self.vehicles = {k: v for k, v in zip(self.observations.keys(), self.vehicles.values())}
         return super(MultiAgentPGDrive, self).reset(episode_data)
+
+    def _reset_vehicles(self):
+        vehicles = list(self.vehicles.values()) + list(self.done_vehicles.values())
+        assert len(vehicles) == len(self.observations)
+        self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}
+        self.done_vehicles = {}
+        self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
     def _preprocess_marl_actions(self, actions):
         return actions
@@ -148,8 +157,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         current_obs_keys = set(self.observations.keys())
         for k in current_obs_keys:
             if k not in set(self.vehicles.keys()):
-                self.observations.pop(k)
+                o = self.observations.pop(k)
                 self.observation_space.spaces.pop(k)
+                self.done_observations[k] = o
                 # self.action_space.spaces.pop(k)  # Action space is updated in _reborn
 
 
