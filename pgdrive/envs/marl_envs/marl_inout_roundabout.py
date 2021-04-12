@@ -185,21 +185,14 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
         if self.episode_steps >= self.config["horizon"]:
             self._do_not_reborn = True
-
-        if len(self.vehicles) == 0:
-            print('ss')
-
-        d["__all__"] = ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or \
-                       (len(self.vehicles) == 0) or \
-                       (self.episode_steps >= 5 * self.config["horizon"])
+        d["__all__"] = (
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or
+                (len(self.vehicles) == 0) or
+                (self.episode_steps >= 5 * self.config["horizon"])
+        )
         if d["__all__"]:
             for k in d.keys():
                 d[k] = True
-
-        print('Current step {}. Done: {}. Vehicles: {}. Obs space {}'.format(
-            self.episode_steps, d, self.vehicles, self.observation_space.spaces
-        ))
-
         return o, r, d, i
 
     def _update_destination_for(self, vehicle):
