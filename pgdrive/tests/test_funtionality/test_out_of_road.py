@@ -18,7 +18,7 @@ def test_out_of_road():
             )
             try:
                 obs = env.reset()
-                tolerance = math.sqrt(env.vehicle.WIDTH ** 2 + env.vehicle.LENGTH ** 2) / distance
+                tolerance = math.sqrt(env.vehicle.WIDTH**2 + env.vehicle.LENGTH**2) / distance
                 for _ in range(100000000):
                     o, r, d, i = env.step([steering, 1])
                     if d:
@@ -55,10 +55,12 @@ def useless_left_right_distance_printing():
                     (vehicle.routing_localization.get_current_lane_num() + 1) *
                     vehicle.routing_localization.get_current_lane_width()
                 )
-                print("Left {}, Right {}, Total {}. Clip Total {}".format(
-                    l / total_width, r / total_width, (l + r) / total_width,
-                    clip(l / total_width, 0, 1) + clip(r / total_width, 0, 1)
-                ))
+                print(
+                    "Left {}, Right {}, Total {}. Clip Total {}".format(
+                        l / total_width, r / total_width, (l + r) / total_width,
+                        clip(l / total_width, 0, 1) + clip(r / total_width, 0, 1)
+                    )
+                )
                 if d:
                     break
         finally:
