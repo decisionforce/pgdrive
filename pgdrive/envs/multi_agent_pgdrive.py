@@ -9,6 +9,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -80,6 +81,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return done, done_info
 
     def step(self, actions):
+        self._update_spaces_if_needed()
         actions = self._preprocess_marl_actions(actions)
         o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
         o, r, d, i = self._after_vehicle_done(o, r, d, i)
@@ -90,9 +92,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             v.chassis_np.node().setStatic(False)
 
         # Multi-agent related reset
+        # avoid create new observation!
         self.observations = {
-            k: v
-            for k, v in zip(self.config["target_vehicle_configs"].keys(), self.observations.values())
+            k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), self.observations.values())
         }
         self.observation_space = self._get_observation_space()
         self.action_space = self._get_action_space()
@@ -144,6 +146,15 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         if self.num_agents == 1:
             return {self.DEFAULT_AGENT: data}
         return data
+
+    def _update_spaces_if_needed(self):
+        if self.num_agents > 1:
+            current_obs_keys = set(self.observations.keys())
+            for k in current_obs_keys:
+                if k not in set(self.vehicles.keys()):
+                    self.observations.pop(k)
+                    self.observation_space.spaces.pop(k)
+                    # self.action_space.spaces.pop(k)  # Action space is updated in _reborn
 
 
 if __name__ == "__main__":
