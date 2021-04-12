@@ -60,6 +60,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         config = MultiAgentPGDrive.default_config()
         config.update(
             {
+                "horizon": 1000,
                 "camera_height": 4,
                 "map": "M",
                 "vehicle_config": {
@@ -174,14 +175,17 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def reset(self, episode_data: dict = None):
         self._next_agent_id = self.num_agents
         self._last_born_identifier = 0
+        self._do_not_reborn = False
         ret = super(MultiAgentRoundaboutEnv, self).reset(episode_data)
         self.for_each_vehicle(self._update_destination_for)
         return ret
 
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
+        if self.episode_steps >= self.config["horizon"]:
+            self._do_not_reborn = True
         if self.num_agents > 1:
-            d["__all__"] = False  # Never done
+            d["__all__"] = (self.episode_steps >= self.config["horizon"]) and (all(d.values()))
         return o, r, d, i
 
     def _update_destination_for(self, vehicle):
@@ -231,7 +235,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         new_dones = dict()
         for dead_vehicle_id, done in dones.items():
             new_dones[dead_vehicle_id] = done
-            if done:
+            if done and self._do_not_reborn:
+                v = self.vehicles.pop(dead_vehicle_id)
+                v.prepare_step([0, -1])
+                self.action_space.spaces.pop(dead_vehicle_id)
+            if done and (not self._do_not_reborn):
                 new_obs, new_id = self._reborn(dead_vehicle_id)
                 if self.num_agents > 1:
                     obs[new_id] = new_obs
