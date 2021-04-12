@@ -101,8 +101,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
-        self.all_lane_index = []
-        self.next_agent_id = config["num_agents"]
+        self._all_lane_index = []
+        self._next_agent_id = config["num_agents"]
 
         num_concurrent = 3
         assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads) * num_concurrent, (
@@ -114,7 +114,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be reborn,
         # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
         # appear at the middle of the road!)
-        self.safe_born_places = []
+        self._safe_born_places = []
+        self._last_born_identifier = None
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
                 for j in range(num_concurrent):
@@ -124,11 +125,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                         "agent_{}_{}".format(i + 1, lane_idx),
                         {"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
                     ))
-                    self.all_lane_index.append(road.lane_index(lane_idx))
+                    self._all_lane_index.append(road.lane_index(lane_idx))
                     if j == 0:
-                        self.safe_born_places.append((
-                            "agent_{}_{}".format(i + 1, lane_idx),
-                            {"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
+                        self._safe_born_places.append(dict(
+                            identifier=road.lane_index(lane_idx)[0],  # identifier
+                            config={"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
                         ))
 
         target_agents = get_np_random().choice(
@@ -150,7 +151,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         return config
 
     def reset(self, episode_data: dict = None):
-        self.next_agent_id = self.num_agents
+        self._next_agent_id = self.num_agents
+        self._last_born_identifier = 0
         ret = super(MultiAgentRoundaboutEnv, self).reset(episode_data)
         self.for_each_vehicle(self._update_destination_for)
         return ret
@@ -175,8 +177,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         v = self.vehicles.pop(dead_vehicle_id)
 
         # register vehicle
-        new_id = "agent{}".format(self.next_agent_id)
-        self.next_agent_id += 1
+        new_id = "agent{}".format(self._next_agent_id)
+        self._next_agent_id += 1
         self.vehicles[new_id] = v  # Put it to new vehicle id.
         self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
         logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
@@ -190,8 +192,10 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.action_space = self._get_action_space()
 
         # replace vehicle to new born place
-        new_born_place_config = get_np_random().choice(len(self.safe_born_places), 1)[0]
-        new_born_place_config = self.safe_born_places[new_born_place_config][1]
+        safe_places = [p for p in self._safe_born_places if p['identifier'] != self._last_born_identifier]
+        new_born_place = safe_places[get_np_random().choice(len(safe_places), 1)[0]]
+        new_born_place_config = new_born_place["config"]
+        self._last_born_identifier = new_born_place["identifier"]
         v.vehicle_config.update(new_born_place_config)
         v.reset(self.current_map)
 
