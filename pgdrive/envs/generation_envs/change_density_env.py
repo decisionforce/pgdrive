@@ -22,7 +22,7 @@ class ChangeDensityEnv(PGDriveEnv):
         for seed in self.maps.keys():
             self.density_dict[seed] = self._random_state.uniform(self.config["density_min"], self.config["density_max"])
 
-    def reset(self):
+    def reset(self, _=None, __=None):
         if self.config["change_density"]:
             self.update_density()
         return super(ChangeDensityEnv, self).reset()

@@ -171,7 +171,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         config["target_vehicle_configs"] = ret
         return config
 
-    def reset(self, episode_data: dict = None):
+    def reset(self, episode_data: dict = None, force_seed=None):
         self._next_agent_id = self.num_agents
         self._last_born_identifier = 0
         ret = super(MultiAgentRoundaboutEnv, self).reset(episode_data)
