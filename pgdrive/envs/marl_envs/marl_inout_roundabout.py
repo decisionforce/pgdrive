@@ -157,8 +157,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
-        if len(d) != 2:
-            print('sss')
         if self.num_agents > 1:
             d["__all__"] = False  # Never done
         return o, r, d, i
@@ -266,5 +264,5 @@ def _profile():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
-    # _profile()
+    # _vis()
+    _profile()

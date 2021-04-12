@@ -8,7 +8,7 @@ def test_reborn():
     env = MultiAgentRoundaboutEnv({
         "num_agents": 2,
         "out_of_road_cost": out_of_road_cost,
-        "out_of_road_penalty": out_of_road_penalty
+        "out_of_road_penalty": out_of_road_penalty,
         # "use_render": True, "fast": True
     })
 
@@ -30,7 +30,7 @@ def test_reborn():
     count = 2
     tracks = []
     done_count = 0
-    for i in range(1, 1000):
+    for i in range(1, 100000):
         o, r, d, info = env.step({v_id_0: [-1, 1], v_id_1: [1, 1]})
         assert set(o.keys()) == set(r.keys()) == set(info.keys())
         assert set(o.keys()).union({"__all__"}) == set(d.keys())
