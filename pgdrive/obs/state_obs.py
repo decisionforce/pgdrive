@@ -143,9 +143,9 @@ class LidarStateObservation(ObservationType):
         other_v_info = []
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
-                other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
+                other_v_info += vehicle.lidar.async_worker.worker.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
             other_v_info += self._add_noise_to_cloud_points(
-                vehicle.lidar.get_cloud_points(),
+                vehicle.lidar.async_worker.worker.get_cloud_points(),
                 gaussian_noise=self.config["lidar"]["gaussian_noise"],
                 dropout_prob=self.config["lidar"]["dropout_prob"]
             )

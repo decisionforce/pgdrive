@@ -234,6 +234,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward_infos = {}
         rewards = {}
         for v_id, v in self.vehicles.items():
+            v.lidar.get()
             obses[v_id] = self.observations[v_id].observe(v)
             done_function_result, done_infos[v_id] = self.done_function(v_id)
             rewards[v_id], reward_infos[v_id] = self.reward_function(v_id)

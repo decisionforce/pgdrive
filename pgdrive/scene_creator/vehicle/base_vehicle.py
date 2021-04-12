@@ -1,4 +1,5 @@
 import math
+from pgdrive.utils.threading_utils import RemoteWorker
 from pgdrive.scene_creator.road.road import Road
 import time
 from collections import deque
@@ -235,13 +236,6 @@ class BaseVehicle(DynamicElement):
 
     def update_state(self, pg_world=None):
         # lidar
-        if self.lidar is not None:
-            self.lidar.perceive(
-                self.position,
-                self.heading_theta,
-                self.pg_world.physics_world.dynamic_world,
-                extra_filter_node=[self.chassis_np.node()]
-            )
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_detector is not None:
@@ -558,7 +552,7 @@ class BaseVehicle(DynamicElement):
     def add_lidar(self, num_lasers=240, distance=50, show_lidar_point=False):
         assert num_lasers > 0
         assert distance > 0
-        self.lidar = Lidar(self.pg_world.render, num_lasers, distance, show_lidar_point)
+        self.lidar = RemoteWorker(Lidar, self.pg_world.render, num_lasers, distance, show_lidar_point)
 
     def add_routing_localization(self, show_navi_point: bool):
         self.routing_localization = RoutingLocalizationModule(self.pg_world, show_navi_point)

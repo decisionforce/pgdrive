@@ -189,6 +189,11 @@ class BasePGDriveEnv(gym.Env):
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
         scene_manager_step_infos = self.scene_manager.update_state()
+        for v in self.vehicles.values():
+            v.lidar.request("perceive", v.position,
+                            v.heading_theta,
+                            v.pg_world.physics_world.dynamic_world,
+                            extra_filter_node=[v.chassis_np.node()])
         action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
         return action_infos
 
