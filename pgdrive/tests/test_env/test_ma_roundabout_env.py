@@ -14,7 +14,7 @@ def test_ma_roundabout_env():
         assert isinstance(info, dict)
         return obs, reward, done, info
 
-    env = MultiAgentRoundaboutEnv({"num_agents": 1})
+    env = MultiAgentRoundaboutEnv({"num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -23,7 +23,26 @@ def test_ma_roundabout_env():
     finally:
         env.close()
 
-    env = MultiAgentRoundaboutEnv({"num_agents": 4})
+    env = MultiAgentRoundaboutEnv({"num_agents": 1, "vehicle_config": {"lidar": {"num_others": 0}}})
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        for _ in range(100):
+            o, r, d, i = _act(env, [1, 1])
+    finally:
+        env.close()
+
+    env = MultiAgentRoundaboutEnv({"num_agents": 4, "vehicle_config": {"lidar": {"num_others": 8}}})
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        for _ in range(100):
+            act = {k: [1, 1] for k in env.vehicles.keys()}
+            o, r, d, i = _act(env, act)
+    finally:
+        env.close()
+
+    env = MultiAgentRoundaboutEnv({"num_agents": 4, "vehicle_config": {"lidar": {"num_others": 0}}})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
