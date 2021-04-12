@@ -77,7 +77,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     "lane_num": 3
                 },
                 # clear base config
-                "num_agents": 1,
+                "num_agents": 2,
                 "auto_termination": False
             },
             allow_overwrite=True,
