@@ -219,8 +219,10 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.observations[new_id] = obs
         self.observations[new_id].reset(self, v)
 
-        print('After add: ', new_id, " we have observations: ", self.observations.keys(), " Current vehicles: ",
-              self.vehicles.keys())
+        print(
+            'After add: ', new_id, " we have observations: ", self.observations.keys(), " Current vehicles: ",
+            self.vehicles.keys()
+        )
 
         new_obs = self.observations[new_id].observe(v)
         if self.num_agents > 1:
