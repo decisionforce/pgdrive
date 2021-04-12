@@ -64,6 +64,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "camera_height": 4,
                 "map": "M",
                 "vehicle_config": {
+                    "show_lidar": True,
                     "born_longitude": 5,
                     "born_lateral": 0,
                 },
@@ -236,11 +237,12 @@ def _draw():
 def _vis():
     env = MultiAgentRoundaboutEnv(
         {
+            "vehicle_config": {"lidar": {"num_lasers": 240, "distance": 50}},
             "fast": True,
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 2,
+            "num_agents": 8,
         }
     )
     o = env.reset()
@@ -284,5 +286,5 @@ def _profile():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
-    _profile()
+    _vis()
+    # _profile()
