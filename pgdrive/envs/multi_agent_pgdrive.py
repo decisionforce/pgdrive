@@ -89,6 +89,14 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def reset(self, episode_data: dict = None):
         for v in self.done_vehicles.values():
             v.chassis_np.node().setStatic(False)
+
+        # Multi-agent related reset
+        self.observations = {
+            k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), self.observations.values())
+        }
+        self.observation_space = self._get_observation_space()
+        self.action_space = self._get_action_space()
+        self.vehicles = {k: v for k, v in zip(self.observations.keys(), self.vehicles.values())}
         return super(MultiAgentPGDrive, self).reset(episode_data)
 
     def _preprocess_marl_actions(self, actions):

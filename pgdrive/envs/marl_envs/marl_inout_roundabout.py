@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
@@ -109,6 +111,10 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             )
         )
 
+        # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be reborn,
+        # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
+        # appear at the middle of the road!)
+        self.safe_born_places = []
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
                 for j in range(num_concurrent):
@@ -119,6 +125,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                         {"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
                     ))
                     self.all_lane_index.append(road.lane_index(lane_idx))
+                    if j == 0:
+                        self.safe_born_places.append((
+                            "agent_{}_{}".format(i + 1, lane_idx),
+                            {"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
+                        ))
 
         target_agents = get_np_random().choice(
             [i for i in range(len(target_vehicle_configs))],
@@ -138,42 +149,59 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         config["target_vehicle_configs"] = ret
         return config
 
-    def step(self, actions):
-        o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
-        return o, r, d, i
-
     def reset(self, episode_data: dict = None):
+        self.next_agent_id = self.num_agents
         ret = super(MultiAgentRoundaboutEnv, self).reset(episode_data)
-        self._update_destination()
+        self.for_each_vehicle(self._update_destination_for)
         return ret
 
-    def _update_destination(self):
-        # FIXME
+    def step(self, actions):
+        o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
+        if len(d) != 2:
+            print('sss')
+        if self.num_agents > 1:
+            d["__all__"] = False  # Never done
+        return o, r, d, i
+
+    def _update_destination_for(self, vehicle):
         # when agent re-joined to the game, call this to set the new route to destination
-        for v in self.vehicles.values():
-            end_road = -get_np_random().choice(self.born_roads)
-            # use this line to always choose adverse exits!
-            # v.routing_localization.set_route(v.lane_index[0], (-Road(*v.lane_index[:-1])).end_node)
-            v.routing_localization.set_route(v.lane_index[0], end_road.end_node)
+        end_road = -get_np_random().choice(self.born_roads)  # Use negative road!
+        vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
+
+    def _reborn(self, dead_vehicle_id):
+        assert dead_vehicle_id in self.vehicles
+        # Switch to track other vehicle if in first-person view.
+        # if self.config["use_render"] and self.current_track_vehicle_id == id:
+        #     self.chase_another_v()
+
+        v = self.vehicles.pop(dead_vehicle_id)
+
+        # register vehicle
+        new_id = "agent{}".format(self.next_agent_id)
+        self.next_agent_id += 1
+        self.vehicles[new_id] = v  # Put it to new vehicle id.
+        self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
+        logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
+
+        # reset observation space
+        obs = self.observations.pop(dead_vehicle_id)
+        self.observations[new_id] = obs
+        self.observation_space = self._get_observation_space()
+
+        # reset action space
+        self.action_space = self._get_action_space()
+
+        # replace vehicle to new born place
+        new_born_place_config = get_np_random().choice(len(self.safe_born_places), 1)[0]
+        new_born_place_config = self.safe_born_places[new_born_place_config][1]
+        v.vehicle_config.update(new_born_place_config)
+        v.reset(self.current_map)
 
     def _after_vehicle_done(self, dones: dict):
         dones = self._wrap_as_multi_agent(dones)
-        for id, done in dones.items():
-            if done and id in self.vehicles.keys():
-                if self.config["use_render"] and self.current_track_vehicle_id == id:
-                    self.chase_another_v()
-                new_id = "agent{}".format(self.next_agent_id)
-                self.next_agent_id += 1
-                v = self.vehicles.pop(id)
-                obs = self.observations.pop(id)
-                self.observations[new_id] = obs
-                self.action_space = self._get_action_space()
-                self.observation_space = self._get_observation_space()
-                born_lane_index = get_np_random().choice(len((self.all_lane_index)), 1)[0]
-                v.vehicle_config["born_lane_index"] = self.all_lane_index[born_lane_index]
-                v.reset(self.current_map)
-                self.vehicles[new_id] = v
-                self.dones[new_id] = False
+        for dead_vehicle_id, done in dones.items():
+            if done:
+                self._reborn(dead_vehicle_id)
 
 
 def _draw():

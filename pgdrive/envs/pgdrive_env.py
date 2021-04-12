@@ -256,11 +256,12 @@ class PGDriveEnv(BasePGDriveEnv):
             for k in self.dones:
                 self.dones[k] = True
 
+        dones = {k: self.dones[k] for k in self.vehicles.keys()}
         if self.num_agents == 1:
             return self._wrap_as_single_agent(obses), self._wrap_as_single_agent(rewards), \
-                   self._wrap_as_single_agent(self.dones), self._wrap_as_single_agent(step_infos)
+                   self._wrap_as_single_agent(dones), self._wrap_as_single_agent(step_infos)
         else:
-            return obses, rewards, self.dones, step_infos
+            return obses, rewards, dones, step_infos
 
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
