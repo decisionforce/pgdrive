@@ -472,7 +472,7 @@ class BaseVehicle(DynamicElement):
 
     def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
         para = self.get_config()
-        chassis = BaseVehicleNode(BodyName.Base_vehicle)
+        chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
         chassis_shape = BulletBoxShape(
             Vec3(
@@ -646,6 +646,7 @@ class BaseVehicle(DynamicElement):
             self.current_banner = new_banner
 
     def destroy(self, _=None):
+        self.chassis_np.node().getPythonTag(BodyName.Base_vehicle).destroy()
         self.dynamic_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world)
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()

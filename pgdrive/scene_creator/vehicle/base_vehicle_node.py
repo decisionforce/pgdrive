@@ -7,9 +7,13 @@ class BaseVehicleNode(BulletRigidBodyNode):
     """
     Collision Properties should place here, info here can used for collision callback
     """
-    def __init__(self, body_name: str):
+
+    def __init__(self, body_name: str, base_vehicle):
         BulletRigidBodyNode.__init__(self, body_name)
         BulletRigidBodyNode.setPythonTag(self, body_name, self)
+        # mutual reference here
+        self._base_vehicle = base_vehicle
+
         self.crash_vehicle = False
         self.crash_object = False
         self.crash_sidewalk = False
@@ -29,10 +33,12 @@ class BaseVehicleNode(BulletRigidBodyNode):
 
     @property
     def position(self):
-        return pgdrive_vector(self.getShapePos(0))
+        return self._base_vehicle.position
 
     @property
     def velocity(self):
-        velocity = self.get_linear_velocity()
-        return pgdrive_vector(velocity)
+        return self._base_vehicle.velocity
 
+    def destroy(self):
+        # release pointer
+        self._base_vehicle = None
