@@ -34,8 +34,9 @@ def test_reborn():
     done_count = 0
     for i in range(1, 1000):
         o, r, d, info = env.step({v_id_0: [-1, 1], v_id_1: [1, 1]})
-        assert set(o.keys()) == set(r.keys()) == set(info.keys())
-        assert set(o.keys()).union({"__all__"}) == set(d.keys())
+        assert set(r.keys()).issubset(set(o.keys()))
+        assert set(r.keys()) == set(info.keys())
+        assert set(d.keys()).issubset(set(o.keys()).union({"__all__"}))
         tracks.append(d)
         if d[v_id_0]:
             assert info[v_id_0]["out_of_road"]

@@ -197,6 +197,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         #     self.chase_another_v()
 
         v = self.vehicles.pop(dead_vehicle_id)
+        v.prepare_step([0, -1])
 
         # register vehicle
         new_id = "agent{}".format(self._next_agent_id)
@@ -204,14 +205,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.vehicles[new_id] = v  # Put it to new vehicle id.
         self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
         logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
-
-        # reset observation space
-        obs = self.observations.pop(dead_vehicle_id)
-        self.observations[new_id] = obs
-        self.observation_space = self._get_observation_space()
-
-        # reset action space
-        self.action_space = self._get_action_space()
 
         # replace vehicle to new born place
         safe_places = [p for p in self._safe_born_places if p['identifier'] != self._last_born_identifier]
@@ -221,11 +214,24 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         v.vehicle_config.update(new_born_place_config)
         v.reset(self.current_map)
 
-    def _after_vehicle_done(self, dones: dict):
+        # reset observation space
+        obs = self.observations.pop(dead_vehicle_id)
+        self.observations[new_id] = obs
+        self.observations[new_id].reset(self, v)
+        new_obs = self.observations[new_id].observe(v)
+        self.observation_space = self._get_observation_space()
+
+        # reset action space
+        self.action_space = self._get_action_space()
+        return new_obs, new_id
+
+    def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         dones = self._wrap_as_multi_agent(dones)
         for dead_vehicle_id, done in dones.items():
             if done:
-                self._reborn(dead_vehicle_id)
+                new_obs, new_id = self._reborn(dead_vehicle_id)
+                obs[new_id] = new_obs
+        return obs, reward, dones, info
 
 
 def _draw():

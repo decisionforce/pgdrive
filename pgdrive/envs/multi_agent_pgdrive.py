@@ -9,6 +9,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -82,7 +83,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def step(self, actions):
         actions = self._preprocess_marl_actions(actions)
         o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
-        self._after_vehicle_done(d)
+        o, r, d, i = self._after_vehicle_done(o, r, d, i)
         return o, r, d, i
 
     def reset(self, episode_data: dict = None):
@@ -110,7 +111,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         #     actions.pop(id)
         # return actions
 
-    def _after_vehicle_done(self, dones: dict):
+    def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         for id, done in dones.items():
             if done and id in self.vehicles.keys():
                 v = self.vehicles.pop(id)
@@ -119,6 +120,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for v in self.done_vehicles.values():
             if v.speed < 1:
                 v.chassis_np.node().setStatic(True)
+        return obs, reward, done, info
 
     def _get_vehicles(self):
         return {
