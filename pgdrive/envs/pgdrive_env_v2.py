@@ -40,14 +40,17 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 gaussian_noise=0.0,
                 dropout_prob=0.0,
 
-                # See: https://github.com/decisionforce/pgdrive/issues/297
                 vehicle_config=dict(
                     wheel_friction=0.8,
+
+                    # See: https://github.com/decisionforce/pgdrive/issues/297
                     lidar=dict(num_lasers=240, distance=50, num_others=4, gaussian_noise=0.0, dropout_prob=0.0),
                     side_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                     lane_line_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
+
+                    # Following the examples: https://docs.panda3d.org/1.10/python/programming/physics/bullet/vehicles
                     max_engine_force=1000,
-                    max_brake_force=45,
+                    max_brake_force=100,
                     max_steering=40,
                     max_speed=120,
                 ),
@@ -187,14 +190,15 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-    env = PGDriveEnvV2()
+    env = PGDriveEnvV2({'use_render': True, "fast": True, "manual_control": True})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
-        _act(env, env.action_space.sample())
-        for x in [-1, 0, 1]:
-            env.reset()
-            for y in [-1, 0, 1]:
-                _act(env, [x, y])
+        for _ in range(100000000):
+            _act(env, env.action_space.sample())
+        # for x in [-1, 0, 1]:
+        #     env.reset()
+        #     for y in [-1, 0, 1]:
+        #         _act(env, [x, y])
     finally:
         env.close()

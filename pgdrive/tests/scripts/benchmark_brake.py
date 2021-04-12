@@ -82,12 +82,12 @@ if __name__ == '__main__':
                 #     "debug": False,
                 # },
                 # "manual_control": True,
-                "use_render": True,
-                "fast": True,
+                # "use_render": True,
+                # "fast": True,
                 # "use_image": True,
                 "vehicle_config": {
                     "max_engine_force": 1000,
-                    "max_brake_force": 45,
+                    "max_brake_force": 100,
                     "max_steering": 40,
                     "wheel_friction": friction
                 },
