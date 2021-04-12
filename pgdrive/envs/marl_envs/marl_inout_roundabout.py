@@ -103,7 +103,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.next_agent_id = config["num_agents"]
 
         num_concurrent = 3
-        assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
+        assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads) * num_concurrent, (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
                 config["map_config"]["lane_num"] * len(self.born_roads) * num_concurrent, config["num_agents"]
             )
@@ -121,7 +121,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     self.all_lane_index.append(road.lane_index(lane_idx))
 
         target_agents = get_np_random().choice(
-            [i for i in range(len(self.born_roads) * (config["map_config"]["lane_num"]))],
+            [i for i in range(len(target_vehicle_configs))],
             config["num_agents"],
             replace=False
         )
@@ -139,7 +139,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         return config
 
     def step(self, actions):
-        print(self.main_camera.camera.get_pos())
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
         return o, r, d, i
 
@@ -217,6 +216,26 @@ def _run():
     env.close()
 
 
+def _profile():
+    import time
+    env = MultiAgentRoundaboutEnv({"num_agents": 36})
+    obs = env.reset()
+    start = time.time()
+    for s in range(10000):
+        o, r, d, i = env.step(env.action_space.sample())
+        if all(d.values()):
+            env.reset()
+        if (s + 1) % 100 == 0:
+            print(
+                "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
+                    s + 1,
+                    time.time() - start, (s + 1) / (time.time() - start)
+                )
+            )
+    print(f"(PGDriveEnvV2) Total Time Elapse: {time.time() - start}")
+
+
 if __name__ == "__main__":
     # _draw()
-    _run()
+    # _run()
+    _profile()
