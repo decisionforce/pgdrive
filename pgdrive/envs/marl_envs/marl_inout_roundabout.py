@@ -64,7 +64,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "camera_height": 4,
                 "map": "M",
                 "vehicle_config": {
-                    "show_lidar": True,
+                    "lidar": {
+                        "num_lasers": 120,
+                        "distance": 50,
+                        "num_others": 0,
+                    },
+                    "show_lidar": False,
                     "born_longitude": 5,
                     "born_lateral": 0,
                 },
@@ -237,7 +242,7 @@ def _draw():
 def _vis():
     env = MultiAgentRoundaboutEnv(
         {
-            "vehicle_config": {"lidar": {"num_lasers": 240, "distance": 50}},
+            "vehicle_config": {"lidar": {"num_lasers": 120, "distance": 50}},
             "fast": True,
             "use_render": True,
             "debug": True,
