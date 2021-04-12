@@ -1,4 +1,5 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+import gym
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
@@ -32,6 +33,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 # clear base config
                 "num_agents": 1,
+                "auto_termination": False
             },
             allow_overwrite=True
         )
@@ -51,14 +53,17 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_agent_pos_configs(self, config):
         target_vehicle_configs = []
+        self.all_lane_index = []
+        self.next_agent_id = config["num_agents"]
         assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                config["map_config"]["lane_num"] * len(self.target_nodes), config["num_agents"]
+                config["map_config"]["lane_num"] * len(self.born_roads), config["num_agents"]
             )
         )
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
                 target_vehicle_configs.append(("agent_{}_{}".format(i + 1, lane_idx), road.lane_index(lane_idx)))
+                self.all_lane_index.append(road.lane_index(lane_idx))
         target_agents = get_np_random().choice(
             [i for i in range(len(self.born_roads) * (config["map_config"]["lane_num"]))],
             config["num_agents"],
@@ -89,6 +94,24 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             # use this line to always choose adverse exits!
             # v.routing_localization.set_route(v.lane_index[0], (-Road(*v.lane_index[:-1])).end_node)
             v.routing_localization.set_route(v.lane_index[0], end_road.end_node)
+
+    def _after_vehicle_done(self, dones: dict):
+        for id, done in dones.items():
+            if done and id in self.vehicles.keys():
+                if self.current_track_vehicle_id == id:
+                    self.chase_another_v()
+                new_id = "agent{}".format(self.next_agent_id)
+                self.next_agent_id += 1
+                v = self.vehicles.pop(id)
+                obs = self.observations.pop(id)
+                self.observations[new_id] = obs
+                self.action_space = self._get_action_space()
+                self.observation_space = self._get_observation_space()
+                born_lane_index = get_np_random().choice(len((self.all_lane_index)), 1)[0]
+                v.vehicle_config["born_lane_index"] = self.all_lane_index[born_lane_index]
+                v.reset(self.current_map)
+                self.vehicles[new_id] = v
+                self.dones[new_id] = False
 
 
 if __name__ == "__main__":
