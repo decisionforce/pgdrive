@@ -357,10 +357,10 @@ class Block(Element, BlockDefault):
                 lane_start = lane.position(segment_num * Block.STRIPE_LENGTH * 2, i * lane_width / 2)
                 lane_end = lane.position(lane.length + Block.STRIPE_LENGTH, i * lane_width / 2)
                 middle = (lane_end[0] + lane_start[0]) / 2, (lane_end[1] + lane_start[1]) / 2
-
-                self._add_lane_line2bullet(
-                    lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight
-                )
+                if not straight:
+                    self._add_lane_line2bullet(
+                        lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight
+                    )
 
                 if straight:
                     lane_start = lane.position(0, i * lane_width / 2)
@@ -383,7 +383,7 @@ class Block(Element, BlockDefault):
         body_np.node().addShape(shape)
         mask = Block.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else Block.BROKEN_COLLISION_MASK
         body_np.node().setIntoCollideMask(BitMask32.bit(mask))
-        self.dynamic_nodes.append(body_np.node())
+        self.static_nodes.append(body_np.node())
 
         body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT / 2))
         direction_v = lane_end - lane_start
@@ -425,7 +425,7 @@ class Block(Element, BlockDefault):
             body_np.node().addShape(shape)
             mask = Block.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else Block.BROKEN_COLLISION_MASK
             body_np.node().setIntoCollideMask(BitMask32.bit(mask))
-            self.dynamic_nodes.append(body_np.node())
+            self.static_nodes.append(body_np.node())
 
         # position and heading
         body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT / 2))
