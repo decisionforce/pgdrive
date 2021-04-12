@@ -119,7 +119,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for v in self.done_vehicles.values():
             if v.speed < 1:
                 v.chassis_np.node().setStatic(True)
-        return obs, reward, done, info
+        return obs, reward, dones, info
 
     def _get_vehicles(self):
         return {
