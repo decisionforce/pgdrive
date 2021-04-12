@@ -242,7 +242,12 @@ def _draw():
 def _vis():
     env = MultiAgentRoundaboutEnv(
         {
-            "vehicle_config": {"lidar": {"num_lasers": 120, "distance": 50}},
+            "vehicle_config": {
+                "lidar": {
+                    "num_lasers": 120,
+                    "distance": 50
+                }
+            },
             "fast": True,
             "use_render": True,
             "debug": True,
