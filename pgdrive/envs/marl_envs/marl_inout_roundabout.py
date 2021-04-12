@@ -1,3 +1,5 @@
+import numpy as np
+
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
@@ -8,7 +10,7 @@ from pgdrive.utils import get_np_random, PGConfig
 
 class MARoundaboutMap(PGMap):
     def _generate(self, pg_world):
-        length = 100
+        length = MultiAgentRoundaboutEnv.EXIT_LENGTH
 
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
@@ -25,7 +27,7 @@ class MARoundaboutMap(PGMap):
         last_block = Roundabout(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
         last_block.construct_block(parent_node_path, pg_physics_world, extra_config={
             "exit_radius": 10,
-            "inner_radius": 50,
+            "inner_radius": 40,
             "angle": 70,
             # Note: lane_num is set in config.map_config.lane_num
         })
@@ -33,6 +35,7 @@ class MARoundaboutMap(PGMap):
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
+    EXIT_LENGTH = 100
     born_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
         -Road(Roundabout.node(1, 0, 2), Roundabout.node(1, 0, 3)),
@@ -81,10 +84,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            self.main_camera.camera.setPos(0, 0, 200)
+            bird_camera_height = 240
+            self.main_camera.camera.setPos(0, 0, bird_camera_height)
+            self.main_camera.bird_camera_height = bird_camera_height
             self.main_camera.stop_chase(self.pg_world)
-            self.main_camera.camera_x += 80
-            self.main_camera.camera_y += 10
+            # self.main_camera.camera.setPos(300, 20, bird_camera_height)
+            self.main_camera.camera_x += 140
+            self.main_camera.camera_y += 20
 
     def _process_extra_config(self, config):
         config = super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
@@ -95,26 +101,37 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         target_vehicle_configs = []
         self.all_lane_index = []
         self.next_agent_id = config["num_agents"]
-        # assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
-        #     "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-        #         config["map_config"]["lane_num"] * len(self.born_roads), config["num_agents"]
-        #     )
-        # )
+
+        num_concurrent = 3
+        assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads), (
+            "Too many agents! We only accepet {} agents, but you have {} agents!".format(
+                config["map_config"]["lane_num"] * len(self.born_roads) * num_concurrent, config["num_agents"]
+            )
+        )
+
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
-                target_vehicle_configs.append(("agent_{}_{}".format(i + 1, lane_idx), road.lane_index(lane_idx)))
-                self.all_lane_index.append(road.lane_index(lane_idx))
+                for j in range(num_concurrent):
+                    interval = self.EXIT_LENGTH / num_concurrent
+                    long = j * interval + np.random.uniform(0, 0.5 * interval)
+                    target_vehicle_configs.append((
+                        "agent_{}_{}".format(i + 1, lane_idx),
+                        {"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
+                    ))
+                    self.all_lane_index.append(road.lane_index(lane_idx))
+
         target_agents = get_np_random().choice(
             [i for i in range(len(self.born_roads) * (config["map_config"]["lane_num"]))],
             config["num_agents"],
-            replace=True
+            replace=False
         )
-        ret = {}
+
         # for rllib compatibility
+        ret = {}
         if len(target_agents) > 1:
             for real_idx, idx in enumerate(target_agents):
                 agent_name, v_config = target_vehicle_configs[idx]
-                ret["agent{}".format(real_idx)] = dict(born_lane_index=v_config)
+                ret["agent{}".format(real_idx)] = v_config
         else:
             agent_name, v_config = target_vehicle_configs[0]
             ret[self.DEFAULT_AGENT] = dict(born_lane_index=v_config)
@@ -122,6 +139,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         return config
 
     def step(self, actions):
+        print(self.main_camera.camera.get_pos())
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
         return o, r, d, i
 
@@ -177,7 +195,7 @@ def _run():
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 1,
+            "num_agents": 2,
         }
     )
     o = env.reset()
