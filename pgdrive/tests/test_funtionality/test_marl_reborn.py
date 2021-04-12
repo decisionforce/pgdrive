@@ -5,12 +5,14 @@ from pgdrive.utils import setup_logger
 def test_reborn():
     out_of_road_cost = 5555
     out_of_road_penalty = 2222
-    env = MultiAgentRoundaboutEnv({
-        "num_agents": 2,
-        "out_of_road_cost": out_of_road_cost,
-        "out_of_road_penalty": out_of_road_penalty,
-        # "use_render": True, "fast": True
-    })
+    env = MultiAgentRoundaboutEnv(
+        {
+            "num_agents": 2,
+            "out_of_road_cost": out_of_road_cost,
+            "out_of_road_penalty": out_of_road_penalty,
+            # "use_render": True, "fast": True
+        }
+    )
 
     assert set(env.observations.keys()) == {"agent0", "agent1"}
     assert set(env.action_space.spaces.keys()) == {"agent0", "agent1"}

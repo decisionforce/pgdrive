@@ -9,7 +9,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
-
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -92,7 +91,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Multi-agent related reset
         self.observations = {
-            k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), self.observations.values())
+            k: v
+            for k, v in zip(self.config["target_vehicle_configs"].keys(), self.observations.values())
         }
         self.observation_space = self._get_observation_space()
         self.action_space = self._get_action_space()

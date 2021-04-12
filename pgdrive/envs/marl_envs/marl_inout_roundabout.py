@@ -19,20 +19,29 @@ class MARoundaboutMap(PGMap):
 
         # Build a first-block
         last_block = FirstBlock(
-            self.road_network, self.config[self.LANE_WIDTH], self.config[self.LANE_NUM], parent_node_path,
-            pg_physics_world, 1, length=length
+            self.road_network,
+            self.config[self.LANE_WIDTH],
+            self.config[self.LANE_NUM],
+            parent_node_path,
+            pg_physics_world,
+            1,
+            length=length
         )
         self.blocks.append(last_block)
 
         # Build roundabout
         Roundabout.EXIT_PART_LENGTH = length
         last_block = Roundabout(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
-        last_block.construct_block(parent_node_path, pg_physics_world, extra_config={
-            "exit_radius": 10,
-            "inner_radius": 40,
-            "angle": 70,
-            # Note: lane_num is set in config.map_config.lane_num
-        })
+        last_block.construct_block(
+            parent_node_path,
+            pg_physics_world,
+            extra_config={
+                "exit_radius": 10,
+                "inner_radius": 40,
+                "angle": 70,
+                # Note: lane_num is set in config.map_config.lane_num
+            }
+        )
         self.blocks.append(last_block)
 
 
@@ -121,21 +130,28 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 for j in range(num_concurrent):
                     interval = self.EXIT_LENGTH / num_concurrent
                     long = j * interval + np.random.uniform(0, 0.5 * interval)
-                    target_vehicle_configs.append((
-                        "agent_{}_{}".format(i + 1, lane_idx),
-                        {"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
-                    ))
+                    target_vehicle_configs.append(
+                        (
+                            "agent_{}_{}".format(i + 1, lane_idx), {
+                                "born_lane_index": road.lane_index(lane_idx),
+                                "born_longitude": long
+                            }
+                        )
+                    )
                     self._all_lane_index.append(road.lane_index(lane_idx))
                     if j == 0:
-                        self._safe_born_places.append(dict(
-                            identifier=road.lane_index(lane_idx)[0],  # identifier
-                            config={"born_lane_index": road.lane_index(lane_idx), "born_longitude": long}
-                        ))
+                        self._safe_born_places.append(
+                            dict(
+                                identifier=road.lane_index(lane_idx)[0],  # identifier
+                                config={
+                                    "born_lane_index": road.lane_index(lane_idx),
+                                    "born_longitude": long
+                                }
+                            )
+                        )
 
         target_agents = get_np_random().choice(
-            [i for i in range(len(target_vehicle_configs))],
-            config["num_agents"],
-            replace=False
+            [i for i in range(len(target_vehicle_configs))], config["num_agents"], replace=False
         )
 
         # for rllib compatibility
