@@ -24,6 +24,9 @@ class Lidar(DistanceDetector):
         for ret in objs:
             if ret.getNode().hasPythonTag(BodyName.Traffic_vehicle):
                 vehicles.add(ret.getNode().getPythonTag(BodyName.Traffic_vehicle).kinematic_model)
+            # elif ret.getNode().hasPythonTag(BodyName.Base_vehicle):
+            #     vehicles.add()
+
         return vehicles
 
     # def _get_surrounding_objects(self) -> Set[Object]:

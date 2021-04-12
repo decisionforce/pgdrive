@@ -46,7 +46,7 @@ def test_lidar(render=False):
                 detect_traffic_vehicle = True
             for hit in env.vehicle.lidar.get_detected_objects():
                 v = hit.getNode()
-                if v.hasPythonTag(BodyName.Ego_vehicle):
+                if v.hasPythonTag(BodyName.Base_vehicle):
                     detect_base_vehicle = True
             if d:
                 break
