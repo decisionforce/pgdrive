@@ -18,8 +18,10 @@ def test_ma_roundabout_env():
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
-        for _ in range(100):
+        for step in range(100):
             o, r, d, i = _act(env, [1, 1])
+            if step == 0:
+                assert not d
     finally:
         env.close()
 
@@ -27,8 +29,10 @@ def test_ma_roundabout_env():
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
-        for _ in range(100):
+        for step in range(100):
             o, r, d, i = _act(env, [1, 1])
+            if step == 0:
+                assert not d
     finally:
         env.close()
 
@@ -36,9 +40,11 @@ def test_ma_roundabout_env():
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
-        for _ in range(100):
+        for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
+            if step == 0:
+                assert not any(d.values())
     finally:
         env.close()
 
@@ -46,9 +52,11 @@ def test_ma_roundabout_env():
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
-        for _ in range(100):
+        for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
+            if step == 0:
+                assert not any(d.values())
     finally:
         env.close()
 

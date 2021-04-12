@@ -242,7 +242,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     obs = new_obs
                     reward = 0.0
                     info = {}
-                    new_dones = False
+                    new_dones[new_id] = False
+        if self.num_agents == 1:
+            new_dones = next(iter(new_dones.values()))
         return obs, reward, new_dones, info
 
     def _wrap_as_multi_agent(self, data):
