@@ -33,6 +33,13 @@ def norm(x, y):
 
 
 def clip(a, low, high):
+
+    # Since we clip all observation all the times. So adding a breakpoint in this function is really helpful!
+    # if a < low:
+    #     print('Small Value')
+    # if a > high:
+    #     print('Large Value')
+
     return min(max(a, low), high)
 
 

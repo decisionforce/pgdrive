@@ -242,7 +242,8 @@ class PGDriveEnv(BasePGDriveEnv):
             done_function_result, done_infos[v_id] = self.done_function(v_id)
             rewards[v_id], reward_infos[v_id] = self.reward_function(v_id)
             _, cost_infos[v_id] = self.cost_function(v_id)
-            self.dones[v_id] = done_function_result or self.dones[v_id]
+            done = done_function_result or self.dones[v_id]
+            self.dones[v_id] = done
 
         should_done = self.config["auto_termination"] and (self.episode_steps >= (self.current_map.num_blocks * 250))
 
