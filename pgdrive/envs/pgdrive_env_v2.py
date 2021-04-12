@@ -39,7 +39,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 use_lateral=False,
                 gaussian_noise=0.0,
                 dropout_prob=0.0,
-
                 vehicle_config=dict(
                     wheel_friction=0.8,
 
@@ -178,7 +177,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
-        return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
+        return self._wrap_as_single_agent(ret) if self.num_agents == 1 else ret
 
 
 if __name__ == '__main__':

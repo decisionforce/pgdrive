@@ -17,5 +17,9 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.reset()
-        print("Current map {}, vehicle number {}.".format(env.current_seed, env.scene_manager.traffic_mgr.get_vehicle_num()))
+        print(
+            "Current map {}, vehicle number {}.".format(
+                env.current_seed, env.scene_manager.traffic_mgr.get_vehicle_num()
+            )
+        )
     env.close()
