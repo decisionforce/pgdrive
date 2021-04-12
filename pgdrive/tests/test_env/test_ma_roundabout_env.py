@@ -5,12 +5,11 @@ from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 def _act(env, action):
     assert env.action_space.contains(action)
     obs, reward, done, info = env.step(action)
+    assert set(obs.keys()) == set(reward.keys()) == set(env.observation_space.spaces.keys())
     assert env.observation_space.contains(obs)
-    if env.num_agents > 1:
-        assert isinstance(reward, dict)
-    else:
-        assert np.isscalar(reward)
+    assert isinstance(reward, dict)
     assert isinstance(info, dict)
+    assert isinstance(done, dict)
     return obs, reward, done, info
 
 
@@ -20,9 +19,11 @@ def test_ma_roundabout_env():
         obs = env.reset()
         assert env.observation_space.contains(obs)
         for step in range(100):
-            o, r, d, i = _act(env, [1, 1])
+            act = {k: [1, 1] for k in env.vehicles.keys()}
+            assert len(act) == 1
+            o, r, d, i = _act(env, act)
             if step == 0:
-                assert not d
+                assert not any(d.values())
     finally:
         env.close()
 
@@ -31,9 +32,11 @@ def test_ma_roundabout_env():
         obs = env.reset()
         assert env.observation_space.contains(obs)
         for step in range(100):
-            o, r, d, i = _act(env, [1, 1])
+            act = {k: [1, 1] for k in env.vehicles.keys()}
+            assert len(act) == 1
+            o, r, d, i = _act(env, act)
             if step == 0:
-                assert not d
+                assert not any(d.values())
     finally:
         env.close()
 
@@ -82,5 +85,5 @@ def test_ma_roundabout_horizon():
 
 
 if __name__ == '__main__':
-    # test_ma_roundabout_env()
-    test_ma_roundabout_horizon()
+    test_ma_roundabout_env()
+    # test_ma_roundabout_horizon()

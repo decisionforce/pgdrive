@@ -184,8 +184,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
         if self.episode_steps >= self.config["horizon"]:
             self._do_not_reborn = True
-        if self.num_agents > 1:
-            d["__all__"] = (self.episode_steps >= self.config["horizon"]) and (all(d.values()))
+        d["__all__"] = (self.episode_steps >= self.config["horizon"]) and (all(d.values()))
         return o, r, d, i
 
     def _update_destination_for(self, vehicle):
@@ -224,14 +223,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.observations[new_id].reset(self, v)
 
         new_obs = self.observations[new_id].observe(v)
-        if self.num_agents > 1:
-            self.observation_space.spaces[new_id] = self.observation_space.spaces[dead_vehicle_id]
-            old_act_space = self.action_space.spaces.pop(dead_vehicle_id)
-            self.action_space.spaces[new_id] = old_act_space
+        self.observation_space.spaces[new_id] = self.observation_space.spaces[dead_vehicle_id]
+        old_act_space = self.action_space.spaces.pop(dead_vehicle_id)
+        self.action_space.spaces[new_id] = old_act_space
         return new_obs, new_id
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
-        dones = self._wrap_as_multi_agent(dones)
         new_dones = dict()
         for dead_vehicle_id, done in dones.items():
             new_dones[dead_vehicle_id] = done
@@ -241,24 +238,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 self.action_space.spaces.pop(dead_vehicle_id)
             if done and (not self._do_not_reborn):
                 new_obs, new_id = self._reborn(dead_vehicle_id)
-                if self.num_agents > 1:
-                    obs[new_id] = new_obs
-                    reward[new_id] = 0.0
-                    info[new_id] = {}
-                    new_dones[new_id] = False
-                else:
-                    obs = new_obs
-                    reward = 0.0
-                    info = {}
-                    new_dones[new_id] = False
-        if self.num_agents == 1:
-            new_dones = next(iter(new_dones.values()))
+                obs[new_id] = new_obs
+                reward[new_id] = 0.0
+                info[new_id] = {}
+                new_dones[new_id] = False
         return obs, reward, new_dones, info
-
-    def _wrap_as_multi_agent(self, data):
-        if self.num_agents == 1:
-            return {next(iter(self.vehicles.keys())): data}
-        return data
 
 
 def _draw():
@@ -293,8 +277,6 @@ def _vis():
     ep_s = 0
     for i in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())
-        if env.num_agents == 1:
-            r = env._wrap_as_multi_agent(r)
         for r_ in r.values():
             total_r += r_
         o, r, d, info = env.step(env.action_space.sample())

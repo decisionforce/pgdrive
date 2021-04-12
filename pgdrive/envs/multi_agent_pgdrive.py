@@ -60,6 +60,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
+        self.is_multi_agent = True  # Force set it to True
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(
@@ -142,19 +143,14 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
         return PGConfig(vehicle_config)
 
-    def _wrap_as_multi_agent(self, data):
-        if self.num_agents == 1:
-            return {self.DEFAULT_AGENT: data}
-        return data
-
     def _update_spaces_if_needed(self):
-        if self.num_agents > 1:
-            current_obs_keys = set(self.observations.keys())
-            for k in current_obs_keys:
-                if k not in set(self.vehicles.keys()):
-                    self.observations.pop(k)
-                    self.observation_space.spaces.pop(k)
-                    # self.action_space.spaces.pop(k)  # Action space is updated in _reborn
+        assert self.is_multi_agent
+        current_obs_keys = set(self.observations.keys())
+        for k in current_obs_keys:
+            if k not in set(self.vehicles.keys()):
+                self.observations.pop(k)
+                self.observation_space.spaces.pop(k)
+                # self.action_space.spaces.pop(k)  # Action space is updated in _reborn
 
 
 if __name__ == "__main__":
