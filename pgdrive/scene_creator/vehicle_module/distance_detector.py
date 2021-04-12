@@ -1,7 +1,7 @@
 import logging
 
 import numpy as np
-from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletRayHit, BulletAllHitsRayResult
+from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletAllHitsRayResult
 from panda3d.core import BitMask32, NodePath
 
 from pgdrive.constants import CamMask, CollisionGroup
