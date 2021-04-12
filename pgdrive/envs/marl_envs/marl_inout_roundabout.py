@@ -227,11 +227,16 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         dones = self._wrap_as_multi_agent(dones)
+        new_dones = dict()
         for dead_vehicle_id, done in dones.items():
+            new_dones[dead_vehicle_id] = done
             if done:
                 new_obs, new_id = self._reborn(dead_vehicle_id)
                 obs[new_id] = new_obs
-        return obs, reward, dones, info
+                reward[new_id] = 0.0
+                info[new_id] = {}
+                new_dones[new_id] = False
+        return obs, reward, new_dones, info
 
 
 def _draw():
