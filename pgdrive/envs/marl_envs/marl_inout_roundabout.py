@@ -187,7 +187,7 @@ def _draw():
     env.close()
 
 
-def _run():
+def _vis():
     env = MultiAgentRoundaboutEnv(
         {
             "fast": True,
@@ -198,17 +198,18 @@ def _run():
         }
     )
     o = env.reset()
-    # env.main_camera.set_follow_lane(True)
     total_r = 0
+    ep_s = 0
     for i in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())
         if env.num_agents == 1:
             r = env._wrap_as_multi_agent(r)
         for r_ in r.values():
             total_r += r_
-        # o, r, d, info = env.step([0,1])dddd
-        # d.update({"total_r": total_r})
-        # env.render(text=d)
+        o, r, d, info = env.step(env.action_space.sample())
+        ep_s += 1
+        d.update({"total_r": total_r, "episode length": ep_s})
+        env.render(text=d)
         if len(env.vehicles) == 0:
             total_r = 0
             print("Reset")
@@ -237,5 +238,5 @@ def _profile():
 
 if __name__ == "__main__":
     # _draw()
-    # _run()
-    _profile()
+    _vis()
+    # _profile()
