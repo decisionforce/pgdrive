@@ -8,7 +8,7 @@ from pgdrive.utils import get_np_random, PGConfig
 
 class MARoundaboutMap(PGMap):
     def _generate(self, pg_world):
-        length = 50
+        length = 100
 
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
@@ -25,8 +25,9 @@ class MARoundaboutMap(PGMap):
         last_block = Roundabout(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
         last_block.construct_block(parent_node_path, pg_physics_world, extra_config={
             "exit_radius": 10,
-            "inner_radius": 30,
-            "angle": 75
+            "inner_radius": 50,
+            "angle": 70,
+            # Note: lane_num is set in config.map_config.lane_num
         })
         self.blocks.append(last_block)
 
@@ -51,6 +52,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "vehicle_config": {
                     "born_longitude": 5,
                     "born_lateral": 0,
+                },
+                "map_config": {
+                    "lane_num": 3
                 },
                 # clear base config
                 "num_agents": 1,
@@ -77,7 +81,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            self.main_camera.camera.setPos(0, 0, 120)
+            self.main_camera.camera.setPos(0, 0, 200)
             self.main_camera.stop_chase(self.pg_world)
             self.main_camera.camera_x += 80
             self.main_camera.camera_y += 10
@@ -155,11 +159,22 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 self.dones[new_id] = False
 
 
-if __name__ == "__main__":
+def _draw():
+    env = MultiAgentRoundaboutEnv()
+    o = env.reset()
+    from pgdrive.utils import draw_top_down_map
+    import matplotlib.pyplot as plt
+
+    plt.imshow(draw_top_down_map(env.current_map))
+    plt.show()
+    env.close()
+
+
+def _run():
     env = MultiAgentRoundaboutEnv(
         {
             "fast": True,
-            # "use_render": True,
+            "use_render": True,
             "debug": True,
             "manual_control": True,
             "num_agents": 1,
@@ -182,3 +197,8 @@ if __name__ == "__main__":
             print("Reset")
             env.reset()
     env.close()
+
+
+if __name__ == "__main__":
+    # _draw()
+    _run()
