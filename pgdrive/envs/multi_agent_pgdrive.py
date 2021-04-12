@@ -9,6 +9,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -91,14 +92,15 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return super(MultiAgentPGDrive, self).reset(episode_data)
 
     def _preprocess_marl_actions(self, actions):
-        # remove useless actions
-        id_to_remove = []
-        for id in actions.keys():
-            if id in self.done_vehicles.keys():
-                id_to_remove.append(id)
-        for id in id_to_remove:
-            actions.pop(id)
         return actions
+        # remove useless actions
+        # id_to_remove = []
+        # for id in actions.keys():
+        #     if id in self.done_vehicles.keys():
+        #         id_to_remove.append(id)
+        # for id in id_to_remove:
+        #     actions.pop(id)
+        # return actions
 
     def _after_vehicle_done(self, dones: dict):
         for id, done in dones.items():
@@ -128,6 +130,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
         return PGConfig(vehicle_config)
+
+    def _wrap_as_multi_agent(self, data):
+        if self.num_agents == 1:
+            return {self.DEFAULT_AGENT: data}
+        return data
 
 
 if __name__ == "__main__":

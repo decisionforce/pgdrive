@@ -6,6 +6,7 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
@@ -210,14 +211,14 @@ class PGDriveEnv(BasePGDriveEnv):
                 actions[self.current_track_vehicle_id] = action
 
         if self.num_agents == 1:
-            actions = {DEFAULT_AGENT: actions}
-
-        # Check whether some actions are not provided.
-        given_keys = set(actions.keys())
-        have_keys = set(self.vehicles.keys())
-        assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
-            given_keys, have_keys
-        )
+            actions = {v_id: actions for v_id in self.vehicles.keys()}
+        else:
+            # Check whether some actions are not provided.
+            given_keys = set(actions.keys())
+            have_keys = set(self.vehicles.keys())
+            assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
+                given_keys, have_keys
+            )
 
         saver_info = dict()
         for v_id, v in self.vehicles.items():
@@ -256,7 +257,8 @@ class PGDriveEnv(BasePGDriveEnv):
                 self.dones[k] = True
 
         if self.num_agents == 1:
-            return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], self.dones[DEFAULT_AGENT], step_infos[DEFAULT_AGENT]
+            return self._wrap_as_single_agent(obses), self._wrap_as_single_agent(rewards), \
+                   self._wrap_as_single_agent(self.dones), self._wrap_as_single_agent(step_infos)
         else:
             return obses, rewards, self.dones, step_infos
 
@@ -325,7 +327,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -576,6 +578,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
