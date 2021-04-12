@@ -1,7 +1,6 @@
 import logging
 
 import numpy as np
-
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
@@ -84,7 +83,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         )
         return config
 
-    def _update_map(self, episode_data: dict = None):
+    def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
             raise ValueError()
         map_config = self.config["map_config"]
