@@ -189,6 +189,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
         if self.episode_steps >= self.config["horizon"]:
             self._do_not_reborn = True
+
+        condition = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"]) == \
+                    set(kkk for kkk, ddd in d.items() if ddd) == \
+                    set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
+        if not condition:
+            raise ValueError("Observation not aligned!")
+
         d["__all__"] = (
             ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
             or (self.episode_steps >= 5 * self.config["horizon"])
