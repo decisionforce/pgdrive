@@ -1,10 +1,9 @@
+import copy
 import os
 
 import numpy as np
 import pytest
-
 from pgdrive import PGDriveEnv
-from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.scene_creator.vehicle_module.PID_controller import PIDController, Target
 from pgdrive.utils import distance_greater
 
@@ -54,7 +53,7 @@ def _act(env, action):
 
 @pytest.mark.parametrize("config", list(blackbox_test_configs.values()), ids=list(blackbox_test_configs.keys()))
 def test_pgdrive_env_blackbox(config):
-    env = PGDriveEnv(config=config)
+    env = PGDriveEnv(config=copy.deepcopy(config))
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -68,7 +67,8 @@ def test_pgdrive_env_blackbox(config):
 
 
 def test_zombie():
-    env = PGDriveEnv(pid_control_config)
+    env = PGDriveEnv(copy.deepcopy(pid_control_config))
+    env.seed(0)
     target = Target(0.375, 30)
     dest = [-288.88415527, -411.55871582]
     try:
@@ -95,5 +95,5 @@ def test_zombie():
 
 
 if __name__ == '__main__':
-    # pytest.main(["-s", "test_pgdrive_env.py"])
-    test_zombie()
+    pytest.main(["-s", "test_pgdrive_env.py"])
+    # test_zombie()
