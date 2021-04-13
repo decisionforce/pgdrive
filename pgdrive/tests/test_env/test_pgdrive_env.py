@@ -6,6 +6,7 @@ import pytest
 from pgdrive import PGDriveEnv
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.scene_creator.vehicle_module.PID_controller import PIDController, Target
+from pgdrive.utils import distance_greater
 
 # Key: case name, value: environmental config
 blackbox_test_configs = dict(
@@ -87,8 +88,7 @@ def test_zombie():
             acc = acc_controller.get_result(acc_error)
             if d:
                 assert info["arrive_dest"]
-                assert abs(env.vehicles[env.DEFAULT_AGENT].position[0] - dest[0]) < 0.15 and \
-                       abs(env.vehicles[env.DEFAULT_AGENT].position[1] - dest[1]) < 0.15
+                assert not distance_greater(env.vehicle.position, dest, 0.3)
                 break
     finally:
         env.close()
