@@ -474,15 +474,15 @@ def _vis():
             "fast": True,
             "use_render": True,
             "debug": True,
-            "manual_control": True,
-            "num_agents": 1,
+            # "manual_control": True,
+            "num_agents": 2,
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step(env.action_space.sample())
+        o, r, d, info = env.step({k: [0.0, 1.0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
