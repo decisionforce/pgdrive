@@ -188,7 +188,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -202,9 +202,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                         safe_born_places.append(target_vehicle_configs[-1].copy())
         self._born_places_manager = BornPlaceManager(safe_born_places)
 
-        target_agents = get_np_random(self._DEBUG_RANDOM_SEED).choice(
-            [i for i in range(len(target_vehicle_configs))], config["num_agents"], replace=False
-        )
+        target_agents = get_np_random(
+            self._DEBUG_RANDOM_SEED
+        ).choice([i for i in range(len(target_vehicle_configs))], config["num_agents"], replace=False)
 
         # for rllib compatibility
         ret = {}
@@ -248,8 +248,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Fulfill __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
