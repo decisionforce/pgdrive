@@ -9,7 +9,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
-
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -53,7 +52,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 },
                 "num_agents": 4,
                 "crash_done": False,
-
                 "out_of_road_penalty": 5.0,
                 "crash_vehicle_penalty": 1.0,
                 "crash_object_penalty": 1.0,
@@ -75,7 +73,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         if not ret_config["crash_done"]:
             assert ret_config["crash_vehicle_penalty"] <= 2, (
                 "Are you sure you wish to set crash_vehicle_penalty={} when crash_done=False?".format(
-                    ret_config["crash_vehicle_penalty"])
+                    ret_config["crash_vehicle_penalty"]
+                )
             )
         return ret_config
 
@@ -85,10 +84,10 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
         if vehicle.crash_vehicle and not self.config["crash_done"]:
             done = False
-            done_info["crash_vehicle"] = False
+            # done_info["crash_vehicle"] = False
         elif vehicle.out_of_route and vehicle.on_lane and not vehicle.crash_sidewalk:
             done = False
-            done_info["out_of_road"] = False
+            # done_info["out_of_road"] = False
         return done, done_info
 
     def step(self, actions):

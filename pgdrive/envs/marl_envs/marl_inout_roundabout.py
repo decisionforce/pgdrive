@@ -190,8 +190,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         if self.episode_steps >= self.config["horizon"]:
             self._do_not_reborn = True
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -320,7 +320,58 @@ def _profile():
     print(f"(PGDriveEnvV2) Total Time Elapse: {time.time() - start}")
 
 
+def _long_run():
+    env = MultiAgentRoundaboutEnv(
+        {
+            "num_agents": 32,
+            "vehicle_config": {
+                "lidar": {
+                    "num_others": 8
+                }
+            },
+            **dict(
+                out_of_road_penalty=3,
+                crash_vehicle_penalty=1.333,
+                crash_object_penalty=11,
+                crash_vehicle_cost=13,
+                crash_object_cost=17,
+                out_of_road_cost=19,
+            )
+        }
+    )
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        for step in range(10000):
+            act = env.action_space.sample()
+            o, r, d, i = env.step(act)
+            if step == 0:
+                assert not any(d.values())
+
+            if any(d.values()):
+                print("Current Done: {}\nReward: {}".format(d, r))
+                for kkk, ddd in d.items():
+                    if ddd and kkk != "__all__":
+                        print("Info {}: {}\n".format(kkk, i[kkk]))
+                print("\n")
+
+            if (step + 1) % 200 == 0:
+                print(
+                    "{}/{} Agents: {} {}\nO: {}\nR: {}\nD: {}\nI: {}\n\n".format(
+                        step + 1, 10000, len(env.vehicles), list(env.vehicles.keys()),
+                        {k: (oo.shape, oo.mean(), oo.min(), oo.max())
+                         for k, oo in o.items()}, r, d, i
+                    )
+                )
+            if d["__all__"]:
+                print('Current step: ', step)
+                break
+    finally:
+        env.close()
+
+
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _profile()
+    _long_run()
