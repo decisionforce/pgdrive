@@ -109,8 +109,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         assert len(obses) == len(self.config["target_vehicle_configs"].keys())
         self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
         self.done_observations = dict()
+
+        # FIXME it would be better to change in-place!
         self.observation_space = self._get_observation_space()
         self.action_space = self._get_action_space()
+
         return super(MultiAgentPGDrive, self).reset(*args, **kwargs)
 
     def _reset_vehicles(self):

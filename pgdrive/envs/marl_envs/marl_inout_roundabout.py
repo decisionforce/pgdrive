@@ -118,6 +118,12 @@ class TargetVehicleManager:
     def get_observations(self):
         return list(self.observations.values())
 
+    def get_observation_spaces(self):
+        return list(self.observation_spaces.values())
+
+    def get_action_spaces(self):
+        return list(self.action_spaces.values())
+
 
 class MARoundaboutMap(PGMap):
     def _generate(self, pg_world):
@@ -310,8 +316,16 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         assert len(obses) == len(self.config["target_vehicle_configs"].keys())
         self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
         self.done_observations = dict()
-        self.observation_space = self._get_observation_space()
-        self.action_space = self._get_action_space()
+
+        # Must change in-place!
+        obs_spaces = self.target_vehicle_manager.get_observation_spaces() or list(
+            self.observation_space.spaces.values()
+        )
+        assert len(obs_spaces) == len(self.config["target_vehicle_configs"].keys())
+        self.observation_space.spaces = {k: v for k, v in zip(self.observations.keys(), obs_spaces)}
+        action_spaces = self.target_vehicle_manager.get_action_spaces() or list(self.action_space.spaces.values())
+        self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
+
         self.for_each_vehicle(self._update_destination_for)
         ret = PGDriveEnvV2.reset(self, *args, **kwargs)
         assert len(self.vehicles) == self.num_agents
