@@ -117,7 +117,6 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
-
     class TestEnv(MultiAgentRoundaboutEnv):
         _reborn_count = 0
 
