@@ -173,60 +173,94 @@ def test_ma_roundabout_close_born():
 
 
 def test_ma_roundabout_reward_done_alignment():
-    # out of road
-    env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
-    try:
-        obs = env.reset()
-        assert env.observation_space.contains(obs)
-        for action in [-1, 1]:
-            for step in range(5000):
-                act = {k: [action, 1] for k in env.vehicles.keys()}
-                o, r, d, i = _act(env, act)
-                for kkk, ddd in d.items():
-                    if ddd and kkk != "__all__":
-                        assert r[kkk] == -777
-                        assert i[kkk]["out_of_road"]
-                        # print('{} done passed!'.format(kkk))
-                for kkk, rrr in r.items():
-                    if rrr == -777:
-                        assert d[kkk]
-                        assert i[kkk]["out_of_road"]
-                        # print('{} reward passed!'.format(kkk))
-                if d["__all__"]:
-                    env.reset()
-                    break
-    finally:
-        env.close()
+    # # out of road
+    # env = MultiAgentRoundaboutEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
+    # try:
+    #     obs = env.reset()
+    #     assert env.observation_space.contains(obs)
+    #     for action in [-1, 1]:
+    #         for step in range(5000):
+    #             act = {k: [action, 1] for k in env.vehicles.keys()}
+    #             o, r, d, i = _act(env, act)
+    #             for kkk, ddd in d.items():
+    #                 if ddd and kkk != "__all__":
+    #                     assert r[kkk] == -777
+    #                     assert i[kkk]["out_of_road"]
+    #                     # print('{} done passed!'.format(kkk))
+    #             for kkk, rrr in r.items():
+    #                 if rrr == -777:
+    #                     assert d[kkk]
+    #                     assert i[kkk]["out_of_road"]
+    #                     # print('{} reward passed!'.format(kkk))
+    #             if d["__all__"]:
+    #                 env.reset()
+    #                 break
+    # finally:
+    #     env.close()
+    #
+    # # crash
+    # env = MultiAgentRoundaboutEnv(
+    #     {
+    #         "horizon": 100,
+    #         "num_agents": 2,
+    #         "crash_vehicle_penalty": 1.7777,
+    #         "crash_done": True
+    #     }
+    # )
+    # try:
+    #     obs = env.reset()
+    #     env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent1"].position)
+    #     assert env.observation_space.contains(obs)
+    #     for step in range(5000):
+    #         act = {k: [0, 0] for k in env.vehicles.keys()}
+    #         o, r, d, i = _act(env, act)
+    #         if d["__all__"]:
+    #             break
+    #         for kkk, ddd in d.items():
+    #             if ddd and kkk != "__all__":
+    #                 assert r[kkk] == -1.7777
+    #                 assert i[kkk]["crash_vehicle"]
+    #                 assert i[kkk]["crash"]
+    #                 # print('{} done passed!'.format(kkk))
+    #         for kkk, rrr in r.items():
+    #             if rrr == -1.7777:
+    #                 assert d[kkk]
+    #                 assert i[kkk]["crash_vehicle"]
+    #                 assert i[kkk]["crash"]
+    #                 # print('{} reward passed!'.format(kkk))
+    # finally:
+    #     env.close()
 
+    # success
     env = MultiAgentRoundaboutEnv(
         {
             "horizon": 100,
             "num_agents": 2,
-            "crash_vehicle_penalty": 1.7777,
+            "success_reward": 999,
+            "out_of_road_penalty": 555,
             "crash_done": True
         }
     )
     try:
         obs = env.reset()
-        env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent1"].position)
+        env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent0"].routing_localization.final_lane.end)
+        # env.vehicles["agent1"].reset(env.current_map, pos=env.vehicles["agent1"].routing_localization.final_lane.end)
         assert env.observation_space.contains(obs)
         for step in range(5000):
             act = {k: [0, 0] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
             if d["__all__"]:
                 break
-            for kkk, ddd in d.items():
-                if ddd and kkk != "__all__":
-                    assert r[kkk] == -1.7777
-                    assert i[kkk]["crash_vehicle"]
-                    assert i[kkk]["crash"]
-                    # print('{} done passed!'.format(kkk))
-            for kkk, rrr in r.items():
-                if rrr == -1.7777:
-                    assert d[kkk]
-                    assert i[kkk]["crash_vehicle"]
-                    assert i[kkk]["crash"]
-                    # print('{} reward passed!'.format(kkk))
+            kkk = "agent0"
+            assert r[kkk] == 999
+            assert i[kkk]["arrive_dest"]
+            assert d[kkk]
+
+            kkk = "agent1"
+            assert r[kkk] != 999
+            assert not i[kkk]["arrive_dest"]
+            assert not d[kkk]
+            break
     finally:
         env.close()
 
@@ -237,6 +271,7 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
+
     class TestEnv(MultiAgentRoundaboutEnv):
         _reborn_count = 0
 
@@ -279,9 +314,9 @@ def test_ma_roundabout_reward_sign():
 
 
 if __name__ == '__main__':
-    test_ma_roundabout_env()
-    test_ma_roundabout_horizon()
-    test_ma_roundabout_reset()
+    # test_ma_roundabout_env()
+    # test_ma_roundabout_horizon()
+    # test_ma_roundabout_reset()
     test_ma_roundabout_reward_done_alignment()
-    test_ma_roundabout_close_born()
-    test_ma_roundabout_reward_sign()
+    # test_ma_roundabout_close_born()
+    # test_ma_roundabout_reward_sign()

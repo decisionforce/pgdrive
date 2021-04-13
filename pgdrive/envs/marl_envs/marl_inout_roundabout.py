@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from gym.spaces import Box
 from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -44,6 +45,7 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
+
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -62,7 +64,11 @@ class TargetVehicleManager:
         self.next_agent_count = len(vehicles)
         self.observations = {vehicles[k].name: v for k, v in observations.items()}
         self.observation_spaces = {vehicles[k].name: v for k, v in observation_spaces.items()}
+        for o in observation_spaces.values():
+            assert isinstance(o, Box)
         self.action_spaces = {vehicles[k].name: v for k, v in action_spaces.items()}
+        for o in action_spaces.values():
+            assert isinstance(o, Box)
         self.pending_vehicles = {}
         self.allow_reborn = True
 
@@ -275,7 +281,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -322,6 +328,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             self.observation_space.spaces.values()
         )
         assert len(obs_spaces) == len(self.config["target_vehicle_configs"].keys())
+        for o in obs_spaces:
+            assert isinstance(o, Box)
         self.observation_space.spaces = {k: v for k, v in zip(self.observations.keys(), obs_spaces)}
         action_spaces = self.target_vehicle_manager.get_action_spaces() or list(self.action_space.spaces.values())
         self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
@@ -341,20 +349,17 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
 
         # Check return alignment
-
-        assert self.observation_space.contains(o)
-
         o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
         o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
         condition = o_set_1 == o_set_2
         condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
                     set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
         condition = (
-            not self.config["crash_done"] or (
-                set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
-                == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
-            )
-        ) and condition
+                            not self.config["crash_done"] or (
+                            set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
+                            == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
+                    )
+                    ) and condition
         if not condition:
             raise ValueError("Observation not aligned!")
 
@@ -372,15 +377,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
                 d[k] = True
-
-        assert self.observation_space.contains(o)
-
         return o, r, d, i
 
     def _update_destination_for(self, vehicle):

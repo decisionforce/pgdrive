@@ -329,7 +329,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -343,14 +343,14 @@ class PGDriveEnv(BasePGDriveEnv):
         step_info["step_reward"] = reward
 
         # for done
-        if vehicle.crash_vehicle:
+        if vehicle.arrive_destination:
+            reward += self.config["success_reward"]
+        elif vehicle.out_of_route:
+            reward -= self.config["out_of_road_penalty"]
+        elif vehicle.crash_vehicle:
             reward -= self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
             reward -= self.config["crash_object_penalty"]
-        elif vehicle.out_of_route:
-            reward -= self.config["out_of_road_penalty"]
-        elif vehicle.arrive_destination:
-            reward += self.config["success_reward"]
 
         return reward, step_info
 
@@ -583,6 +583,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

@@ -164,14 +164,14 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
         step_info["step_reward"] = reward
 
-        if vehicle.crash_vehicle:
+        if vehicle.arrive_destination:
+            reward = +self.config["success_reward"]
+        elif self._is_out_of_road(vehicle):
+            reward = -self.config["out_of_road_penalty"]
+        elif vehicle.crash_vehicle:
             reward = -self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
             reward = -self.config["crash_object_penalty"]
-        elif self._is_out_of_road(vehicle):
-            reward = -self.config["out_of_road_penalty"]
-        elif vehicle.arrive_destination:
-            reward = +self.config["success_reward"]
         return reward, step_info
 
     def _get_reset_return(self):
