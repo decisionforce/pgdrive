@@ -14,7 +14,7 @@ def _assert_vehicle(vehicle):
     velocity_direction = vehicle.velocity_direction
     np.testing.assert_almost_equal(np.linalg.norm(velocity_direction), 1.0)
     current_road = vehicle.current_road
-    np.testing.assert_almost_equal(vehicle.heading_diff(vehicle.lane), 0.0, decimal=3)
+    np.testing.assert_almost_equal(vehicle.heading_diff(vehicle.lane), 0.5, decimal=3)
 
 
 def _get_heading_deg(heading):
@@ -46,7 +46,7 @@ def test_base_vehicle():
                 # v_pos[1] = -v_pos[1], this position is converted to pg_position in reset() now
                 assert np.all(v_pos == pos)
                 v.update_state()
-
+        v.reset(map, pos=np.array([10, 0]))
         for a_x in [-1, 0, 0.5, 1]:
             for a_y in [-1, 0, 0.5, 1]:
                 v.prepare_step([a_x, a_y])
