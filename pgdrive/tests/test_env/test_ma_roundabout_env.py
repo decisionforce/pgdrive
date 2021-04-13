@@ -1,4 +1,5 @@
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
+from pgdrive.utils import distance_greater, norm
 
 
 def _act(env, action):
@@ -128,6 +129,27 @@ def test_ma_roundabout_reset():
         env.close()
 
 
+def test_ma_roundabout_close_born():
+    def _no_close_born(vehicles):
+        vehicles = list(vehicles.values())
+        for c1, v1 in enumerate(vehicles):
+            for c2 in range(c1 + 1, len(vehicles)):
+                v2 = vehicles[c2]
+                print(c1, c2, norm(v1.position[0] - v2.position[0], v1.position[1] - v2.position[1]))
+                assert distance_greater(v1.position, v2.position, length=5)
+
+    MultiAgentRoundaboutEnv.EXIT_LENGTH = 20
+    MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = 1
+    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 32})
+    env.seed(100)
+    try:
+        for _ in range(10):
+            obs = env.reset()
+            _no_close_born(env.vehicles)
+    finally:
+        env.close()
+
+
 def test_ma_roundabout_reward_done_alignment():
     env = MultiAgentRoundaboutEnv({"horizon": 1000, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
     try:
@@ -156,4 +178,5 @@ if __name__ == '__main__':
     # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
     # test_ma_roundabout_reset()
-    test_ma_roundabout_reward_done_alignment()
+    # test_ma_roundabout_reward_done_alignment()
+    test_ma_roundabout_close_born()

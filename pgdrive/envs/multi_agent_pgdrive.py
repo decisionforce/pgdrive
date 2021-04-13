@@ -99,7 +99,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         o, r, d, i = self._after_vehicle_done(o, r, d, i)
         return o, r, d, i
 
-    def reset(self, episode_data: dict = None):
+    def reset(self, *args, **kwargs):
         for v in self.done_vehicles.values():
             v.chassis_np.node().setStatic(False)
 
@@ -110,7 +110,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self.done_observations = dict()
         self.observation_space = self._get_observation_space()
         self.action_space = self._get_action_space()
-        return super(MultiAgentPGDrive, self).reset(episode_data)
+        return super(MultiAgentPGDrive, self).reset(*args, **kwargs)
 
     def _reset_vehicles(self):
         vehicles = list(self.vehicles.values()) + list(self.done_vehicles.values())

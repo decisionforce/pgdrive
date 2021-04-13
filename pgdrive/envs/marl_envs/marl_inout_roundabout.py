@@ -84,6 +84,7 @@ class BornPlaceManager:
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
+    _DEBUG_RANDOM_SEED = None
     EXIT_LENGTH = 100
     born_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
@@ -203,7 +204,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                         )
         self._born_places_manager = BornPlaceManager(safe_born_places)
 
-        target_agents = get_np_random().choice(
+        target_agents = get_np_random(self._DEBUG_RANDOM_SEED).choice(
             [i for i in range(len(target_vehicle_configs))], config["num_agents"], replace=False
         )
 
@@ -219,11 +220,15 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         config["target_vehicle_configs"] = ret
         return config
 
-    def reset(self, episode_data: dict = None, force_seed=None):
+    def reset(self, *args, **kwargs):
         self._next_agent_id = self.num_agents
         self._last_born_identifier = 0
         self._do_not_reborn = False
-        ret = super(MultiAgentRoundaboutEnv, self).reset(episode_data)
+
+        # Shuffle born places!
+        self.config = self._update_agent_pos_configs(self.config)
+
+        ret = super(MultiAgentRoundaboutEnv, self).reset(*args, **kwargs)
         assert len(self.vehicles) == self.num_agents
         self.for_each_vehicle(self._update_destination_for)
         return ret
@@ -255,7 +260,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_destination_for(self, vehicle):
         # when agent re-joined to the game, call this to set the new route to destination
-        end_road = -get_np_random().choice(self.born_roads)  # Use negative road!
+        end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.born_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
     def _reborn(self, dead_vehicle_id):
@@ -277,7 +282,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         # replace vehicle to new born place
         safe_places_dict = self._born_places_manager.get_available_born_places()
         # safe_places = [p for p in self._safe_born_places if p['identifier'] != self._last_born_identifier]
-        bp_index = get_np_random().choice(list(safe_places_dict.keys()), 1)[0]
+        bp_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
         new_born_place = safe_places_dict[bp_index]
         self._born_places_manager.new(born_place_id=bp_index, vehicle_id=new_id)
 
@@ -340,7 +345,7 @@ def _vis():
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 8,
+            "num_agents": 4,
         }
     )
     o = env.reset()
