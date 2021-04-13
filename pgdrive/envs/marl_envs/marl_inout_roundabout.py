@@ -349,19 +349,19 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
 
         # Check return alignment
-        o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
-        o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
-        condition = o_set_1 == o_set_2
-        condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
-                    set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
-        condition = (
-                            not self.config["crash_done"] or (
-                            set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
-                            == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
-                    )
-                    ) and condition
-        if not condition:
-            raise ValueError("Observation not aligned!")
+        # o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
+        # o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
+        # condition = o_set_1 == o_set_2
+        # condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
+        #             set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
+        # condition = (
+        #                     not self.config["crash_done"] or (
+        #                     set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
+        #                     == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
+        #             )
+        #             ) and condition
+        # if not condition:
+        #     raise ValueError("Observation not aligned!")
 
         # Update reborn manager
         if self.episode_steps >= self.config["horizon"]:

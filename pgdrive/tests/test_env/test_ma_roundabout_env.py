@@ -314,9 +314,9 @@ def test_ma_roundabout_reward_sign():
 
 
 if __name__ == '__main__':
-    # test_ma_roundabout_env()
-    # test_ma_roundabout_horizon()
-    # test_ma_roundabout_reset()
+    test_ma_roundabout_env()
+    test_ma_roundabout_horizon()
+    test_ma_roundabout_reset()
     test_ma_roundabout_reward_done_alignment()
-    # test_ma_roundabout_close_born()
-    # test_ma_roundabout_reward_sign()
+    test_ma_roundabout_close_born()
+    test_ma_roundabout_reward_sign()
