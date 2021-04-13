@@ -38,9 +38,6 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     load_map_from_json=True,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
-    # ==== agents config =====
-    num_agents=1,
-
     # ===== Observation =====
     use_topdown=False,  # Use top-down view
     use_image=False,

@@ -1,6 +1,6 @@
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
-
+import gym
 
 def _act(env, action):
     assert env.action_space.contains(action)
@@ -17,6 +17,7 @@ def _act(env, action):
 
 def test_ma_roundabout_env():
     env = MultiAgentRoundaboutEnv({"num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}})
+    assert isinstance(env.observation_space, gym.spaces.Dict)
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -194,7 +195,7 @@ def test_ma_roundabout_reward_done_alignment():
 
 if __name__ == '__main__':
     test_ma_roundabout_env()
-    test_ma_roundabout_horizon()
-    test_ma_roundabout_reset()
-    test_ma_roundabout_reward_done_alignment()
-    test_ma_roundabout_close_born()
+    # test_ma_roundabout_horizon()
+    # test_ma_roundabout_reset()
+    # test_ma_roundabout_reward_done_alignment()
+    # test_ma_roundabout_close_born()

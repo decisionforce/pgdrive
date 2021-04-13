@@ -14,6 +14,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         config = PGDriveEnvV2.default_config()
         config.update(
             {
+                "is_multi_agent": True,
                 "environment_num": 1,
                 "traffic_density": 0.,
                 "start_seed": 10,
@@ -63,7 +64,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
-        self.is_multi_agent = True  # Force set it to True
         self.done_observations = dict()
 
     def _process_extra_config(self, config) -> "PGConfig":

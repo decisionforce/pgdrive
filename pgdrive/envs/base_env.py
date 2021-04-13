@@ -20,6 +20,10 @@ BASE_DEFAULT_CONFIG = dict(
     start_seed=0,
     environment_num=1,
 
+    # ==== agents config =====
+    num_agents=1,
+    is_multi_agent=False,
+
     # ===== Action =====
     decision_repeat=5,
 
@@ -81,7 +85,9 @@ class BasePGDriveEnv(gym.Env):
         self.config = self._post_process_config(merged_config)
 
         self.num_agents = self.config["num_agents"]
-        self.is_multi_agent = self.num_agents > 1
+        self.is_multi_agent = self.config["is_multi_agent"]
+        if not self.is_multi_agent:
+            assert self.num_agents == 1
         assert isinstance(self.num_agents, int) and self.num_agents > 0
 
         # observation and action space
