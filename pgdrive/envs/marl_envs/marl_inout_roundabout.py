@@ -6,7 +6,7 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils import get_np_random, PGConfig
+from pgdrive.utils import get_np_random, PGConfig, distance_greater
 
 
 class MARoundaboutMap(PGMap):
@@ -42,6 +42,44 @@ class MARoundaboutMap(PGMap):
             }
         )
         self.blocks.append(last_block)
+
+
+class BornPlaceManager:
+    def __init__(self, safe_born_places: list):
+        self.safe_born_places = {i: v for i, v in enumerate(safe_born_places)}
+        self.mapping = {i: set() for i in self.safe_born_places.keys()}
+        self.need_update_born_places = True
+
+    def update(self, vehicles: dict, map):
+        if self.need_update_born_places:
+            self.need_update_born_places = False
+            for bid, bp in self.safe_born_places.items():
+                lane = map.road_network.get_lane(bp["config"]["born_lane_index"])
+                self.safe_born_places[bid]["position"] = lane.position(longitudinal=bp["config"]["born_longitude"],
+                                                                       lateral=bp["config"]["born_lateral"])
+                for vid in vehicles.keys():
+                    self.new(bid, vid)  # Just assume everyone is all in the same born place at t=0.
+
+        for bid, vid_set in self.mapping.items():
+            removes = []
+            for vid in vid_set:
+                if (vid not in vehicles) or (
+                        distance_greater(self.safe_born_places[bid]["position"], vehicles[vid].position, length=10)):
+                    removes.append(vid)
+            for vid in removes:
+                self.mapping[bid].remove(vid)
+            # if removes:
+            #     print("Remove vehicle {} in BP {}".format(removes, bid))
+
+    def new(self, born_place_id, vehicle_id):
+        self.mapping[born_place_id].add(vehicle_id)
+
+    def get_available_born_places(self):
+        ret = {}
+        for bid in self.safe_born_places.keys():
+            if not self.mapping[bid]:  # empty
+                ret[bid] = self.safe_born_places[bid]
+        return ret
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
@@ -133,7 +171,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be reborn,
         # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
         # appear at the middle of the road!)
-        self._safe_born_places = []
+        safe_born_places = []
         self._last_born_identifier = None
         for i, road in enumerate(self.born_roads):
             for lane_idx in range(config["map_config"]["lane_num"]):
@@ -144,21 +182,25 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                         (
                             "agent_{}_{}".format(i + 1, lane_idx), {
                                 "born_lane_index": road.lane_index(lane_idx),
-                                "born_longitude": long
+                                "born_longitude": long,
+                                "born_lateral": config["vehicle_config"]["born_lateral"]
                             }
                         )
                     )
                     self._all_lane_index.append(road.lane_index(lane_idx))
                     if j == 0:
-                        self._safe_born_places.append(
+                        lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
+                        safe_born_places.append(
                             dict(
-                                identifier=road.lane_index(lane_idx)[0],  # identifier
+                                identifier=lane_tuple[0],  # identifier
                                 config={
-                                    "born_lane_index": road.lane_index(lane_idx),
-                                    "born_longitude": long
-                                }
+                                    "born_lane_index": lane_tuple,
+                                    "born_longitude": long,
+                                    "born_lateral": config["vehicle_config"]["born_lateral"]
+                                },
                             )
                         )
+        self._born_places_manager = BornPlaceManager(safe_born_places)
 
         target_agents = get_np_random().choice(
             [i for i in range(len(target_vehicle_configs))], config["num_agents"], replace=False
@@ -190,15 +232,20 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         if self.episode_steps >= self.config["horizon"]:
             self._do_not_reborn = True
 
+        # Check
         condition = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"]) == \
                     set(kkk for kkk, ddd in d.items() if ddd) == \
                     set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
         if not condition:
             raise ValueError("Observation not aligned!")
 
+        # Update reborn manager
+        self._born_places_manager.update(self.vehicles, self.current_map)
+
+        # Fulfill __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -227,8 +274,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
 
         # replace vehicle to new born place
-        safe_places = [p for p in self._safe_born_places if p['identifier'] != self._last_born_identifier]
-        new_born_place = safe_places[get_np_random().choice(len(safe_places), 1)[0]]
+        safe_places_dict = self._born_places_manager.get_available_born_places()
+        # safe_places = [p for p in self._safe_born_places if p['identifier'] != self._last_born_identifier]
+        bp_index = get_np_random().choice(list(safe_places_dict.keys()), 1)[0]
+        new_born_place = safe_places_dict[bp_index]
+        self._born_places_manager.new(born_place_id=bp_index, vehicle_id=new_id)
+
         new_born_place_config = new_born_place["config"]
         self._last_born_identifier = new_born_place["identifier"]
         v.vehicle_config.update(new_born_place_config)
@@ -385,6 +436,6 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _profile()
-    _long_run()
+    # _long_run()
