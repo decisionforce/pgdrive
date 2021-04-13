@@ -1,6 +1,7 @@
+import gym
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
-import gym
+
 
 def _act(env, action):
     assert env.action_space.contains(action)
@@ -199,30 +200,26 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
+
     class TestEnv(MultiAgentRoundaboutEnv):
         _reborn_count = 0
 
-        def _reborn(self, dead_vehicle_id):
-            v = self.vehicles.pop(dead_vehicle_id)
+        def _update_agent_pos_configs(self, config):
+            config = super(TestEnv, self)._update_agent_pos_configs(config)
+            safe_places = []
+            for c, bid in enumerate(self._born_places_manager.safe_born_places.keys()):
+                safe_places.append((bid, self._born_places_manager.safe_born_places[bid]))
+            self._safe_places = safe_places
+            return config
+
+        def _replace_vehicles(self, v):
             v.prepare_step([0, -1])
-            new_id = "agent{}".format(self._next_agent_id)
-            self._next_agent_id += 1
-            self.vehicles[new_id] = v  # Put it to new vehicle id.
-            self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
-            new_born_place = self._safe_born_places[self._reborn_count]  # <<=== Here!
-            print("Current reborn count ", self._reborn_count)
+            bp_index, new_born_place = self._safe_places[self._reborn_count]
             new_born_place_config = new_born_place["config"]
             v.vehicle_config.update(new_born_place_config)
             v.reset(self.current_map)
             v.update_state()
-            obs = self.observations[dead_vehicle_id]
-            self.observations[new_id] = obs
-            self.observations[new_id].reset(self, v)
-            new_obs = self.observations[new_id].observe(v)
-            self.observation_space.spaces[new_id] = self.observation_space.spaces[dead_vehicle_id]
-            old_act_space = self.action_space.spaces.pop(dead_vehicle_id)
-            self.action_space.spaces[new_id] = old_act_space
-            return new_obs, new_id
+            return bp_index
 
     env = TestEnv({"num_agents": 1})
     try:
@@ -233,10 +230,11 @@ def test_ma_roundabout_reward_sign():
             o, r, d, i = env.step(act)
             ep_reward += next(iter(r.values()))
             if any(d.values()):
+                print("Finish reborn count: {}, reward {}".format(env._reborn_count, ep_reward))
                 env._reborn_count += 1
                 assert ep_reward > 50, ep_reward
                 ep_reward = 0
-            if env._reborn_count > len(env._safe_born_places):
+            if env._reborn_count >= len(env._safe_places):
                 break
             if d["__all__"]:
                 break
@@ -245,9 +243,9 @@ def test_ma_roundabout_reward_sign():
 
 
 if __name__ == '__main__':
-    test_ma_roundabout_env()
+    # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
     # test_ma_roundabout_reset()
     # test_ma_roundabout_reward_done_alignment()
     # test_ma_roundabout_close_born()
-    # test_ma_roundabout_reward_sign()
+    test_ma_roundabout_reward_sign()
