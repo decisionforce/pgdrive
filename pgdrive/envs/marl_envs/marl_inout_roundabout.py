@@ -43,7 +43,6 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
-
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -266,7 +265,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -336,8 +335,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Fulfill __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -432,7 +431,9 @@ def _expert():
                 "use_saver": True,
                 "save_level": 1.
             },
-            "pg_world_config": {"debug_physics_world": True},
+            "pg_world_config": {
+                "debug_physics_world": True
+            },
             "fast": True,
             # "use_render": True,
             "debug": True,
@@ -451,8 +452,11 @@ def _expert():
         d.update({"total_r": total_r, "episode length": ep_s})
         # env.render(text=d)
         if d["__all__"]:
-            print("Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                i, total_r, total_r / env.target_vehicle_manager.next_agent_count))
+            print(
+                "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
+                    i, total_r, total_r / env.target_vehicle_manager.next_agent_count
+                )
+            )
             break
         if len(env.vehicles) == 0:
             total_r = 0
@@ -489,8 +493,11 @@ def _vis():
         d.update({"total_r": total_r, "episode length": ep_s})
         env.render(text=d)
         if d["__all__"]:
-            print("Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                i, total_r, total_r / env.target_vehicle_manager.next_agent_count))
+            print(
+                "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
+                    i, total_r, total_r / env.target_vehicle_manager.next_agent_count
+                )
+            )
             break
         if len(env.vehicles) == 0:
             total_r = 0
