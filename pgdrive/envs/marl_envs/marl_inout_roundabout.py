@@ -8,6 +8,35 @@ from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import get_np_random, PGConfig, distance_greater
 
+MARoundaboutConfig = {
+    "num_agents": 2,  # Number of maximum agents in the scenarios.
+    "horizon": 1000,  # We will stop reborn vehicles after this timesteps.
+
+    # Vehicle
+    "vehicle_config": {
+        "lidar": {
+            "num_lasers": 120,
+            "distance": 50,
+            "num_others": 4,
+        },
+        "born_longitude": 5,
+        "born_lateral": 0,
+    },
+
+    # Map
+    "map_config": {
+        "lane_num": 3
+    },
+
+    # Reward scheme
+    "crash_done": False,
+    "out_of_road_penalty": 5.0,
+    "crash_vehicle_penalty": 1.0,
+    "crash_object_penalty": 1.0,
+    "auto_termination": False,
+    "camera_height": 4,
+}
+
 
 class MARoundaboutMap(PGMap):
     def _generate(self, pg_world):
@@ -97,36 +126,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     @staticmethod
     def default_config() -> PGConfig:
-        config = MultiAgentPGDrive.default_config()
-        config.update(
-            {
-                "horizon": 1000,
-                "camera_height": 4,
-                "vehicle_config": {
-                    "lidar": {
-                        "num_lasers": 120,
-                        "distance": 50,
-                        "num_others": 4,
-                    },
-                    "show_lidar": False,
-                    "born_longitude": 5,
-                    "born_lateral": 0,
-                },
-                "map_config": {
-                    "lane_num": 3
-                },
-                # clear base config
-                "num_agents": 2,
-                "auto_termination": False,
-
-                # reward scheme
-                "out_of_road_penalty": 5.0,
-                "crash_vehicle_penalty": 1.0,
-                "crash_object_penalty": 1.0,
-            },
-            allow_overwrite=True,
-        )
-        return config
+        return MultiAgentPGDrive.default_config().update(MARoundaboutConfig, allow_overwrite=True)
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
