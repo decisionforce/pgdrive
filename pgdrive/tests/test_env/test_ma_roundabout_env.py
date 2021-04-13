@@ -161,13 +161,15 @@ def test_ma_roundabout_close_born():
     try:
         for num_r in range(10):
             obs = env.reset()
-            for _ in range(20):
+            for _ in range(10):
                 o, r, d, i = env.step({k: [0, 0] for k in env.vehicles.keys()})
                 assert not any(d.values())
             _no_close_born(env.vehicles)
             print('Finish {} resets.'.format(num_r))
     finally:
         env.close()
+        MultiAgentRoundaboutEnv.EXIT_LENGTH = 100
+        MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = None
 
 
 def test_ma_roundabout_reward_done_alignment():
@@ -277,9 +279,9 @@ def test_ma_roundabout_reward_sign():
 
 
 if __name__ == '__main__':
-    # test_ma_roundabout_env()
-    # test_ma_roundabout_horizon()
-    # test_ma_roundabout_reset()
-    # test_ma_roundabout_reward_done_alignment()
-    # test_ma_roundabout_close_born()
+    test_ma_roundabout_env()
+    test_ma_roundabout_horizon()
+    test_ma_roundabout_reset()
+    test_ma_roundabout_reward_done_alignment()
+    test_ma_roundabout_close_born()
     test_ma_roundabout_reward_sign()

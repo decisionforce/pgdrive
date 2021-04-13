@@ -106,6 +106,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # Multi-agent related reset
         # avoid create new observation!
         obses = list(self.done_observations.values()) + list(self.observations.values())
+        assert len(obses) == len(self.config["target_vehicle_configs"].keys())
         self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
         self.done_observations = dict()
         self.observation_space = self._get_observation_space()

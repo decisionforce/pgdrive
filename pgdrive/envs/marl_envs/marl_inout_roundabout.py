@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
@@ -43,6 +44,7 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
+
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -113,6 +115,9 @@ class TargetVehicleManager:
 
     def get_vehicle_list(self):
         return list(self.active_vehicles.values()) + list(self.pending_vehicles.values())
+
+    def get_observations(self):
+        return list(self.observations.values())
 
 
 class MARoundaboutMap(PGMap):
@@ -265,7 +270,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -296,9 +301,21 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def reset(self, *args, **kwargs):
         # Shuffle born places!
         self.config = self._update_agent_pos_configs(self.config)
-        ret = super(MultiAgentRoundaboutEnv, self).reset(*args, **kwargs)
-        assert len(self.vehicles) == self.num_agents
+
+        for v in self.done_vehicles.values():
+            v.chassis_np.node().setStatic(False)
+
+        # Multi-agent related reset
+        # avoid create new observation!
+        obses = self.target_vehicle_manager.get_observations() or list(self.observations.values())
+        assert len(obses) == len(self.config["target_vehicle_configs"].keys())
+        self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
+        self.done_observations = dict()
+        self.observation_space = self._get_observation_space()
+        self.action_space = self._get_action_space()
         self.for_each_vehicle(self._update_destination_for)
+        ret = PGDriveEnvV2.reset(self, *args, **kwargs)
+        assert len(self.vehicles) == self.num_agents
         self.target_vehicle_manager.reset(
             vehicles=self.vehicles,
             observation_spaces=self.observation_space.spaces,
@@ -311,17 +328,20 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
 
         # Check return alignment
+
+        assert self.observation_space.contains(o)
+
         o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
         o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
         condition = o_set_1 == o_set_2
         condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
                     set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
         condition = (
-            not self.config["crash_done"] or (
-                set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
-                == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
-            )
-        ) and condition
+                            not self.config["crash_done"] or (
+                            set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
+                            == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
+                    )
+                    ) and condition
         if not condition:
             raise ValueError("Observation not aligned!")
 
@@ -339,12 +359,15 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
                 d[k] = True
+
+        assert self.observation_space.contains(o)
+
         return o, r, d, i
 
     def _update_destination_for(self, vehicle):
@@ -375,9 +398,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
             self.observations[new_id] = vehicle_info["observation"]
             self.observations[new_id].reset(self, v)
-            new_obs = self.observations[new_id].observe(v)
             self.observation_space.spaces[new_id] = vehicle_info["observation_space"]
             self.action_space.spaces[new_id] = vehicle_info["action_space"]
+            new_obs = self.observations[new_id].observe(v)
             new_obs_dict[new_id] = new_obs
         return new_obs_dict
 
@@ -587,6 +610,6 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _profile()
-    # _long_run()
+    _long_run()
