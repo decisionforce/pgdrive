@@ -33,7 +33,7 @@ class DistanceDetector:
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # detection result
-        self.cloud_points = np.ones((self.num_lasers,), dtype=float)
+        self.cloud_points = np.ones((self.num_lasers, ), dtype=float)
         self.detected_objects = []
 
         # override these properties to decide which elements to detect and show
