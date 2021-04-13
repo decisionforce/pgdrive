@@ -66,7 +66,10 @@ def test_ma_roundabout_env():
 
 def test_ma_roundabout_horizon():
     # test horizon
-    env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 4, "vehicle_config": {"lidar": {"num_others": 2}}})
+    env = MultiAgentRoundaboutEnv({
+        "horizon": 100, "num_agents": 4, "vehicle_config": {"lidar": {"num_others": 2}},
+        "out_of_road_penalty": 777, "crash_done": False
+    })
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -84,6 +87,11 @@ def test_ma_roundabout_horizon():
                     assert k in o
                     assert k in d
                 print("Step {}, Done: {}".format(step, d))
+
+            for kkk, rrr in r.items():
+                if rrr == 777:
+                    assert d[kkk]
+
             if d["__all__"]:
                 break
             last_keys = new_keys
@@ -111,7 +119,34 @@ def test_ma_roundabout_reset():
         env.close()
 
 
+def test_ma_roundabout_reward_done_alignment():
+    env = MultiAgentRoundaboutEnv({
+        "horizon": 1000, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False
+    })
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        for action in [-1, 1]:
+            for step in range(5000):
+                act = {k: [action, 1] for k in env.vehicles.keys()}
+                o, r, d, i = _act(env, act)
+                for kkk, ddd in d.items():
+                    if ddd and kkk != "__all__":
+                        assert r[kkk] == -777
+                        print('{} done passed!'.format(kkk))
+                for kkk, rrr in r.items():
+                    if rrr == -777:
+                        assert d[kkk]
+                        print('{} reward passed!'.format(kkk))
+                if d["__all__"]:
+                    env.reset()
+                    break
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
     # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
-    test_ma_roundabout_reset()
+    # test_ma_roundabout_reset()
+    test_ma_roundabout_reward_done_alignment()

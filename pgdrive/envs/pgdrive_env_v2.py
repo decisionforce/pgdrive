@@ -88,8 +88,9 @@ class PGDriveEnvV2(PGDriveEnvV1):
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
         # return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
-        return vehicle.on_yellow_continuous_line or vehicle.on_white_continuous_line or \
+        ret = vehicle.on_yellow_continuous_line or vehicle.on_white_continuous_line or \
                (not vehicle.on_lane) or vehicle.crash_sidewalk
+        return ret
 
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]

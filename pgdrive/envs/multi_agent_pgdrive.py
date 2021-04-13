@@ -83,10 +83,12 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # crash will not done
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
         if vehicle.crash_vehicle and not self.config["crash_done"]:
+            assert done_info["crash_vehicle"]
             done = False
             # done_info["crash_vehicle"] = False
         elif vehicle.out_of_route and vehicle.on_lane and not vehicle.crash_sidewalk:
-            done = False
+            pass  # Do nothing when out of the road!! This is not the SAFETY environment!
+            # done = False
             # done_info["out_of_road"] = False
         return done, done_info
 

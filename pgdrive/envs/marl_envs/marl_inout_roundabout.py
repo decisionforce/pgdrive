@@ -321,6 +321,8 @@ def _profile():
 
 
 def _long_run():
+    # Please refer to test_ma_roundabout_reward_done_alignment()
+    _out_of_road_penalty = 3
     env = MultiAgentRoundaboutEnv(
         {
             "num_agents": 32,
@@ -330,7 +332,7 @@ def _long_run():
                 }
             },
             **dict(
-                out_of_road_penalty=3,
+                out_of_road_penalty=_out_of_road_penalty,
                 crash_vehicle_penalty=1.333,
                 crash_object_penalty=11,
                 crash_vehicle_cost=13,
@@ -354,6 +356,10 @@ def _long_run():
                     if ddd and kkk != "__all__":
                         print("Info {}: {}\n".format(kkk, i[kkk]))
                 print("\n")
+
+            for kkk, rrr in r.items():
+                if rrr == -_out_of_road_penalty:
+                    assert d[kkk]
 
             if (step + 1) % 200 == 0:
                 print(
