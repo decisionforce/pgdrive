@@ -96,16 +96,16 @@ def test_zombie():
                 # We assert the vehicle should arrive the middle lane in the final block.
                 assert info["arrive_dest"]
                 assert len(env.current_map.blocks[-1].positive_lanes) == 3
-                middle_lane = env.current_map.blocks[-1].positive_lanes[1]
+                middle_lane = env.vehicle.routing_localization.final_road.get_lanes(env.current_map.road_network)[1]
 
                 # Current recorded lane of ego should be exactly the same as the final-middle-lane.
                 assert middle_lane == env.vehicle.lane
 
                 # Ego should in the middle of final-middle-lane
-                assert abs(middle_lane.local_coordinates(env.vehicle.position)[0]) < 0.01
+                assert abs(middle_lane.local_coordinates(env.vehicle.position)[1]) < 0.01
 
                 # Ego should in the utmost location of the final-middle-lane
-                assert abs(middle_lane.local_coordinates(env.vehicle.position)[1] - middle_lane.length) < 10
+                assert abs(middle_lane.local_coordinates(env.vehicle.position)[0] - middle_lane.length) < 10
 
                 # The speed should also be perfectly controlled.
                 assert abs(env.vehicle.speed - target.speed) < 1
