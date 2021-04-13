@@ -39,9 +39,6 @@ class DistanceDetector:
         # override these properties to decide which elements to detect and show
         self.node_path.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(CollisionGroup.BrokenLaneLine)
-
-        show = True
-
         self.cloud_points_vis = [] if show else None
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
         if show:
@@ -81,33 +78,23 @@ class DistanceDetector:
             # # coordinates problem here! take care
             laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
             result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
-
-            self.cloud_points[laser_index] = result.getHitFraction()
-            # [point.getHitFraction() for point in self.detection_results]
-
-            # self.detection_results.append(result)
-            # if self.cloud_points is not None:
-            hits = result.hasHit()
-            # if result.hasHit():
-            #     curpos = result.getHitPos()
-            # else:
-            #     curpos = laser_end
-                # if 0<=laser_index < 10 or 230 <= laser_index <=239:
-                #     self.cloud_points[laser_index].setColor(1,0,0)
-            # self.cloud_points[laser_index].setPos(curpos)
-
-
-            # results: BulletAllHitsRayResult = pg_physics_world.rayTestAll(pg_start_position, laser_end, mask)
-            # hits = results.getHits()
-            # hits = sorted(hits, key=lambda ret: ret.getHitFraction())
-            # for result in hits:
-            #     if result.getNode() in extra_filter_node:
-            #         continue
-            #     self.detected_objects.append(result)
-            #     self.cloud_points[laser_index] = result.getHitFraction()
-            #     break
-
-
+            node = result.getNode()
+            if node in extra_filter_node:
+                # Fall back to all tests.
+                results: BulletAllHitsRayResult = pg_physics_world.rayTestAll(pg_start_position, laser_end, mask)
+                hits = results.getHits()
+                hits = sorted(hits, key=lambda ret: ret.getHitFraction())
+                for result in hits:
+                    if result.getNode() in extra_filter_node:
+                        continue
+                    self.detected_objects.append(result)
+                    self.cloud_points[laser_index] = result.getHitFraction()
+                    break
+            else:
+                self.cloud_points[laser_index] = result.getHitFraction()
+                if node:
+                    self.detected_objects.append(result)
+                    hits = result.hasHit()
 
             # update vis
             if self.cloud_points_vis is not None:
@@ -118,7 +105,7 @@ class DistanceDetector:
                 )
 
     def get_cloud_points(self):
-        return self.cloud_points
+        return self.cloud_points.tolist()
 
     def get_detected_objects(self):
         return self.detected_objects

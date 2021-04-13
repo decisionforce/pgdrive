@@ -65,8 +65,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 "map": "M",
                 "vehicle_config": {
                     "lidar": {
-                        "num_lasers": 120,
-                        "distance": 50,
+                        "num_lasers": 72,
+                        "distance": 40,
                         "num_others": 4,
                     },
                     "show_lidar": False,
