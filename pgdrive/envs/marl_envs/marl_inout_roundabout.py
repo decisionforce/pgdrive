@@ -55,16 +55,17 @@ class BornPlaceManager:
             self.need_update_born_places = False
             for bid, bp in self.safe_born_places.items():
                 lane = map.road_network.get_lane(bp["config"]["born_lane_index"])
-                self.safe_born_places[bid]["position"] = lane.position(longitudinal=bp["config"]["born_longitude"],
-                                                                       lateral=bp["config"]["born_lateral"])
+                self.safe_born_places[bid]["position"] = lane.position(
+                    longitudinal=bp["config"]["born_longitude"], lateral=bp["config"]["born_lateral"]
+                )
                 for vid in vehicles.keys():
                     self.new(bid, vid)  # Just assume everyone is all in the same born place at t=0.
 
         for bid, vid_set in self.mapping.items():
             removes = []
             for vid in vid_set:
-                if (vid not in vehicles) or (
-                        distance_greater(self.safe_born_places[bid]["position"], vehicles[vid].position, length=10)):
+                if (vid not in vehicles) or (distance_greater(self.safe_born_places[bid]["position"],
+                                                              vehicles[vid].position, length=10)):
                     removes.append(vid)
             for vid in removes:
                 self.mapping[bid].remove(vid)
@@ -244,8 +245,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Fulfill __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
