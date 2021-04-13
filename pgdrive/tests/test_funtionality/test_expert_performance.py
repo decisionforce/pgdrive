@@ -34,8 +34,14 @@ def _evaluate(env_config, num_episode):
 
 def test_expert_with_traffic(use_render=False):
     ep_reward, success_rate = _evaluate(
-        dict(environment_num=1, map="CCC", start_seed=3, load_map_from_json=False, random_traffic=False,
-             use_render=use_render),
+        dict(
+            environment_num=1,
+            map="CCC",
+            start_seed=3,
+            load_map_from_json=False,
+            random_traffic=False,
+            use_render=use_render
+        ),
         num_episode=3
     )
     assert 465 < ep_reward < 485, ep_reward
@@ -45,7 +51,11 @@ def test_expert_with_traffic(use_render=False):
 def test_expert_without_traffic():
     ep_reward, success_rate = _evaluate(
         dict(
-            environment_num=1, map="CCC", start_seed=0, traffic_density=0, load_map_from_json=False,
+            environment_num=1,
+            map="CCC",
+            start_seed=0,
+            traffic_density=0,
+            load_map_from_json=False,
             random_traffic=False
         ),
         num_episode=3
