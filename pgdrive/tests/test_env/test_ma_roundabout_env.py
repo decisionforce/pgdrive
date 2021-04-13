@@ -266,7 +266,7 @@ def test_ma_roundabout_reward_sign():
             if any(d.values()):
                 print("Finish reborn count: {}, reward {}".format(env._reborn_count, ep_reward))
                 env._reborn_count += 1
-                assert ep_reward > 50, ep_reward
+                assert ep_reward > 10, ep_reward
                 ep_reward = 0
             if env._reborn_count >= len(env._safe_places):
                 break
@@ -280,6 +280,6 @@ if __name__ == '__main__':
     # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
     # test_ma_roundabout_reset()
-    test_ma_roundabout_reward_done_alignment()
+    # test_ma_roundabout_reward_done_alignment()
     # test_ma_roundabout_close_born()
-    # test_ma_roundabout_reward_sign()
+    test_ma_roundabout_reward_sign()
