@@ -30,6 +30,7 @@ from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.world.image_buffer import ImageBuffer
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.world.pg_world import PGWorld
+from pgdrive.utils import random_string
 
 
 class BaseVehicle(DynamicElement):
@@ -55,7 +56,8 @@ class BaseVehicle(DynamicElement):
         pg_world: PGWorld,
         vehicle_config: Union[dict, PGConfig] = None,
         physics_config: dict = None,
-        random_seed: int = 0
+        random_seed: int = 0,
+        name: str = None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -65,7 +67,7 @@ class BaseVehicle(DynamicElement):
         :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
         :param random_seed: int
         """
-
+        self.name = name or random_string()
         self.vehicle_config = PGConfig(vehicle_config)
 
         # self.vehicle_config = self.get_vehicle_config(vehicle_config) \
@@ -646,7 +648,8 @@ class BaseVehicle(DynamicElement):
 
     def destroy(self, _=None):
         self.chassis_np.node().getPythonTag(BodyName.Base_vehicle).destroy()
-        self.dynamic_nodes.remove(self.chassis_np.node())
+        if self.chassis_np.node() in self.dynamic_nodes:
+            self.dynamic_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world)
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()

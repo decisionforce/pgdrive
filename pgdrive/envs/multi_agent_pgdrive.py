@@ -83,7 +83,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # crash will not done
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
         if vehicle.crash_vehicle and not self.config["crash_done"]:
-            assert done_info["crash_vehicle"]
+            assert done_info["crash_vehicle"] or done_info["arrive_dest"]
             done = False
             # done_info["crash_vehicle"] = False
         elif vehicle.out_of_route and vehicle.on_lane and not vehicle.crash_sidewalk:
@@ -113,6 +113,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return super(MultiAgentPGDrive, self).reset(*args, **kwargs)
 
     def _reset_vehicles(self):
+        # TODO(pzh) deprecated this function in future!
         vehicles = list(self.vehicles.values()) + list(self.done_vehicles.values())
         assert len(vehicles) == len(self.observations)
         self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}

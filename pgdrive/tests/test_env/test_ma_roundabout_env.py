@@ -5,6 +5,8 @@ from pgdrive.utils import distance_greater, norm
 def _act(env, action):
     assert env.action_space.contains(action)
     obs, reward, done, info = env.step(action)
+    if not (set(obs.keys()) == set(reward.keys()) == set(env.observation_space.spaces.keys())):
+        print('sss')
     assert set(obs.keys()) == set(reward.keys()) == set(env.observation_space.spaces.keys())
     assert env.observation_space.contains(obs)
     assert isinstance(reward, dict)
@@ -64,6 +66,18 @@ def test_ma_roundabout_env():
     finally:
         env.close()
 
+    env = MultiAgentRoundaboutEnv({"num_agents": 8, "vehicle_config": {"lidar": {"num_others": 0}}})
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        for step in range(100):
+            act = {k: [1, 1] for k in env.vehicles.keys()}
+            o, r, d, i = _act(env, act)
+            if step == 0:
+                assert not any(d.values())
+    finally:
+        env.close()
+
 
 def test_ma_roundabout_horizon():
     # test horizon
@@ -84,7 +98,7 @@ def test_ma_roundabout_horizon():
         obs = env.reset()
         assert env.observation_space.contains(obs)
         last_keys = set(env.vehicles.keys())
-        for step in range(1000):
+        for step in range(1, 1000):
             act = {k: [1, 1] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
             new_keys = set(env.vehicles.keys())
@@ -143,7 +157,7 @@ def test_ma_roundabout_close_born():
     env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 32})
     env.seed(100)
     try:
-        for num_r in range(20):
+        for num_r in range(10):
             obs = env.reset()
             for _ in range(20):
                 o, r, d, i = env.step({k: [0, 0] for k in env.vehicles.keys()})
@@ -155,7 +169,7 @@ def test_ma_roundabout_close_born():
 
 
 def test_ma_roundabout_reward_done_alignment():
-    env = MultiAgentRoundaboutEnv({"horizon": 1000, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
+    env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -179,8 +193,8 @@ def test_ma_roundabout_reward_done_alignment():
 
 
 if __name__ == '__main__':
-    # test_ma_roundabout_env()
-    # test_ma_roundabout_horizon()
-    # test_ma_roundabout_reset()
-    # test_ma_roundabout_reward_done_alignment()
+    test_ma_roundabout_env()
+    test_ma_roundabout_horizon()
+    test_ma_roundabout_reset()
+    test_ma_roundabout_reward_done_alignment()
     test_ma_roundabout_close_born()
