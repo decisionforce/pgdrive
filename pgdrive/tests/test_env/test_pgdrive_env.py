@@ -67,10 +67,12 @@ def test_pgdrive_env_blackbox(config):
 
 
 def test_zombie():
-    env = PGDriveEnv(copy.deepcopy(pid_control_config))
+    conf = copy.deepcopy(pid_control_config)
+    # conf["use_render"] = True
+    # conf["fast"] = True
+    env = PGDriveEnv(conf)
     env.seed(0)
     target = Target(0.375, 30)
-    dest = [-288.88415527, -411.55871582]
     try:
         o = env.reset()
         steering_controller = PIDController(1.6, 0.0008, 27.3)
@@ -81,14 +83,34 @@ def test_zombie():
         acc = acc_controller.get_result(acc_error)
         for i in range(1, 1000000):
             o, r, d, info = env.step([-steering, acc])
+            # env.render(text={
+            #     "o": o[0],
+            #     "lat": env.vehicle.lane.local_coordinates(env.vehicle.position)[0],
+            #     "tar": target.lateral
+            # })
             steering_error = o[0] - target.lateral
             steering = steering_controller.get_result(steering_error)
             t_speed = target.speed if abs(o[12] - 0.5) < 0.01 else target.speed - 10
             acc_error = env.vehicles[env.DEFAULT_AGENT].speed - t_speed
             acc = acc_controller.get_result(acc_error)
             if d:
+                # We assert the vehicle should arrive the middle lane in the final block.
                 assert info["arrive_dest"]
-                assert not distance_greater(env.vehicle.position, dest, 0.3)
+                assert len(env.current_map.blocks[-1].positive_lanes) == 3
+                middle_lane = env.vehicle.routing_localization.final_road.get_lanes(env.current_map.road_network)[1]
+
+                # Current recorded lane of ego should be exactly the same as the final-middle-lane.
+                assert middle_lane == env.vehicle.lane
+
+                # Ego should in the middle of final-middle-lane
+                assert abs(middle_lane.local_coordinates(env.vehicle.position)[1]) < 0.01
+
+                # Ego should in the utmost location of the final-middle-lane
+                assert abs(middle_lane.local_coordinates(env.vehicle.position)[0] - middle_lane.length) < 10
+
+                # The speed should also be perfectly controlled.
+                assert abs(env.vehicle.speed - target.speed) < 1
+
                 break
     finally:
         env.close()
