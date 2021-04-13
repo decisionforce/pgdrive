@@ -49,13 +49,13 @@ class RemoteWorker:
 
 
 if __name__ == '__main__':
+
     class TestWorker:
         def __init__(self, name):
             self.name = name
 
         def get_result(self, a, kw):
             return "Hi! {} {}-{}".format(self.name, a, kw)
-
 
     rd = RemoteWorker(TestWorker, "Bob")
     rd.request("get_result", 111, kw='CCC')
