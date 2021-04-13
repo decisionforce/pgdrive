@@ -1,13 +1,11 @@
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 
 if __name__ == "__main__":
-    env = PGDriveEnvV2(
-        {
-            "environment_num": 100,
-            "start_seed": 5000,
-            "traffic_density": 0.08,
-        }
-    )
+    env = PGDriveEnvV2({
+        "environment_num": 100,
+        "start_seed": 5000,
+        "traffic_density": 0.08,
+    })
     env.reset()
     count = []
     for i in range(1, 101):
