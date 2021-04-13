@@ -62,7 +62,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             {
                 "horizon": 1000,
                 "camera_height": 4,
-                "map": "M",
                 "vehicle_config": {
                     "lidar": {
                         "num_lasers": 120,
@@ -78,7 +77,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 # clear base config
                 "num_agents": 2,
-                "auto_termination": False
+                "auto_termination": False,
+
+                # reward scheme
+                "out_of_road_penalty": 5.0,
+                "crash_vehicle_penalty": 1.0,
+                "crash_object_penalty": 1.0,
             },
             allow_overwrite=True,
         )
@@ -186,8 +190,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         if self.episode_steps >= self.config["horizon"]:
             self._do_not_reborn = True
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -287,7 +291,6 @@ def _vis():
         o, r, d, info = env.step(env.action_space.sample())
         for r_ in r.values():
             total_r += r_
-        o, r, d, info = env.step(env.action_space.sample())
         ep_s += 1
         d.update({"total_r": total_r, "episode length": ep_s})
         env.render(text=d)
@@ -319,5 +322,5 @@ def _profile():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
-    _profile()
+    _vis()
+    # _profile()
