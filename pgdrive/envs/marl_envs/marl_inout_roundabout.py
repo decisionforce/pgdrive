@@ -309,11 +309,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
-        # Check
+
+        # Check return alignment
         o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
         o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
         condition = o_set_1 == o_set_2
-
         condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
                     set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
         condition = (
@@ -337,7 +337,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 i[new_id] = {}
                 d[new_id] = False
 
-        # Fulfill __all__
+        # Update __all__
         d["__all__"] = (
             ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
             or (self.episode_steps >= 5 * self.config["horizon"])
