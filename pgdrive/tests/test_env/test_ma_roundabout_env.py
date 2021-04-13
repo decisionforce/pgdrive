@@ -66,10 +66,19 @@ def test_ma_roundabout_env():
 
 def test_ma_roundabout_horizon():
     # test horizon
-    env = MultiAgentRoundaboutEnv({
-        "horizon": 100, "num_agents": 4, "vehicle_config": {"lidar": {"num_others": 2}},
-        "out_of_road_penalty": 777, "crash_done": False
-    })
+    env = MultiAgentRoundaboutEnv(
+        {
+            "horizon": 100,
+            "num_agents": 4,
+            "vehicle_config": {
+                "lidar": {
+                    "num_others": 2
+                }
+            },
+            "out_of_road_penalty": 777,
+            "crash_done": False
+        }
+    )
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -120,9 +129,7 @@ def test_ma_roundabout_reset():
 
 
 def test_ma_roundabout_reward_done_alignment():
-    env = MultiAgentRoundaboutEnv({
-        "horizon": 1000, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False
-    })
+    env = MultiAgentRoundaboutEnv({"horizon": 1000, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
