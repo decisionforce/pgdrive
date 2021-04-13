@@ -310,7 +310,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
-        assert all([len(obs)==275 for obs in o.values()])
         # Check
         o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
         o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
@@ -421,7 +420,7 @@ def _draw():
     env.close()
 
 
-def _vis():
+def _expert():
     env = MultiAgentRoundaboutEnv(
         {
             "vehicle_config": {
@@ -435,7 +434,7 @@ def _vis():
             },
             "pg_world_config": {"debug_physics_world": True},
             "fast": True,
-            "use_render": True,
+            # "use_render": True,
             "debug": True,
             "manual_control": True,
             "num_agents": 4,
@@ -450,7 +449,49 @@ def _vis():
             total_r += r_
         ep_s += 1
         d.update({"total_r": total_r, "episode length": ep_s})
+        # env.render(text=d)
+        if d["__all__"]:
+            print("Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
+                i, total_r, total_r / env.target_vehicle_manager.next_agent_count))
+            break
+        if len(env.vehicles) == 0:
+            total_r = 0
+            print("Reset")
+            env.reset()
+    env.close()
+
+
+def _vis():
+    env = MultiAgentRoundaboutEnv(
+        {
+            "vehicle_config": {
+                "lidar": {
+                    "num_lasers": 240,
+                    "num_others": 4,
+                    "distance": 50
+                },
+            },
+            "fast": True,
+            "use_render": True,
+            "debug": True,
+            "manual_control": True,
+            "num_agents": 1,
+        }
+    )
+    o = env.reset()
+    total_r = 0
+    ep_s = 0
+    for i in range(1, 100000):
+        o, r, d, info = env.step(env.action_space.sample())
+        for r_ in r.values():
+            total_r += r_
+        ep_s += 1
+        d.update({"total_r": total_r, "episode length": ep_s})
         env.render(text=d)
+        if d["__all__"]:
+            print("Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
+                i, total_r, total_r / env.target_vehicle_manager.next_agent_count))
+            break
         if len(env.vehicles) == 0:
             total_r = 0
             print("Reset")
