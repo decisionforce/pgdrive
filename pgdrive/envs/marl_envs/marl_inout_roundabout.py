@@ -316,8 +316,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
                     set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
-        condition = set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"]) == \
-                    set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle")) and condition
+        condition = (
+            not self.config["crash_done"] or (
+                set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
+                == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
+            )
+        ) and condition
         if not condition:
             raise ValueError("Observation not aligned!")
 
