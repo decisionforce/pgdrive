@@ -135,17 +135,21 @@ def test_ma_roundabout_close_born():
         for c1, v1 in enumerate(vehicles):
             for c2 in range(c1 + 1, len(vehicles)):
                 v2 = vehicles[c2]
-                print(c1, c2, norm(v1.position[0] - v2.position[0], v1.position[1] - v2.position[1]))
-                assert distance_greater(v1.position, v2.position, length=5)
+                dis = norm(v1.position[0] - v2.position[0], v1.position[1] - v2.position[1])
+                assert distance_greater(v1.position, v2.position, length=2.2)
 
     MultiAgentRoundaboutEnv.EXIT_LENGTH = 20
     MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = 1
     env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 32})
     env.seed(100)
     try:
-        for _ in range(10):
+        for num_r in range(20):
             obs = env.reset()
+            for _ in range(20):
+                o, r, d, i = env.step({k: [0, 0] for k in env.vehicles.keys()})
+                assert not any(d.values())
             _no_close_born(env.vehicles)
+            print('Finish {} resets.'.format(num_r))
     finally:
         env.close()
 
