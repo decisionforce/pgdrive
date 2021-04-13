@@ -201,7 +201,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def default_config() -> PGConfig:
         return MultiAgentPGDrive.default_config().update(MARoundaboutConfig, allow_overwrite=True)
 
-    def __init__(self, config):
+    def __init__(self, config=None):
         super(MultiAgentRoundaboutEnv, self).__init__(config)
         self.target_vehicle_manager = TargetVehicleManager()
 
