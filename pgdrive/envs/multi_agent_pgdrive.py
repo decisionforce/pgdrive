@@ -9,6 +9,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
@@ -70,8 +71,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         ret_config = self.default_config().update(
             config, allow_overwrite=False, stop_recursive_update=["target_vehicle_configs"]
         )
-        if not ret_config["crash_done"]:
-            assert ret_config["crash_vehicle_penalty"] <= 2, (
+        if not ret_config["crash_done"] and ret_config["crash_vehicle_penalty"] > 2:
+            import logging
+            logging.warning(
                 "Are you sure you wish to set crash_vehicle_penalty={} when crash_done=False?".format(
                     ret_config["crash_vehicle_penalty"]
                 )
