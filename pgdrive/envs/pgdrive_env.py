@@ -6,6 +6,7 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
@@ -265,6 +266,11 @@ class PGDriveEnv(BasePGDriveEnv):
                 self.dones[k] = True
 
         dones = {k: self.dones[k] for k in self.vehicles.keys()}
+        for v_id, r in rewards.items():
+            self.episode_rewards[v_id] += r
+            step_infos[v_id]["episode_reward"] = self.episode_rewards[v_id]
+            self.episode_lengths[v_id] += 1
+            step_infos[v_id]["episode_length"] = self.episode_lengths[v_id]
         if not self.is_multi_agent:
             return self._wrap_as_single_agent(obses), self._wrap_as_single_agent(rewards), \
                    self._wrap_as_single_agent(dones), self._wrap_as_single_agent(step_infos)
