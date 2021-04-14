@@ -9,7 +9,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
-
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
