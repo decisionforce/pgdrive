@@ -3,6 +3,8 @@ import logging
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletAllHitsRayResult
 from panda3d.core import BitMask32, NodePath
+
+import cutil
 from pgdrive.constants import CamMask, CollisionGroup
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
@@ -33,7 +35,7 @@ class DistanceDetector:
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # detection result
-        self.cloud_points = np.ones((self.num_lasers, ), dtype=float)
+        self.cloud_points = np.ones((self.num_lasers,), dtype=float)
         self.detected_objects = []
 
         # override these properties to decide which elements to detect and show
@@ -56,6 +58,25 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
     def perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None):
+        self.cloud_points, self.detected_objects, self.cloud_points_vis = cutil.cutils_perceive(
+            cloud_points=self.cloud_points,
+            mask=self.mask,
+            lidar_range=self._lidar_range,
+            perceive_distance=self.perceive_distance,
+            heading_theta=heading_theta,
+            vehicle_position_x=vehicle_position[0],
+            vehicle_position_y=vehicle_position[1],
+            num_lasers=self.num_lasers,
+            height=self.height,
+            pg_physics_world=pg_physics_world,
+            extra_filter_node=extra_filter_node,
+            cloud_points_vis=self.cloud_points_vis,
+            ANGLE_FACTOR=self.ANGLE_FACTOR,
+            MARK_COLOR=self.MARK_COLOR
+        )
+        return self.cloud_points
+
+    def _old_perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None):
         """
         Call me to update the perception info
         """

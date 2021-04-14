@@ -17,8 +17,8 @@ MARoundaboutConfig = {
     # Vehicle
     "vehicle_config": {
         "lidar": {
-            "num_lasers": 120,
-            "distance": 50,
+            "num_lasers": 72,
+            "distance": 40,
             "num_others": 4,
         },
         "born_longitude": 5,
@@ -552,7 +552,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentRoundaboutEnv({"num_agents": 16})
+    env = MultiAgentRoundaboutEnv({"num_agents": 32})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -628,5 +628,5 @@ def _long_run():
 if __name__ == "__main__":
     # _draw()
     # _vis()
-    # _profile()
-    _long_run()
+    _profile()
+    # _long_run()
