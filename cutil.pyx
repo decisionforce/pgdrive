@@ -1,210 +1,23 @@
 cimport numpy as cnp
-# import cython
-
-# cdef extern from "math.h":
-#     double sqrt(double x)
-#     double sin(double x)
-#     double cos(double x)
-#     double acos(double x)
-#     double fabs(double x)
-#     double atan2(double y, double x)
-#     double asin(double x)
-#     double sqrt(double x)
-#     double tan(double x)
-#     int floor(double x)
-#     int ceil(double x)
-#     double fmod(double x, double y)
-#
-# ctypedef cnp.float64_t np_float64_t
-# ctypedef cnp.int64_t np_int64_t
-#
-# cdef struct Point:
-#     np_float64_t x
-#     np_float64_t y
-#
-# cdef struct CarDist:
-#     np_int64_t idx
-#     np_float64_t dist2
-#
-# ctypedef Point Vector
-#
-# cdef struct Rect:
-#     Point p0
-#     Point p1
-#     Point p2
-#     Point p3
-#
-# ctypedef bint bool
-#
-# cdef np_float64_t pi = np.pi
-#
-# # @cython.boundscheck(False)
-# @cython.wraparound(False)
-# @cython.cdivision(True)
-# @cython.nonecheck(False)
-# def py_intersectLines(np_float64_t theta,
-#                       np_float64_t x0,
-#                       np_float64_t y0,
-#                       np_float64_t x1,
-#                       np_float64_t y1,
-#                       np_float64_t x2,
-#                       np_float64_t y2,
-#                       np_float64_t maximum):
-#     cdef double dx1 = cos(theta * pi / 180)
-#     cdef double dy1 = sin(theta * pi / 180)
-#     cdef double dx2 = x2 - x1
-#     cdef double dy2 = y2 - y1
-#     cdef double DET = -dx1 * dy2 + dy1 * dx2
-#     if fabs(DET) < 1e-9:
-#         return maximum
-#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
-#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
-#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
-#         return r
-#     return maximum
-#
-# # @cython.boundscheck(False)
-# @cython.wraparound(False)
-# @cython.cdivision(True)
-# @cython.nonecheck(False)
-# cdef np_float64_t intersectLines(np_float64_t theta,
-#                                  np_float64_t x0,
-#                                  np_float64_t y0,
-#                                  np_float64_t x1,
-#                                  np_float64_t y1,
-#                                  np_float64_t x2,
-#                                  np_float64_t y2,
-#                                  np_float64_t maximum):
-#     cdef double dx1 = cos(theta * pi / 180)
-#     cdef double dy1 = sin(theta * pi / 180)
-#     cdef double dx2 = x2 - x1
-#     cdef double dy2 = y2 - y1
-#     cdef double DET = -dx1 * dy2 + dy1 * dx2
-#     if fabs(DET) < 1e-9:
-#         return maximum
-#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
-#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
-#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
-#         return r
-#     return maximum
-
-cimport numpy as cnp
 import numpy as np
-from panda3d.core import Vec3
 
 ctypedef cnp.float64_t np_float64_t
 ctypedef cnp.int64_t np_int64_t
+import cython
 
+def cutils_panda_position(np_float64_t position_x, np_float64_t position_y, np_float64_t z=0.0):
+    return position_x, -position_y, z
 
-# import cython
-# cdef extern from "math.h":
-#     double sqrt(double x)
-#     double sin(double x)
-#     double cos(double x)
-#     double acos(double x)
-#     double fabs(double x)
-#     double atan2(double y, double x)
-#     double asin(double x)
-#     double sqrt(double x)
-#     double tan(double x)
-#     int floor(double x)
-#     int ceil(double x)
-#     double fmod(double x, double y)
-#
-# ctypedef cnp.float64_t np_float64_t
-# ctypedef cnp.int64_t np_int64_t
-#
-# cdef struct Point:
-#     np_float64_t x
-#     np_float64_t y
-#
-# cdef struct CarDist:
-#     np_int64_t idx
-#     np_float64_t dist2
-#
-# ctypedef Point Vector
-#
-# cdef struct Rect:
-#     Point p0
-#     Point p1
-#     Point p2
-#     Point p3
-#
-# ctypedef bint bool
-#
-# cdef np_float64_t pi = np.pi
-#
-# # @cython.boundscheck(False)
+# Remove this check to further accelerate. But this might cause fatal error! So I just commented them out here.
 # @cython.wraparound(False)
 # @cython.cdivision(True)
 # @cython.nonecheck(False)
-# def py_intersectLines(np_float64_t theta,
-#                       np_float64_t x0,
-#                       np_float64_t y0,
-#                       np_float64_t x1,
-#                       np_float64_t y1,
-#                       np_float64_t x2,
-#                       np_float64_t y2,
-#                       np_float64_t maximum):
-#     cdef double dx1 = cos(theta * pi / 180)
-#     cdef double dy1 = sin(theta * pi / 180)
-#     cdef double dx2 = x2 - x1
-#     cdef double dy2 = y2 - y1
-#     cdef double DET = -dx1 * dy2 + dy1 * dx2
-#     if fabs(DET) < 1e-9:
-#         return maximum
-#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
-#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
-#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
-#         return r
-#     return maximum
-#
-# # @cython.boundscheck(False)
-# @cython.wraparound(False)
-# @cython.cdivision(True)
-# @cython.nonecheck(False)
-# cdef np_float64_t intersectLines(np_float64_t theta,
-#                                  np_float64_t x0,
-#                                  np_float64_t y0,
-#                                  np_float64_t x1,
-#                                  np_float64_t y1,
-#                                  np_float64_t x2,
-#                                  np_float64_t y2,
-#                                  np_float64_t maximum):
-#     cdef double dx1 = cos(theta * pi / 180)
-#     cdef double dy1 = sin(theta * pi / 180)
-#     cdef double dx2 = x2 - x1
-#     cdef double dy2 = y2 - y1
-#     cdef double DET = -dx1 * dy2 + dy1 * dx2
-#     if fabs(DET) < 1e-9:
-#         return maximum
-#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
-#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
-#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
-#         return r
-#     return maximum
-
-from pgdrive.world.pg_physics_world import PGPhysicsWorld
-
-def panda_position(position, z=0.0):
-    """
-    Give a 2d or 3d position in PGDrive, transform it to Panda3d world.
-    If the position is a 2d array, height will be determined by the value of z.
-    if the position is a 3d array, the value of z will be invalid.
-    :param position: 2d or 3d position
-    :param z: the height of the position, when position is a 2d array
-    :return: position represented in Vec3
-    """
-    if len(position) == 3:
-        z = position[2]
-    return Vec3(position[0], -position[1], z)
-
 def cutils_perceive(
         cnp.ndarray[np_float64_t, ndim=1] cloud_points,
         mask,
         cnp.ndarray[np_float64_t, ndim=1] lidar_range,
-        float perceive_distance,
-        heading_theta,
+        np_float64_t perceive_distance,
+        np_float64_t heading_theta,
         np_float64_t vehicle_position_x,
         np_float64_t vehicle_position_y,
         int num_lasers,
@@ -217,18 +30,18 @@ def cutils_perceive(
 ):
     # init
     cloud_points.fill(1.0)
-    detected_objects = []
-    pg_start_position = panda_position((vehicle_position_x, vehicle_position_y), height)
+    cdef list detected_objects = []
+    cdef tuple pg_start_position = cutils_panda_position(vehicle_position_x, vehicle_position_y, height)
 
     # lidar calculation use pg coordinates
-    laser_heading = lidar_range + heading_theta
-    point_x = perceive_distance * np.cos(laser_heading) + vehicle_position_x
-    point_y = perceive_distance * np.sin(laser_heading) + vehicle_position_y
+    cdef cnp.ndarray[np_float64_t, ndim=1] laser_heading = lidar_range + heading_theta
+    cdef cnp.ndarray[np_float64_t, ndim=1] point_x = perceive_distance * np.cos(laser_heading) + vehicle_position_x
+    cdef cnp.ndarray[np_float64_t, ndim=1] point_y = perceive_distance * np.sin(laser_heading) + vehicle_position_y
 
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     for laser_index in range(num_lasers):
         # # coordinates problem here! take care
-        laser_end = panda_position((point_x[laser_index], point_y[laser_index]), height)
+        laser_end = cutils_panda_position(point_x[laser_index], point_y[laser_index], height)
         result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
         node = result.getNode()
         if node in extra_filter_node:
@@ -257,6 +70,182 @@ def cutils_perceive(
             )
 
     return cloud_points, detected_objects, cloud_points_vis
+
+# cdef extern from "math.h":
+#     double sqrt(double x)
+#     double sin(double x)
+#     double cos(double x)
+#     double acos(double x)
+#     double fabs(double x)
+#     double atan2(double y, double x)
+#     double asin(double x)
+#     double sqrt(double x)
+#     double tan(double x)
+#     int floor(double x)
+#     int ceil(double x)
+#     double fmod(double x, double y)
+#
+# ctypedef cnp.float64_t np_float64_t
+# ctypedef cnp.int64_t np_int64_t
+#
+# cdef struct Point:
+#     np_float64_t x
+#     np_float64_t y
+#
+# cdef struct CarDist:
+#     np_int64_t idx
+#     np_float64_t dist2
+#
+# ctypedef Point Vector
+#
+# cdef struct Rect:
+#     Point p0
+#     Point p1
+#     Point p2
+#     Point p3
+#
+# ctypedef bint bool
+#
+# cdef np_float64_t pi = np.pi
+#
+# # @cython.boundscheck(False)
+# @cython.wraparound(False)
+# @cython.cdivision(True)
+# @cython.nonecheck(False)
+# def py_intersectLines(np_float64_t theta,
+#                       np_float64_t x0,
+#                       np_float64_t y0,
+#                       np_float64_t x1,
+#                       np_float64_t y1,
+#                       np_float64_t x2,
+#                       np_float64_t y2,
+#                       np_float64_t maximum):
+#     cdef double dx1 = cos(theta * pi / 180)
+#     cdef double dy1 = sin(theta * pi / 180)
+#     cdef double dx2 = x2 - x1
+#     cdef double dy2 = y2 - y1
+#     cdef double DET = -dx1 * dy2 + dy1 * dx2
+#     if fabs(DET) < 1e-9:
+#         return maximum
+#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
+#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
+#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
+#         return r
+#     return maximum
+#
+# # @cython.boundscheck(False)
+# @cython.wraparound(False)
+# @cython.cdivision(True)
+# @cython.nonecheck(False)
+# cdef np_float64_t intersectLines(np_float64_t theta,
+#                                  np_float64_t x0,
+#                                  np_float64_t y0,
+#                                  np_float64_t x1,
+#                                  np_float64_t y1,
+#                                  np_float64_t x2,
+#                                  np_float64_t y2,
+#                                  np_float64_t maximum):
+#     cdef double dx1 = cos(theta * pi / 180)
+#     cdef double dy1 = sin(theta * pi / 180)
+#     cdef double dx2 = x2 - x1
+#     cdef double dy2 = y2 - y1
+#     cdef double DET = -dx1 * dy2 + dy1 * dx2
+#     if fabs(DET) < 1e-9:
+#         return maximum
+#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
+#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
+#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
+#         return r
+#     return maximum
+
+# import cython
+# cdef extern from "math.h":
+#     double sqrt(double x)
+#     double sin(double x)
+#     double cos(double x)
+#     double acos(double x)
+#     double fabs(double x)
+#     double atan2(double y, double x)
+#     double asin(double x)
+#     double sqrt(double x)
+#     double tan(double x)
+#     int floor(double x)
+#     int ceil(double x)
+#     double fmod(double x, double y)
+#
+# ctypedef cnp.float64_t np_float64_t
+# ctypedef cnp.int64_t np_int64_t
+#
+# cdef struct Point:
+#     np_float64_t x
+#     np_float64_t y
+#
+# cdef struct CarDist:
+#     np_int64_t idx
+#     np_float64_t dist2
+#
+# ctypedef Point Vector
+#
+# cdef struct Rect:
+#     Point p0
+#     Point p1
+#     Point p2
+#     Point p3
+#
+# ctypedef bint bool
+#
+# cdef np_float64_t pi = np.pi
+#
+# # @cython.boundscheck(False)
+# @cython.wraparound(False)
+# @cython.cdivision(True)
+# @cython.nonecheck(False)
+# def py_intersectLines(np_float64_t theta,
+#                       np_float64_t x0,
+#                       np_float64_t y0,
+#                       np_float64_t x1,
+#                       np_float64_t y1,
+#                       np_float64_t x2,
+#                       np_float64_t y2,
+#                       np_float64_t maximum):
+#     cdef double dx1 = cos(theta * pi / 180)
+#     cdef double dy1 = sin(theta * pi / 180)
+#     cdef double dx2 = x2 - x1
+#     cdef double dy2 = y2 - y1
+#     cdef double DET = -dx1 * dy2 + dy1 * dx2
+#     if fabs(DET) < 1e-9:
+#         return maximum
+#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
+#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
+#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
+#         return r
+#     return maximum
+#
+# # @cython.boundscheck(False)
+# @cython.wraparound(False)
+# @cython.cdivision(True)
+# @cython.nonecheck(False)
+# cdef np_float64_t intersectLines(np_float64_t theta,
+#                                  np_float64_t x0,
+#                                  np_float64_t y0,
+#                                  np_float64_t x1,
+#                                  np_float64_t y1,
+#                                  np_float64_t x2,
+#                                  np_float64_t y2,
+#                                  np_float64_t maximum):
+#     cdef double dx1 = cos(theta * pi / 180)
+#     cdef double dy1 = sin(theta * pi / 180)
+#     cdef double dx2 = x2 - x1
+#     cdef double dy2 = y2 - y1
+#     cdef double DET = -dx1 * dy2 + dy1 * dx2
+#     if fabs(DET) < 1e-9:
+#         return maximum
+#     cdef double r = 1.0 / DET * (-dy2 * (x1 - x0) + dx2 * (y1 - y0))
+#     cdef double s = 1.0 / DET * (-dy1 * (x1 - x0) + dx1 * (y1 - y0))
+#     if 0 - 1e-5 < s < 1 + 1e-5 and r >= 0:
+#         return r
+#     return maximum
+
 
 # # @cython.boundscheck(False)
 # @cython.wraparound(False)
