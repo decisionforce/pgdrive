@@ -24,7 +24,7 @@ print("We will install the following packages: ", packages)
 version = "0.1.4"
 
 ext_modules = cythonize([Extension(
-    "cutil", ["cutil.pyx"], include_dirs=[numpy.get_include()]
+    "pgdrive.cutils", ["pgdrive/cutils.pyx"], include_dirs=[numpy.get_include()]
 )])
 for ele in ext_modules:
     assert isinstance(ele, Extension)

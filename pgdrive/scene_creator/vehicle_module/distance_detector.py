@@ -4,7 +4,7 @@ import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletAllHitsRayResult
 from panda3d.core import BitMask32, NodePath
 
-import cutil
+from pgdrive import cutils
 from pgdrive.constants import CamMask, CollisionGroup
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
@@ -58,7 +58,7 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
     def perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None):
-        self.cloud_points, self.detected_objects, self.cloud_points_vis = cutil.cutils_perceive(
+        self.cloud_points, self.detected_objects, self.cloud_points_vis = cutils.cutils_perceive(
             cloud_points=self.cloud_points,
             mask=self.mask,
             lidar_range=self._lidar_range,
