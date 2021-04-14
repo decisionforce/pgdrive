@@ -20,6 +20,7 @@ class ChaseCamera:
     BIRD_TASK_NAME = "update main bird camera"
     FOLLOW_LANE = True
     BIRD_VIEW_HEIGHT = 120
+    WHEEL_SCROLL_SPEED = 5
 
     def __init__(self, camera: Camera, camera_height: float, camera_dist: float, pg_world: PGWorld):
         self._origin_height = camera_height
@@ -48,6 +49,9 @@ class ChaseCamera:
         self.inputs.watchWithModifiers('down', 's')
         self.inputs.watchWithModifiers('left', 'a')
         self.inputs.watchWithModifiers('right', 'd')
+
+        pg_world.accept("wheel_up", self._wheel_up_height, extraArgs=[pg_world])
+        pg_world.accept("wheel_down", self._wheel_down_height, extraArgs=[pg_world])
 
     def reset(self):
         self.direction_running_mean.clear()
@@ -167,6 +171,7 @@ class ChaseCamera:
 
     def manual_control_camera(self, task):
         self.bird_camera_height = self._update_height(self.bird_camera_height)
+
         if self.inputs.isSet("up"):
             self.camera_y += 1.0
         if self.inputs.isSet("down"):
@@ -184,3 +189,15 @@ class ChaseCamera:
         if self.inputs.isSet("low"):
             height -= 1.0
         return height
+
+    def _wheel_down_height(self, pg_world):
+        if pg_world.taskMgr.hasTaskNamed(self.BIRD_TASK_NAME):
+            self.bird_camera_height += self.WHEEL_SCROLL_SPEED
+        else:
+            self.chase_camera_height += self.WHEEL_SCROLL_SPEED
+
+    def _wheel_up_height(self, pg_world):
+        if pg_world.taskMgr.hasTaskNamed(self.BIRD_TASK_NAME):
+            self.bird_camera_height -= self.WHEEL_SCROLL_SPEED
+        else:
+            self.chase_camera_height -= self.WHEEL_SCROLL_SPEED
