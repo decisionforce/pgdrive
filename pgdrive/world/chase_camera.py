@@ -216,5 +216,5 @@ class ChaseCamera:
             pFrom = pg_world.render.getRelativePoint(self.camera, pFrom)
             pTo = pg_world.render.getRelativePoint(self.camera, pTo)
             ret = pg_world.physics_world.dynamic_world.rayTestClosest(pFrom, pTo, BitMask32.bit(CollisionGroup.Terrain))
-            self.camera_x=ret.getHitPos()[0]
-            self.camera_y=ret.getHitPos()[1]
+            self.camera_x = ret.getHitPos()[0]
+            self.camera_y = ret.getHitPos()[1]
