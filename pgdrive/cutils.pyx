@@ -7,7 +7,6 @@ ctypedef cnp.float64_t np_float64_t
 ctypedef cnp.int64_t np_int64_t
 from cpython cimport bool as bool_t, set as set_t, tuple as tuple_t, list as list_t
 
-
 def cutils_panda_position(np_float64_t position_x, np_float64_t position_y, np_float64_t z=0.0):
     return position_x, -position_y, z
 
@@ -89,14 +88,21 @@ cdef extern from "math.h":
     double tan(double x)
     int floor(double x)
     int ceil(double x)
-    double fmod(double x, double y)
+    double fmin(double x, double y)
+    double fmax(double x, double y)
 
 
 @cython.wraparound(False)
 @cython.cdivision(True)
 @cython.nonecheck(False)
-def norm(np_float64_t x1, np_float64_t x2):
-    return sqrt(x1[0] * x1[0] + x2[0] * x2[0])
+def cutils_norm(np_float64_t x1, np_float64_t x2):
+    return sqrt(x1 * x1 + x2 * x2)
+
+@cython.wraparound(False)
+@cython.cdivision(True)
+@cython.nonecheck(False)
+def cutils_clip(np_float64_t a, np_float64_t low, np_float64_t high):
+    return fmin(fmax(a, low), high)
 
 # cdef extern from "math.h":
 #     double sqrt(double x)

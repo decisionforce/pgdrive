@@ -3,6 +3,7 @@ import time
 from typing import Tuple
 
 import numpy as np
+from pgdrive import cutils
 
 
 def safe_clip(array, min_val, max_val):
@@ -29,12 +30,13 @@ def time_me(fn):
 
 
 def norm(x, y):
-    return math.sqrt(x**2 + y**2)
+    # return math.sqrt(x**2 + y**2)
+    return cutils.cutils_norm(x, y)
 
 
 def distance_greater(vec1, vec2, length):
     """Return whether the distance between two vectors is greater than the given length."""
-    return ((vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2) > length**2
+    return ((vec1[0] - vec2[0]) ** 2 + (vec1[1] - vec2[1]) ** 2) > length ** 2
 
 
 def clip(a, low, high):
@@ -44,7 +46,8 @@ def clip(a, low, high):
     # if a > high:
     #     print('Large Value')
 
-    return min(max(a, low), high)
+    # return min(max(a, low), high)
+    return cutils.cutils_clip(a, low, high)
 
 
 def dot(a, b):
