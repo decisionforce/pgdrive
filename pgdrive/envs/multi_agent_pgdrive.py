@@ -172,10 +172,13 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         assert self.is_multi_agent
         current_obs_keys = set(self.observations.keys())
         for k in current_obs_keys:
-            if k not in set(self.vehicles.keys()):
+            if k not in self.vehicles:
                 o = self.observations.pop(k)
-                self.observation_space.spaces.pop(k)
                 self.done_observations[k] = o
+        current_obs_keys = set(self.observation_space.spaces.keys())
+        for k in current_obs_keys:
+            if k not in self.vehicles:
+                self.observation_space.spaces.pop(k)
                 # self.action_space.spaces.pop(k)  # Action space is updated in _reborn
 
 

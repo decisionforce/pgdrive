@@ -1,15 +1,61 @@
-import gym
 import numpy as np
-
+from gym.spaces import Box, Dict
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
+
+
+def _check_spaces_before_reset(env):
+    a = set(env.config["target_vehicle_configs"].keys())
+    b = set(env.observation_space.spaces.keys())
+    c = set(env.action_space.spaces.keys())
+    assert a == b == c
+    _check_space(env)
+
+
+def _check_spaces_after_reset(env, obs=None):
+    a = set(env.config["target_vehicle_configs"].keys())
+    b = set(env.observation_space.spaces.keys())
+    assert a == b
+    _check_shape(env)
+
+    if obs:
+        assert isinstance(obs, dict)
+        assert set(obs.keys()) == a
+
+
+def _check_shape(env):
+    b = set(env.observation_space.spaces.keys())
+    c = set(env.action_space.spaces.keys())
+    d = set(env.vehicles.keys())
+    e = set(env.scene_manager.target_vehicles.keys())
+    f = set([k for k in env.observation_space.spaces.keys() if not env.dones[k]])
+    assert c == d == e == f, (b, c, d, e, f)
+    _check_space(env)
+
+
+def _check_space(env):
+    assert isinstance(env.action_space, Dict)
+    assert isinstance(env.observation_space, Dict)
+    o_shape = None
+    for k, s in env.observation_space.spaces.items():
+        assert isinstance(s, Box)
+        if o_shape is None:
+            o_shape = s.shape
+        assert s.shape == o_shape
+    a_shape = None
+    for k, s in env.action_space.spaces.items():
+        assert isinstance(s, Box)
+        if a_shape is None:
+            a_shape = s.shape
+        assert s.shape == a_shape
 
 
 def _act(env, action):
     assert env.action_space.contains(action)
     obs, reward, done, info = env.step(action)
-    if not (set(obs.keys()) == set(reward.keys()) == set(env.observation_space.spaces.keys())):
-        print('sss')
+    _check_shape(env)
+    if not done["__all__"]:
+        assert len(env.vehicles) > 0
     assert set(obs.keys()) == set(reward.keys()) == set(env.observation_space.spaces.keys())
     assert env.observation_space.contains(obs)
     assert isinstance(reward, dict)
@@ -20,9 +66,10 @@ def _act(env, action):
 
 def test_ma_roundabout_env():
     env = MultiAgentRoundaboutEnv({"num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}})
-    assert isinstance(env.observation_space, gym.spaces.Dict)
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
         for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
@@ -35,7 +82,9 @@ def test_ma_roundabout_env():
 
     env = MultiAgentRoundaboutEnv({"num_agents": 1, "vehicle_config": {"lidar": {"num_others": 0}}})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
         for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
@@ -48,7 +97,9 @@ def test_ma_roundabout_env():
 
     env = MultiAgentRoundaboutEnv({"num_agents": 4, "vehicle_config": {"lidar": {"num_others": 8}}})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env)
         assert env.observation_space.contains(obs)
         for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
@@ -60,7 +111,9 @@ def test_ma_roundabout_env():
 
     env = MultiAgentRoundaboutEnv({"num_agents": 4, "vehicle_config": {"lidar": {"num_others": 0}}})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
         for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
@@ -72,7 +125,9 @@ def test_ma_roundabout_env():
 
     env = MultiAgentRoundaboutEnv({"num_agents": 8, "vehicle_config": {"lidar": {"num_others": 0}}})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
         for step in range(100):
             act = {k: [1, 1] for k in env.vehicles.keys()}
@@ -101,7 +156,9 @@ def test_ma_roundabout_horizon():
             }
         )
         try:
+            _check_spaces_before_reset(env)
             obs = env.reset()
+            _check_spaces_after_reset(env, obs)
             assert env.observation_space.contains(obs)
             last_keys = set(env.vehicles.keys())
             for step in range(1, 1000):
@@ -141,7 +198,9 @@ def test_ma_roundabout_horizon():
 def test_ma_roundabout_reset():
     env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 4})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
         for step in range(1000):
             act = {k: [1, 1] for k in env.vehicles.keys()}
@@ -151,18 +210,24 @@ def test_ma_roundabout_reset():
             if d["__all__"]:
                 obs = env.reset()
                 assert env.observation_space.contains(obs)
+
+                _check_spaces_after_reset(env, obs)
                 assert set(env.observation_space.spaces.keys()) == set(env.action_space.spaces.keys()) == \
                        set(env.observations.keys()) == set(obs.keys()) == \
                        set(env.config["target_vehicle_configs"].keys())
+
+                break
     finally:
         env.close()
 
     # Put vehicles to destination and then reset. This might cause error if agent is assigned destination BEFORE reset.
     env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 32, "success_reward": 777})
     try:
+        _check_spaces_before_reset(env)
         success_count = 0
         agent_count = 0
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
 
         for num_reset in range(5):
@@ -172,6 +237,7 @@ def test_ma_roundabout_reset():
                     act = {k: [1, 1] for k in env.vehicles.keys()}
                     o, r, d, i = _act(env, act)
 
+                # Force vehicle to success!
                 for v_id, v in env.vehicles.items():
                     loc = v.routing_localization.final_lane.end
                     v.set_position(loc)
@@ -180,13 +246,13 @@ def test_ma_roundabout_reset():
                     new_loc = v.routing_localization.final_lane.end
                     long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
                     flag1 = (
-                        v.routing_localization.final_lane.length - 5 < long <
-                        v.routing_localization.final_lane.length + 5
+                            v.routing_localization.final_lane.length - 5 < long <
+                            v.routing_localization.final_lane.length + 5
                     )
                     flag2 = (
-                        v.routing_localization.get_current_lane_width() / 2 >= lat >=
-                        (0.5 - v.routing_localization.get_current_lane_num()) *
-                        v.routing_localization.get_current_lane_width()
+                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                            (0.5 - v.routing_localization.get_current_lane_num()) *
+                            v.routing_localization.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -214,7 +280,9 @@ def test_ma_roundabout_reset():
 
                 if d["__all__"]:
                     print("Finish {} agents. Success {} agents.".format(agent_count, success_count))
-                    env.reset()
+                    o = env.reset()
+                    assert env.observation_space.contains(o)
+                    _check_spaces_after_reset(env, o)
                     break
     finally:
         env.close()
@@ -233,8 +301,10 @@ def test_ma_roundabout_close_born():
     env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 16, "map_config": {"exit_length": 20}})
     env.seed(100)
     try:
+        _check_spaces_before_reset(env)
         for num_r in range(10):
             obs = env.reset()
+            _check_spaces_after_reset(env)
             for _ in range(10):
                 o, r, d, i = env.step({k: [0, 0] for k in env.vehicles.keys()})
                 assert not any(d.values())
@@ -249,7 +319,9 @@ def test_ma_roundabout_reward_done_alignment():
     # out of road
     env = MultiAgentRoundaboutEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         assert env.observation_space.contains(obs)
         for action in [-1, 1]:
             for step in range(5000):
@@ -284,7 +356,9 @@ def test_ma_roundabout_reward_done_alignment():
         }
     )
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env, obs)
         for step in range(100):
             act = {k: [0, 0] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
@@ -320,7 +394,9 @@ def test_ma_roundabout_reward_done_alignment():
         }
     )
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env)
         env.vehicles["agent0"].set_position(env.vehicles["agent0"].routing_localization.final_lane.end)
         assert env.observation_space.contains(obs)
         for step in range(5000):
@@ -348,6 +424,7 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
+
     class TestEnv(MultiAgentRoundaboutEnv):
         _reborn_count = 0
 
@@ -371,7 +448,9 @@ def test_ma_roundabout_reward_sign():
 
     env = TestEnv({"num_agents": 1})
     try:
+        _check_spaces_before_reset(env)
         obs = env.reset()
+        _check_spaces_after_reset(env)
         ep_reward = 0.0
         for step in range(1000):
             act = {k: [0, 1] for k in env.vehicles.keys()}
@@ -390,6 +469,38 @@ def test_ma_roundabout_reward_sign():
         env.close()
 
 
+def test_ma_roundabout_init_space():
+    try:
+        for start_seed in [5000, 6000, 7000]:
+            for num_agents in [16, 32]:
+                for num_others in [0, 2, 4, 8]:
+                    for crash_vehicle_penalty in [0, 5]:
+                        env_config = dict(
+                            start_seed=start_seed,
+                            num_agents=num_agents,
+                            vehicle_config=dict(lidar=dict(num_others=num_others)),
+                            crash_vehicle_penalty=crash_vehicle_penalty
+                        )
+                        env = MultiAgentRoundaboutEnv(env_config)
+
+                        single_space = env.observation_space["agent0"]
+                        assert single_space.shape is not None, single_space
+                        assert np.prod(single_space.shape) is not None, single_space
+
+                        single_space = env.action_space["agent0"]
+                        assert single_space.shape is not None, single_space
+                        assert np.prod(single_space.shape) is not None, single_space
+
+                        _check_spaces_before_reset(env)
+                        env.reset()
+                        _check_spaces_after_reset(env)
+                        env.close()
+                        print('Finish: ', env_config)
+    finally:
+        if "env" in locals():
+            env.close()
+
+
 if __name__ == '__main__':
     test_ma_roundabout_env()
     test_ma_roundabout_horizon()
@@ -397,3 +508,4 @@ if __name__ == '__main__':
     test_ma_roundabout_reward_done_alignment()
     test_ma_roundabout_close_born()
     test_ma_roundabout_reward_sign()
+    test_ma_roundabout_init_space()
