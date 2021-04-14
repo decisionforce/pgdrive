@@ -6,7 +6,6 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
-
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
@@ -34,7 +33,8 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         Map.LANE_WIDTH: 3.5,
         Map.LANE_NUM: 3,
         Map.SEED: 10,
-        "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
+        "draw_map_resolution": 1024,  # Drawing the map in a canvas of (x, x) pixels.
+        "block_type_version": "v1"
     },
     load_map_from_json=True,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
@@ -342,7 +342,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -596,6 +596,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
