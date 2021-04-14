@@ -49,7 +49,6 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
-
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -194,7 +193,7 @@ class BornPlaceManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -304,12 +303,15 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_agent_pos_configs(self, config):
         self._born_places_manager = BornPlaceManager(
-            born_roads=self.born_roads, exit_length=config["map_config"]["exit_length"],
-            lane_num=config["map_config"]["lane_num"], num_agents=config["num_agents"],
+            born_roads=self.born_roads,
+            exit_length=config["map_config"]["exit_length"],
+            lane_num=config["map_config"]["lane_num"],
+            num_agents=config["num_agents"],
             vehicle_config=config["vehicle_config"]
         )
         config["target_vehicle_configs"] = self._born_places_manager.get_target_vehicle_configs(
-            config["num_agents"], seed=self._DEBUG_RANDOM_SEED)
+            config["num_agents"], seed=self._DEBUG_RANDOM_SEED
+        )
         return config
 
     def reset(self, *args, **kwargs):
@@ -382,8 +384,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
