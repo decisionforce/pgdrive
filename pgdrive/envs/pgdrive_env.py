@@ -33,7 +33,8 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         Map.LANE_WIDTH: 3.5,
         Map.LANE_NUM: 3,
         Map.SEED: 10,
-        "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
+        "draw_map_resolution": 1024,  # Drawing the map in a canvas of (x, x) pixels.
+        "block_type_version": "v1"
     },
     load_map_from_json=True,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
@@ -213,12 +214,19 @@ class PGDriveEnv(BasePGDriveEnv):
         if not self.is_multi_agent:
             actions = {v_id: actions for v_id in self.vehicles.keys()}
         else:
-            # Check whether some actions are not provided.
-            given_keys = set(actions.keys())
-            have_keys = set(self.vehicles.keys())
-            assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
-                given_keys, have_keys
-            )
+            if self.config["vehicle_config"]["action_check"]:
+                # Check whether some actions are not provided.
+                given_keys = set(actions.keys())
+                have_keys = set(self.vehicles.keys())
+                assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
+                    given_keys, have_keys
+                )
+            else:
+                # That would be OK if extra actions is given. This is because, when evaluate a policy with naive
+                # implementation, the "termination observation" will still be given in T=t-1. And at T=t, when you
+                # collect action from policy(last_obs) without masking, then the action for "termination observation"
+                # will still be computed. We just filter it out here.
+                actions = {v_id: actions[v_id] for v_id in self.vehicles.keys()}
 
         saver_info = dict()
         for v_id, v in self.vehicles.items():
@@ -258,6 +266,11 @@ class PGDriveEnv(BasePGDriveEnv):
                 self.dones[k] = True
 
         dones = {k: self.dones[k] for k in self.vehicles.keys()}
+        for v_id, r in rewards.items():
+            self.episode_rewards[v_id] += r
+            step_infos[v_id]["episode_reward"] = self.episode_rewards[v_id]
+            self.episode_lengths[v_id] += 1
+            step_infos[v_id]["episode_length"] = self.episode_lengths[v_id]
         if not self.is_multi_agent:
             return self._wrap_as_single_agent(obses), self._wrap_as_single_agent(rewards), \
                    self._wrap_as_single_agent(dones), self._wrap_as_single_agent(step_infos)
