@@ -30,9 +30,7 @@ def panda_position(position, z=0.0) -> Vec3:
     """
     if len(position) == 3:
         z = position[2]
-    # return Vec3(position[0], -position[1], z)
-    ret = (position[0], -position[1], z)
-    return ret
+    return Vec3(position[0], -position[1], z)
 
 
 def pgdrive_position(position: Vec3) -> np.array:
