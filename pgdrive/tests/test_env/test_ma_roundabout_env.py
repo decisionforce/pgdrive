@@ -1,4 +1,6 @@
 import gym
+import numpy as np
+
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
 
@@ -129,7 +131,6 @@ def test_ma_roundabout_horizon():
                         assert i[kkk]["out_of_road"]
                         assert r[kkk] == -777
 
-
                 if d["__all__"]:
                     break
                 last_keys = new_keys
@@ -153,6 +154,68 @@ def test_ma_roundabout_reset():
                 assert set(env.observation_space.spaces.keys()) == set(env.action_space.spaces.keys()) == \
                        set(env.observations.keys()) == set(obs.keys()) == \
                        set(env.config["target_vehicle_configs"].keys())
+    finally:
+        env.close()
+
+    # Put vehicles to destination and then reset. This might cause error if agent is assigned destination BEFORE reset.
+    env = MultiAgentRoundaboutEnv({"horizon": 100, "num_agents": 32, "success_reward": 777})
+    try:
+        success_count = 0
+        agent_count = 0
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+
+        for num_reset in range(5):
+            for step in range(1000):
+
+                for _ in range(2):
+                    act = {k: [1, 1] for k in env.vehicles.keys()}
+                    o, r, d, i = _act(env, act)
+
+                for v_id, v in env.vehicles.items():
+                    loc = v.routing_localization.final_lane.end
+                    v.set_position(loc)
+                    pos = v.position
+                    np.testing.assert_almost_equal(pos, loc, decimal=3)
+                    new_loc = v.routing_localization.final_lane.end
+                    long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
+                    flag1 = (
+                            v.routing_localization.final_lane.length - 5 < long
+                            < v.routing_localization.final_lane.length + 5
+                    )
+                    flag2 = (
+                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                            (0.5 - v.routing_localization.get_current_lane_num()) *
+                            v.routing_localization.get_current_lane_width()
+                    )
+                    if not v.arrive_destination:
+                        print('sss')
+                    assert v.arrive_destination
+
+                act = {k: [0, 0] for k in env.vehicles.keys()}
+                o, r, d, i = _act(env, act)
+
+                for v in env.vehicles.values():
+                    assert len(v.routing_localization.checkpoints) > 2
+
+                for kkk, iii in i.items():
+                    if iii and iii["arrive_dest"]:
+                        print("{} success!".format(kkk))
+                        success_count += 1
+
+                for kkk, ddd in d.items():
+                    if ddd and kkk != "__all__":
+                        assert i[kkk]["arrive_dest"]
+                        agent_count += 1
+
+                for kkk, rrr in r.items():
+                    if d[kkk]:
+                        assert rrr == 777
+
+                if d["__all__"]:
+                    print("Finish {} agents. Success {} agents.".format(agent_count, success_count))
+                    env.reset()
+                    break
     finally:
         env.close()
 
@@ -227,7 +290,7 @@ def test_ma_roundabout_reward_done_alignment():
         for step in range(100):
             act = {k: [0, 0] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
-        env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent1"].position)
+        env.vehicles["agent0"].set_position(env.vehicles["agent1"].position)
         for step in range(5000):
             act = {k: [0, 0] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
@@ -260,8 +323,7 @@ def test_ma_roundabout_reward_done_alignment():
     )
     try:
         obs = env.reset()
-        env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent0"].routing_localization.final_lane.end)
-        # env.vehicles["agent1"].reset(env.current_map, pos=env.vehicles["agent1"].routing_localization.final_lane.end)
+        env.vehicles["agent0"].set_position(env.vehicles["agent0"].routing_localization.final_lane.end)
         assert env.observation_space.contains(obs)
         for step in range(5000):
             act = {k: [0, 0] for k in env.vehicles.keys()}
@@ -288,6 +350,7 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
+
     class TestEnv(MultiAgentRoundaboutEnv):
         _reborn_count = 0
 
@@ -305,6 +368,7 @@ def test_ma_roundabout_reward_sign():
             new_born_place_config = new_born_place["config"]
             v.vehicle_config.update(new_born_place_config)
             v.reset(self.current_map)
+            self._update_destination_for(v)
             v.update_state()
             return bp_index
 

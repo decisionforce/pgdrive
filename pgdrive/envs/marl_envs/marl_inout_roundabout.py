@@ -333,9 +333,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         action_spaces = self.target_vehicle_manager.get_action_spaces() or list(self.action_space.spaces.values())
         self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
 
-        self.for_each_vehicle(self._update_destination_for)
+
+
         ret = PGDriveEnvV2.reset(self, *args, **kwargs)
+
         assert len(self.vehicles) == self.num_agents
+        self.for_each_vehicle(self._update_destination_for)
+
         self.target_vehicle_manager.reset(
             vehicles=self.vehicles,
             observation_spaces=self.observation_space.spaces,
@@ -445,6 +449,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         new_born_place_config = new_born_place["config"]
         v.vehicle_config.update(new_born_place_config)
         v.reset(self.current_map)
+        self._update_destination_for(v)
         v.update_state()
         return bp_index
 

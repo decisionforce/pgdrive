@@ -79,6 +79,7 @@ class RoutingLocalizationModule:
         if start_road_node is None:
             start_road_node = FirstBlock.NODE_1
         if final_road_node is None:
+            # TODO This part should use global random engine!
             final_road_node = np.random.RandomState(map.random_seed
                                                     ).choice(map.blocks[-1].get_socket_list()).positive_road.end_node
         self.set_route(start_road_node, final_road_node)
@@ -218,6 +219,8 @@ class RoutingLocalizationModule:
         current_road_start_point = ego_lane_index[0]
         if current_road_start_point in self.checkpoints[self.target_checkpoints_index[1]:
                                        ] and ego_lane_longitude < self.CKPT_UPDATE_RANGE:
+            if current_road_start_point not in self.checkpoints[self.target_checkpoints_index[1]:-1]:
+                return
             idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1], -1)
             self.target_checkpoints_index = [idx]
             if idx + 1 == len(self.checkpoints) - 1:
@@ -226,6 +229,7 @@ class RoutingLocalizationModule:
                 self.target_checkpoints_index.append(idx + 1)
 
     def get_navi_info(self):
+        assert self.navi_info
         return self.navi_info
 
     def destroy(self):
