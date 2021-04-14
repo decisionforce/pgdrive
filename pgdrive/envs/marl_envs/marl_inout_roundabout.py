@@ -648,5 +648,5 @@ def _long_run():
 if __name__ == "__main__":
     # _draw()
     # _vis()
-    # _profile()
-    _long_run()
+    _profile()
+    # _long_run()

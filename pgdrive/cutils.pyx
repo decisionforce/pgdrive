@@ -1,12 +1,17 @@
+# Build via: python setup.py build_ext --inplace
+
 cimport numpy as cnp
 import numpy as np
 
 ctypedef cnp.float64_t np_float64_t
 ctypedef cnp.int64_t np_int64_t
-import cython
+from cpython cimport bool as bool_t, set as set_t, tuple as tuple_t, list as list_t
+
 
 def cutils_panda_position(np_float64_t position_x, np_float64_t position_y, np_float64_t z=0.0):
     return position_x, -position_y, z
+
+import cython
 
 # Remove this check to further accelerate. But this might cause fatal error! So I just commented them out here.
 # @cython.wraparound(False)
@@ -23,15 +28,15 @@ def cutils_perceive(
         int num_lasers,
         np_float64_t height,
         pg_physics_world,
-        set extra_filter_node,
+        set_t extra_filter_node,
         cloud_points_vis,
-        ANGLE_FACTOR,
-        MARK_COLOR
+        bool_t ANGLE_FACTOR,
+        tuple_t MARK_COLOR
 ):
     # init
     cloud_points.fill(1.0)
-    cdef list detected_objects = []
-    cdef tuple pg_start_position = cutils_panda_position(vehicle_position_x, vehicle_position_y, height)
+    cdef list_t detected_objects = []
+    cdef tuple_t pg_start_position = cutils_panda_position(vehicle_position_x, vehicle_position_y, height)
 
     # lidar calculation use pg coordinates
     cdef cnp.ndarray[np_float64_t, ndim=1] laser_heading = lidar_range + heading_theta
@@ -44,6 +49,7 @@ def cutils_perceive(
         laser_end = cutils_panda_position(point_x[laser_index], point_y[laser_index], height)
         result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
         node = result.getNode()
+        hits = None
         if node in extra_filter_node:
             # Fall back to all tests.
             results = pg_physics_world.rayTestAll(pg_start_position, laser_end, mask)
@@ -70,6 +76,27 @@ def cutils_perceive(
             )
 
     return cloud_points, detected_objects, cloud_points_vis
+
+cdef extern from "math.h":
+    double sqrt(double x)
+    double sin(double x)
+    double cos(double x)
+    double acos(double x)
+    double fabs(double x)
+    double atan2(double y, double x)
+    double asin(double x)
+    double sqrt(double x)
+    double tan(double x)
+    int floor(double x)
+    int ceil(double x)
+    double fmod(double x, double y)
+
+
+@cython.wraparound(False)
+@cython.cdivision(True)
+@cython.nonecheck(False)
+def norm(np_float64_t x1, np_float64_t x2):
+    return sqrt(x1[0] * x1[0] + x2[0] * x2[0])
 
 # cdef extern from "math.h":
 #     double sqrt(double x)

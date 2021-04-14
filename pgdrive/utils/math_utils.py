@@ -51,6 +51,10 @@ def dot(a, b):
     return a[0] * b[0] + a[1] * b[1]
 
 
+def dot3(a, b):
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
 def do_every(duration: float, timer: float) -> bool:
     return duration < timer
 
@@ -98,7 +102,7 @@ def point_in_rotated_rectangle(point: np.ndarray, center: np.ndarray, length: fl
     :param angle: rectangle angle [rad]
     :return: is the point inside the rectangle
     """
-    c, s = np.cos(angle), np.sin(angle)
+    c, s = math.cos(angle), math.sin(angle)
     r = np.array([[c, -s], [s, c]])
     ru = r.dot(point - center)
     return point_in_rectangle(ru, (-length / 2, -width / 2), (length / 2, width / 2))
@@ -117,7 +121,7 @@ def has_corner_inside(rect1: Tuple, rect2: Tuple) -> bool:
     l1v = np.array([l1 / 2, 0])
     w1v = np.array([0, w1 / 2])
     r1_points = np.array([[0, 0], -l1v, l1v, -w1v, w1v, -l1v - w1v, -l1v + w1v, +l1v - w1v, +l1v + w1v])
-    c, s = np.cos(a1), np.sin(a1)
+    c, s = math.cos(a1), math.sin(a1)
     r = np.array([[c, -s], [s, c]])
     rotated_r1_points = r.dot(r1_points.transpose()).transpose()
     return any([point_in_rotated_rectangle(c1 + np.squeeze(p), c2, l2, w2, a2) for p in rotated_r1_points])
@@ -157,3 +161,29 @@ def get_boxes_bounding_box(boxes):
         res_y_max = max(res_y_max, y_max)
         res_y_min = min(res_y_min, y_min)
     return res_x_max, res_x_min, res_y_max, res_y_min
+
+
+class PGVector(tuple):
+    def __sub__(self, other):
+        return PGVector((self[0] - other[0], self[1] - other[1]))
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __mul__(self, other):
+        if isinstance(other, float) or np.isscalar(other):
+            return PGVector((self[0] * other, self[1] * other))
+        else:
+            return PGVector((self[0] * other[0], self[1] * other[1]))
+
+    def __add__(self, other):
+        if isinstance(other, float) or np.isscalar(other):
+            return PGVector((self[0] + other, self[1] + other))
+        else:
+            return PGVector((self[0] + other[0], self[1] + other[1]))
+
+    def __truediv__(self, other):
+        if isinstance(other, float) or np.isscalar(other):
+            ret = PGVector((self[0] / other, self[1] / other))
+            return ret
+        raise ValueError()

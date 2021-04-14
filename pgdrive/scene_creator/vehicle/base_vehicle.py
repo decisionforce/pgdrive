@@ -294,7 +294,7 @@ class BaseVehicle(DynamicElement):
         heading = -np.deg2rad(heading) - np.pi / 2
         self.set_static(False)
         self.chassis_np.setPos(panda_position(Vec3(*pos, 1)))
-        self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
+        self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
         self.update_map_info(map)
         self.chassis_np.node().clearForces()
         self.chassis_np.node().setLinearVelocity(Vec3(0, 0, 0))
@@ -397,7 +397,7 @@ class BaseVehicle(DynamicElement):
     @property
     def heading(self):
         real_heading = self.heading_theta
-        heading = np.array([np.cos(real_heading), np.sin(real_heading)])
+        heading = np.array([math.cos(real_heading), math.sin(real_heading)])
         return heading
 
     @property
@@ -494,7 +494,7 @@ class BaseVehicle(DynamicElement):
         self.chassis_np = self.node_path.attachNewNode(chassis)
         # not random born now
         self.chassis_np.setPos(Vec3(*self.born_place, 1))
-        self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
+        self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
         chassis.setDeactivationEnabled(False)
         chassis.notifyCollisions(True)  # advance collision check, do callback in pg_collision_callback
         self.dynamic_nodes.append(chassis)

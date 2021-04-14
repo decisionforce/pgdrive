@@ -1,9 +1,9 @@
+import copy
 import logging
 
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletAllHitsRayResult
 from panda3d.core import BitMask32, NodePath
-
 from pgdrive import cutils
 from pgdrive.constants import CamMask, CollisionGroup
 from pgdrive.utils.asset_loader import AssetLoader
@@ -35,7 +35,7 @@ class DistanceDetector:
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # detection result
-        self.cloud_points = np.ones((self.num_lasers,), dtype=float)
+        self.cloud_points = np.ones((self.num_lasers, ), dtype=float)
         self.detected_objects = []
 
         # override these properties to decide which elements to detect and show
@@ -58,6 +58,19 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
     def perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None):
+        ret_new = self._new_perceive(vehicle_position, heading_theta, pg_physics_world, extra_filter_node)
+        return ret_new
+
+        # ret_new = copy.deepcopy(ret_new)
+        # ret_old = self._old_perceive(vehicle_position, heading_theta, pg_physics_world, extra_filter_node)
+        # return ret_old
+
+        # ret_new = np.asarray(ret_new)
+        # ret_old_arr = np.asarray(copy.deepcopy(ret_old))
+        # np.testing.assert_almost_equal(ret_new, ret_old_arr)
+        # return ret_old
+
+    def _new_perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None):
         self.cloud_points, self.detected_objects, self.cloud_points_vis = cutils.cutils_perceive(
             cloud_points=self.cloud_points,
             mask=self.mask,
@@ -125,6 +138,7 @@ class DistanceDetector:
                 self.cloud_points_vis[laser_index].setColor(
                     f * self.MARK_COLOR[0], f * self.MARK_COLOR[1], f * self.MARK_COLOR[2]
                 )
+        return self.cloud_points
 
     def get_cloud_points(self):
         return self.cloud_points.tolist()

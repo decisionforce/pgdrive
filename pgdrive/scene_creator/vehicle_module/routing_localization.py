@@ -56,7 +56,7 @@ class RoutingLocalizationModule:
             self.arrow_node_path.setPos(0, 0, 0.08)
             self.arrow_node_path.hide(BitMask32.allOn())
             self.arrow_node_path.show(CamMask.MainCam)
-            self.arrow_node_path.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
+            self.arrow_node_path.setQuat(LQuaternionf(math.cos(-np.pi / 4), 0, 0, math.sin(-np.pi / 4)))
 
             # the transparency attribute of gltf model is invalid on windows
             # self.arrow_node_path.setTransparency(TransparencyAttrib.M_alpha)
@@ -190,8 +190,8 @@ class RoutingLocalizationModule:
                 self.right_arrow.detachNode()
                 self.showing = False
         else:
-            dir_0 = np.array([np.cos(lane_0_heading), np.sin(lane_0_heading), 0])
-            dir_1 = np.array([np.cos(lane_1_heading), np.sin(lane_1_heading), 0])
+            dir_0 = np.array([math.cos(lane_0_heading), math.sin(lane_0_heading), 0])
+            dir_1 = np.array([math.cos(lane_1_heading), math.sin(lane_1_heading), 0])
             cross_product = np.cross(dir_1, dir_0)
             left = False if cross_product[-1] < 0 else True
             if not self.showing:
