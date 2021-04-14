@@ -1,5 +1,4 @@
 import math
-from pgdrive.scene_creator.road.road import Road
 import time
 from collections import deque
 from typing import Union, Optional
@@ -13,6 +12,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehicleNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
 from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
@@ -20,7 +20,7 @@ from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector,
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import PGConfig, safe_clip
+from pgdrive.utils import PGConfig, safe_clip, random_string
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
@@ -55,7 +55,8 @@ class BaseVehicle(DynamicElement):
         pg_world: PGWorld,
         vehicle_config: Union[dict, PGConfig] = None,
         physics_config: dict = None,
-        random_seed: int = 0
+        random_seed: int = 0,
+        name: str = None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -65,7 +66,7 @@ class BaseVehicle(DynamicElement):
         :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
         :param random_seed: int
         """
-
+        self.name = name or random_string()
         self.vehicle_config = PGConfig(vehicle_config)
 
         # self.vehicle_config = self.get_vehicle_config(vehicle_config) \
@@ -80,8 +81,8 @@ class BaseVehicle(DynamicElement):
         if physics_config is not None:
             self.set_config(physics_config)
         self.increment_steering = self.vehicle_config["increment_steering"]
-        self.max_speed = self.get_config()[Parameter.speed_max]
-        self.max_steering = self.get_config()[Parameter.steering_max]
+        self.max_speed = self.vehicle_config["max_speed"]
+        self.max_steering = self.vehicle_config["max_steering"]
 
         self.pg_world = pg_world
         self.node_path = NodePath("vehicle")
@@ -297,6 +298,7 @@ class BaseVehicle(DynamicElement):
         self.chassis_np.node().setLinearVelocity(Vec3(0, 0, 0))
         self.chassis_np.node().setAngularVelocity(Vec3(0, 0, 0))
         self.system.resetSuspension()
+        np.testing.assert_almost_equal(self.position, pos, decimal=4)
 
         # done info
         self._init_step_info()
@@ -324,15 +326,19 @@ class BaseVehicle(DynamicElement):
             for block in map.blocks:
                 block.node_path.hide(CamMask.DepthCam)
 
+        assert self.routing_localization
+        # Please note that if you reborn agent to some new place and might have a new destination,
+        # you should reset the routing localization too! Via: vehicle.routing_localization.set_route or
+        # vehicle.update
+
     """------------------------------------------- act -------------------------------------------------"""
 
     def set_act(self, action):
-        para = self.get_config(copy=False)
         steering = action[0]
         self.throttle_brake = action[1]
         self.steering = steering
-        self.system.setSteeringValue(self.steering * para[Parameter.steering_max], 0)
-        self.system.setSteeringValue(self.steering * para[Parameter.steering_max], 1)
+        self.system.setSteeringValue(self.steering * self.max_steering, 0)
+        self.system.setSteeringValue(self.steering * self.max_steering, 1)
         self._apply_throttle_brake(action[1])
 
     def set_incremental_action(self, action: np.ndarray):
@@ -345,9 +351,8 @@ class BaseVehicle(DynamicElement):
         self._apply_throttle_brake(action[1])
 
     def _apply_throttle_brake(self, throttle_brake):
-        para = self.get_config(copy=False)
-        max_engine_force = self._config[Parameter.engine_force_max]
-        max_brake_force = para[Parameter.brake_force_max]
+        max_engine_force = self.vehicle_config["max_engine_force"]
+        max_brake_force = self.vehicle_config["max_brake_force"]
         for wheel_index in range(4):
             if throttle_brake >= 0:
                 self.system.setBrake(2.0, wheel_index)
@@ -647,7 +652,8 @@ class BaseVehicle(DynamicElement):
 
     def destroy(self, _=None):
         self.chassis_np.node().getPythonTag(BodyName.Base_vehicle).destroy()
-        self.dynamic_nodes.remove(self.chassis_np.node())
+        if self.chassis_np.node() in self.dynamic_nodes:
+            self.dynamic_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy(self.pg_world)
         self.pg_world.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
