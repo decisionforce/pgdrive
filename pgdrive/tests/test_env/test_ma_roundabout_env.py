@@ -200,7 +200,7 @@ def test_ma_roundabout_reset():
 
                 for kkk, iii in i.items():
                     if iii and iii["arrive_dest"]:
-                        print("{} success!".format(kkk))
+                        # print("{} success!".format(kkk))
                         success_count += 1
 
                 for kkk, ddd in d.items():
@@ -230,7 +230,7 @@ def test_ma_roundabout_close_born():
                 assert distance_greater(v1.position, v2.position, length=2.2)
 
     MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = 1
-    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 32, "map_config": {"exit_length": 20}})
+    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 16, "map_config": {"exit_length": 20}})
     env.seed(100)
     try:
         for num_r in range(10):

@@ -20,9 +20,9 @@ MARoundaboutConfig = {
     # Vehicle
     "vehicle_config": {
         "lidar": {
-            "num_lasers": 120,
-            "distance": 50,
-            "num_others": 4,
+            "num_lasers": 72,
+            "distance": 40,
+            "num_others": 0,
         },
         "born_longitude": 5,
         "born_lateral": 0,
@@ -86,15 +86,15 @@ class TargetVehicleManager:
     def _check(self):
         current_keys = sorted(list(self.pending_vehicles.keys()) + list(self.active_vehicles.keys()))
         exist_keys = sorted(list(self.vehicle_to_agent.keys()))
-        assert current_keys == exist_keys
+        assert current_keys == exist_keys, "You should confirm_reborn() after request for propose_new_vehicle()!"
 
     def propose_new_vehicle(self):
         self._check()
-        if self.allow_reborn and len(self.pending_vehicles) > 0:
+        if len(self.pending_vehicles) > 0:
             v_id = list(self.pending_vehicles.keys())[0]
             self._check()
             v = self.pending_vehicles.pop(v_id)
-            return dict(
+            return self.allow_reborn, dict(
                 vehicle=v,
                 observation=self.observations[v_id],
                 observation_space=self.observation_spaces[v_id],
@@ -102,7 +102,7 @@ class TargetVehicleManager:
                 old_name=self.vehicle_to_agent[v_id],
                 new_name="agent{}".format(self.next_agent_count)
             )
-        return None
+        return None, None
 
     def confirm_reborn(self, success: bool, vehicle_info):
         vehicle = vehicle_info['vehicle']
@@ -162,7 +162,7 @@ class MARoundaboutMap(PGMap):
             pg_physics_world,
             extra_config={
                 "exit_radius": 10,
-                "inner_radius": 40,
+                "inner_radius": 30,
                 "angle": 70,
                 # Note: lane_num is set in config.map_config.lane_num
             }
@@ -288,12 +288,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            bird_camera_height = 240
+            bird_camera_height = 160
             self.main_camera.camera.setPos(0, 0, bird_camera_height)
             self.main_camera.bird_camera_height = bird_camera_height
             self.main_camera.stop_chase(self.pg_world)
             # self.main_camera.camera.setPos(300, 20, bird_camera_height)
-            self.main_camera.camera_x += 140
+            self.main_camera.camera_x += 100
             self.main_camera.camera_y += 20
 
     def _process_extra_config(self, config):
@@ -400,8 +400,15 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def _reborn(self):
         new_obs_dict = {}
         while True:
-            vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
+            allow_reborn, vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
             if vehicle_info is None:  # No more vehicle to be assigned.
+                break
+            if not allow_reborn:
+                # If not allow to reborn, move agents to some rural places.
+                v = vehicle_info["vehicle"]
+                v.set_position((-999, -999))
+                v.set_static(True)
+                self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
                 break
             v = vehicle_info["vehicle"]
             dead_vehicle_id = vehicle_info["old_name"]
@@ -524,6 +531,7 @@ def _expert():
 def _vis():
     env = MultiAgentRoundaboutEnv(
         {
+            "horizon": 100,
             "vehicle_config": {
                 "lidar": {
                     "num_lasers": 72,
@@ -536,7 +544,7 @@ def _vis():
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 1,
+            "num_agents": 8,
         }
     )
     o = env.reset()
@@ -548,7 +556,7 @@ def _vis():
             total_r += r_
         ep_s += 1
         d.update({"total_r": total_r, "episode length": ep_s})
-        # env.render(text=d)
+        env.render(text=d)
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
