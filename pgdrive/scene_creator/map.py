@@ -171,7 +171,7 @@ class PGMap(Map):
         )
         self.blocks.append(last_block)
         for block_index, b in enumerate(blocks_config[1:], 1):
-            block_type = PGBlock.get_block(b.pop(self.BLOCK_ID))
+            block_type = PGBlock.get_block(b.pop(self.BLOCK_ID), self.config["block_type_version"])
             pre_block_socket_index = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
             last_block = block_type(
                 block_index, last_block.get_socket(pre_block_socket_index), self.road_network, self.random_seed

@@ -27,8 +27,8 @@ class CityBIG(BIG):
     MAX_TRIAL = 2
 
     def __init__(
-            self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-            pg_physics_world: PGPhysicsWorld, random_seed: int, block_type_version: str
+        self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
+        pg_physics_world: PGPhysicsWorld, random_seed: int, block_type_version: str
     ):
         super(CityBIG, self).__init__(
             lane_num, lane_width, global_network, render_node_path, pg_physics_world, random_seed, block_type_version
