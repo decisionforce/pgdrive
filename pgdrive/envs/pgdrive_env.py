@@ -213,12 +213,19 @@ class PGDriveEnv(BasePGDriveEnv):
         if not self.is_multi_agent:
             actions = {v_id: actions for v_id in self.vehicles.keys()}
         else:
-            # Check whether some actions are not provided.
-            given_keys = set(actions.keys())
-            have_keys = set(self.vehicles.keys())
-            assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
-                given_keys, have_keys
-            )
+            if self.config["vehicle_config"]["action_check"]:
+                # Check whether some actions are not provided.
+                given_keys = set(actions.keys())
+                have_keys = set(self.vehicles.keys())
+                assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
+                    given_keys, have_keys
+                )
+            else:
+                # That would be OK if extra actions is given. This is because, when evaluate a policy with naive
+                # implementation, the "termination observation" will still be given in T=t-1. And at T=t, when you
+                # collect action from policy(last_obs) without masking, then the action for "termination observation"
+                # will still be computed. We just filter it out here.
+                actions = {v_id: actions[v_id] for v_id in self.vehicles.keys()}
 
         saver_info = dict()
         for v_id, v in self.vehicles.items():
