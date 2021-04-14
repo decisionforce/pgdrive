@@ -83,46 +83,58 @@ def test_ma_roundabout_env():
 
 def test_ma_roundabout_horizon():
     # test horizon
-    env = MultiAgentRoundaboutEnv(
-        {
-            "horizon": 100,
-            "num_agents": 4,
-            "vehicle_config": {
-                "lidar": {
-                    "num_others": 2
-                }
-            },
-            "out_of_road_penalty": 777,
-            "crash_done": False
-        }
-    )
-    try:
-        obs = env.reset()
-        assert env.observation_space.contains(obs)
-        last_keys = set(env.vehicles.keys())
-        for step in range(1, 1000):
-            act = {k: [1, 1] for k in env.vehicles.keys()}
-            o, r, d, i = _act(env, act)
-            new_keys = set(env.vehicles.keys())
-            if step == 0:
-                assert not any(d.values())
-            if any(d.values()):
-                assert len(last_keys) <= 4  # num of agents
-                assert len(new_keys) <= 4  # num of agents
-                for k in new_keys.difference(last_keys):
-                    assert k in o
-                    assert k in d
-                print("Step {}, Done: {}".format(step, d))
+    for _ in range(3):  # This function is really easy to break, repeat multiple times!
+        env = MultiAgentRoundaboutEnv(
+            {
+                "horizon": 100,
+                "num_agents": 4,
+                "vehicle_config": {
+                    "lidar": {
+                        "num_others": 2
+                    }
+                },
+                "out_of_road_penalty": 777,
+                "out_of_road_cost": 778,
+                "crash_done": False
+            }
+        )
+        try:
+            obs = env.reset()
+            assert env.observation_space.contains(obs)
+            last_keys = set(env.vehicles.keys())
+            for step in range(1, 1000):
+                act = {k: [1, 1] for k in env.vehicles.keys()}
+                o, r, d, i = _act(env, act)
+                new_keys = set(env.vehicles.keys())
+                if step == 0:
+                    assert not any(d.values())
+                if any(d.values()):
+                    assert len(last_keys) <= 4  # num of agents
+                    assert len(new_keys) <= 4  # num of agents
+                    for k in new_keys.difference(last_keys):
+                        assert k in o
+                        assert k in d
+                    print("Step {}, Done: {}".format(step, d))
 
-            for kkk, rrr in r.items():
-                if rrr == -777:
-                    assert d[kkk]
+                for kkk, rrr in r.items():
+                    if rrr == -777:
+                        assert d[kkk]
+                        assert i[kkk]["cost"] == 778
+                        assert i[kkk]["out_of_road"]
 
-            if d["__all__"]:
-                break
-            last_keys = new_keys
-    finally:
-        env.close()
+                for kkk, iii in i.items():
+                    if iii and (iii["out_of_road"] or iii["cost"] == 778):
+                        assert d[kkk]
+                        assert i[kkk]["cost"] == 778
+                        assert i[kkk]["out_of_road"]
+                        assert r[kkk] == -777
+
+
+                if d["__all__"]:
+                    break
+                last_keys = new_keys
+        finally:
+            env.close()
 
 
 def test_ma_roundabout_reset():
@@ -173,63 +185,68 @@ def test_ma_roundabout_close_born():
 
 
 def test_ma_roundabout_reward_done_alignment():
-    # # out of road
-    # env = MultiAgentRoundaboutEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
-    # try:
-    #     obs = env.reset()
-    #     assert env.observation_space.contains(obs)
-    #     for action in [-1, 1]:
-    #         for step in range(5000):
-    #             act = {k: [action, 1] for k in env.vehicles.keys()}
-    #             o, r, d, i = _act(env, act)
-    #             for kkk, ddd in d.items():
-    #                 if ddd and kkk != "__all__":
-    #                     assert r[kkk] == -777
-    #                     assert i[kkk]["out_of_road"]
-    #                     # print('{} done passed!'.format(kkk))
-    #             for kkk, rrr in r.items():
-    #                 if rrr == -777:
-    #                     assert d[kkk]
-    #                     assert i[kkk]["out_of_road"]
-    #                     # print('{} reward passed!'.format(kkk))
-    #             if d["__all__"]:
-    #                 env.reset()
-    #                 break
-    # finally:
-    #     env.close()
-    #
-    # # crash
-    # env = MultiAgentRoundaboutEnv(
-    #     {
-    #         "horizon": 100,
-    #         "num_agents": 2,
-    #         "crash_vehicle_penalty": 1.7777,
-    #         "crash_done": True
-    #     }
-    # )
-    # try:
-    #     obs = env.reset()
-    #     env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent1"].position)
-    #     assert env.observation_space.contains(obs)
-    #     for step in range(5000):
-    #         act = {k: [0, 0] for k in env.vehicles.keys()}
-    #         o, r, d, i = _act(env, act)
-    #         if d["__all__"]:
-    #             break
-    #         for kkk, ddd in d.items():
-    #             if ddd and kkk != "__all__":
-    #                 assert r[kkk] == -1.7777
-    #                 assert i[kkk]["crash_vehicle"]
-    #                 assert i[kkk]["crash"]
-    #                 # print('{} done passed!'.format(kkk))
-    #         for kkk, rrr in r.items():
-    #             if rrr == -1.7777:
-    #                 assert d[kkk]
-    #                 assert i[kkk]["crash_vehicle"]
-    #                 assert i[kkk]["crash"]
-    #                 # print('{} reward passed!'.format(kkk))
-    # finally:
-    #     env.close()
+    # out of road
+    env = MultiAgentRoundaboutEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
+    try:
+        obs = env.reset()
+        assert env.observation_space.contains(obs)
+        for action in [-1, 1]:
+            for step in range(5000):
+                act = {k: [action, 1] for k in env.vehicles.keys()}
+                o, r, d, i = _act(env, act)
+                for kkk, ddd in d.items():
+                    if ddd and kkk != "__all__":
+                        assert r[kkk] == -777
+                        assert i[kkk]["out_of_road"]
+                        # print('{} done passed!'.format(kkk))
+                for kkk, rrr in r.items():
+                    if rrr == -777:
+                        assert d[kkk]
+                        assert i[kkk]["out_of_road"]
+                        # print('{} reward passed!'.format(kkk))
+                if d["__all__"]:
+                    env.reset()
+                    break
+    finally:
+        env.close()
+
+    # crash
+    env = MultiAgentRoundaboutEnv(
+        {
+            "horizon": 100,
+            "num_agents": 2,
+            "crash_vehicle_penalty": 1.7777,
+            "crash_done": True,
+
+            # "use_render": True,
+            # "fast": True
+        }
+    )
+    try:
+        obs = env.reset()
+        for step in range(100):
+            act = {k: [0, 0] for k in env.vehicles.keys()}
+            o, r, d, i = _act(env, act)
+        env.vehicles["agent0"].reset(env.current_map, pos=env.vehicles["agent1"].position)
+        for step in range(5000):
+            act = {k: [0, 0] for k in env.vehicles.keys()}
+            o, r, d, i = _act(env, act)
+            if d["__all__"]:
+                break
+            for kkk, ddd in d.items():
+                if ddd and kkk != "__all__":
+                    assert r[kkk] == -1.7777
+                    assert i[kkk]["crash_vehicle"]
+                    assert i[kkk]["crash"]
+                    # print('{} done passed!'.format(kkk))
+            for kkk, rrr in r.items():
+                if rrr == -1.7777:
+                    assert d[kkk]
+                    assert i[kkk]["crash_vehicle"]
+                    assert i[kkk]["crash"]
+                    # print('{} reward passed!'.format(kkk))
+    finally:
+        env.close()
 
     # success
     env = MultiAgentRoundaboutEnv(

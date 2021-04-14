@@ -1,12 +1,12 @@
 import logging
-from pgdrive.scene_creator.road.road import Road
+
 import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib
-
 from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.math_utils import clip, norm
 from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
@@ -39,7 +39,8 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config[
+            "debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -90,6 +91,7 @@ class RoutingLocalizationModule:
         :return: None
         """
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
+        assert len(self.checkpoints) >= 2
         # update routing info
         self.final_road = Road(self.checkpoints[-2], end_road_node)
         self.final_lane = self.final_road.get_lanes(self.map.road_network)[-1]
@@ -154,8 +156,8 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max +
-                    self.get_current_lane_num() * self.get_current_lane_width()
+                        BlockParameterSpace.CURVE[Parameter.radius].max +
+                        self.get_current_lane_num() * self.get_current_lane_width()
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -215,7 +217,7 @@ class RoutingLocalizationModule:
         # arrive to second checkpoint
         current_road_start_point = ego_lane_index[0]
         if current_road_start_point in self.checkpoints[self.target_checkpoints_index[1]:
-                                                        ] and ego_lane_longitude < self.CKPT_UPDATE_RANGE:
+                                       ] and ego_lane_longitude < self.CKPT_UPDATE_RANGE:
             idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1], -1)
             self.target_checkpoints_index = [idx]
             if idx + 1 == len(self.checkpoints) - 1:

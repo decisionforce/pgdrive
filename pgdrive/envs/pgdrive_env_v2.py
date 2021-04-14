@@ -100,15 +100,15 @@ class PGDriveEnvV2(PGDriveEnvV1):
             done = True
             logging.info("Episode ended! Reason: arrive_dest.")
             done_info["arrive_dest"] = True
+        elif self._is_out_of_road(vehicle):
+            done = True
+            logging.info("Episode ended! Reason: out_of_road.")
+            done_info["out_of_road"] = True
         elif vehicle.crash_vehicle:
             done = True
             logging.info("Episode ended! Reason: crash. ")
             done_info["crash_vehicle"] = True
         # elif vehicle.out_of_route or not vehicle.on_lane or vehicle.crash_sidewalk:
-        elif self._is_out_of_road(vehicle):
-            done = True
-            logging.info("Episode ended! Reason: out_of_road.")
-            done_info["out_of_road"] = True
         elif vehicle.crash_object:
             done = True
             done_info["crash_object"] = True
@@ -122,12 +122,12 @@ class PGDriveEnvV2(PGDriveEnvV1):
         vehicle = self.vehicles[vehicle_id]
         step_info = dict()
         step_info["cost"] = 0
-        if vehicle.crash_vehicle:
+        if self._is_out_of_road(vehicle):
+            step_info["cost"] = self.config["out_of_road_cost"]
+        elif vehicle.crash_vehicle:
             step_info["cost"] = self.config["crash_vehicle_cost"]
         elif vehicle.crash_object:
             step_info["cost"] = self.config["crash_object_cost"]
-        elif self._is_out_of_road(vehicle):
-            step_info["cost"] = self.config["out_of_road_cost"]
         return step_info['cost'], step_info
 
     def reward_function(self, vehicle_id: str):
