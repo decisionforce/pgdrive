@@ -1,7 +1,10 @@
+import copy
 import logging
+from math import floor
 
 import numpy as np
 from gym.spaces import Box
+
 from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -27,6 +30,7 @@ MARoundaboutConfig = {
 
     # Map
     "map_config": {
+        "exit_length": 100,
         "lane_num": 3
     },
 
@@ -45,6 +49,7 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
+
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -132,7 +137,7 @@ class TargetVehicleManager:
 
 class MARoundaboutMap(PGMap):
     def _generate(self, pg_world):
-        length = MultiAgentRoundaboutEnv.EXIT_LENGTH
+        length = self.config["exit_length"]
 
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
@@ -166,10 +171,58 @@ class MARoundaboutMap(PGMap):
 
 
 class BornPlaceManager:
-    def __init__(self, safe_born_places: list):
+    def __init__(self, born_roads, exit_length, lane_num, num_agents, vehicle_config):
+        interval = 5
+        num_slots = int(floor(exit_length / interval))
+        interval = exit_length / num_slots
+        assert num_agents <= lane_num * len(born_roads) * num_slots, (
+            "Too many agents! We only accepet {} agents, but you have {} agents!".format(
+                lane_num * len(born_roads) * num_slots, num_agents
+            )
+        )
+
+        # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be reborn,
+        # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
+        # appear at the middle of the road!)
+        target_vehicle_configs = []
+        safe_born_places = []
+        for i, road in enumerate(born_roads):
+            for lane_idx in range(lane_num):
+                for j in range(num_slots):
+
+                    long = j * interval + np.random.uniform(0, 0.5 * interval)
+                    lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
+                    target_vehicle_configs.append(
+                        dict(
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            config={
+                                "born_lane_index": lane_tuple,
+                                "born_longitude": long,
+                                "born_lateral": vehicle_config["born_lateral"]
+                            }
+                        )
+                    )
+                    if j == 0:
+                        safe_born_places.append(target_vehicle_configs[-1].copy())
+        self.target_vehicle_configs = target_vehicle_configs
         self.safe_born_places = {v["identifier"]: v for v in safe_born_places}
         self.mapping = {i: set() for i in self.safe_born_places.keys()}
         self.need_update_born_places = True
+
+    def get_target_vehicle_configs(self, num_agents, seed=None):
+        target_agents = get_np_random(seed).choice(
+            [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
+        )
+
+        # for rllib compatibility
+        ret = {}
+        if len(target_agents) > 1:
+            for real_idx, idx in enumerate(target_agents):
+                v_config = self.target_vehicle_configs[idx]["config"]
+                ret["agent{}".format(real_idx)] = v_config
+        else:
+            ret["agent0"] = self.target_vehicle_configs[0]["config"]
+        return copy.deepcopy(ret)
 
     def update(self, vehicles: dict, map):
         if self.need_update_born_places:
@@ -204,7 +257,6 @@ class BornPlaceManager:
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     _DEBUG_RANDOM_SEED = None
-    EXIT_LENGTH = 100
     born_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
         -Road(Roundabout.node(1, 0, 2), Roundabout.node(1, 0, 3)),
@@ -251,61 +303,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         return super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
 
     def _update_agent_pos_configs(self, config):
-        target_vehicle_configs = []
-        self._all_lane_index = []
-        self._next_agent_id = config["num_agents"]
-
-        if self.EXIT_LENGTH / 2 < 5:
-            num_concurrent = 1
-        elif self.EXIT_LENGTH / 3 < 5:
-            num_concurrent = 2
-        else:
-            num_concurrent = 3
-        interval = self.EXIT_LENGTH / num_concurrent
-        assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.born_roads) * num_concurrent, (
-            "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                config["map_config"]["lane_num"] * len(self.born_roads) * num_concurrent, config["num_agents"]
-            )
+        self._born_places_manager = BornPlaceManager(
+            born_roads=self.born_roads, exit_length=config["map_config"]["exit_length"],
+            lane_num=config["map_config"]["lane_num"], num_agents=config["num_agents"],
+            vehicle_config=config["vehicle_config"]
         )
-
-        # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be reborn,
-        # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
-        # appear at the middle of the road!)
-        safe_born_places = []
-        for i, road in enumerate(self.born_roads):
-            for lane_idx in range(config["map_config"]["lane_num"]):
-                for j in range(num_concurrent):
-
-                    long = j * interval + np.random.uniform(0, 0.5 * interval)
-                    lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
-                    target_vehicle_configs.append(
-                        dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
-                            config={
-                                "born_lane_index": lane_tuple,
-                                "born_longitude": long,
-                                "born_lateral": config["vehicle_config"]["born_lateral"]
-                            }
-                        )
-                    )
-                    self._all_lane_index.append(road.lane_index(lane_idx))
-                    if j == 0:
-                        safe_born_places.append(target_vehicle_configs[-1].copy())
-        self._born_places_manager = BornPlaceManager(safe_born_places)
-
-        target_agents = get_np_random(
-            self._DEBUG_RANDOM_SEED
-        ).choice([i for i in range(len(target_vehicle_configs))], config["num_agents"], replace=False)
-
-        # for rllib compatibility
-        ret = {}
-        if len(target_agents) > 1:
-            for real_idx, idx in enumerate(target_agents):
-                v_config = target_vehicle_configs[idx]["config"]
-                ret["agent{}".format(real_idx)] = v_config
-        else:
-            ret["agent0"] = target_vehicle_configs[0]["config"]
-        config["target_vehicle_configs"] = ret
+        config["target_vehicle_configs"] = self._born_places_manager.get_target_vehicle_configs(
+            config["num_agents"], seed=self._DEBUG_RANDOM_SEED)
         return config
 
     def reset(self, *args, **kwargs):
@@ -378,8 +382,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -514,16 +518,17 @@ def _vis():
         {
             "vehicle_config": {
                 "lidar": {
-                    "num_lasers": 240,
-                    "num_others": 4,
-                    "distance": 50
+                    "num_lasers": 72,
+                    "num_others": 0,
+                    "distance": 40
                 },
+                "show_lidar": True,
             },
             "fast": True,
             "use_render": True,
             "debug": True,
-            # "manual_control": True,
-            "num_agents": 2,
+            "manual_control": True,
+            "num_agents": 4,
         }
     )
     o = env.reset()
@@ -628,5 +633,5 @@ def _long_run():
 if __name__ == "__main__":
     # _draw()
     # _vis()
-    # _profile()
-    _long_run()
+    _profile()
+    # _long_run()

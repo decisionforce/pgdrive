@@ -229,9 +229,8 @@ def test_ma_roundabout_close_born():
                 dis = norm(v1.position[0] - v2.position[0], v1.position[1] - v2.position[1])
                 assert distance_greater(v1.position, v2.position, length=2.2)
 
-    MultiAgentRoundaboutEnv.EXIT_LENGTH = 20
     MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = 1
-    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 32})
+    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 32, "map_config": {"exit_length": 20}})
     env.seed(100)
     try:
         for num_r in range(10):
@@ -243,7 +242,6 @@ def test_ma_roundabout_close_born():
             print('Finish {} resets.'.format(num_r))
     finally:
         env.close()
-        MultiAgentRoundaboutEnv.EXIT_LENGTH = 100
         MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = None
 
 
