@@ -333,8 +333,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         action_spaces = self.target_vehicle_manager.get_action_spaces() or list(self.action_space.spaces.values())
         self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
 
-
-
         ret = PGDriveEnvV2.reset(self, *args, **kwargs)
 
         assert len(self.vehicles) == self.num_agents

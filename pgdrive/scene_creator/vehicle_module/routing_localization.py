@@ -39,8 +39,7 @@ class RoutingLocalizationModule:
 
         # Vis
         self.showing = True  # store the state of navigation mark
-        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config[
-            "debug_physics_world"]
+        self.show_navi_point = pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         self.goal_node_path = pg_world.render.attachNewNode("target") if self.show_navi_point else None
         self.arrow_node_path = pg_world.aspect2d.attachNewNode("arrow") if self.show_navi_point else None
         if self.show_navi_point:
@@ -157,8 +156,8 @@ class RoutingLocalizationModule:
             angle = 0.0
             if isinstance(ref_lane, CircularLane):
                 bendradius = ref_lane.radius / (
-                        BlockParameterSpace.CURVE[Parameter.radius].max +
-                        self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
                 )
                 dir = ref_lane.direction
                 if dir == 1:
@@ -218,7 +217,7 @@ class RoutingLocalizationModule:
         # arrive to second checkpoint
         current_road_start_point = ego_lane_index[0]
         if current_road_start_point in self.checkpoints[self.target_checkpoints_index[1]:
-                                       ] and ego_lane_longitude < self.CKPT_UPDATE_RANGE:
+                                                        ] and ego_lane_longitude < self.CKPT_UPDATE_RANGE:
             if current_road_start_point not in self.checkpoints[self.target_checkpoints_index[1]:-1]:
                 return
             idx = self.checkpoints.index(current_road_start_point, self.target_checkpoints_index[1], -1)
