@@ -78,7 +78,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                     ret_config["crash_vehicle_penalty"]
                 )
             )
-        if config["use_render"] and config["fast"]:
+        if ret_config["use_render"] and ret_config["fast"]:
             logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
         return ret_config
 
