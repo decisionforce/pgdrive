@@ -1,11 +1,25 @@
-from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
+from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
 
+MA_INTERSECION_CONFIG = {
+    "horizon": 1000,
+    "environment_num": 1,
+    "traffic_density": 0.,
+    "start_seed": 10,
+    "vehicle_config": {
+        # "lane_line_detector": {
+        #     "num_lasers": 100
+        # }
+    },
+    "num_agents": 8,
+    "crash_done": False
+}
 
-class MultiAgentIntersectPGDrive(PGDriveEnvV2):
+
+class MultiAgentIntersectPGDrive(MultiAgentPGDrive):
     # Currently only lane#0, #1 will be supported, #2 will be considered as out-of-road when spawning (hit side-lane)
     # TODO: Fix by either
     #  1. Change the side lane calculation to allow more car spawning space
@@ -42,25 +56,14 @@ class MultiAgentIntersectPGDrive(PGDriveEnvV2):
 
     @staticmethod
     def default_config() -> PGConfig:
-        config = PGDriveEnvV2.default_config()
+        config = MultiAgentPGDrive.default_config()
+        config.update(MA_INTERSECION_CONFIG)
+
         target_vehicle_configs_dict = dict()
         for agent_id in range(MultiAgentIntersectPGDrive.DEFAULT_AGENT_NUM):
             target_vehicle_configs_dict[f"agent{agent_id}"] = dict()
-        config.update(
-            {
-                "environment_num": 1,
-                "traffic_density": 0.,
-                "start_seed": 10,
-                "vehicle_config": {
-                    # "lane_line_detector": {
-                    #     "num_lasers": 100
-                    # }
-                },
-                "target_vehicle_configs": target_vehicle_configs_dict,
-                "num_agents": MultiAgentIntersectPGDrive.DEFAULT_AGENT_NUM,
-                "crash_done": True
-            }
-        )
+        config["target_vehicle_configs"] = target_vehicle_configs_dict
+
         # Some collision bugs still exist, always set to False now!!!!
         # config.extend_config_with_unknown_keys({"crash_done": True})
         return config
