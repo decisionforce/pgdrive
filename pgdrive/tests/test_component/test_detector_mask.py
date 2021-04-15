@@ -160,7 +160,7 @@ def test_detector_mask_in_lidar():
                 is_target_vehicle_dict[v.name] = True if isinstance(v, BaseVehicle) else False
 
             detector_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict,
-                                   is_target_vehicle_dict=is_target_vehicle_dict)
+                                      is_target_vehicle_dict=is_target_vehicle_dict)
 
             real_mask = old_cloud_points != 1.0
             mask = detector_mask.get_mask(env.vehicle.name)

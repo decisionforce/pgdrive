@@ -17,7 +17,7 @@ class DetectorMask:
         self.angle_delta = 360 / self.num_lasers
         self.max_span = max_span
         self.half_max_span = max_span / 2
-        self.masks = defaultdict(lambda: np.zeros((self.num_lasers,), dtype=np.bool))
+        self.masks = defaultdict(lambda: np.zeros((self.num_lasers, ), dtype=np.bool))
         self.max_distance = max_distance + max_span
 
     def update_mask(self, position_dict: dict, heading_dict: dict, is_target_vehicle_dict: dict):
@@ -119,7 +119,7 @@ class DistanceDetector:
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # detection result
-        self.cloud_points = np.ones((self.num_lasers,), dtype=float)
+        self.cloud_points = np.ones((self.num_lasers, ), dtype=float)
         self.detected_objects = []
 
         # override these properties to decide which elements to detect and show
@@ -141,8 +141,14 @@ class DistanceDetector:
                 ball.getChildren().reparentTo(laser_np)
             # self.node_path.flattenStrong()
 
-    def perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None,
-                 detector_mask: np.ndarray = None):
+    def perceive(
+        self,
+        vehicle_position,
+        heading_theta,
+        pg_physics_world,
+        extra_filter_node: set = None,
+        detector_mask: np.ndarray = None
+    ):
         """
         Call me to update the perception info
         """
@@ -171,7 +177,6 @@ class DistanceDetector:
                     laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
                     self._add_cloud_point_vis(laser_index, laser_end)
                 continue
-
 
             laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
             result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)

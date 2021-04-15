@@ -210,7 +210,6 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-
     # env = PGDriveEnvV2({'use_render': True, "fast": True, "manual_control": True})
     env = PGDriveEnvV2()
     try:
