@@ -16,10 +16,10 @@ class DetectorMask:
         self.num_lasers = num_lasers
         self.angle_delta = 360 / self.num_lasers
         self.max_span = max_span
-        self.half_max_span_square = (max_span / 2) ** 2
-        self.masks = defaultdict(lambda: np.zeros((self.num_lasers,), dtype=np.bool))
+        self.half_max_span_square = (max_span / 2)**2
+        self.masks = defaultdict(lambda: np.zeros((self.num_lasers, ), dtype=np.bool))
         self.max_distance = max_distance + max_span
-        self.max_distance_square = self.max_distance ** 2
+        self.max_distance_square = self.max_distance**2
 
     def update_mask(self, position_dict: dict, heading_dict: dict, is_target_vehicle_dict: dict):
         assert set(position_dict.keys()) == set(heading_dict.keys())
@@ -39,7 +39,7 @@ class DetectorMask:
                 head2 = heading_dict[k2]
 
                 diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
-                dist_square = diff[0] ** 2 + diff[1] ** 2
+                dist_square = diff[0]**2 + diff[1]**2
                 if dist_square < self.half_max_span_square:
                     self._mark_all(k1)
                     self._mark_all(k2)
@@ -131,7 +131,7 @@ class DistanceDetector:
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # detection result
-        self.cloud_points = np.ones((self.num_lasers,), dtype=float)
+        self.cloud_points = np.ones((self.num_lasers, ), dtype=float)
         self.detected_objects = []
 
         # override these properties to decide which elements to detect and show
@@ -154,12 +154,12 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
     def perceive(
-            self,
-            vehicle_position,
-            heading_theta,
-            pg_physics_world,
-            extra_filter_node: set = None,
-            detector_mask: np.ndarray = None
+        self,
+        vehicle_position,
+        heading_theta,
+        pg_physics_world,
+        extra_filter_node: set = None,
+        detector_mask: np.ndarray = None
     ):
         """
         Call me to update the perception info
