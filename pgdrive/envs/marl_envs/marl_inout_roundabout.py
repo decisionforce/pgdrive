@@ -2,16 +2,18 @@ import copy
 import logging
 from math import floor
 
+import gym
 import numpy as np
 from gym.spaces import Box
-
-from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
+from pgdrive.obs import ObservationType
+from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils import get_np_random, PGConfig, distance_greater
+from pgdrive.utils import get_np_random, distance_greater, norm, PGConfig
 
 MARoundaboutConfig = {
     "num_agents": 2,  # Number of maximum agents in the scenarios.
@@ -49,6 +51,7 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
+
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -192,7 +195,7 @@ class BornPlaceManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -251,6 +254,76 @@ class BornPlaceManager:
             if not self.mapping[bid]:  # empty
                 ret[bid] = self.safe_born_places[bid]
         return ret
+
+
+class LidarStateObservationMARound(ObservationType):
+    def __init__(self, vehicle_config):
+        self.state_obs = StateObservation(vehicle_config)
+        super(LidarStateObservationMARound, self).__init__(vehicle_config)
+        self.state_length = list(self.state_obs.observation_space.shape)[0]
+
+    @property
+    def observation_space(self):
+        shape = list(self.state_obs.observation_space.shape)
+        if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
+            # Number of lidar rays and distance should be positive!
+            shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * self.state_length
+        return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
+
+    def observe(self, vehicle):
+        """
+        State observation + Navi info + 4 * closest vehicle info + Lidar points ,
+        Definition of State Observation and Navi information can be found in **class StateObservation**
+        Other vehicles' info: [
+                              Projection of distance between ego and another vehicle on ego vehicle's heading direction,
+                              Projection of distance between ego and another vehicle on ego vehicle's side direction,
+                              Projection of speed between ego and another vehicle on ego vehicle's heading direction,
+                              Projection of speed between ego and another vehicle on ego vehicle's side direction,
+                              ] * 4, dim = 16
+
+        Lidar points: 240 lidar points surrounding vehicle, starting from the vehicle head in clockwise direction
+
+        :param vehicle: BaseVehicle
+        :return: observation in 9 + 10 + 16 + 240 dim
+        """
+        num_others = self.config["lidar"]["num_others"]
+        state = self.state_observe(vehicle)
+        other_v_info = []
+        if vehicle.lidar is not None:
+            if self.config["lidar"]["num_others"] > 0:
+                # other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
+                surrounding_vehicles = list(vehicle.lidar.get_surrounding_vehicles())
+                surrounding_vehicles.sort(
+                    key=lambda v: norm(vehicle.position[0] - v.position[0], vehicle.position[1] - v.position[1])
+                )
+                surrounding_vehicles += [None] * num_others
+                for tmp_v in surrounding_vehicles[:num_others]:
+                    if tmp_v is not None:
+                        tmp_v = tmp_v.get_vehicle()
+                        other_v_info += self.state_observe(tmp_v).tolist()
+                    else:
+                        other_v_info += [0] * self.state_length
+            other_v_info += self._add_noise_to_cloud_points(
+                vehicle.lidar.get_cloud_points(),
+                gaussian_noise=self.config["lidar"]["gaussian_noise"],
+                dropout_prob=self.config["lidar"]["dropout_prob"]
+            )
+        return np.concatenate((state, np.asarray(other_v_info)))
+
+    def state_observe(self, vehicle):
+        return self.state_obs.observe(vehicle)
+
+    def _add_noise_to_cloud_points(self, points, gaussian_noise, dropout_prob):
+        if gaussian_noise > 0.0:
+            points = np.asarray(points)
+            points = np.clip(points + np.random.normal(loc=0.0, scale=gaussian_noise, size=points.shape), 0.0, 1.0)
+
+        if dropout_prob > 0.0:
+            assert dropout_prob <= 1.0
+            points = np.asarray(points)
+            points[np.random.uniform(0, 1, size=points.shape) < dropout_prob] = 0.0
+
+        return list(points)
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
@@ -383,8 +456,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -468,6 +541,9 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self._update_destination_for(v)
         v.update_state(detector_mask=None)
         return bp_index
+
+    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+        return LidarStateObservationMARound(vehicle_config)
 
 
 def _draw():
@@ -654,5 +730,5 @@ def _long_run():
 if __name__ == "__main__":
     # _draw()
     # _vis()
-    _profile()
-    # _long_run()
+    # _profile()
+    _long_run()
