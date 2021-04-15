@@ -17,8 +17,9 @@ def vis_big(debug: bool = False, block_type_version="v1", random_seed=None):
     initialize_asset_loader(test)
     global_network = RoadNetwork()
 
-    big = BIG(2, 3.5, global_network, test.render, test.world, random_seed=random_seed,
-              block_type_version=block_type_version)
+    big = BIG(
+        2, 3.5, global_network, test.render, test.world, random_seed=random_seed, block_type_version=block_type_version
+    )
     test.vis_big(big)
     test.big.block_num = 40
     # big.generate(BigGenerateMethod.BLOCK_NUM, 10)
