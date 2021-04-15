@@ -199,12 +199,14 @@ class PGDriveEnv(BasePGDriveEnv):
         self.pg_world.accept("q", self.chase_another_v)
 
         # setup the detector mask
-        v = next(iter(self.vehicles.values()))
-        self.scene_manager.detector_mask = DetectorMask(
-            num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
-            max_distance=self.config["vehicle_config"]["lidar"]["distance"],
-            max_span=2 * max(v.WIDTH, v.LENGTH)
-        )
+
+        if any([v.lidar is not None for v in self.vehicles.values()]):
+            v = next(iter(self.vehicles.values()))
+            self.scene_manager.detector_mask = DetectorMask(
+                num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
+                max_distance=self.config["vehicle_config"]["lidar"]["distance"],
+                max_span=2 * max(v.WIDTH, v.LENGTH)
+            )
 
     def _get_observations(self):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}

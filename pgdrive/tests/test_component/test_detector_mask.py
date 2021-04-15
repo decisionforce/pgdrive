@@ -129,7 +129,7 @@ def test_detector_mask():
 
 
 def test_detector_mask_in_lidar():
-    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSS"})
+    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSSSS", "random_traffic": False})
     try:
         env.reset()
         span = 2 * max(env.vehicle.WIDTH, env.vehicle.LENGTH)
@@ -139,6 +139,8 @@ def test_detector_mask_in_lidar():
         ep_count = 0
         for _ in range(3000):
             o, r, d, i = env.step([0, 1])
+
+            print("We have: {} vehicles!".format(env.scene_manager.traffic_mgr.get_vehicle_num()))
 
             v = env.vehicle
             v.lidar.perceive(
@@ -165,6 +167,8 @@ def test_detector_mask_in_lidar():
             real_mask = old_cloud_points != 1.0
             mask = detector_mask.get_mask(env.vehicle.name)
             stack = np.stack([old_cloud_points, real_mask, mask])
+            if not all(mask[real_mask]):
+                print('stop')
             assert all(mask[real_mask])  # mask 1 should at least include all True of real mask.
 
             print(
@@ -196,5 +200,5 @@ def test_detector_mask_in_lidar():
 
 
 if __name__ == '__main__':
-    test_detector_mask()
+    # test_detector_mask()
     test_detector_mask_in_lidar()

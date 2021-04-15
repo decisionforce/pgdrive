@@ -15,19 +15,19 @@ class DetectorMask:
     def __init__(self, num_lasers: int, max_span: float, max_distance: float = 1e6):
         self.num_lasers = num_lasers
         self.angle_delta = 360 / self.num_lasers
-        self.max_span = max_span
+        # self.max_span = max_span
         self.half_max_span_square = (max_span / 2)**2
         self.masks = defaultdict(lambda: np.zeros((self.num_lasers, ), dtype=np.bool))
-        self.max_distance = max_distance + max_span
-        self.max_distance_square = self.max_distance**2
+        # self.max_distance = max_distance + max_span
+        self.max_distance_square = (max_distance + max_span) ** 2
 
     def update_mask(self, position_dict: dict, heading_dict: dict, is_target_vehicle_dict: dict):
-        assert set(position_dict.keys()) == set(heading_dict.keys())
+        assert set(position_dict.keys()) == set(heading_dict.keys()) == set(is_target_vehicle_dict.keys())
+        assert len(position_dict) > 0
         for k in self.masks.keys():
             self.masks[k].fill(False)
         keys = list(position_dict.keys())
-        for c1, k1 in enumerate(keys):
-            # for c2, k2 in enumerate(keys[c1 + 1:]):
+        for c1, k1 in enumerate(keys[:-1]):
             for c2, k2 in enumerate(keys[c1 + 1:]):
 
                 if (not is_target_vehicle_dict[k1]) and (not is_target_vehicle_dict[k2]):
@@ -41,13 +41,17 @@ class DetectorMask:
                 diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
                 dist_square = diff[0]**2 + diff[1]**2
                 if dist_square < self.half_max_span_square:
-                    self._mark_all(k1)
-                    self._mark_all(k2)
+                    if is_target_vehicle_dict[k1]:
+                        self._mark_all(k1)
+                    if is_target_vehicle_dict[k2]:
+                        self._mark_all(k2)
                     continue
 
                 if dist_square > self.max_distance_square:
-                    self._mark_none(k1)
-                    self._mark_none(k2)
+                    if is_target_vehicle_dict[k1] and k1 not in self.masks:
+                        self._mark_none(k1)
+                    if is_target_vehicle_dict[k2] and k2 not in self.masks:
+                        self._mark_none(k2)
                     continue
 
                 span = None
@@ -186,17 +190,11 @@ class DistanceDetector:
             if (detector_mask is not None) and (not detector_mask[laser_index]):
                 # update vis
                 if self.cloud_points_vis is not None:
-                    point_x = self.perceive_distance * math.cos(self._lidar_range[laser_index] + heading_theta)
-                    point_y = self.perceive_distance * math.sin(self._lidar_range[laser_index] + heading_theta)
-                    # laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
-                    laser_end = panda_position((point_x, point_y), self.height)
+                    laser_end = self._get_laser_end(laser_index, heading_theta, vehicle_position)
                     self._add_cloud_point_vis(laser_index, laser_end)
                 continue
 
-            point_x = self.perceive_distance * math.cos(self._lidar_range[laser_index] + heading_theta)
-            point_y = self.perceive_distance * math.sin(self._lidar_range[laser_index] + heading_theta)
-            # laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
-            laser_end = panda_position((point_x, point_y), self.height)
+            laser_end = self._get_laser_end(laser_index, heading_theta, vehicle_position)
             result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
             node = result.getNode()
             if node in extra_filter_node:
@@ -226,6 +224,14 @@ class DistanceDetector:
         self.cloud_points_vis[laser_index].setColor(
             f * self.MARK_COLOR[0], f * self.MARK_COLOR[1], f * self.MARK_COLOR[2]
         )
+
+    def _get_laser_end(self, laser_index, heading_theta, vehicle_position):
+        point_x = self.perceive_distance * math.cos(self._lidar_range[laser_index] + heading_theta) + \
+                  vehicle_position[0]
+        point_y = self.perceive_distance * math.sin(self._lidar_range[laser_index] + heading_theta) + \
+                  vehicle_position[1]
+        laser_end = panda_position((point_x, point_y), self.height)
+        return laser_end
 
     def get_cloud_points(self):
         return self.cloud_points.tolist()

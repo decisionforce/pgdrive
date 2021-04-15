@@ -180,6 +180,9 @@ class SceneManager:
 
     def update_state_for_all_target_vehicles(self):
         if self.detector_mask is not None:
+            a = set([v.name for v in self.traffic_mgr.vehicles])
+            b = set([v.name for v in self.target_vehicles.values()])
+            assert b.issubset(a)
             is_target_vehicle_dict = {v.name: self.traffic_mgr.is_target_vehicle(v) for v in self.traffic_mgr.vehicles}
             self.detector_mask.update_mask(
                 position_dict={v.name: v.position
