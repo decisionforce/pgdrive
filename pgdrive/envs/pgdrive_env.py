@@ -6,6 +6,7 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
@@ -43,6 +44,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     # ===== Observation =====
     use_topdown=False,  # Use top-down view
     use_image=False,
+    _disable_detector_mask=False,
 
     # ===== Traffic =====
     traffic_density=0.1,
@@ -200,7 +202,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         # setup the detector mask
 
-        if any([v.lidar is not None for v in self.vehicles.values()]):
+        if any([v.lidar is not None for v in self.vehicles.values()]) and (not self.config["_disable_detector_mask"]):
             v = next(iter(self.vehicles.values()))
             self.scene_manager.detector_mask = DetectorMask(
                 num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],

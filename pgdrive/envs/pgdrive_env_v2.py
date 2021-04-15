@@ -65,25 +65,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     def __init__(self, config: dict = None):
         super(PGDriveEnvV2, self).__init__(config=config)
-        # assert self.config["vehicle_config"]["lidar"]["num_others"] == 0
-        # assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
-
-        # from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
-        # span = np.sqrt(self.vehicle.WIDTH ** 2 + self.vehicle.LENGTH ** 2 + 1)
-        # self.detector_mask = DetectorMask(num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
-        #                                   max_span=span,
-        #                                   max_distance=self.config["vehicle_config"]["lidar"]["distance"])
-
-    # REMOVETHIS!!
-    def step(self, a):
-        ret = super(PGDriveEnvV2, self).step(a)
-        position_dict = {}
-        heading_dict = {}
-        for v in self.scene_manager.traffic_mgr.vehicles:
-            position_dict[v.name] = v.position
-            heading_dict[v.name] = v.heading_theta
-        # self.detector_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict)
-        return ret
 
     def _post_process_config(self, config):
         config = super(PGDriveEnvV2, self)._post_process_config(config)

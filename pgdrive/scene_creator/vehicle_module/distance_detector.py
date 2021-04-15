@@ -23,9 +23,16 @@ class DetectorMask:
 
     def update_mask(self, position_dict: dict, heading_dict: dict, is_target_vehicle_dict: dict):
         assert set(position_dict.keys()) == set(heading_dict.keys()) == set(is_target_vehicle_dict.keys())
-        assert len(position_dict) > 0
+        if not position_dict:
+            return
+
         for k in self.masks.keys():
             self.masks[k].fill(False)
+
+        for k, is_target in is_target_vehicle_dict.items():
+            if is_target:
+                self.masks[k]  # Touch to create entry
+
         keys = list(position_dict.keys())
         for c1, k1 in enumerate(keys[:-1]):
             for c2, k2 in enumerate(keys[c1 + 1:]):
@@ -48,10 +55,6 @@ class DetectorMask:
                     continue
 
                 if dist_square > self.max_distance_square:
-                    if is_target_vehicle_dict[k1] and k1 not in self.masks:
-                        self._mark_none(k1)
-                    if is_target_vehicle_dict[k2] and k2 not in self.masks:
-                        self._mark_none(k2)
                     continue
 
                 span = None
@@ -98,9 +101,6 @@ class DetectorMask:
 
     def _mark_all(self, name):
         self.masks[name].fill(True)
-
-    def _mark_none(self, name):
-        self.masks[name].fill(False)
 
     def get_mask(self, name):
         assert name in self.masks, "It seems that you have not initialized the mask for vehicle {} yet!".format(name)

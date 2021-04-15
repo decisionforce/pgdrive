@@ -89,6 +89,8 @@ class SceneManager:
             )
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
+            logging.warning("You are replaying episodes! Delete detector mask!")
+            self.detector_mask = None
 
         # if pg_world.highway_render is not None:
         #     pg_world.highway_render.set_scene_mgr(self)
@@ -180,9 +182,9 @@ class SceneManager:
 
     def update_state_for_all_target_vehicles(self):
         if self.detector_mask is not None:
-            a = set([v.name for v in self.traffic_mgr.vehicles])
-            b = set([v.name for v in self.target_vehicles.values()])
-            assert b.issubset(a)
+            # a = set([v.name for v in self.traffic_mgr.vehicles])
+            # b = set([v.name for v in self.target_vehicles.values()])
+            # assert b.issubset(a)  # This may only happen during episode replays!
             is_target_vehicle_dict = {v.name: self.traffic_mgr.is_target_vehicle(v) for v in self.traffic_mgr.vehicles}
             self.detector_mask.update_mask(
                 position_dict={v.name: v.position
@@ -192,7 +194,7 @@ class SceneManager:
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.for_each_target_vehicle(
-            lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name))
+            lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None)
         )
         return step_infos
 
