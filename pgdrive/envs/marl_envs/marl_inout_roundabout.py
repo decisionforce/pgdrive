@@ -574,11 +574,15 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentRoundaboutEnv({"num_agents": 16})
+    env = MultiAgentRoundaboutEnv({"num_agents": 40})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
         o, r, d, i = env.step(env.action_space.sample())
+
+        # mask_ratio = env.scene_manager.detector_mask.get_mask_ratio()
+        # print("Mask ratio: ", mask_ratio)
+
         if all(d.values()):
             env.reset()
         if (s + 1) % 100 == 0:

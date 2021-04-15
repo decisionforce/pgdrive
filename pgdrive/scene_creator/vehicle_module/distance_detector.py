@@ -109,6 +109,14 @@ class DetectorMask:
     def clear(self):
         self.masks.clear()
 
+    def get_mask_ratio(self):
+        total = 0
+        masked = 0
+        for k, v in self.masks.items():
+            total += v.size
+            masked += v.sum()
+        return masked / total
+
 
 class DistanceDetector:
     """
