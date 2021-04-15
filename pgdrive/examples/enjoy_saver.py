@@ -1,11 +1,10 @@
-from pgdrive.envs.pgdrive_env import PGDriveEnv
+from pgdrive.envs.pgdrive_env import PGDriveEnvV2
 
 if __name__ == "__main__":
-    env = PGDriveEnv(
+    env = PGDriveEnvV2(
         {
             "environment_num": 1,
             "traffic_density": 0.3,
-            "traffic_mode": "reborn",
             "start_seed": 5,
             # "controller": "joystick",
             "manual_control": True,
