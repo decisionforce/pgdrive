@@ -32,7 +32,7 @@ def _line_intersect(theta, center, point1, point2, maximum: float = 10000):
 
 
 def _search_angle(point1, point2, num_lasers, start, heading, perceive_distance: float = 50):
-    laser_heading = -np.arange(0, num_lasers) * 2 * np.pi / num_lasers + heading
+    laser_heading = np.arange(0, num_lasers) * 2 * np.pi / num_lasers + heading
     result = []
     for laser_index in range(num_lasers):
         ret = _line_intersect(theta=laser_heading[laser_index], center=start, point1=point1, point2=point2, maximum=1e8)
@@ -60,6 +60,10 @@ def _test_mask(mask, stick_1_heading_deg, stick_2_heading_deg, max_span, stick1_
         heading_dict={
             "stick1": stick_1_heading,
             "stick2": stick_2_heading
+        },
+        is_target_vehicle_dict={
+            "stick1": True,
+            "stick2": True
         }
     )
     mask_1 = mask.get_mask("stick1")
@@ -78,7 +82,8 @@ def _test_mask(mask, stick_1_heading_deg, stick_2_heading_deg, max_span, stick1_
     ) < 1.0
     res = np.stack([real_mask_1, mask_1])
     assert all(mask_1[real_mask_1])  # mask 1 should at least include all True of real mask.
-    assert sum(abs(mask_1.astype(int) - real_mask_1.astype(int))) <= 3
+    if abs(stick1_x - stick2_x) > max_span:
+        assert sum(abs(mask_1.astype(int) - real_mask_1.astype(int))) <= 3
 
     left_of_stick1 = (stick1_pos[0], -max_span / 2)
     right_of_stick1 = (stick1_pos[0], max_span / 2)
@@ -93,7 +98,8 @@ def _test_mask(mask, stick_1_heading_deg, stick_2_heading_deg, max_span, stick1_
     ) < 1.0
     res2 = np.stack([real_mask_2, mask_2])
     assert all(mask_2[real_mask_2])  # mask 1 should at least include all True of real mask.
-    assert sum(abs(mask_2.astype(int) - real_mask_2.astype(int))) <= 3
+    if abs(stick1_x - stick2_x) > max_span:
+        assert sum(abs(mask_2.astype(int) - real_mask_2.astype(int))) <= 3
 
 
 def test_detector_mask():
@@ -123,12 +129,16 @@ def test_detector_mask():
 
 
 def test_detector_mask_in_lidar():
-    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSS"})
+    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSS",
+                        # "use_render": True, "fast": True
+                        })
     try:
         env.reset()
-        span = np.sqrt(env.vehicle.WIDTH ** 2 + env.vehicle.LENGTH ** 2 + 1)
-        lidar_mask = DetectorMask(env.config.vehicle_config.lidar.num_lasers, span,
-                                  max_distance=env.config.vehicle_config.lidar.distance)
+        span = 2 * max(env.vehicle.WIDTH, env.vehicle.LENGTH)
+        lidar_mask = DetectorMask(
+            env.config.vehicle_config.lidar.num_lasers, span,
+            max_distance=env.config.vehicle_config.lidar.distance
+        )
         ep_count = 0
         for _ in range(3000):
             o, r, d, i = env.step([0, 1])
@@ -150,6 +160,7 @@ def test_detector_mask_in_lidar():
                 position_dict[v.name] = v.position
                 heading_dict[v.name] = v.heading_theta
                 is_target_vehicle_dict[v.name] = True if isinstance(v, BaseVehicle) else False
+
             lidar_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict,
                                    is_target_vehicle_dict=is_target_vehicle_dict)
 

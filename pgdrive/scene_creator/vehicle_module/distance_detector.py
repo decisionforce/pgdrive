@@ -12,9 +12,10 @@ from pgdrive.utils.coordinates_shift import panda_position
 
 
 class DetectorMask:
-    def __init__(self, num_lasers: int, max_span: float, max_distance: float):
+    def __init__(self, num_lasers: int, max_span: float, max_distance: float = 1e6):
         self.num_lasers = num_lasers
         self.angle_delta = 360 / self.num_lasers
+        self.max_span = max_span
         self.half_max_span = max_span / 2
         self.masks = defaultdict(lambda: np.zeros((self.num_lasers,), dtype=np.bool))
         self.max_distance = max_distance + max_span
@@ -27,6 +28,10 @@ class DetectorMask:
         for c1, k1 in enumerate(keys):
             # for c2, k2 in enumerate(keys[c1 + 1:]):
             for c2, k2 in enumerate(keys[c1 + 1:]):
+
+                if (not is_target_vehicle_dict[k1]) and (not is_target_vehicle_dict[k2]):
+                    continue
+
                 pos1 = position_dict[k1]
                 pos2 = position_dict[k2]
                 head1 = heading_dict[k1]
@@ -34,7 +39,7 @@ class DetectorMask:
 
                 diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
                 dist = norm(diff[0], diff[1])
-                if dist < 1e-2:
+                if dist < self.half_max_span:
                     self._mark_all(k1)
                     self._mark_all(k2)
                     continue
@@ -42,11 +47,11 @@ class DetectorMask:
                 if dist > self.max_distance:
                     continue
 
+                span = math.asin(self.half_max_span / dist)
                 if is_target_vehicle_dict[k1]:
                     # relative heading of v2's center when compared to v1's center
                     relative_head = math.atan2(diff[1], diff[0])
                     head_in_1 = relative_head - head1
-                    span = math.atan2(self.half_max_span, dist)
                     head_in_1_max = head_in_1 + span
                     head_in_1_min = head_in_1 - span
                     head_1_max = np.rad2deg(head_in_1_max)
@@ -74,7 +79,7 @@ class DetectorMask:
         assert 0 <= large_angle <= 360
 
         # Unfortunately, we use the lidar in counterclockwise. So we need to first change the angles.
-        large_angle, small_angle = 360 - small_angle, 360 - large_angle
+        # large_angle, small_angle = 360 - small_angle, 360 - large_angle
 
         small_index = math.floor(small_angle / self.angle_delta)
         large_index = math.ceil(large_angle / self.angle_delta)
@@ -170,6 +175,7 @@ class DistanceDetector:
                     laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
                     self._add_cloud_point_vis(laser_index, laser_end)
                 continue
+
 
             laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
             result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
