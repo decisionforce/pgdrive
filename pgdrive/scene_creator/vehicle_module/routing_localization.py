@@ -16,9 +16,6 @@ from pgdrive.utils.scene_utils import ray_localization
 
 class RoutingLocalizationModule:
     navigation_info_dim = 10
-    """
-    It is necessary to interactive with other traffic vehicles
-    """
     NAVI_POINT_DIST = 50
     PRE_NOTIFY_DIST = 40
     MARK_COLOR = COLLISION_INFO_COLOR["green"][1]
@@ -28,7 +25,8 @@ class RoutingLocalizationModule:
 
     def __init__(self, pg_world, show_navi_mark: bool = False):
         """
-        It now only support from first block start to the end node, but can be extended easily
+        This class define a helper for localizing vehicles and retrieving navigation information.
+        It now only support from first block start to the end node, but can be extended easily.
         """
         self.map = None
         self.final_road = None
