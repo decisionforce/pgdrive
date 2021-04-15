@@ -6,6 +6,7 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
@@ -13,7 +14,7 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.traffic_manager import TrafficMode
-from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos
+from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos, _is_developer
 from pgdrive.world.chase_camera import ChaseCamera
 from pgdrive.world.manual_controller import KeyboardController, JoystickController
 from pgdrive.world.pg_world import PGWorld
@@ -149,7 +150,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 "use_image": config["use_image"],
                 "debug": config["debug"],
                 "decision_repeat": config["decision_repeat"],
-                "fast_launch_window": config["fast"]
+                "fast_launch_window": config["fast"] or _is_developer()
             }
         )
         config["vehicle_config"].update(
@@ -342,7 +343,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -600,6 +601,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
