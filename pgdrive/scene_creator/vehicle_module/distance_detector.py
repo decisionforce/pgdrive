@@ -5,8 +5,8 @@ from collections import defaultdict
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletAllHitsRayResult
 from panda3d.core import BitMask32, NodePath
+
 from pgdrive.constants import CamMask, CollisionGroup
-from pgdrive.utils import norm
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
 
@@ -16,9 +16,10 @@ class DetectorMask:
         self.num_lasers = num_lasers
         self.angle_delta = 360 / self.num_lasers
         self.max_span = max_span
-        self.half_max_span = max_span / 2
-        self.masks = defaultdict(lambda: np.zeros((self.num_lasers, ), dtype=np.bool))
+        self.half_max_span_square = (max_span / 2) ** 2
+        self.masks = defaultdict(lambda: np.zeros((self.num_lasers,), dtype=np.bool))
         self.max_distance = max_distance + max_span
+        self.max_distance_square = self.max_distance ** 2
 
     def update_mask(self, position_dict: dict, heading_dict: dict, is_target_vehicle_dict: dict):
         assert set(position_dict.keys()) == set(heading_dict.keys())
@@ -38,19 +39,20 @@ class DetectorMask:
                 head2 = heading_dict[k2]
 
                 diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
-                dist = norm(diff[0], diff[1])
-                if dist < self.half_max_span:
+                dist_square = diff[0] ** 2 + diff[1] ** 2
+                if dist_square < self.half_max_span_square:
                     self._mark_all(k1)
                     self._mark_all(k2)
                     continue
 
-                if dist > self.max_distance:
+                if dist_square > self.max_distance_square:
                     self._mark_none(k1)
                     self._mark_none(k2)
                     continue
 
-                span = math.asin(self.half_max_span / dist)
+                span = None
                 if is_target_vehicle_dict[k1]:
+                    span = math.asin(math.sqrt(self.half_max_span_square / dist_square))
                     # relative heading of v2's center when compared to v1's center
                     relative_head = math.atan2(diff[1], diff[0])
                     head_in_1 = relative_head - head1
@@ -61,6 +63,8 @@ class DetectorMask:
                     self._mark_this_range(head_1_min, head_1_max, name=k1)
 
                 if is_target_vehicle_dict[k2]:
+                    if span is None:
+                        span = math.asin(math.sqrt(self.half_max_span_square / dist_square))
                     diff2 = (-diff[0], -diff[1])
                     # relative heading of v2's center when compared to v1's center
                     relative_head2 = math.atan2(diff2[1], diff2[0])
@@ -127,7 +131,7 @@ class DistanceDetector:
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # detection result
-        self.cloud_points = np.ones((self.num_lasers, ), dtype=float)
+        self.cloud_points = np.ones((self.num_lasers,), dtype=float)
         self.detected_objects = []
 
         # override these properties to decide which elements to detect and show
@@ -150,12 +154,12 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
     def perceive(
-        self,
-        vehicle_position,
-        heading_theta,
-        pg_physics_world,
-        extra_filter_node: set = None,
-        detector_mask: np.ndarray = None
+            self,
+            vehicle_position,
+            heading_theta,
+            pg_physics_world,
+            extra_filter_node: set = None,
+            detector_mask: np.ndarray = None
     ):
         """
         Call me to update the perception info
