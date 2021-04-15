@@ -180,13 +180,13 @@ def test_ma_intersection_reset():
                     new_loc = v.routing_localization.final_lane.end
                     long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
                     flag1 = (
-                            v.routing_localization.final_lane.length - 5 < long <
-                            v.routing_localization.final_lane.length + 5
+                        v.routing_localization.final_lane.length - 5 < long <
+                        v.routing_localization.final_lane.length + 5
                     )
                     flag2 = (
-                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
-                            (0.5 - v.routing_localization.get_current_lane_num()) *
-                            v.routing_localization.get_current_lane_width()
+                        v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                        (0.5 - v.routing_localization.get_current_lane_num()) *
+                        v.routing_localization.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -348,7 +348,6 @@ def test_ma_intersection_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
-
     class TestEnv(MultiAgentIntersectPGDrive):
         _reborn_count = 0
 
