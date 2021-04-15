@@ -287,13 +287,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            bird_camera_height = 160
+            bird_camera_height = 120
             self.main_camera.camera.setPos(0, 0, bird_camera_height)
             self.main_camera.bird_camera_height = bird_camera_height
             self.main_camera.stop_chase(self.pg_world)
             # self.main_camera.camera.setPos(300, 20, bird_camera_height)
-            self.main_camera.camera_x += 100
-            self.main_camera.camera_y += 20
+            self.main_camera.camera_x += 95
+            self.main_camera.camera_y += 15
 
     def _process_extra_config(self, config):
         config = super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
@@ -533,7 +533,7 @@ def _vis():
             "horizon": 100,
             "vehicle_config": {
                 "lidar": {
-                    "num_lasers": 72,
+                    "num_lasers": 1,
                     "num_others": 0,
                     "distance": 40
                 },
@@ -543,7 +543,7 @@ def _vis():
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 100,
+            "num_agents": 40,
         }
     )
     o = env.reset()
@@ -554,15 +554,17 @@ def _vis():
         for r_ in r.values():
             total_r += r_
         ep_s += 1
-        d.update({"total_r": total_r, "episode length": ep_s})
-        env.render(text=d)
+        # d.update({"total_r": total_r, "episode length": ep_s})
+        render_text = {"total_r": total_r, "episode length": ep_s, "cam_x": env.main_camera.camera_x,
+                       "cam_y": env.main_camera.camera_y, "cam_z": env.main_camera.bird_camera_height}
+        env.render(text=render_text)
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
                     i, total_r, total_r / env.target_vehicle_manager.next_agent_count
                 )
             )
-            break
+            # break
         if len(env.vehicles) == 0:
             total_r = 0
             print("Reset")
