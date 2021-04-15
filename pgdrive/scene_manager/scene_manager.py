@@ -18,15 +18,16 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(
-        self,
-        config,
-        pg_world: PGWorld,
-        traffic_config: Union[Dict, "PGConfig"],
-        # traffic_mode=TrafficMode.Trigger,
-        # random_traffic: bool = False,
-        record_episode: bool = False,
-        cull_scene: bool = True,
+            self,
+            config,
+            pg_world: PGWorld,
+            traffic_config: Union[Dict, "PGConfig"],
+            # traffic_mode=TrafficMode.Trigger,
+            # random_traffic: bool = False,
+            record_episode: bool = False,
+            cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -71,6 +72,8 @@ class SceneManager:
         # FIXME
         self.traffic_mgr.reset(pg_world, map, target_vehicles, traffic_density)
         self.objects_mgr.reset(pg_world, map, accident_prob)
+        if self.detector_mask is not None:
+            self.detector_mask.clear()
 
         if self.replay_system is not None:
             self.replay_system.destroy(pg_world)
@@ -178,15 +181,11 @@ class SceneManager:
 
     def update_state_for_all_target_vehicles(self):
         if self.detector_mask is not None:
+            is_target_vehicle_dict = {v.name: self.traffic_mgr.is_target_vehicle(v) for v in self.traffic_mgr.vehicles}
             self.detector_mask.update_mask(
-                position_dict={v.name: v.position
-                               for v in self.traffic_mgr.vehicles},
-                heading_dict={v.name: v.heading_theta
-                              for v in self.traffic_mgr.vehicles},
-                is_target_vehicle_dict={
-                    v.name: self.traffic_mgr.is_target_vehicle(v)
-                    for v in self.traffic_mgr.vehicles
-                }
+                position_dict={v.name: v.position for v in self.traffic_mgr.vehicles},
+                heading_dict={v.name: v.heading_theta for v in self.traffic_mgr.vehicles},
+                is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.for_each_target_vehicle(
             lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name))
