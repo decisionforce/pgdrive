@@ -18,16 +18,15 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
     def __init__(
-            self,
-            config,
-            pg_world: PGWorld,
-            traffic_config: Union[Dict, "PGConfig"],
-            # traffic_mode=TrafficMode.Trigger,
-            # random_traffic: bool = False,
-            record_episode: bool = False,
-            cull_scene: bool = True,
+        self,
+        config,
+        pg_world: PGWorld,
+        traffic_config: Union[Dict, "PGConfig"],
+        # traffic_mode=TrafficMode.Trigger,
+        # random_traffic: bool = False,
+        record_episode: bool = False,
+        cull_scene: bool = True,
     ):
         """
         :param traffic_mode: reborn/trigger mode
@@ -183,8 +182,10 @@ class SceneManager:
         if self.detector_mask is not None:
             is_target_vehicle_dict = {v.name: self.traffic_mgr.is_target_vehicle(v) for v in self.traffic_mgr.vehicles}
             self.detector_mask.update_mask(
-                position_dict={v.name: v.position for v in self.traffic_mgr.vehicles},
-                heading_dict={v.name: v.heading_theta for v in self.traffic_mgr.vehicles},
+                position_dict={v.name: v.position
+                               for v in self.traffic_mgr.vehicles},
+                heading_dict={v.name: v.heading_theta
+                              for v in self.traffic_mgr.vehicles},
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.for_each_target_vehicle(

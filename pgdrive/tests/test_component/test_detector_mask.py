@@ -134,8 +134,7 @@ def test_detector_mask_in_lidar():
         env.reset()
         span = 2 * max(env.vehicle.WIDTH, env.vehicle.LENGTH)
         detector_mask = DetectorMask(
-            env.config.vehicle_config.lidar.num_lasers, span,
-            max_distance=env.config.vehicle_config.lidar.distance
+            env.config.vehicle_config.lidar.num_lasers, span, max_distance=env.config.vehicle_config.lidar.distance
         )
         ep_count = 0
         for _ in range(3000):
@@ -159,18 +158,21 @@ def test_detector_mask_in_lidar():
                 heading_dict[v.name] = v.heading_theta
                 is_target_vehicle_dict[v.name] = True if isinstance(v, BaseVehicle) else False
 
-            detector_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict,
-                                      is_target_vehicle_dict=is_target_vehicle_dict)
+            detector_mask.update_mask(
+                position_dict=position_dict, heading_dict=heading_dict, is_target_vehicle_dict=is_target_vehicle_dict
+            )
 
             real_mask = old_cloud_points != 1.0
             mask = detector_mask.get_mask(env.vehicle.name)
             stack = np.stack([old_cloud_points, real_mask, mask])
             assert all(mask[real_mask])  # mask 1 should at least include all True of real mask.
 
-            print("Num of true in our mask: {}, in old mask: {}. Overlap: {}. We have {} more.".format(
-                sum(mask.astype(int)), sum(real_mask.astype(int)), sum(mask[real_mask].astype(int)),
-                sum(mask.astype(int)) - sum(real_mask.astype(int))
-            ))
+            print(
+                "Num of true in our mask: {}, in old mask: {}. Overlap: {}. We have {} more.".format(
+                    sum(mask.astype(int)), sum(real_mask.astype(int)), sum(mask[real_mask].astype(int)),
+                    sum(mask.astype(int)) - sum(real_mask.astype(int))
+                )
+            )
 
             # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
             v = env.vehicle

@@ -466,7 +466,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         v.vehicle_config.update(new_born_place_config)
         v.reset(self.current_map)
         self._update_destination_for(v)
-        v.update_state()
+        v.update_state(detector_mask=None)
         return bp_index
 
 
@@ -647,6 +647,6 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
-    # _profile()
+    # _vis()
+    _profile()
     # _long_run()
