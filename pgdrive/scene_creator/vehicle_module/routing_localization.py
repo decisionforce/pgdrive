@@ -8,8 +8,8 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
+from pgdrive.utils import clip, norm, get_np_random
 from pgdrive.utils.asset_loader import AssetLoader
-from pgdrive.utils.math_utils import clip, norm
 from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 
@@ -34,9 +34,9 @@ class RoutingLocalizationModule:
         self.final_road = None
         self.checkpoints = None
         self.final_lane = None
+        self.current_ref_lanes = None
         self._target_checkpoints_index = None
         self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
-        self.current_ref_lanes = None
 
         # Vis
         self._is_showing = True  # store the state of navigation mark
@@ -51,13 +51,13 @@ class RoutingLocalizationModule:
             navi_arrow_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "navi_arrow.gltf"))
             navi_arrow_model.setScale(0.1, 0.12, 0.2)
             navi_arrow_model.setPos(2, 1.15, -0.221)
-            self.left_arrow = self._arrow_node_path.attachNewNode("left arrow")
-            self.left_arrow.setP(180)
-            self.right_arrow = self._arrow_node_path.attachNewNode("right arrow")
-            self.left_arrow.setColor(self.MARK_COLOR)
-            self.right_arrow.setColor(self.MARK_COLOR)
-            navi_arrow_model.instanceTo(self.left_arrow)
-            navi_arrow_model.instanceTo(self.right_arrow)
+            self._left_arrow = self._arrow_node_path.attachNewNode("left arrow")
+            self._left_arrow.setP(180)
+            self._right_arrow = self._arrow_node_path.attachNewNode("right arrow")
+            self._left_arrow.setColor(self.MARK_COLOR)
+            self._right_arrow.setColor(self.MARK_COLOR)
+            navi_arrow_model.instanceTo(self._left_arrow)
+            navi_arrow_model.instanceTo(self._right_arrow)
             self._arrow_node_path.setPos(0, 0, 0.08)
             self._arrow_node_path.hide(BitMask32.allOn())
             self._arrow_node_path.show(CamMask.MainCam)
@@ -74,18 +74,14 @@ class RoutingLocalizationModule:
             self._goal_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
-    def update(self, map: Map, start_road_node=None, final_road_node=None):
+    def update(self, map: Map, start_road_node=None, final_road_node=None, random_seed=False):
         self.map = map
-
-        # TODO(pzh): I am not sure whether we should change the random state here.
-        #  If so, then the vehicle may have different final road in single map, this will avoid it from over-fitting
-        #  the map and memorize the routes.
         if start_road_node is None:
             start_road_node = FirstBlock.NODE_1
         if final_road_node is None:
-            # TODO This part should use global random engine!
-            final_road_node = np.random.RandomState(map.random_seed) \
-                .choice(map.blocks[-1].get_socket_list()).positive_road.end_node
+            random_seed = random_seed if random_seed is not False else map.random_seed
+            socket = get_np_random(random_seed).choice(map.blocks[-1].get_socket_list())
+            final_road_node = socket.positive_road.end_node
         self.set_route(start_road_node, final_road_node)
 
     def set_route(self, start_road_node: str, end_road_node: str):
@@ -105,19 +101,6 @@ class RoutingLocalizationModule:
         target_road_1_start = self.checkpoints[0]
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
-
-    # def get_navigate_landmarks(self, distance):
-    #     ret = []
-    #     for L in range(len(self.checkpoints) - 1):
-    #         start = self.checkpoints[L]
-    #         end = self.checkpoints[L + 1]
-    #         target_lanes = self.map.road_network.graph[start][end]
-    #         idx = self.get_current_lane_num() // 2 - 1
-    #         ref_lane = target_lanes[idx]
-    #         for tll in range(3, int(ref_lane.length), 3):
-    #             check_point = ref_lane.position(tll, 0)
-    #             ret.append([check_point[0], -check_point[1]])
-    #     return ret
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
@@ -196,8 +179,8 @@ class RoutingLocalizationModule:
         lane_1_heading = lanes_heading[1]
         if abs(lane_0_heading - lane_1_heading) < 0.01:
             if self._is_showing:
-                self.left_arrow.detachNode()
-                self.right_arrow.detachNode()
+                self._left_arrow.detachNode()
+                self._right_arrow.detachNode()
                 self._is_showing = False
         else:
             dir_0 = np.array([np.cos(lane_0_heading), np.sin(lane_0_heading), 0])
@@ -207,22 +190,20 @@ class RoutingLocalizationModule:
             if not self._is_showing:
                 self._is_showing = True
             if left:
-                if not self.left_arrow.hasParent():
-                    self.left_arrow.reparentTo(self._arrow_node_path)
-                if self.right_arrow.hasParent():
-                    self.right_arrow.detachNode()
+                if not self._left_arrow.hasParent():
+                    self._left_arrow.reparentTo(self._arrow_node_path)
+                if self._right_arrow.hasParent():
+                    self._right_arrow.detachNode()
             else:
-                if not self.right_arrow.hasParent():
-                    self.right_arrow.reparentTo(self._arrow_node_path)
-                if self.left_arrow.hasParent():
-                    self.left_arrow.detachNode()
+                if not self._right_arrow.hasParent():
+                    self._right_arrow.reparentTo(self._arrow_node_path)
+                if self._left_arrow.hasParent():
+                    self._left_arrow.detachNode()
 
     def _update_target_checkpoints(self, ego_lane_index, ego_lane_longitude):
         """
         Return should_update: True or False
         """
-        # print(current_road_start_point, self.vehicle.lane_index[1])
-        # print(self.checkpoints[self._target_checkpoints_index[0]], self.checkpoints[self._target_checkpoints_index[1]])
         if self._target_checkpoints_index[0] == self._target_checkpoints_index[1]:  # on last road
             return False
 
@@ -264,3 +245,16 @@ class RoutingLocalizationModule:
 
     def get_current_lane_num(self) -> float:
         return self.map.config[self.map.LANE_NUM]
+
+    # def get_navigate_landmarks(self, distance):
+    #     ret = []
+    #     for L in range(len(self.checkpoints) - 1):
+    #         start = self.checkpoints[L]
+    #         end = self.checkpoints[L + 1]
+    #         target_lanes = self.map.road_network.graph[start][end]
+    #         idx = self.get_current_lane_num() // 2 - 1
+    #         ref_lane = target_lanes[idx]
+    #         for tll in range(3, int(ref_lane.length), 3):
+    #             check_point = ref_lane.position(tll, 0)
+    #             ret.append([check_point[0], -check_point[1]])
+    #     return ret
