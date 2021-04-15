@@ -6,12 +6,14 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
+
 from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos
 from pgdrive.world.chase_camera import ChaseCamera
@@ -42,6 +44,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     # ===== Observation =====
     use_topdown=False,  # Use top-down view
     use_image=False,
+    _disable_detector_mask=False,
 
     # ===== Traffic =====
     traffic_density=0.1,
@@ -196,6 +199,16 @@ class PGDriveEnv(BasePGDriveEnv):
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.chase(self.current_track_vehicle, self.pg_world)
         self.pg_world.accept("q", self.chase_another_v)
+
+        # setup the detector mask
+
+        if any([v.lidar is not None for v in self.vehicles.values()]) and (not self.config["_disable_detector_mask"]):
+            v = next(iter(self.vehicles.values()))
+            self.scene_manager.detector_mask = DetectorMask(
+                num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
+                max_distance=self.config["vehicle_config"]["lidar"]["distance"],
+                max_span=2 * max(v.WIDTH, v.LENGTH)
+            )
 
     def _get_observations(self):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
@@ -374,7 +387,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _get_reset_return(self):
         ret = {}
-        self.for_each_vehicle(lambda v: v.update_state())
+        self.scene_manager.update_state_for_all_target_vehicles()
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
@@ -403,10 +416,14 @@ class PGDriveEnv(BasePGDriveEnv):
             self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
-        if force_seed is None:
-            self.current_seed = get_np_random().randint(self.start_seed, self.start_seed + self.env_num)
-        else:
+        if force_seed is not None:
             self.current_seed = force_seed
+        elif self._pending_force_seed is not None:
+            self.current_seed = self._pending_force_seed
+            self._pending_force_seed = None
+        else:
+            self.current_seed = get_np_random().randint(self.start_seed, self.start_seed + self.env_num)
+
         if self.maps.get(self.current_seed, None) is None:
 
             if self.config["load_map_from_json"]:

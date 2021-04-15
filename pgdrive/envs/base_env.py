@@ -7,7 +7,6 @@ from typing import Union, Dict, AnyStr, Optional, Tuple
 import gym
 import numpy as np
 from panda3d.core import PNMImage
-
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -119,6 +118,7 @@ class BasePGDriveEnv(gym.Env):
         self.episode_rewards = defaultdict(float)
         # In MARL envs with reborn mechanism, varying episode lengths might happen.
         self.episode_lengths = defaultdict(int)
+        self._pending_force_seed = None
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
@@ -149,7 +149,10 @@ class BasePGDriveEnv(gym.Env):
 
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
-        return SceneManager(self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"])
+        manager = SceneManager(
+            self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"]
+        )
+        return manager
 
     def lazy_init(self):
         """
@@ -369,4 +372,4 @@ class BasePGDriveEnv(gym.Env):
 
     def seed(self, seed=None):
         if seed:
-            self.reset(force_seed=seed)
+            self._pending_force_seed = seed
