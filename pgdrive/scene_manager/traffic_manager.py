@@ -40,6 +40,7 @@ class TrafficManager(RandomEngine):
         self.traffic_vehicles = None
         self.block_triggered_vehicles = None
         self._spawned_vehicles = []  # auto-destroy
+        self.is_target_vehicle_dict = {}
 
         # traffic property
         self.mode = traffic_mode
@@ -75,6 +76,9 @@ class TrafficManager(RandomEngine):
         # update vehicle list
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
         self.vehicles = list(self.target_vehicles.values())  # it is used to perform IDM and bicycle model based motion
+        for v in self.vehicles:
+            self.is_target_vehicle_dict[v.name] = True
+
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self.spawned_vehicles = []
 
@@ -175,6 +179,7 @@ class TrafficManager(RandomEngine):
         self._clear_traffic(pg_world)
 
         self.vehicles = []
+        self.is_target_vehicle_dict.clear()
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Reborn else None
         self.traffic_vehicles = deque()  # it is used to step all vehicles on scene
         self._spawned_vehicles = []
@@ -358,7 +363,7 @@ class TrafficManager(RandomEngine):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -434,3 +439,8 @@ class TrafficManager(RandomEngine):
 
     def __repr__(self):
         return self.vehicles.__repr__()
+
+    def is_target_vehicle(self, v):
+        if v.name in self.is_target_vehicle_dict and self.is_target_vehicle_dict[v.name]:
+            return True
+        return False

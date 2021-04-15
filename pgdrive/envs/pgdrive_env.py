@@ -12,6 +12,7 @@ from pgdrive.obs import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos
 from pgdrive.world.chase_camera import ChaseCamera
@@ -197,6 +198,14 @@ class PGDriveEnv(BasePGDriveEnv):
             self.main_camera.chase(self.current_track_vehicle, self.pg_world)
         self.pg_world.accept("q", self.chase_another_v)
 
+        # setup the detector mask
+        v = next(iter(self.vehicles.values()))
+        self.scene_manager.detector_mask = DetectorMask(
+            num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
+            max_distance=self.config["vehicle_config"]["lidar"]["distance"],
+            max_span=2 * max(v.WIDTH, v.LENGTH)
+        )
+
     def _get_observations(self):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
 
@@ -342,7 +351,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -374,7 +383,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _get_reset_return(self):
         ret = {}
-        self.for_each_vehicle(lambda v: v.update_state())
+        self.scene_manager.update_state_for_all_target_vehicles()
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
@@ -600,6 +609,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

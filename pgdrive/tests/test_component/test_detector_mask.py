@@ -129,13 +129,11 @@ def test_detector_mask():
 
 
 def test_detector_mask_in_lidar():
-    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSS",
-                        # "use_render": True, "fast": True
-                        })
+    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSS"})
     try:
         env.reset()
         span = 2 * max(env.vehicle.WIDTH, env.vehicle.LENGTH)
-        lidar_mask = DetectorMask(
+        detector_mask = DetectorMask(
             env.config.vehicle_config.lidar.num_lasers, span,
             max_distance=env.config.vehicle_config.lidar.distance
         )
@@ -149,7 +147,7 @@ def test_detector_mask_in_lidar():
                 v.heading_theta,
                 v.pg_world.physics_world.dynamic_world,
                 extra_filter_node={v.chassis_np.node()},
-                lidar_mask=None
+                detector_mask=None
             )
             old_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
 
@@ -161,11 +159,11 @@ def test_detector_mask_in_lidar():
                 heading_dict[v.name] = v.heading_theta
                 is_target_vehicle_dict[v.name] = True if isinstance(v, BaseVehicle) else False
 
-            lidar_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict,
+            detector_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict,
                                    is_target_vehicle_dict=is_target_vehicle_dict)
 
             real_mask = old_cloud_points != 1.0
-            mask = lidar_mask.get_mask(env.vehicle.name)
+            mask = detector_mask.get_mask(env.vehicle.name)
             stack = np.stack([old_cloud_points, real_mask, mask])
             assert all(mask[real_mask])  # mask 1 should at least include all True of real mask.
 
@@ -181,7 +179,7 @@ def test_detector_mask_in_lidar():
                 v.heading_theta,
                 v.pg_world.physics_world.dynamic_world,
                 extra_filter_node={v.chassis_np.node()},
-                lidar_mask=mask
+                detector_mask=mask
             )
             new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
             np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
@@ -196,5 +194,5 @@ def test_detector_mask_in_lidar():
 
 
 if __name__ == '__main__':
-    # test_detector_mask()
+    test_detector_mask()
     test_detector_mask_in_lidar()

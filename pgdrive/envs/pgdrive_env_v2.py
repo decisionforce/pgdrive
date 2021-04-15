@@ -194,7 +194,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     def _get_reset_return(self):
         ret = {}
-        self.for_each_vehicle(lambda v: v.update_state())
+        self.scene_manager.update_state_for_all_target_vehicles()
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)

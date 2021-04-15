@@ -78,9 +78,6 @@ class DetectorMask:
         assert 0 <= small_angle <= 360
         assert 0 <= large_angle <= 360
 
-        # Unfortunately, we use the lidar in counterclockwise. So we need to first change the angles.
-        # large_angle, small_angle = 360 - small_angle, 360 - large_angle
-
         small_index = math.floor(small_angle / self.angle_delta)
         large_index = math.ceil(large_angle / self.angle_delta)
         if large_angle < small_angle:  # We are in the case like small=355, large=5
@@ -93,6 +90,7 @@ class DetectorMask:
         self.masks[name].fill(True)
 
     def get_mask(self, name):
+        assert name in self.masks, "It seems that you have not initialized the mask for vehicle {} yet!".format(name)
         return self.masks[name]
 
 
@@ -109,9 +107,6 @@ class DistanceDetector:
 
     def __init__(self, parent_node_np: NodePath, num_lasers: int = 16, distance: float = 50, enable_show=False):
         # properties
-
-        # self.detector_mask = DetectorMask(num_lasers=num_lasers, max_span=10)
-
         assert num_lasers > 0
         show = enable_show and (AssetLoader.loader is not None)
         self.dim = num_lasers
@@ -147,10 +142,11 @@ class DistanceDetector:
             # self.node_path.flattenStrong()
 
     def perceive(self, vehicle_position, heading_theta, pg_physics_world, extra_filter_node: set = None,
-                 lidar_mask: np.ndarray = None):
+                 detector_mask: np.ndarray = None):
         """
         Call me to update the perception info
         """
+        assert detector_mask is not "WRONG"
         # coordinates problem here! take care
         extra_filter_node = extra_filter_node or set()
         pg_start_position = panda_position(vehicle_position, self.height)
@@ -169,7 +165,7 @@ class DistanceDetector:
         for laser_index in range(self.num_lasers):
             # # coordinates problem here! take care
 
-            if (lidar_mask is not None) and (not lidar_mask[laser_index]):
+            if (detector_mask is not None) and (not detector_mask[laser_index]):
                 # update vis
                 if self.cloud_points_vis is not None:
                     laser_end = panda_position((point_x[laser_index], point_y[laser_index]), self.height)
