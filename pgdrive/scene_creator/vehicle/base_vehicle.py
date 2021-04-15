@@ -567,7 +567,7 @@ class BaseVehicle(DynamicElement):
         assert distance > 0
         self.lidar = Lidar(self.pg_world.render, num_lasers, distance, show_lidar_point)
 
-    def add_routing_localization(self, show_navi_mark: bool=False):
+    def add_routing_localization(self, show_navi_mark: bool = False):
         self.routing_localization = RoutingLocalizationModule(self.pg_world, show_navi_mark=show_navi_mark)
 
     def update_map_info(self, map):
