@@ -140,6 +140,8 @@ def test_detector_mask_in_lidar():
         for _ in range(3000):
             o, r, d, i = env.step([0, 1])
 
+            mask_ratio = env.scene_manager.detector_mask.get_mask_ratio()
+            print("Mask ratio: ", mask_ratio)
             print("We have: {} vehicles!".format(env.scene_manager.traffic_mgr.get_vehicle_num()))
 
             v = env.vehicle
@@ -200,5 +202,5 @@ def test_detector_mask_in_lidar():
 
 
 if __name__ == '__main__':
-    # test_detector_mask()
+    test_detector_mask()
     test_detector_mask_in_lidar()
