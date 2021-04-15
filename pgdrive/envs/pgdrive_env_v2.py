@@ -68,8 +68,11 @@ class PGDriveEnvV2(PGDriveEnvV1):
         # assert self.config["vehicle_config"]["lidar"]["num_others"] == 0
         # assert self.config["vehicle_config"]["side_detector"]["num_lasers"] > 0
 
-        from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
-        self.detector_mask = DetectorMask(num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"], max_span=10)
+        # from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
+        # span = np.sqrt(self.vehicle.WIDTH ** 2 + self.vehicle.LENGTH ** 2 + 1)
+        # self.detector_mask = DetectorMask(num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
+        #                                   max_span=span,
+        #                                   max_distance=self.config["vehicle_config"]["lidar"]["distance"])
 
     # REMOVETHIS!!
     def step(self, a):
@@ -79,7 +82,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
         for v in self.scene_manager.traffic_mgr.vehicles:
             position_dict[v.name] = v.position
             heading_dict[v.name] = v.heading_theta
-        self.detector_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict)
+        # self.detector_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict)
         return ret
 
     def _post_process_config(self, config):
@@ -206,6 +209,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     # env = PGDriveEnvV2({'use_render': True, "fast": True, "manual_control": True})
     env = PGDriveEnvV2()

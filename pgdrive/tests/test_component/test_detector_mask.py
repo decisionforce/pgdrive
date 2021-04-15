@@ -1,4 +1,8 @@
+import copy
+
 import numpy as np
+from pgdrive.envs import PGDriveEnvV2
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 
 
@@ -96,7 +100,7 @@ def test_detector_mask():
     # A infinite long (1e7) stick 2 in front of (0.01m) stick 1.
 
     pos_xy = [0, -1, 1, -100, 100]
-    angles = [0, 0.01, 30, 89, 90, 91, 130, 180, 181, 270, 360, 361, 400]
+    angles = [0, 0.01, 30, 89, 90, 91, 130, 180, 181, 270, 360, 400]
     angles += [-a for a in angles]
 
     mask = DetectorMask(num_lasers=360, max_span=1e7)
@@ -110,13 +114,76 @@ def test_detector_mask():
         mask = DetectorMask(num_lasers=360, max_span=max_span)
         for pos1_x in pos_xy:
             for pos2_x in pos_xy:
-                angles1 = np.random.choice(angles, 10)
-                angles2 = np.random.choice(angles, 10)
+                angles1 = np.random.choice(angles, 5)
+                angles2 = np.random.choice(angles, 5)
                 for stick_1_heading_deg in angles1:
                     for stick_2_heading_deg in angles2:
                         _test_mask(mask, stick_1_heading_deg, stick_2_heading_deg, max_span, pos1_x, pos2_x)
                 print("Finish. ", max_span, pos1_x, pos2_x)
 
 
+def test_detector_mask_in_lidar():
+    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSS"})
+    try:
+        env.reset()
+        span = np.sqrt(env.vehicle.WIDTH ** 2 + env.vehicle.LENGTH ** 2 + 1)
+        lidar_mask = DetectorMask(env.config.vehicle_config.lidar.num_lasers, span,
+                                  max_distance=env.config.vehicle_config.lidar.distance)
+        ep_count = 0
+        for _ in range(3000):
+            o, r, d, i = env.step([0, 1])
+
+            v = env.vehicle
+            v.lidar.perceive(
+                v.position,
+                v.heading_theta,
+                v.pg_world.physics_world.dynamic_world,
+                extra_filter_node={v.chassis_np.node()},
+                lidar_mask=None
+            )
+            old_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
+
+            position_dict = {}
+            heading_dict = {}
+            is_target_vehicle_dict = {}
+            for v in env.scene_manager.traffic_mgr.vehicles:
+                position_dict[v.name] = v.position
+                heading_dict[v.name] = v.heading_theta
+                is_target_vehicle_dict[v.name] = True if isinstance(v, BaseVehicle) else False
+            lidar_mask.update_mask(position_dict=position_dict, heading_dict=heading_dict,
+                                   is_target_vehicle_dict=is_target_vehicle_dict)
+
+            real_mask = old_cloud_points != 1.0
+            mask = lidar_mask.get_mask(env.vehicle.name)
+            stack = np.stack([old_cloud_points, real_mask, mask])
+            assert all(mask[real_mask])  # mask 1 should at least include all True of real mask.
+
+            print("Num of true in our mask: {}, in old mask: {}. Overlap: {}. We have {} more.".format(
+                sum(mask.astype(int)), sum(real_mask.astype(int)), sum(mask[real_mask].astype(int)),
+                sum(mask.astype(int)) - sum(real_mask.astype(int))
+            ))
+
+            # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
+            v = env.vehicle
+            v.lidar.perceive(
+                v.position,
+                v.heading_theta,
+                v.pg_world.physics_world.dynamic_world,
+                extra_filter_node={v.chassis_np.node()},
+                lidar_mask=mask
+            )
+            new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
+            np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
+
+            if d:
+                env.reset()
+                ep_count += 1
+                if ep_count == 3:
+                    break
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
-    test_detector_mask()
+    # test_detector_mask()
+    test_detector_mask_in_lidar()
