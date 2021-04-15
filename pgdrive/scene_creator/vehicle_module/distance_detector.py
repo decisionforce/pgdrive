@@ -1,11 +1,89 @@
 import logging
+import math
+from collections import defaultdict
 
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape, BulletAllHitsRayResult
 from panda3d.core import BitMask32, NodePath
 from pgdrive.constants import CamMask, CollisionGroup
+from pgdrive.utils import norm
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
+
+
+class DetectorMask:
+    def __init__(self, num_lasers: int, max_span: float):
+        self.num_lasers = num_lasers
+        self.angle_delta = 360 / self.num_lasers
+        self.half_max_span = max_span / 2
+        self.masks = defaultdict(lambda: np.zeros((self.num_lasers, ), dtype=np.bool))
+
+    def update_mask(self, position_dict: dict, heading_dict: dict):
+        assert set(position_dict.keys()) == set(heading_dict.keys())
+        for k in self.masks.keys():
+            self.masks[k].fill(False)
+        keys = list(position_dict.keys())
+        for c1, k1 in enumerate(keys):
+            # for c2, k2 in enumerate(keys[c1 + 1:]):
+            for c2, k2 in enumerate(keys[c1 + 1:]):
+                pos1 = position_dict[k1]
+                pos2 = position_dict[k2]
+                head1 = heading_dict[k1]
+                head2 = heading_dict[k2]
+
+                diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
+                dist = norm(diff[0], diff[1])
+                if dist < 1e-2:
+                    self._mark_all(k1)
+                    self._mark_all(k2)
+                    continue
+
+                # relative heading of v2's center when compared to v1's center
+                relative_head = math.atan2(diff[1], diff[0])
+                head_in_1 = relative_head - head1
+                span = math.atan2(self.half_max_span, dist)
+                head_in_1_max = head_in_1 + span
+                head_in_1_min = head_in_1 - span
+                head_1_max = np.rad2deg(head_in_1_max)
+                head_1_min = np.rad2deg(head_in_1_min)
+                self._mark_this_range(head_1_min, head_1_max, name=k1)
+
+                diff2 = (-diff[0], -diff[1])
+                # relative heading of v2's center when compared to v1's center
+                relative_head2 = math.atan2(diff2[1], diff2[0])
+                head_in_2 = relative_head2 - head2
+                head_in_2_max = head_in_2 + span
+                head_in_2_min = head_in_2 - span
+                head_2_max = np.rad2deg(head_in_2_max)
+                head_2_min = np.rad2deg(head_in_2_min)
+                self._mark_this_range(head_2_min, head_2_max, name=k2)
+
+    def _mark_this_range(self, small_angle, large_angle, name):
+        # We use clockwise to determine small and large angle.
+        # For example, if you wish to fill 355 deg to 5 deg, then small_angle is 355, large_angle is 5.
+
+        small_angle = small_angle % 360
+        large_angle = large_angle % 360
+
+        assert 0 <= small_angle <= 360
+        assert 0 <= large_angle <= 360
+
+        # Unfortunately, we use the lidar in counterclockwise. So we need to first change the angles.
+        large_angle, small_angle = 360 - small_angle, 360 - large_angle
+
+        small_index = math.floor(small_angle / self.angle_delta)
+        large_index = math.ceil(large_angle / self.angle_delta)
+        if large_angle < small_angle:  # We are in the case like small=355, large=5
+            self.masks[name][small_index:] = True
+            self.masks[name][:large_index + 1] = True
+        else:
+            self.masks[name][small_index:large_index + 1] = True
+
+    def _mark_all(self, name):
+        self.masks[name].fill(True)
+
+    def get_mask(self, name):
+        return self.masks[name]
 
 
 class DistanceDetector:
@@ -21,6 +99,9 @@ class DistanceDetector:
 
     def __init__(self, parent_node_np: NodePath, num_lasers: int = 16, distance: float = 50, enable_show=False):
         # properties
+
+        self.detector_mask = DetectorMask(num_lasers=num_lasers, max_span=10)
+
         assert num_lasers > 0
         show = enable_show and (AssetLoader.loader is not None)
         self.dim = num_lasers
