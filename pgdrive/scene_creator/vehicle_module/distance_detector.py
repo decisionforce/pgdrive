@@ -19,7 +19,7 @@ class DetectorMask:
         self.half_max_span_square = (max_span / 2)**2
         self.masks = defaultdict(lambda: np.zeros((self.num_lasers, ), dtype=np.bool))
         # self.max_distance = max_distance + max_span
-        self.max_distance_square = (max_distance + max_span) ** 2
+        self.max_distance_square = (max_distance + max_span)**2
 
     def update_mask(self, position_dict: dict, heading_dict: dict, is_target_vehicle_dict: dict):
         assert set(position_dict.keys()) == set(heading_dict.keys()) == set(is_target_vehicle_dict.keys())
