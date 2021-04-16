@@ -576,7 +576,7 @@ def test_ma_roundabout_no_short_episode():
         actions = [[0, 1], [1, 1], [-1, 1]]
         start = time.time()
         d_count = 0
-        for step in range(10000):
+        for step in range(2000):
             act = {k: actions[np.random.choice(len(actions))] for k in env.vehicles.keys()}
             o, r, d, i = _act(env, act)
             for kkk, iii in i.items():
@@ -587,7 +587,7 @@ def test_ma_roundabout_no_short_episode():
                 env.reset()
             if (step + 1) % 100 == 0:
                 print(
-                    "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
+                    "Finish {}/2000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
                         step + 1,
                         time.time() - start, (step + 1) / (time.time() - start)
                     )
@@ -644,12 +644,12 @@ def test_ma_roundabout_horizon_termination():
 
 
 if __name__ == '__main__':
-    # test_ma_roundabout_env()
-    # test_ma_roundabout_horizon()
-    # test_ma_roundabout_reset()
-    # test_ma_roundabout_reward_done_alignment()
-    # test_ma_roundabout_close_born()
-    # test_ma_roundabout_reward_sign()
-    # test_ma_roundabout_init_space()
-    # test_ma_roundabout_no_short_episode()
+    test_ma_roundabout_env()
+    test_ma_roundabout_horizon()
+    test_ma_roundabout_reset()
+    test_ma_roundabout_reward_done_alignment()
+    test_ma_roundabout_close_born()
+    test_ma_roundabout_reward_sign()
+    test_ma_roundabout_init_space()
+    test_ma_roundabout_no_short_episode()
     test_ma_roundabout_horizon_termination()
