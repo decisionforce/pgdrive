@@ -15,6 +15,7 @@ from pgdrive.utils.scene_utils import ray_localization
 
 import math
 
+
 class RoutingLocalizationModule:
     navigation_info_dim = 10
     NAVI_POINT_DIST = 50
