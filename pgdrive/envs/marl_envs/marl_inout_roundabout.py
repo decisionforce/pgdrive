@@ -51,6 +51,7 @@ class TargetVehicleManager:
     vehicle name: unique name for each vehicle instance, random string.
     agent name: agent name that exists in the environment, like agent0, agent1, ....
     """
+
     def __init__(self, ):
         self.agent_to_vehicle = {}
         self.vehicle_to_agent = {}
@@ -194,7 +195,7 @@ class BornPlaceManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "born_lane_index": lane_tuple,
                                 "born_longitude": long,
@@ -452,20 +453,19 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 r[new_id] = 0.0
                 i[new_id] = {}
                 d[new_id] = False
-        for v_id, v_info in i.items():
-            if v_info.get("episode_length", 0) >= self.config["horizon"]:
-                if d[v_id] is not None:
-                    i[v_id]["max_step"] = True
-                    d[v_id] = True
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
                 d[k] = True
+
+        assert set(o.keys()) == set(self.action_space.spaces.keys())
+        assert set(o.keys()) == set(self.observation_space.spaces.keys())
+
         return o, r, d, i
 
     def _update_destination_for(self, vehicle):
@@ -476,45 +476,70 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def _reborn(self):
         new_obs_dict = {}
         while True:
-            allow_reborn, vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
-            if vehicle_info is None:  # No more vehicle to be assigned.
+            new_id, new_obs = self._reborn_single_vehicle()
+            if new_obs is not None:
+                new_obs_dict[new_id] = new_obs
+            else:
                 break
-            if not allow_reborn:
-                # If not allow to reborn, move agents to some rural places.
-                v = vehicle_info["vehicle"]
-                v.set_position((-999, -999))
-                v.set_static(True)
-                self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
-                break
-            v = vehicle_info["vehicle"]
-            dead_vehicle_id = vehicle_info["old_name"]
-            bp_index = self._replace_vehicles(v)
-            if bp_index is None:  # No more born places to be assigned.
-                self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
-                break
-
-            self.target_vehicle_manager.confirm_reborn(True, vehicle_info)
-
-            new_id = vehicle_info["new_name"]
-            self.vehicles[new_id] = v  # Put it to new vehicle id.
-            self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
-            self._born_places_manager.confirm_reborn(born_place_id=bp_index, vehicle_id=new_id)
-            logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
-
-            self.observations[new_id] = vehicle_info["observation"]
-            self.observations[new_id].reset(self, v)
-            self.observation_space.spaces[new_id] = vehicle_info["observation_space"]
-            self.action_space.spaces[new_id] = vehicle_info["action_space"]
-            new_obs = self.observations[new_id].observe(v)
-            new_obs_dict[new_id] = new_obs
         return new_obs_dict
 
+    def _force_reborn(self, agent_name):
+        """
+        This function can force a given vehicle to reborn!
+        """
+        self.target_vehicle_manager.finish(agent_name)
+        new_id, new_obs = self._reborn_single_vehicle()
+        return new_id, new_obs
+
+    def _reborn_single_vehicle(self):
+        """
+        Arbitrary insert a new vehicle to a new born place if possible.
+        """
+        allow_reborn, vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
+        if vehicle_info is None:  # No more vehicle to be assigned.
+            return None, None
+        if not allow_reborn:
+            # If not allow to reborn, move agents to some rural places.
+            v = vehicle_info["vehicle"]
+            v.set_position((-999, -999))
+            v.set_static(True)
+            self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
+            return None, None
+        v = vehicle_info["vehicle"]
+        dead_vehicle_id = vehicle_info["old_name"]
+        bp_index = self._replace_vehicles(v)
+        if bp_index is None:  # No more born places to be assigned.
+            self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
+            return None, None
+
+        self.target_vehicle_manager.confirm_reborn(True, vehicle_info)
+
+        new_id = vehicle_info["new_name"]
+        v.set_static(False)
+        self.vehicles[new_id] = v  # Put it to new vehicle id.
+        self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
+        self._born_places_manager.confirm_reborn(born_place_id=bp_index, vehicle_id=new_id)
+        logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
+
+        self.observations[new_id] = vehicle_info["observation"]
+        self.observations[new_id].reset(self, v)
+        self.observation_space.spaces[new_id] = vehicle_info["observation_space"]
+        self.action_space.spaces[new_id] = vehicle_info["action_space"]
+        new_obs = self.observations[new_id].observe(v)
+        return new_id, new_obs
+
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
+        for v_id, v_info in info.items():
+            if v_info.get("episode_length", 0) >= self.config["horizon"]:
+                if dones[v_id] is not None:
+                    info[v_id]["max_step"] = True
+                    dones[v_id] = True
+                    self.dones[v_id] = True
         for dead_vehicle_id, done in dones.items():
             if done:
                 self.target_vehicle_manager.finish(dead_vehicle_id)
                 self.vehicles.pop(dead_vehicle_id)
-                self.action_space.spaces.pop(dead_vehicle_id)
+                # self.action_space.spaces.pop(dead_vehicle_id)
         return obs, reward, dones, info
 
     def _reset_vehicles(self):

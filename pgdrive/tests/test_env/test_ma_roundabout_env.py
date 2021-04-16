@@ -2,7 +2,6 @@ import time
 
 import numpy as np
 from gym.spaces import Box, Dict
-
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
 
@@ -32,7 +31,8 @@ def _check_shape(env):
     d = set(env.vehicles.keys())
     e = set(env.scene_manager.target_vehicles.keys())
     f = set([k for k in env.observation_space.spaces.keys() if not env.dones[k]])
-    assert c == d == e == f, (b, c, d, e, f)
+    assert d == e == f, (b, c, d, e, f)
+    assert c.issuperset(d)
     _check_space(env)
 
 
@@ -249,13 +249,13 @@ def test_ma_roundabout_reset():
                     new_loc = v.routing_localization.final_lane.end
                     long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
                     flag1 = (
-                        v.routing_localization.final_lane.length - 5 < long <
-                        v.routing_localization.final_lane.length + 5
+                            v.routing_localization.final_lane.length - 5 < long <
+                            v.routing_localization.final_lane.length + 5
                     )
                     flag2 = (
-                        v.routing_localization.get_current_lane_width() / 2 >= lat >=
-                        (0.5 - v.routing_localization.get_current_lane_num()) *
-                        v.routing_localization.get_current_lane_width()
+                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                            (0.5 - v.routing_localization.get_current_lane_num()) *
+                            v.routing_localization.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -488,6 +488,7 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
+
     class TestEnv(MultiAgentRoundaboutEnv):
         _reborn_count = 0
 
@@ -571,20 +572,21 @@ def test_ma_roundabout_no_short_episode():
     })
     try:
         _check_spaces_before_reset(env)
-        obs = env.reset()
-        _check_spaces_after_reset(env, obs)
+        o = env.reset()
+        _check_spaces_after_reset(env, o)
         actions = [[0, 1], [1, 1], [-1, 1]]
         start = time.time()
         d_count = 0
         for step in range(2000):
-            act = {k: actions[np.random.choice(len(actions))] for k in env.vehicles.keys()}
+            act = {k: actions[np.random.choice(len(actions))] for k in o.keys()}
+            assert set(o.keys()) == set(env.action_space.spaces.keys())
             o, r, d, i = _act(env, act)
             for kkk, iii in i.items():
                 if d[kkk]:
                     assert iii["episode_length"] > 1
                     d_count += 1
             if d["__all__"]:
-                env.reset()
+                o = env.reset()
             if (step + 1) % 100 == 0:
                 print(
                     "Finish {}/2000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
@@ -600,27 +602,33 @@ def test_ma_roundabout_no_short_episode():
 
 def test_ma_roundabout_horizon_termination():
     # test horizon
-    for _ in range(3):  # This function is really easy to break, repeat multiple times!
-        env = MultiAgentRoundaboutEnv({
-            "horizon": 100,
-            "num_agents": 8,
-        })
-        try:
+    env = MultiAgentRoundaboutEnv({
+        "horizon": 100,
+        "num_agents": 8,
+    })
+    try:
+        for _ in range(3):  # This function is really easy to break, repeat multiple times!
             _check_spaces_before_reset(env)
             obs = env.reset()
             _check_spaces_after_reset(env, obs)
             assert env.observation_space.contains(obs)
             should_reborn = set()
-            for step in range(1, 1000):
-                act = {k: [0, 0] for k in env.vehicles.keys()}
-                o, r, d, i = _act(env, act)
-                new_keys = set(env.vehicles.keys())
+            special_agents = set(["agent0", "agent7"])
+            for step in range(1, 10000):
+                act = {k: [0, 0] for k in obs.keys()}
+                for v_id in act.keys():
+                    if v_id in special_agents:
+                        act[v_id] = [1, 1]  # Add some randomness
+                    else:
+                        if v_id in env.vehicles:
+                            env.vehicles[v_id].set_static(True)
+                obs, r, d, i = _act(env, act)
                 if step == 0 or step == 1:
                     assert not any(d.values())
 
                 if should_reborn:
                     for kkk in should_reborn:
-                        assert kkk not in o
+                        assert kkk not in obs, "It seems the max_step agents is not reborn!"
                         assert kkk not in r
                         assert kkk not in d
                         assert kkk not in i
@@ -630,7 +638,7 @@ def test_ma_roundabout_horizon_termination():
                     if ddd and kkk == "__all__":
                         print("Current: ", step)
                         continue
-                    if ddd:
+                    if ddd and kkk not in special_agents:
                         assert i[kkk]["max_step"]
                         assert not i[kkk]["out_of_road"]
                         assert not i[kkk]["crash"]
@@ -638,18 +646,20 @@ def test_ma_roundabout_horizon_termination():
                         should_reborn.add(kkk)
 
                 if d["__all__"]:
+                    obs = env.reset()
+                    should_reborn.clear()
                     break
-        finally:
-            env.close()
+    finally:
+        env.close()
 
 
 if __name__ == '__main__':
-    test_ma_roundabout_env()
-    test_ma_roundabout_horizon()
-    test_ma_roundabout_reset()
-    test_ma_roundabout_reward_done_alignment()
-    test_ma_roundabout_close_born()
-    test_ma_roundabout_reward_sign()
-    test_ma_roundabout_init_space()
-    test_ma_roundabout_no_short_episode()
+    # test_ma_roundabout_env()
+    # test_ma_roundabout_horizon()
+    # test_ma_roundabout_reset()
+    # test_ma_roundabout_reward_done_alignment()
+    # test_ma_roundabout_close_born()
+    # test_ma_roundabout_reward_sign()
+    # test_ma_roundabout_init_space()
+    # test_ma_roundabout_no_short_episode()
     test_ma_roundabout_horizon_termination()
