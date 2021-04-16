@@ -205,12 +205,12 @@ def test_detector_mask_in_lidar():
 
 def test_cutils_lidar():
     def _old_perceive(
-        self,
-        vehicle_position,
-        heading_theta,
-        pg_physics_world,
-        extra_filter_node: set = None,
-        detector_mask: np.ndarray = None
+            self,
+            vehicle_position,
+            heading_theta,
+            pg_physics_world,
+            extra_filter_node: set = None,
+            detector_mask: np.ndarray = None
     ):
         """
         Call me to update the perception info
@@ -266,6 +266,38 @@ def test_cutils_lidar():
                 self._add_cloud_point_vis(laser_index, result.getHitPos() if hits else laser_end)
         return self.cloud_points
 
+    from pgdrive.utils.cutils import _get_fake_cutils
+    _fake_cutils = _get_fake_cutils()
+
+    def fake_cutils_perceive(
+            self,
+            vehicle_position,
+            heading_theta,
+            pg_physics_world,
+            extra_filter_node: set = None,
+            detector_mask: np.ndarray = None
+    ):
+        cloud_points, _, _ = _fake_cutils.cutils_perceive(
+            cloud_points=self.cloud_points,
+            detector_mask=detector_mask.astype(dtype=np.uint8) if detector_mask is not None else None,
+            mask=self.mask,
+            lidar_range=self._lidar_range,
+            perceive_distance=self.perceive_distance,
+            heading_theta=heading_theta,
+            vehicle_position_x=vehicle_position[0],
+            vehicle_position_y=vehicle_position[1],
+            num_lasers=self.num_lasers,
+            height=self.height,
+            pg_physics_world=pg_physics_world,
+            extra_filter_node=extra_filter_node if extra_filter_node else set(),
+            require_colors=self.cloud_points_vis is not None,
+            ANGLE_FACTOR=self.ANGLE_FACTOR,
+            MARK_COLOR0=self.MARK_COLOR[0],
+            MARK_COLOR1=self.MARK_COLOR[1],
+            MARK_COLOR2=self.MARK_COLOR[2]
+        )
+        return cloud_points
+
     env = PGDriveEnvV2({"map": "C", "traffic_density": 1.0, "environment_num": 10})
     try:
         for _ in range(3):
@@ -288,6 +320,16 @@ def test_cutils_lidar():
                     None
                 )
                 np.testing.assert_almost_equal(new_cloud_points, old_cloud_points)
+
+                fake_cutils_cloud_points = fake_cutils_perceive(
+                    v.lidar,
+                    v.position,
+                    v.heading_theta,
+                    v.pg_world.physics_world.dynamic_world,
+                    extra_filter_node={v.chassis_np.node()},
+                    detector_mask=None
+                )
+                np.testing.assert_almost_equal(new_cloud_points, fake_cutils_cloud_points)
 
                 # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
                 v = env.vehicle
