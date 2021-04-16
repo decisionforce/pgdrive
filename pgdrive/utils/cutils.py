@@ -2,21 +2,15 @@ import logging
 import math
 
 
-def _import_panda_position():
-    from pgdrive.utils.coordinates_shift import panda_position
-    return panda_position
-
 
 def _get_fake_cutils():
-    panda_position = _import_panda_position()
-
     class FakeCutils:
         @classmethod
-        def norm(cls, x, y):
+        def cutils_norm(cls, x, y):
             return math.sqrt(x ** 2 + y ** 2)
 
         @classmethod
-        def clip(cls, a, low, high):
+        def cutils_clip(cls, a, low, high):
             return min(max(a, low), high)
 
         @classmethod
@@ -53,7 +47,7 @@ def _get_fake_cutils():
             cloud_points.fill(1.0)
             detected_objects = []
             colors = []
-            pg_start_position = panda_position((vehicle_position_x, vehicle_position_y), height)
+            pg_start_position = cls.cutils_panda_position(vehicle_position_x, vehicle_position_y, height)
 
             for laser_index in range(num_lasers):
                 if (detector_mask is not None) and (not detector_mask[laser_index]):
@@ -119,7 +113,7 @@ def _get_fake_cutils():
     return FakeCutils
 
 
-def import_cutils(use_fake_cutils=False):
+def import_cutils(use_fake_cutils=True):
     if use_fake_cutils:
         return _get_fake_cutils()
     try:
