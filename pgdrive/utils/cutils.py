@@ -13,7 +13,7 @@ def _get_fake_cutils():
     class FakeCutils:
         @classmethod
         def norm(cls, x, y):
-            return math.sqrt(x**2 + y**2)
+            return math.sqrt(x ** 2 + y ** 2)
 
         @classmethod
         def clip(cls, a, low, high):
@@ -25,14 +25,15 @@ def _get_fake_cutils():
 
         @classmethod
         def cutils_add_cloud_point_vis(
-            cls, point_x, point_y, height, num_lasers, laser_index, ANGLE_FACTOR, MARK_COLOR0, MARK_COLOR1, MARK_COLOR2
+                cls, point_x, point_y, height, num_lasers, laser_index, ANGLE_FACTOR, MARK_COLOR0, MARK_COLOR1,
+                MARK_COLOR2
         ):
             f = laser_index / num_lasers if ANGLE_FACTOR else 1
             return laser_index, (point_x, point_y, height), (f * MARK_COLOR0, f * MARK_COLOR1, f * MARK_COLOR2)
 
         @classmethod
         def cutils_get_laser_end(
-            cls, lidar_range, perceive_distance, laser_index, heading_theta, vehicle_position_x, vehicle_position_y
+                cls, lidar_range, perceive_distance, laser_index, heading_theta, vehicle_position_x, vehicle_position_y
         ):
 
             return (
@@ -42,9 +43,11 @@ def _get_fake_cutils():
 
         @classmethod
         def cutils_perceive(
-            cls, cloud_points, detector_mask, mask, lidar_range, perceive_distance, heading_theta, vehicle_position_x,
-            vehicle_position_y, num_lasers, height, pg_physics_world, extra_filter_node, require_colors, ANGLE_FACTOR,
-            MARK_COLOR0, MARK_COLOR1, MARK_COLOR2
+                cls, cloud_points, detector_mask, mask, lidar_range, perceive_distance, heading_theta,
+                vehicle_position_x,
+                vehicle_position_y, num_lasers, height, pg_physics_world, extra_filter_node, require_colors,
+                ANGLE_FACTOR,
+                MARK_COLOR0, MARK_COLOR1, MARK_COLOR2
         ):
             """A naive re-implement of code in cutils.pyx"""
             cloud_points.fill(1.0)
@@ -116,7 +119,9 @@ def _get_fake_cutils():
     return FakeCutils
 
 
-def import_cutils():
+def import_cutils(use_fake_cutils=False):
+    if use_fake_cutils:
+        return _get_fake_cutils()
     try:
         from pgdrive import cutils
     except:
@@ -126,5 +131,5 @@ def import_cutils():
         )
         print(msg)
         logging.warning(msg)
-        cutils = None
+        cutils = _get_fake_cutils()
     return cutils
