@@ -21,7 +21,7 @@ from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector,
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import PGConfig, safe_clip, random_string
+from pgdrive.utils import PGConfig, safe_clip_for_small_array, random_string, PGVector
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
@@ -213,7 +213,7 @@ class BaseVehicle(DynamicElement):
             )
 
         # protect agent from nan error
-        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
+        action = safe_clip_for_small_array(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         return action, {'raw_action': (action[0], action[1])}
 
     def prepare_step(self, action):
@@ -398,7 +398,8 @@ class BaseVehicle(DynamicElement):
     @property
     def heading(self):
         real_heading = self.heading_theta
-        heading = np.array([math.cos(real_heading), math.sin(real_heading)])
+        # heading = np.array([math.cos(real_heading), math.sin(real_heading)])
+        heading = PGVector((math.cos(real_heading), math.sin(real_heading)))
         return heading
 
     @property

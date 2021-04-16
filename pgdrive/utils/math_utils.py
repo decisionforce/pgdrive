@@ -3,14 +3,27 @@ import time
 from typing import Tuple
 
 import numpy as np
+
 from pgdrive.utils.utils import import_cutils
 
 cutils = import_cutils()
 
+number_nan = float("nan")
+number_inf = float("inf")
+number_inf_neg = float("-inf")
+
 
 def safe_clip(array, min_val, max_val):
-    array = np.nan_to_num(array)
+    array = np.nan_to_num(array, copy=False)
     return np.clip(array, min_val, max_val)
+
+
+def safe_clip_for_small_array(array, min_val, max_val):
+    for i in range(len(array)):
+        if array[i] == number_nan or array[i] == number_inf or array[i] == number_inf_neg:
+            array[i] = 0.0
+        array[i] = clip(array[i], min_val, max_val)
+    return array
 
 
 def wrap_to_pi(x: float) -> float:
@@ -201,3 +214,6 @@ class PGVector(tuple):
 
     def __neg__(self):
         return PGVector((-self[0], -self[1]))
+
+    def dot(self, other):
+        return self[0] * other[0] + self[1] * other[1]
