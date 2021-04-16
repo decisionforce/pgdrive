@@ -205,12 +205,12 @@ def test_detector_mask_in_lidar():
 
 def test_cutils_lidar():
     def _old_perceive(
-            self,
-            vehicle_position,
-            heading_theta,
-            pg_physics_world,
-            extra_filter_node: set = None,
-            detector_mask: np.ndarray = None
+        self,
+        vehicle_position,
+        heading_theta,
+        pg_physics_world,
+        extra_filter_node: set = None,
+        detector_mask: np.ndarray = None
     ):
         """
         Call me to update the perception info
