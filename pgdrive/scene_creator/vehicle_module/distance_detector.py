@@ -191,12 +191,13 @@ class DistanceDetector:
             extra_filter_node=extra_filter_node if extra_filter_node else set(),
             require_colors=self.cloud_points_vis is not None,
             ANGLE_FACTOR=self.ANGLE_FACTOR,
-            MARK_COLOR=self.MARK_COLOR
+            MARK_COLOR0=self.MARK_COLOR[0],
+            MARK_COLOR1=self.MARK_COLOR[1],
+            MARK_COLOR2=self.MARK_COLOR[2]
         )
         if self.cloud_points_vis is not None:
             for laser_index, pos, color in colors:
                 self.cloud_points_vis[laser_index].setPos(pos)
-                f = laser_index / self.num_lasers if self.ANGLE_FACTOR else 1
                 self.cloud_points_vis[laser_index].setColor(*color)
         return self.cloud_points
 
