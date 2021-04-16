@@ -1,9 +1,26 @@
+import logging
 import math
 import time
 from typing import Tuple
 
 import numpy as np
-from pgdrive import cutils
+
+
+def import_cutils():
+    try:
+        from pgdrive import cutils
+    except:
+        msg = (
+            "It seems you don't install our cython utilities yet! Please reinstall PGDrive via: "
+            "<pip install -e .> or <pip install pgdrive>!"
+        )
+        print(msg)
+        logging.warning(msg)
+        cutils = None
+    return cutils
+
+
+cutils = import_cutils()
 
 
 def safe_clip(array, min_val, max_val):

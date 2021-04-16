@@ -4,7 +4,6 @@ from math import floor
 
 import numpy as np
 from gym.spaces import Box
-
 from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
