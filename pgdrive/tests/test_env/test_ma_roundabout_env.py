@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from gym.spaces import Box, Dict
 
@@ -560,11 +562,48 @@ def test_ma_roundabout_init_space():
             env.close()
 
 
+def test_ma_roundabout_no_short_episode():
+    env = MultiAgentRoundaboutEnv(
+        {
+            "horizon": 500,
+            "num_agents": 40,
+        }
+    )
+    try:
+        _check_spaces_before_reset(env)
+        obs = env.reset()
+        _check_spaces_after_reset(env, obs)
+        actions = [[0, 1], [1, 1], [-1, 1]]
+        start = time.time()
+        d_count = 0
+        for step in range(10000):
+            act = {k: actions[np.random.choice(len(actions))] for k in env.vehicles.keys()}
+            o, r, d, i = _act(env, act)
+            for kkk, iii in i.items():
+                if d[kkk]:
+                    assert iii["episode_length"] > 1
+                    d_count += 1
+            if d["__all__"]:
+                env.reset()
+            if (step + 1) % 100 == 0:
+                print(
+                    "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
+                        step + 1,
+                        time.time() - start, (step + 1) / (time.time() - start)
+                    )
+                )
+            if d_count > 200:
+                break
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
     # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
     # test_ma_roundabout_reset()
-    test_ma_roundabout_reward_done_alignment()
+    # test_ma_roundabout_reward_done_alignment()
     # test_ma_roundabout_close_born()
     # test_ma_roundabout_reward_sign()
     # test_ma_roundabout_init_space()
+    test_ma_roundabout_no_short_episode()
