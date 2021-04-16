@@ -27,7 +27,6 @@ def _get_fake_cutils():
         def cutils_get_laser_end(
             cls, lidar_range, perceive_distance, laser_index, heading_theta, vehicle_position_x, vehicle_position_y
         ):
-
             return (
                 perceive_distance * math.cos(lidar_range[laser_index] + heading_theta) + vehicle_position_x,
                 perceive_distance * math.sin(lidar_range[laser_index] + heading_theta) + vehicle_position_y
@@ -109,7 +108,7 @@ def _get_fake_cutils():
     return FakeCutils
 
 
-def import_cutils(use_fake_cutils=True):
+def import_cutils(use_fake_cutils=False):
     if use_fake_cutils:
         return _get_fake_cutils()
     try:
@@ -117,7 +116,8 @@ def import_cutils(use_fake_cutils=True):
     except:
         msg = (
             "It seems you don't install our cython utilities yet! Please reinstall PGDrive via: "
-            "<pip install -e .> or <pip install pgdrive>!"
+            "<pip install -e .> or <pip install pgdrive>! But don't worry! We are now falling back to native "
+            "python implementation!"
         )
         print(msg)
         logging.warning(msg)
