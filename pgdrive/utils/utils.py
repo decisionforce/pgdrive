@@ -93,12 +93,12 @@ def merge_dicts(old_dict, new_dict, allow_new_keys=False, without_copy=False):
 
 
 def _deep_update(
-    original,
-    new_dict,
-    new_keys_allowed=False,
-    allow_new_subkey_list=None,
-    override_all_if_type_changes=None,
-    raise_error=True
+        original,
+        new_dict,
+        new_keys_allowed=False,
+        allow_new_subkey_list=None,
+        override_all_if_type_changes=None,
+        raise_error=True
 ):
     allow_new_subkey_list = allow_new_subkey_list or []
     override_all_if_type_changes = override_all_if_type_changes or []
@@ -128,3 +128,17 @@ def _deep_update(
         else:
             original[k] = value
     return original
+
+
+def import_cutils():
+    try:
+        from pgdrive import cutils
+    except:
+        msg = (
+            "It seems you don't install our cython utilities yet! Please reinstall PGDrive via: "
+            "<pip install -e .> or <pip install pgdrive>!"
+        )
+        print(msg)
+        logging.warning(msg)
+        cutils = None
+    return cutils

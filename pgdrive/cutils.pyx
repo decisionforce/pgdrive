@@ -1,16 +1,51 @@
 # Build via: python setup.py build_ext --inplace
-
 cimport numpy as cnp
 import numpy as np
-
+import cython
 ctypedef cnp.float64_t np_float64_t
+ctypedef cnp.npy_bool np_bool_t
 ctypedef cnp.int64_t np_int64_t
+ctypedef cnp.uint8_t np_uint8_t
 from cpython cimport bool as bool_t, set as set_t, tuple as tuple_t, list as list_t
+
+cdef extern from "math.h":
+    double sqrt(double x)
+    double sin(double x)
+    double cos(double x)
+    double acos(double x)
+    double fabs(double x)
+    double atan2(double y, double x)
+    double asin(double x)
+    double sqrt(double x)
+    double tan(double x)
+    int floor(double x)
+    int ceil(double x)
+    double fmin(double x, double y)
+    double fmax(double x, double y)
 
 def cutils_panda_position(np_float64_t position_x, np_float64_t position_y, np_float64_t z=0.0):
     return position_x, -position_y, z
 
-import cython
+
+def cutils_add_cloud_point_vis(
+        np_float64_t point_x,
+        np_float64_t point_y,
+        int num_lasers,
+        int laser_index,
+        bool_t ANGLE_FACTOR,
+        np_float64_t MARK_COLOR0,
+        np_float64_t MARK_COLOR1,
+        np_float64_t MARK_COLOR2
+):
+    cdef np_float64_t f = laser_index / num_lasers if ANGLE_FACTOR else 1
+    cdef np_float64_t c1, c2, c3 = (f * MARK_COLOR0, f * MARK_COLOR1, f * MARK_COLOR2)
+    return laser_index, (point_x, point_y), (c1, c2, c3)
+
+def cutils_get_laser_end(self, laser_index, heading_theta, vehicle_position):
+    point_x = self.perceive_distance * cos(self._lidar_range[laser_index] + heading_theta) + vehicle_position[0]
+    point_y = self.perceive_distance * sin(self._lidar_range[laser_index] + heading_theta) + vehicle_position[1]
+    laser_end = cutils_panda_position((point_x, point_y), self.height)
+    return laser_end
 
 # Remove this check to further accelerate. But this might cause fatal error! So I just commented them out here.
 # @cython.wraparound(False)
@@ -18,6 +53,7 @@ import cython
 # @cython.nonecheck(False)
 def cutils_perceive(
         cnp.ndarray[np_float64_t, ndim=1] cloud_points,
+        cnp.ndarray[np_uint8_t, ndim=1] detector_mask,
         mask,
         cnp.ndarray[np_float64_t, ndim=1] lidar_range,
         np_float64_t perceive_distance,
@@ -28,13 +64,14 @@ def cutils_perceive(
         np_float64_t height,
         pg_physics_world,
         set_t extra_filter_node,
-        cloud_points_vis,
+        bool_t require_colors,
         bool_t ANGLE_FACTOR,
         tuple_t MARK_COLOR
 ):
     # init
     cloud_points.fill(1.0)
     cdef list_t detected_objects = []
+    cdef list_t colors = []
     cdef tuple_t pg_start_position = cutils_panda_position(vehicle_position_x, vehicle_position_y, height)
 
     # lidar calculation use pg coordinates
@@ -44,6 +81,15 @@ def cutils_perceive(
 
     # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     for laser_index in range(num_lasers):
+        if (detector_mask is not None) and (not detector_mask[laser_index]):
+            # update vis
+            if require_colors:
+                colors.append(cutils_add_cloud_point_vis(
+                    point_x[laser_index], point_y[laser_index], num_lasers, laser_index, ANGLE_FACTOR, *MARK_COLOR)
+                )
+            continue
+
+
         # # coordinates problem here! take care
         laser_end = cutils_panda_position(point_x[laser_index], point_y[laser_index], height)
         result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
@@ -67,29 +113,25 @@ def cutils_perceive(
                 hits = result.hasHit()
 
         # update vis
-        if cloud_points_vis is not None:
-            cloud_points_vis[laser_index].setPos(result.getHitPos() if hits else laser_end)
-            f = laser_index / num_lasers if ANGLE_FACTOR else 1
-            cloud_points_vis[laser_index].setColor(
-                f * MARK_COLOR[0], f * MARK_COLOR[1], f * MARK_COLOR[2]
-            )
+        if require_colors:
+            if hits:
+                colors.append(cutils_add_cloud_point_vis(
+                    point_x[laser_index], point_y[laser_index],
+                    num_lasers, laser_index, ANGLE_FACTOR, *MARK_COLOR
+                ))
+            else:
+                colors.append(cutils_add_cloud_point_vis(
+                    *result.getHitPos(), num_lasers, laser_index, ANGLE_FACTOR, *MARK_COLOR
+                ))
+            # cloud_points_vis[laser_index].setPos(result.getHitPos() if hits else laser_end)
+            # f = laser_index / num_lasers if ANGLE_FACTOR else 1
+            # cloud_points_vis[laser_index].setColor(
+            #     f * MARK_COLOR[0], f * MARK_COLOR[1], f * MARK_COLOR[2]
+            # )
 
-    return cloud_points, detected_objects, cloud_points_vis
+    return cloud_points, detected_objects, colors
 
-cdef extern from "math.h":
-    double sqrt(double x)
-    double sin(double x)
-    double cos(double x)
-    double acos(double x)
-    double fabs(double x)
-    double atan2(double y, double x)
-    double asin(double x)
-    double sqrt(double x)
-    double tan(double x)
-    int floor(double x)
-    int ceil(double x)
-    double fmin(double x, double y)
-    double fmax(double x, double y)
+
 
 
 @cython.wraparound(False)

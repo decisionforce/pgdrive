@@ -1,24 +1,9 @@
-import logging
 import math
 import time
 from typing import Tuple
 
 import numpy as np
-
-
-def import_cutils():
-    try:
-        from pgdrive import cutils
-    except:
-        msg = (
-            "It seems you don't install our cython utilities yet! Please reinstall PGDrive via: "
-            "<pip install -e .> or <pip install pgdrive>!"
-        )
-        print(msg)
-        logging.warning(msg)
-        cutils = None
-    return cutils
-
+from pgdrive.utils.utils import import_cutils
 
 cutils = import_cutils()
 
@@ -53,7 +38,7 @@ def norm(x, y):
 
 def distance_greater(vec1, vec2, length):
     """Return whether the distance between two vectors is greater than the given length."""
-    return ((vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2) > length**2
+    return ((vec1[0] - vec2[0]) ** 2 + (vec1[1] - vec2[1]) ** 2) > length ** 2
 
 
 def clip(a, low, high):
