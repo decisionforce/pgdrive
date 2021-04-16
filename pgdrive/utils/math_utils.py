@@ -53,7 +53,7 @@ def norm(x, y):
 
 def distance_greater(vec1, vec2, length):
     """Return whether the distance between two vectors is greater than the given length."""
-    return ((vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2) > length**2
+    return ((vec1[0] - vec2[0]) ** 2 + (vec1[1] - vec2[1]) ** 2) > length ** 2
 
 
 def clip(a, low, high):
@@ -207,3 +207,12 @@ class PGVector(tuple):
             ret = PGVector((self[0] / other, self[1] / other))
             return ret
         raise ValueError()
+
+    def tolist(self):
+        return list(self)
+
+    def __rsub__(self, other):
+        return PGVector(other) - self
+
+    def __neg__(self):
+        return PGVector((-self[0], -self[1]))
