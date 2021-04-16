@@ -452,6 +452,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 r[new_id] = 0.0
                 i[new_id] = {}
                 d[new_id] = False
+        for v_id, v_info in i.items():
+            if v_info.get("episode_length", 0) >= self.config["horizon"]:
+                if d[v_id] is not None:
+                    i[v_id]["max_step"] = True
+                    d[v_id] = True
 
         # Update __all__
         d["__all__"] = (

@@ -78,7 +78,7 @@ def test_ma_roundabout_env():
             act = {k: [1, 1] for k in env.vehicles.keys()}
             assert len(act) == 1
             o, r, d, i = _act(env, act)
-            if step == 0:
+            if step == 0 or step == 1:
                 assert not any(d.values())
     finally:
         env.close()
@@ -93,7 +93,7 @@ def test_ma_roundabout_env():
             act = {k: [1, 1] for k in env.vehicles.keys()}
             assert len(act) == 1
             o, r, d, i = _act(env, act)
-            if step == 0:
+            if step == 0 or step == 1:
                 assert not any(d.values())
     finally:
         env.close()
@@ -398,7 +398,10 @@ def test_ma_roundabout_reward_done_alignment():
     # crash 2
     env = MultiAgentRoundaboutEnv(
         {
-            "map_config": {"exit_length": 100, "lane_num": 1},
+            "map_config": {
+                "exit_length": 100,
+                "lane_num": 1
+            },
             # "use_render": True,
             # "fast": True,
             "horizon": 200,
@@ -563,12 +566,10 @@ def test_ma_roundabout_init_space():
 
 
 def test_ma_roundabout_no_short_episode():
-    env = MultiAgentRoundaboutEnv(
-        {
-            "horizon": 500,
-            "num_agents": 40,
-        }
-    )
+    env = MultiAgentRoundaboutEnv({
+        "horizon": 500,
+        "num_agents": 40,
+    })
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -598,6 +599,53 @@ def test_ma_roundabout_no_short_episode():
         env.close()
 
 
+def test_ma_roundabout_horizon_termination():
+    # test horizon
+    for _ in range(3):  # This function is really easy to break, repeat multiple times!
+        env = MultiAgentRoundaboutEnv(
+            {
+                "horizon": 100,
+                "num_agents": 8,
+            }
+        )
+        try:
+            _check_spaces_before_reset(env)
+            obs = env.reset()
+            _check_spaces_after_reset(env, obs)
+            assert env.observation_space.contains(obs)
+            should_reborn = set()
+            for step in range(1, 1000):
+                act = {k: [0, 0] for k in env.vehicles.keys()}
+                o, r, d, i = _act(env, act)
+                new_keys = set(env.vehicles.keys())
+                if step == 0 or step == 1:
+                    assert not any(d.values())
+
+                if should_reborn:
+                    for kkk in should_reborn:
+                        assert kkk not in o
+                        assert kkk not in r
+                        assert kkk not in d
+                        assert kkk not in i
+                    should_reborn.clear()
+
+                for kkk, ddd in d.items():
+                    if ddd and kkk == "__all__":
+                        print("Current: ", step)
+                        continue
+                    if ddd:
+                        assert i[kkk]["max_step"]
+                        assert not i[kkk]["out_of_road"]
+                        assert not i[kkk]["crash"]
+                        assert not i[kkk]["crash_vehicle"]
+                        should_reborn.add(kkk)
+
+                if d["__all__"]:
+                    break
+        finally:
+            env.close()
+
+
 if __name__ == '__main__':
     # test_ma_roundabout_env()
     # test_ma_roundabout_horizon()
@@ -606,4 +654,5 @@ if __name__ == '__main__':
     # test_ma_roundabout_close_born()
     # test_ma_roundabout_reward_sign()
     # test_ma_roundabout_init_space()
-    test_ma_roundabout_no_short_episode()
+    # test_ma_roundabout_no_short_episode()
+    test_ma_roundabout_horizon_termination()
