@@ -131,7 +131,10 @@ def _deep_update(
 
 
 def _is_developer():
-    login_name = os.getlogin()
+    try:
+        login_name = os.getlogin()
+    except OSError:
+        login_name = ""
     if login_name in ["pengzhenghao"]:
         return True
     return False
