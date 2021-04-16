@@ -19,6 +19,7 @@ def safe_clip(array, min_val, max_val):
 
 
 def safe_clip_for_small_array(array, min_val, max_val):
+    array = list(array)
     for i in range(len(array)):
         if array[i] == number_nan or array[i] == number_inf or array[i] == number_inf_neg:
             array[i] = 0.0

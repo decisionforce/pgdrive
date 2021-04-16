@@ -188,7 +188,7 @@ class DistanceDetector:
             num_lasers=self.num_lasers,
             height=self.height,
             pg_physics_world=pg_physics_world,
-            extra_filter_node=extra_filter_node,
+            extra_filter_node=extra_filter_node if extra_filter_node else set(),
             require_colors=self.cloud_points_vis is not None,
             ANGLE_FACTOR=self.ANGLE_FACTOR,
             MARK_COLOR=self.MARK_COLOR
