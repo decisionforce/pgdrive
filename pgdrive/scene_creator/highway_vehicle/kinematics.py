@@ -8,7 +8,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.object.traffic_object import Object
 from pgdrive.scene_manager.scene_manager import LaneIndex
 from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random
+from pgdrive.utils import get_np_random, random_string
 
 
 class Vehicle:
@@ -37,7 +37,9 @@ class Vehicle:
         heading: float = 0,
         speed: float = 0,
         np_random: np.random.RandomState = None,
+        name: str = None
     ):
+        self.name = name or random_string()
         self.traffic_mgr = traffic_mgr
         self._position = np.array(position).astype('float')
         self.heading = heading
@@ -284,3 +286,7 @@ class Vehicle:
 
     def __repr__(self):
         return self.__str__()
+
+    @property
+    def heading_theta(self):
+        return self.heading
