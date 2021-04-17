@@ -1,67 +1,62 @@
 import logging
 
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
+
+MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
+    # ===== Multi-agent =====
+    is_multi_agent=True,
+    num_agents=4,
+    crash_done=False,
+
+    # ===== New Setting =====
+    traffic_density=0.,
+    out_of_road_penalty=5.0,
+    crash_vehicle_penalty=1.0,
+    crash_object_penalty=1.0,
+)
+
+
+# target_vehicle_configs=dict(
+# agent0=dict(
+#     born_longitude=10,
+#     born_lateral=1.5,
+#     born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
+#     # show_lidar=True
+#     show_side_detector=True
+# ),
+# agent1=dict(
+#     born_longitude=10,
+#     # show_lidar=True,
+#     born_lateral=-1,
+#     born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+# ),
+# agent2=dict(
+#     born_longitude=10,
+#     born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 2),
+#     # show_lidar=True,
+#     born_lateral=1,
+# ),
+# agent3=dict(
+#     born_longitude=10,
+#     # show_lidar=True,
+#     born_lateral=2,
+#     born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+# )
+# ),
 
 
 class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
-        config.update(
-            {
-                "is_multi_agent": True,
-                "environment_num": 1,
-                "traffic_density": 0.,
-                "start_seed": 10,
-                # "map": "yY",
-                "vehicle_config": {
-                    # "lane_line_detector": {
-                    #     "num_lasers": 100
-                    # }
-                },
-                "target_vehicle_configs": {
-                    "agent0": {
-                        "born_longitude": 10,
-                        "born_lateral": 1.5,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
-                        # "show_lidar": True
-                        "show_side_detector": True
-                    },
-                    "agent1": {
-                        "born_longitude": 10,
-                        # "show_lidar": True,
-                        "born_lateral": -1,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-                    },
-                    "agent2": {
-                        "born_longitude": 10,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 2),
-                        # "show_lidar": True,
-                        "born_lateral": 1,
-                    },
-                    "agent3": {
-                        "born_longitude": 10,
-                        # "show_lidar": True,
-                        "born_lateral": 2,
-                        "born_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-                    }
-                },
-                "num_agents": 4,
-                "crash_done": False,
-                "out_of_road_penalty": 5.0,
-                "crash_vehicle_penalty": 1.0,
-                "crash_object_penalty": 1.0,
-            }
-        )
-        # Some collision bugs still exist, always set to False now!!!!
-        # config.extend_config_with_unknown_keys({"crash_done": True})
+        config.update(MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG)
         return config
 
     def __init__(self, config=None):
