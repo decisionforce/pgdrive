@@ -507,8 +507,8 @@ def test_ma_roundabout_reward_sign():
         def _update_agent_pos_configs(self, config):
             config = super(TestEnv, self)._update_agent_pos_configs(config)
             safe_places = []
-            for c, bid in enumerate(self._born_places_manager.safe_born_places.keys()):
-                safe_places.append((bid, self._born_places_manager.safe_born_places[bid]))
+            for c, bid in enumerate(self._spawn_manager.safe_born_places.keys()):
+                safe_places.append((bid, self._spawn_manager.safe_born_places[bid]))
             self._safe_places = safe_places
             return config
 
