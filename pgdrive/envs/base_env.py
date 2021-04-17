@@ -1,4 +1,3 @@
-import copy
 import os.path as osp
 import time
 from collections import defaultdict

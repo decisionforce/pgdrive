@@ -1,7 +1,6 @@
+from pgdrive.constants import BodyName
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.constants import BodyName
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.constants import BodyName
 from pgdrive.utils import setup_logger
 
 

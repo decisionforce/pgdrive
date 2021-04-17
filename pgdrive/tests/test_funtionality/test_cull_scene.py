@@ -1,5 +1,4 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import PGConfig
 
 
