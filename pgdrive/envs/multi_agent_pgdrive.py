@@ -8,14 +8,37 @@ from pgdrive.utils.pg_config import merge_dicts
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
     is_multi_agent=True,
-    num_agents=4,
+    num_agents=2,
+
+    # Whether to terminate a vehicle if it crash with others. Since in MA env the crash is extremely dense, so
+    # frequently done might not be a good idea.
     crash_done=False,
 
-    # ===== New Setting =====
-    traffic_density=0.,
+    # Whether the vehicle can rejoin the episode
+    allow_respawn=True,
+
+    # The maximum length of the episode. If allow respawn, then this is the maximum step that respawn can happen. After
+    # that, the episode won't terminate until all existing vehicles reach their horizon or done. The vehicle specified
+    # horizon is also this value.
+    horizon=1000,
+
+    # ===== Vehicle Setting =====
+    vehicle_config=dict(lidar=dict(
+        num_lasers=72,
+        distance=40,
+        num_others=0
+    )),
+
+    # ===== New Reward Setting =====
     out_of_road_penalty=5.0,
     crash_vehicle_penalty=1.0,
     crash_object_penalty=1.0,
+
+    # ===== Environmental Setting =====
+    bird_camera_height=120,
+    traffic_density=0.,
+    auto_termination=False,
+    camera_height=4,
 )
 
 

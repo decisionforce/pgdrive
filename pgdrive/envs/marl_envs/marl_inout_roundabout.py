@@ -15,36 +15,12 @@ from pgdrive.scene_manager.spawn_manager import SpawnManager
 from pgdrive.scene_manager.target_vehicle_manager import TargetVehicleManager
 from pgdrive.utils import get_np_random, norm, PGConfig
 
-MARoundaboutConfig = {
-    "num_agents": 2,  # Number of maximum agents in the scenarios.
-    "horizon": 1000,  # We will stop reborn vehicles after this timesteps.
-
-    # Vehicle
-    "vehicle_config": {
-        "lidar": {
-            "num_lasers": 72,
-            "distance": 40,
-            "num_others": 0,
-        },
-        "born_longitude": 5,
-        "born_lateral": 0,
-    },
-
-    # Map
-    "map_config": {
-        "exit_length": 50,
-        "lane_num": 2
-    },
-
-    # Reward scheme
-    "crash_done": False,
-    "out_of_road_penalty": 5.0,
-    "crash_vehicle_penalty": 1.0,
-    "crash_object_penalty": 1.0,
-    "auto_termination": False,
-    "camera_height": 4,
-    "bird_camera_height": 120
-}
+MARoundaboutConfig = dict(
+    map_config=dict(
+        exit_length=50,
+        lane_num=2
+    )
+)
 
 
 class MARoundaboutMap(PGMap):
@@ -267,8 +243,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
