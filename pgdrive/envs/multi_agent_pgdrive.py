@@ -181,6 +181,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
 
 if __name__ == "__main__":
+    from pgdrive.scene_creator.blocks.first_block import FirstBlock
+
     setup_logger(True)
     env = MultiAgentPGDrive(
         {
