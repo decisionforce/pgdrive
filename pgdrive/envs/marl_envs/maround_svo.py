@@ -57,7 +57,8 @@ class MARoundSVO(MARound):
             svo, ret[k] = self._add_svo(v, self.svo_map[k] if k in self.svo_map else None)
             if k not in self.svo_map:
                 self.svo_map[k] = svo
-            i["svo"] = svo
+            if i[k]:
+                i[k]["svo"] = svo
 
         # We should also modify reward here!
         new_rewards = {}
@@ -106,7 +107,7 @@ class MARoundSVO(MARound):
 
 
 if __name__ == '__main__':
-    env = MARoundSVO({"num_agents": 8})
+    env = MARoundSVO({"num_agents": 8, "num_neighbours": 0})
     o = env.reset()
     assert env.observation_space.contains(o)
     total_r = 0
