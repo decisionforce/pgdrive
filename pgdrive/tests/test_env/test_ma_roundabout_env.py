@@ -632,7 +632,7 @@ def test_ma_roundabout_horizon_termination():
             should_reborn = set()
             special_agents = set(["agent0", "agent7"])
             for step in range(1, 10000):
-                act = {k: [0, 0] for k in obs.keys()}
+                act = {k: [0, 0] for k in env.vehicles.keys()}
                 for v_id in act.keys():
                     if v_id in special_agents:
                         act[v_id] = [1, 1]  # Add some randomness
