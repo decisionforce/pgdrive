@@ -44,6 +44,7 @@ MARoundaboutConfig = {
     "crash_object_penalty": 1.0,
     "auto_termination": False,
     "camera_height": 4,
+    "bird_camera_height": 120
 }
 
 
@@ -360,7 +361,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            bird_camera_height = 120
+            bird_camera_height = self.config["bird_camera_height"]
             self.main_camera.camera.setPos(0, 0, bird_camera_height)
             self.main_camera.bird_camera_height = bird_camera_height
             self.main_camera.stop_chase(self.pg_world)
@@ -427,21 +428,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
 
-        # Check return alignment
-        # o_set_1 = set(kkk for kkk, rrr in r.items() if rrr == -self.config["out_of_road_penalty"])
-        # o_set_2 = set(kkk for kkk, iii in i.items() if iii.get("out_of_road"))
-        # condition = o_set_1 == o_set_2
-        # condition = set(kkk for kkk, rrr in r.items() if rrr == self.config["success_reward"]) == \
-        #             set(kkk for kkk, iii in i.items() if iii.get("arrive_dest")) and condition
-        # condition = (
-        #                     not self.config["crash_done"] or (
-        #                     set(kkk for kkk, rrr in r.items() if rrr == -self.config["crash_vehicle_penalty"])
-        #                     == set(kkk for kkk, iii in i.items() if iii.get("crash_vehicle"))
-        #             )
-        #             ) and condition
-        # if not condition:
-        #     raise ValueError("Observation not aligned!")
-
         # Update reborn manager
         if self.episode_steps >= self.config["horizon"]:
             self.target_vehicle_manager.set_allow_reborn(False)
@@ -462,9 +448,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         if d["__all__"]:
             for k in d.keys():
                 d[k] = True
-
-        assert set(o.keys()) == set(self.action_space.spaces.keys())
-        assert set(o.keys()) == set(self.observation_space.spaces.keys())
 
         return o, r, d, i
 
@@ -539,7 +522,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             if done:
                 self.target_vehicle_manager.finish(dead_vehicle_id)
                 self.vehicles.pop(dead_vehicle_id)
-                # self.action_space.spaces.pop(dead_vehicle_id)
+                self.action_space.spaces.pop(dead_vehicle_id)
         return obs, reward, dones, info
 
     def _reset_vehicles(self):

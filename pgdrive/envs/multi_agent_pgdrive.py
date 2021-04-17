@@ -182,7 +182,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for k in current_obs_keys:
             if k not in self.vehicles:
                 self.observation_space.spaces.pop(k)
-                self.action_space.spaces.pop(k)  # Action space is updated in _reborn
+                # self.action_space.spaces.pop(k)  # Action space is updated in _reborn
 
 
 if __name__ == "__main__":
