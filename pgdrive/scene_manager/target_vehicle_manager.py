@@ -18,7 +18,7 @@ class TargetVehicleManager:
         self.observations = {}
         self.observation_spaces = {}
         self.action_spaces = {}
-        self.allow_reborn = True
+        self.allow_respawn = True
 
     def reset(self, vehicles, observation_spaces, action_spaces, observations):
         self.agent_to_vehicle = {k: v.name for k, v in vehicles.items()}
@@ -33,7 +33,7 @@ class TargetVehicleManager:
         for o in action_spaces.values():
             assert isinstance(o, Box)
         self.pending_vehicles = {}
-        self.allow_reborn = True
+        self.allow_respawn = True
 
     def finish(self, agent_name):
         vehicle_name = self.agent_to_vehicle[agent_name]
@@ -45,7 +45,7 @@ class TargetVehicleManager:
     def _check(self):
         current_keys = sorted(list(self.pending_vehicles.keys()) + list(self.active_vehicles.keys()))
         exist_keys = sorted(list(self.vehicle_to_agent.keys()))
-        assert current_keys == exist_keys, "You should confirm_reborn() after request for propose_new_vehicle()!"
+        assert current_keys == exist_keys, "You should confirm_respawn() after request for propose_new_vehicle()!"
 
     def propose_new_vehicle(self):
         self._check()
@@ -53,7 +53,7 @@ class TargetVehicleManager:
             v_id = list(self.pending_vehicles.keys())[0]
             self._check()
             v = self.pending_vehicles.pop(v_id)
-            return self.allow_reborn, dict(
+            return self.allow_respawn, dict(
                 vehicle=v,
                 observation=self.observations[v_id],
                 observation_space=self.observation_spaces[v_id],
@@ -63,7 +63,7 @@ class TargetVehicleManager:
             )
         return None, None
 
-    def confirm_reborn(self, success: bool, vehicle_info):
+    def confirm_respawn(self, success: bool, vehicle_info):
         vehicle = vehicle_info['vehicle']
         if success:
             self.next_agent_count += 1
@@ -75,8 +75,8 @@ class TargetVehicleManager:
             self.pending_vehicles[vehicle.name] = vehicle
         self._check()
 
-    def set_allow_reborn(self, flag: bool):
-        self.allow_reborn = flag
+    def set_allow_respawn(self, flag: bool):
+        self.allow_respawn = flag
 
     def _translate(self, d):
         return {self.vehicle_to_agent[k]: v for k, v in d.items()}

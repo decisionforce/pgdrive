@@ -15,12 +15,7 @@ from pgdrive.scene_manager.spawn_manager import SpawnManager
 from pgdrive.scene_manager.target_vehicle_manager import TargetVehicleManager
 from pgdrive.utils import get_np_random, norm, PGConfig
 
-MARoundaboutConfig = dict(
-    map_config=dict(
-        exit_length=50,
-        lane_num=2
-    )
-)
+MARoundaboutConfig = dict(map_config=dict(exit_length=50, lane_num=2))
 
 
 class MARoundaboutMap(PGMap):
@@ -73,27 +68,11 @@ class LidarStateObservationMARound(ObservationType):
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe(self, vehicle):
-        """
-        State observation + Navi info + 4 * closest vehicle info + Lidar points ,
-        Definition of State Observation and Navi information can be found in **class StateObservation**
-        Other vehicles' info: [
-                              Projection of distance between ego and another vehicle on ego vehicle's heading direction,
-                              Projection of distance between ego and another vehicle on ego vehicle's side direction,
-                              Projection of speed between ego and another vehicle on ego vehicle's heading direction,
-                              Projection of speed between ego and another vehicle on ego vehicle's side direction,
-                              ] * 4, dim = 16
-
-        Lidar points: 240 lidar points surrounding vehicle, starting from the vehicle head in clockwise direction
-
-        :param vehicle: BaseVehicle
-        :return: observation in 9 + 10 + 16 + 240 dim
-        """
         num_others = self.config["lidar"]["num_others"]
         state = self.state_observe(vehicle)
         other_v_info = []
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
-                # other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, self.config["lidar"]["num_others"])
                 surrounding_vehicles = list(vehicle.lidar.get_surrounding_vehicles())
                 surrounding_vehicles.sort(
                     key=lambda v: norm(vehicle.position[0] - v.position[0], vehicle.position[1] - v.position[1])
@@ -130,7 +109,7 @@ class LidarStateObservationMARound(ObservationType):
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     _DEBUG_RANDOM_SEED = None
-    born_roads = [
+    spawn_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
         -Road(Roundabout.node(1, 0, 2), Roundabout.node(1, 0, 3)),
         -Road(Roundabout.node(1, 1, 2), Roundabout.node(1, 1, 3)),
@@ -177,7 +156,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_agent_pos_configs(self, config):
         self._spawn_manager = SpawnManager(
-            born_roads=self.born_roads,
+            spawn_roads=self.spawn_roads,
             exit_length=config["map_config"]["exit_length"],
             lane_num=config["map_config"]["lane_num"],
             num_agents=config["num_agents"],
@@ -189,7 +168,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         return config
 
     def reset(self, *args, **kwargs):
-        # Shuffle born places!
+        # Shuffle spawn places!
         self.config = self._update_agent_pos_configs(self.config)
 
         for v in self.done_vehicles.values():
@@ -229,11 +208,11 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def step(self, actions):
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
 
-        # Update reborn manager
+        # Update respawn manager
         if self.episode_steps >= self.config["horizon"]:
-            self.target_vehicle_manager.set_allow_reborn(False)
+            self.target_vehicle_manager.set_allow_respawn(False)
         self._spawn_manager.update(self.vehicles, self.current_map)
-        new_obs_dict = self._reborn()
+        new_obs_dict = self._respawn()
         if new_obs_dict:
             for new_id, new_obs in new_obs_dict.items():
                 o[new_id] = new_obs
@@ -243,8 +222,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -254,56 +233,56 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _update_destination_for(self, vehicle):
         # when agent re-joined to the game, call this to set the new route to destination
-        end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.born_roads)  # Use negative road!
+        end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-    def _reborn(self):
+    def _respawn(self):
         new_obs_dict = {}
         while True:
-            new_id, new_obs = self._reborn_single_vehicle()
+            new_id, new_obs = self._respawn_single_vehicle()
             if new_obs is not None:
                 new_obs_dict[new_id] = new_obs
             else:
                 break
         return new_obs_dict
 
-    def _force_reborn(self, agent_name):
+    def _force_respawn(self, agent_name):
         """
-        This function can force a given vehicle to reborn!
+        This function can force a given vehicle to respawn!
         """
         self.target_vehicle_manager.finish(agent_name)
-        new_id, new_obs = self._reborn_single_vehicle()
+        new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 
-    def _reborn_single_vehicle(self):
+    def _respawn_single_vehicle(self):
         """
-        Arbitrary insert a new vehicle to a new born place if possible.
+        Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        allow_reborn, vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
+        allow_respawn, vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
         if vehicle_info is None:  # No more vehicle to be assigned.
             return None, None
-        if not allow_reborn:
-            # If not allow to reborn, move agents to some rural places.
+        if not allow_respawn:
+            # If not allow to respawn, move agents to some rural places.
             v = vehicle_info["vehicle"]
             v.set_position((-999, -999))
             v.set_static(True)
-            self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
+            self.target_vehicle_manager.confirm_respawn(False, vehicle_info)
             return None, None
         v = vehicle_info["vehicle"]
         dead_vehicle_id = vehicle_info["old_name"]
         bp_index = self._replace_vehicles(v)
-        if bp_index is None:  # No more born places to be assigned.
-            self.target_vehicle_manager.confirm_reborn(False, vehicle_info)
+        if bp_index is None:  # No more spawn places to be assigned.
+            self.target_vehicle_manager.confirm_respawn(False, vehicle_info)
             return None, None
 
-        self.target_vehicle_manager.confirm_reborn(True, vehicle_info)
+        self.target_vehicle_manager.confirm_respawn(True, vehicle_info)
 
         new_id = vehicle_info["new_name"]
         v.set_static(False)
         self.vehicles[new_id] = v  # Put it to new vehicle id.
         self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
-        self._spawn_manager.confirm_reborn(born_place_id=bp_index, vehicle_id=new_id)
-        logging.debug("{} Dead. {} Reborn!".format(dead_vehicle_id, new_id))
+        self._spawn_manager.confirm_respawn(spawn_place_id=bp_index, vehicle_id=new_id)
+        logging.debug("{} Dead. {} Respawn!".format(dead_vehicle_id, new_id))
 
         self.observations[new_id] = vehicle_info["observation"]
         self.observations[new_id].reset(self, v)
@@ -332,7 +311,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}
         self.done_vehicles = {}
 
-        # update config (for new possible born places)
+        # update config (for new possible spawn places)
         for v_id, v in self.vehicles.items():
             v.vehicle_config = self._get_target_vehicle_config(self.config["target_vehicle_configs"][v_id])
 
@@ -341,15 +320,15 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _replace_vehicles(self, v):
         v.prepare_step([0, -1])
-        safe_places_dict = self._spawn_manager.get_available_born_places()
+        safe_places_dict = self._spawn_manager.get_available_spawn_places()
         if len(safe_places_dict) == 0:
             # No more run, just wait!
             return None
         assert len(safe_places_dict) > 0
         bp_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
-        new_born_place = safe_places_dict[bp_index]
-        new_born_place_config = new_born_place["config"]
-        v.vehicle_config.update(new_born_place_config)
+        new_spawn_place = safe_places_dict[bp_index]
+        new_spawn_place_config = new_spawn_place["config"]
+        v.vehicle_config.update(new_spawn_place_config)
         v.reset(self.current_map)
         self._update_destination_for(v)
         v.update_state(detector_mask=None)

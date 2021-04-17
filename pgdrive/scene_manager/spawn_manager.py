@@ -9,43 +9,42 @@ class SpawnManager:
     """
     This class maintain a list of possible spawn places.
     """
-
-    def __init__(self, born_roads, exit_length, lane_num, num_agents, vehicle_config):
+    def __init__(self, spawn_roads, exit_length, lane_num, num_agents, vehicle_config):
         interval = 10
         num_slots = int(floor(exit_length / interval))
         interval = exit_length / num_slots
-        assert num_agents <= lane_num * len(born_roads) * num_slots, (
+        assert num_agents <= lane_num * len(spawn_roads) * num_slots, (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                lane_num * len(born_roads) * num_slots, num_agents
+                lane_num * len(spawn_roads) * num_slots, num_agents
             )
         )
 
-        # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be reborn,
+        # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be respawn,
         # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
         # appear at the middle of the road!)
         target_vehicle_configs = []
-        safe_born_places = []
-        for i, road in enumerate(born_roads):
+        safe_spawn_places = []
+        for i, road in enumerate(spawn_roads):
             for lane_idx in range(lane_num):
                 for j in range(num_slots):
                     long = j * interval + np.random.uniform(0, 0.5 * interval)
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                             config={
-                                "born_lane_index": lane_tuple,
-                                "born_longitude": long,
-                                "born_lateral": vehicle_config["born_lateral"]
+                                "spawn_lane_index": lane_tuple,
+                                "spawn_longitude": long,
+                                "spawn_lateral": vehicle_config["spawn_lateral"]
                             }
                         )
                     )
                     if j == 0:
-                        safe_born_places.append(target_vehicle_configs[-1].copy())
+                        safe_spawn_places.append(target_vehicle_configs[-1].copy())
         self.target_vehicle_configs = target_vehicle_configs
-        self.safe_born_places = {v["identifier"]: v for v in safe_born_places}
-        self.mapping = {i: set() for i in self.safe_born_places.keys()}
-        self.need_update_born_places = True
+        self.safe_spawn_places = {v["identifier"]: v for v in safe_spawn_places}
+        self.mapping = {i: set() for i in self.safe_spawn_places.keys()}
+        self.need_update_spawn_places = True
 
     def get_target_vehicle_configs(self, num_agents, seed=None):
         target_agents = get_np_random(seed).choice(
@@ -63,31 +62,31 @@ class SpawnManager:
         return copy.deepcopy(ret)
 
     def update(self, vehicles: dict, map):
-        if self.need_update_born_places:
-            self.need_update_born_places = False
-            for bid, bp in self.safe_born_places.items():
-                lane = map.road_network.get_lane(bp["config"]["born_lane_index"])
-                self.safe_born_places[bid]["position"] = lane.position(
-                    longitudinal=bp["config"]["born_longitude"], lateral=bp["config"]["born_lateral"]
+        if self.need_update_spawn_places:
+            self.need_update_spawn_places = False
+            for bid, bp in self.safe_spawn_places.items():
+                lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
+                self.safe_spawn_places[bid]["position"] = lane.position(
+                    longitudinal=bp["config"]["spawn_longitude"], lateral=bp["config"]["spawn_lateral"]
                 )
                 for vid in vehicles.keys():
-                    self.confirm_reborn(bid, vid)  # Just assume everyone is all in the same born place at t=0.
+                    self.confirm_respawn(bid, vid)  # Just assume everyone is all in the same spawn place at t=0.
 
         for bid, vid_set in self.mapping.items():
             removes = []
             for vid in vid_set:
-                if (vid not in vehicles) or (distance_greater(self.safe_born_places[bid]["position"],
+                if (vid not in vehicles) or (distance_greater(self.safe_spawn_places[bid]["position"],
                                                               vehicles[vid].position, length=10)):
                     removes.append(vid)
             for vid in removes:
                 self.mapping[bid].remove(vid)
 
-    def confirm_reborn(self, born_place_id, vehicle_id):
-        self.mapping[born_place_id].add(vehicle_id)
+    def confirm_respawn(self, spawn_place_id, vehicle_id):
+        self.mapping[spawn_place_id].add(vehicle_id)
 
-    def get_available_born_places(self):
+    def get_available_spawn_places(self):
         ret = {}
-        for bid in self.safe_born_places.keys():
+        for bid in self.safe_spawn_places.keys():
             if not self.mapping[bid]:  # empty
-                ret[bid] = self.safe_born_places[bid]
+                ret[bid] = self.safe_spawn_places[bid]
         return ret
