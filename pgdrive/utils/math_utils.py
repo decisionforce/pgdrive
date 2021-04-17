@@ -8,21 +8,24 @@ from pgdrive.utils.cutils import import_cutils
 
 cutils = import_cutils()
 
-number_nan = float("nan")
-number_inf = float("inf")
-number_inf_neg = float("-inf")
+number_pos_inf = float("inf")
+number_neg_inf = float("-inf")
 
 
 def safe_clip(array, min_val, max_val):
-    array = np.nan_to_num(array, copy=False)
-    return np.clip(array, min_val, max_val)
+    array = np.nan_to_num(array.astype(np.float), copy=False, nan=0.0, posinf=max_val, neginf=min_val)
+    return np.clip(array, min_val, max_val).astype(np.float64)
 
 
 def safe_clip_for_small_array(array, min_val, max_val):
     array = list(array)
     for i in range(len(array)):
-        if array[i] == number_nan or array[i] == number_inf or array[i] == number_inf_neg:
+        if math.isnan(array[i]):
             array[i] = 0.0
+        elif array[i] == number_pos_inf:
+            array[i] = max_val
+        elif array[i] == number_neg_inf:
+            array[i] = min_val
         array[i] = clip(array[i], min_val, max_val)
     return array
 
@@ -52,7 +55,7 @@ def norm(x, y):
 
 def distance_greater(vec1, vec2, length):
     """Return whether the distance between two vectors is greater than the given length."""
-    return ((vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2) > length**2
+    return ((vec1[0] - vec2[0]) ** 2 + (vec1[1] - vec2[1]) ** 2) > length ** 2
 
 
 def clip(a, low, high):
