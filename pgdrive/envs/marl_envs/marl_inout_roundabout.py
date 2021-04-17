@@ -5,6 +5,7 @@ from math import floor
 import gym
 import numpy as np
 from gym.spaces import Box
+from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.obs import ObservationType
@@ -637,17 +638,17 @@ def _vis():
             "horizon": 100,
             "vehicle_config": {
                 "lidar": {
-                    "num_lasers": 1,
+                    "num_lasers": 72,
                     "num_others": 0,
                     "distance": 40
                 },
-                # "show_lidar": True,
+                "show_lidar": True,
             },
             "fast": True,
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 40,
+            "num_agents": 8,
         }
     )
     o = env.reset()
@@ -683,7 +684,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentRoundaboutEnv({"num_agents": 40})
+    env = MultiAgentRoundaboutEnv({"num_agents": 16})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -762,6 +763,6 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _profile()
-    _long_run()
+    # _long_run()

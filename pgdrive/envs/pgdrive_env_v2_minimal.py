@@ -1,6 +1,7 @@
+import math
+
 import gym
 import numpy as np
-
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.obs import LidarStateObservation
 from pgdrive.obs.observation_type import ObservationType
@@ -33,7 +34,7 @@ class MinimalObservation(LidarStateObservation):
     def observe_ego_state(self, vehicle):
         navi_info = vehicle.routing_localization.get_navi_info()
         ego_state = self.vehicle_state(vehicle)
-        return np.asarray(ego_state + navi_info, dtype=np.float32)
+        return np.concatenate([ego_state, navi_info])
 
     def vehicle_state(self, vehicle):
         # update out of road
@@ -159,8 +160,8 @@ class MinimalObservation(LidarStateObservation):
         s.append(state["sin_d"])
         s.append(vehicle.target_speed / vehicle.MAX_SPEED)
         s.append(vehicle.speed / vehicle.MAX_SPEED)
-        s.append(np.cos(vehicle.heading))
-        s.append(np.sin(vehicle.heading))
+        s.append(math.cos(vehicle.heading))
+        s.append(math.sin(vehicle.heading))
         s.append(vehicle.action["steering"])
         s.append(vehicle.action["acceleration"] / vehicle.ACC_MAX)
         ret = []

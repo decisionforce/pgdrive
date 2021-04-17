@@ -506,7 +506,7 @@ def test_ma_roundabout_reward_sign():
             v.vehicle_config.update(new_born_place_config)
             v.reset(self.current_map)
             self._update_destination_for(v)
-            v.update_state(detector_mask=None)
+            v.update_state()
             return bp_index
 
     env = TestEnv({"num_agents": 1})

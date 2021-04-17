@@ -21,7 +21,7 @@ from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector,
 from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import PGConfig, safe_clip, random_string
+from pgdrive.utils import PGConfig, safe_clip_for_small_array, random_string, PGVector
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.element import DynamicElement
@@ -213,7 +213,7 @@ class BaseVehicle(DynamicElement):
             )
 
         # protect agent from nan error
-        action = safe_clip(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
+        action = safe_clip_for_small_array(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         return action, {'raw_action': (action[0], action[1])}
 
     def prepare_step(self, action):
@@ -295,7 +295,7 @@ class BaseVehicle(DynamicElement):
         heading = -np.deg2rad(heading) - np.pi / 2
         self.set_static(False)
         self.chassis_np.setPos(panda_position(Vec3(*pos, 1)))
-        self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
+        self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
         self.update_map_info(map)
         self.chassis_np.node().clearForces()
         self.chassis_np.node().setLinearVelocity(Vec3(0, 0, 0))
@@ -398,7 +398,8 @@ class BaseVehicle(DynamicElement):
     @property
     def heading(self):
         real_heading = self.heading_theta
-        heading = np.array([np.cos(real_heading), np.sin(real_heading)])
+        # heading = np.array([math.cos(real_heading), math.sin(real_heading)])
+        heading = PGVector((math.cos(real_heading), math.sin(real_heading)))
         return heading
 
     @property
@@ -495,7 +496,7 @@ class BaseVehicle(DynamicElement):
         self.chassis_np = self.node_path.attachNewNode(chassis)
         # not random born now
         self.chassis_np.setPos(Vec3(*self.born_place, 1))
-        self.chassis_np.setQuat(LQuaternionf(np.cos(heading / 2), 0, 0, np.sin(heading / 2)))
+        self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
         chassis.setDeactivationEnabled(False)
         chassis.notifyCollisions(True)  # advance collision check, do callback in pg_collision_callback
         self.dynamic_nodes.append(chassis)
@@ -568,8 +569,8 @@ class BaseVehicle(DynamicElement):
         assert distance > 0
         self.lidar = Lidar(self.pg_world.render, num_lasers, distance, show_lidar_point)
 
-    def add_routing_localization(self, show_navi_point: bool):
-        self.routing_localization = RoutingLocalizationModule(self.pg_world, show_navi_point)
+    def add_routing_localization(self, show_navi_mark: bool = False):
+        self.routing_localization = RoutingLocalizationModule(self.pg_world, show_navi_mark=show_navi_mark)
 
     def update_map_info(self, map):
         """
@@ -713,7 +714,7 @@ class BaseVehicle(DynamicElement):
         if self.vehicle_config["overtake_stat"]:
             surrounding_vs = self.lidar.get_surrounding_vehicles()
             routing = self.routing_localization
-            ckpt_idx = routing.target_checkpoints_index
+            ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
                                                                                                            ]):
@@ -737,7 +738,7 @@ class BaseVehicle(DynamicElement):
         if self.render:
             self.vehicle_panel.remove_display_region(self.pg_world)
             self.collision_info_np.detachNode()
-            self.routing_localization.arrow_node_path.detachNode()
+            self.routing_localization._arrow_node_path.detachNode()
         for sensor in self.image_sensors.values():
             sensor.remove_display_region(self.pg_world)
 
@@ -745,7 +746,7 @@ class BaseVehicle(DynamicElement):
         if self.render:
             self.vehicle_panel.add_to_display(self.pg_world, self.vehicle_panel.default_region)
             self.collision_info_np.reparentTo(self.pg_world.aspect2d)
-            self.routing_localization.arrow_node_path.reparentTo(self.pg_world.aspect2d)
+            self.routing_localization._arrow_node_path.reparentTo(self.pg_world.aspect2d)
         for sensor in self.image_sensors.values():
             sensor.add_to_display(self.pg_world, sensor.default_region)
 
