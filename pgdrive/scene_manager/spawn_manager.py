@@ -5,6 +5,7 @@ import numpy as np
 from pgdrive.utils import get_np_random, distance_greater
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 
+
 class SpawnManager:
     """
     This class maintain a list of possible spawn places.
