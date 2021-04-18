@@ -107,7 +107,6 @@ class LidarStateObservationMARound(ObservationType):
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
-    _DEBUG_RANDOM_SEED = None
     spawn_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
         -Road(Roundabout.node(1, 0, 2), Roundabout.node(1, 0, 3)),

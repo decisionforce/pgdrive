@@ -44,6 +44,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
+
+    # A list of road instances denoting which roads afford spawn points. If not set, then search for all
+    # possible roads and spawn new agents in them if possible.
+    spawn_roads = []
+
     @staticmethod
     def default_config() -> PGConfig:
         config = PGDriveEnvV2.default_config()
