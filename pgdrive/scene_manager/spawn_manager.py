@@ -2,15 +2,18 @@ import copy
 from math import floor
 
 import numpy as np
-from pgdrive.utils import get_np_random, distance_greater
+
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.utils import get_np_random, distance_greater
 
 
 class SpawnManager:
     """
     This class maintain a list of possible spawn places.
     """
-    def __init__(self, exit_length, lane_num, num_agents, vehicle_config):
+    FORCE_AGENT_NAME = "force_agent_name"
+
+    def __init__(self, exit_length, lane_num, num_agents, vehicle_config, target_vehicle_configs=None):
         self.num_agents = num_agents
         self.exit_length = (exit_length - FirstBlock.ENTRANCE_LENGTH)
         self.lane_num = lane_num
@@ -21,8 +24,42 @@ class SpawnManager:
         self.mapping = {}
         self.need_update_spawn_places = True
         self.initialized = False
+        self.target_vehicle_configs = target_vehicle_configs
 
     def update_spawn_roads(self, spawn_roads):
+        if self.target_vehicle_configs:
+            target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_with_configs(spawn_roads)
+        else:
+            target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_randomly(spawn_roads)
+        self.target_vehicle_configs = target_vehicle_configs
+        self.safe_spawn_places = {v["identifier"]: v for v in safe_spawn_places}
+        self.mapping = {i: set() for i in self.safe_spawn_places.keys()}
+        self.spawn_roads = spawn_roads
+        self.need_update_spawn_places = True
+        self.initialized = True
+
+    def _update_spawn_roads_with_configs(self, spawn_roads):
+        assert self.num_agents <= len(self.target_vehicle_configs), (
+            "Too many agents! We only accepet {} agents, but you have {} agents! "
+            "Or you should not specify the target_vehicle_configs!".format(
+                len(self.target_vehicle_configs), self.num_agents
+            )
+        )
+        target_vehicle_configs = []
+        safe_spawn_places = []
+        for v_id, v_config in self.target_vehicle_configs.items():
+            lane_tuple = v_config["spawn_lane_index"]
+            target_vehicle_configs.append(
+                dict(
+                    identifier="|".join((str(s) for s in lane_tuple)),
+                    config=v_config,
+                    force_agent_name=v_id
+                )
+            )
+            safe_spawn_places.append(target_vehicle_configs[-1].copy())
+        return target_vehicle_configs, safe_spawn_places
+
+    def _update_spawn_roads_randomly(self, spawn_roads):
         assert len(spawn_roads) > 0
         interval = 10
         num_slots = int(floor(self.exit_length / interval))
@@ -45,23 +82,18 @@ class SpawnManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
                                 "spawn_lateral": self.vehicle_config["spawn_lateral"]
-                            }
+                            },
+                            force_agent_name=None
                         )
                     )
                     if j == 0:
                         safe_spawn_places.append(target_vehicle_configs[-1].copy())
-
-        self.target_vehicle_configs = target_vehicle_configs
-        self.safe_spawn_places = {v["identifier"]: v for v in safe_spawn_places}
-        self.mapping = {i: set() for i in self.safe_spawn_places.keys()}
-        self.spawn_roads = spawn_roads
-        self.need_update_spawn_places = True
-        self.initialized = True
+        return target_vehicle_configs, safe_spawn_places
 
     def get_target_vehicle_configs(self, num_agents, seed=None):
         assert len(self.target_vehicle_configs) > 0

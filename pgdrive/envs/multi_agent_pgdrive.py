@@ -87,7 +87,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             exit_length=ret_config["map_config"]["exit_length"],
             lane_num=ret_config["map_config"]["lane_num"],
             num_agents=ret_config["num_agents"],
-            vehicle_config=ret_config["vehicle_config"]
+            vehicle_config=ret_config["vehicle_config"],
+            target_vehicle_configs=ret_config["target_vehicle_configs"],
         )
 
         self._spawn_manager.update_spawn_roads(self.spawn_roads)
@@ -288,7 +289,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             return None, None
         v = vehicle_info["vehicle"]
         dead_vehicle_id = vehicle_info["old_name"]
-        bp_index = self._replace_vehicles(v)
+        bp_index = self._replace_vehicles(vehicle_info)
         if bp_index is None:  # No more spawn places to be assigned.
             self._agent_manager.confirm_respawn(False, vehicle_info)
             return None, None
@@ -309,7 +310,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         new_obs = self.observations[new_id].observe(v)
         return new_id, new_obs
 
-    def _replace_vehicles(self, v):
+    def _replace_vehicles(self, vehicle_info):
+        v = vehicle_info["vehicle"]
         v.prepare_step([0, -1])
         safe_places_dict = self._spawn_manager.get_available_spawn_places()
         if len(safe_places_dict) == 0:
@@ -318,6 +320,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         assert len(safe_places_dict) > 0
         bp_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
         new_spawn_place = safe_places_dict[bp_index]
+
+        if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] is not None:
+            if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] != vehicle_info["new_name"]:
+                return None
+
         new_spawn_place_config = new_spawn_place["config"]
         v.vehicle_config.update(new_spawn_place_config)
         v.reset(self.current_map)
