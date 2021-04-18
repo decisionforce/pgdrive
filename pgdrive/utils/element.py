@@ -79,7 +79,6 @@ class Element:
                 # It is closed before!
                 self.loader.__init__()
 
-
     @property
     def class_name(self):
         return self.__class__.__name__
