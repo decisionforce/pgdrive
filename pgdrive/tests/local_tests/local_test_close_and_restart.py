@@ -1,7 +1,7 @@
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 
 
-def check_render_can_close_and_restart():
+def local_test_close_and_restart():
     try:
         for m in ["X", "O", "C", "S", "R", "r", "T"]:
             env = PGDriveEnvV2({"map": m, "use_render": True, "fast": True})
@@ -19,4 +19,4 @@ def check_render_can_close_and_restart():
 
 
 if __name__ == '__main__':
-    check_render_can_close_and_restart()
+    local_test_close_and_restart()
