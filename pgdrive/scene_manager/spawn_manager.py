@@ -50,11 +50,7 @@ class SpawnManager:
         for v_id, v_config in self.target_vehicle_configs.items():
             lane_tuple = v_config["spawn_lane_index"]
             target_vehicle_configs.append(
-                dict(
-                    identifier="|".join((str(s) for s in lane_tuple)),
-                    config=v_config,
-                    force_agent_name=v_id
-                )
+                dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config, force_agent_name=v_id)
             )
             safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
@@ -82,7 +78,7 @@ class SpawnManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
