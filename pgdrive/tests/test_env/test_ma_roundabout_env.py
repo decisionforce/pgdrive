@@ -511,16 +511,6 @@ def test_ma_roundabout_reward_sign():
             self._safe_places = safe_places
             return config
 
-        def _replace_vehicles(self, v):
-            v.prepare_step([0, -1])
-            bp_index, new_spawn_place = self._safe_places[self._respawn_count]
-            new_spawn_place_config = new_spawn_place["config"]
-            v.vehicle_config.update(new_spawn_place_config)
-            v.reset(self.current_map)
-            self._update_destination_for(v)
-            v.update_state(detector_mask=None)
-            return bp_index
-
     env = TestEnv({"num_agents": 1})
     try:
         _check_spaces_before_reset(env)
