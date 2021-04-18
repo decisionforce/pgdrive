@@ -36,7 +36,8 @@ class MARoundSVO(MARound):
                 # Two mode to compute utility for each vehicle:
                 # "linear": util = r_me * svo + r_other * (1 - svo), svo in [0, 1]
                 # "angle": util = r_me * cos(svo) + r_other * sin(svo), svo in [0, pi/2]
-                svo_mode="linear",
+                # "angle" seems to be more stable!
+                svo_mode="angle",
             )
         )
         return config
@@ -112,7 +113,7 @@ class MARoundSVO(MARound):
         dist_to_others_list = sorted(dist_to_others, key=lambda k: dist_to_others[k])
         ret = [
             dist_to_others_list[i] for i in range(min(K, len(dist_to_others_list)))
-            if dist_to_others_list[i] < max_distance
+            if dist_to_others[dist_to_others_list[i]] < max_distance
         ]
         if len(ret) < K:
             ret += [None] * (K - len(ret))
