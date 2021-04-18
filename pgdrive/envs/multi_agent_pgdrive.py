@@ -67,8 +67,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         super(MultiAgentPGDrive, self).__init__(config)
         self.done_observations = dict()
         self._agent_manager = AgentManager(
-            never_allow_respawn=not self.config["allow_respawn"],
-            debug=self.config["debug"]
+            never_allow_respawn=not self.config["allow_respawn"], debug=self.config["debug"]
         )
 
     def _process_extra_config(self, config) -> "PGConfig":
@@ -134,8 +133,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -340,7 +339,6 @@ if __name__ == "__main__":
         {
             "num_agents": 12,
             "allow_respawn": False,
-
             "use_render": True,
             "debug": False,
             "fast": True,

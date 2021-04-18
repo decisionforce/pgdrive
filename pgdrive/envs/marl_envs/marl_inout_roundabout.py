@@ -135,7 +135,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         return LidarStateObservationMARound(vehicle_config)
 
