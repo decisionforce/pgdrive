@@ -299,7 +299,7 @@ class BaseVehicle(DynamicElement):
         self.chassis_np.node().setLinearVelocity(Vec3(0, 0, 0))
         self.chassis_np.node().setAngularVelocity(Vec3(0, 0, 0))
         self.system.resetSuspension()
-        np.testing.assert_almost_equal(self.position, pos, decimal=4)
+        # np.testing.assert_almost_equal(self.position, pos, decimal=4)
 
         # done info
         self._init_step_info()
