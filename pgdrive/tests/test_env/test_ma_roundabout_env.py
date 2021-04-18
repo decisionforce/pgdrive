@@ -301,7 +301,7 @@ def test_ma_roundabout_close_spawn():
                 assert distance_greater(v1.position, v2.position, length=2.2)
 
     MultiAgentRoundaboutEnv._DEBUG_RANDOM_SEED = 1
-    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 16, "map_config": {"exit_length": 20}})
+    env = MultiAgentRoundaboutEnv({"horizon": 50, "num_agents": 16, "map_config": {"exit_length": 30}})
     env.seed(100)
     try:
         _check_spaces_before_reset(env)
@@ -411,7 +411,7 @@ def test_ma_roundabout_reward_done_alignment():
     env = MultiAgentRoundaboutEnv(
         {
             "map_config": {
-                "exit_length": 100,
+                "exit_length": 110,
                 "lane_num": 1
             },
             # "use_render": True,

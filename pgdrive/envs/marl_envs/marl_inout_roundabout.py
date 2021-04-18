@@ -14,7 +14,7 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import get_np_random, norm, PGConfig
 
 MARoundaboutConfig = dict(
-    map_config=dict(exit_length=50, lane_num=2),
+    map_config=dict(exit_length=60, lane_num=2),
     top_down_camera_initial_x=95,
     top_down_camera_initial_y=15,
     top_down_camera_initial_z=120
