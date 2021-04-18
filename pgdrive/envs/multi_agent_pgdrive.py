@@ -186,22 +186,30 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return ret
 
     def _reset_vehicles(self):
-        # TODO(pzh) deprecated this function in future!
-        vehicles = list(self.vehicles.values()) + list(self.done_vehicles.values())
+        vehicles = self._agent_manager.get_vehicle_list() or list(self.vehicles.values())
         assert len(vehicles) == len(self.observations)
         self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}
         self.done_vehicles = {}
+
+        # update config (for new possible spawn places)
+        for v_id, v in self.vehicles.items():
+            v.vehicle_config = self._get_target_vehicle_config(self.config["target_vehicle_configs"][v_id])
+
+        # reset
         self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
-        for id, done in dones.items():
-            if done and id in self.vehicles.keys():
-                v = self.vehicles.pop(id)
-                v.prepare_step([0, -1])
-                self.done_vehicles[id] = v
-        for v in self.done_vehicles.values():
-            if v.speed < 1:
-                v.chassis_np.node().setStatic(True)
+        for v_id, v_info in info.items():
+            if v_info.get("episode_length", 0) >= self.config["horizon"]:
+                if dones[v_id] is not None:
+                    info[v_id]["max_step"] = True
+                    dones[v_id] = True
+                    self.dones[v_id] = True
+        for dead_vehicle_id, done in dones.items():
+            if done:
+                self._agent_manager.finish(dead_vehicle_id)
+                self.vehicles.pop(dead_vehicle_id)
+                self.action_space.spaces.pop(dead_vehicle_id)
         return obs, reward, dones, info
 
     def _get_vehicles(self):
@@ -277,7 +285,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             # If not allow to respawn, move agents to some rural places.
             v = vehicle_info["vehicle"]
             v.set_position((-999, -999))
-            v.set_static(True)
             self._agent_manager.confirm_respawn(False, vehicle_info)
             return None, None
         v = vehicle_info["vehicle"]
@@ -332,6 +339,8 @@ if __name__ == "__main__":
     env = MultiAgentPGDrive(
         {
             "num_agents": 12,
+            "allow_respawn": False,
+
             "use_render": True,
             "debug": False,
             "fast": True,
@@ -359,12 +368,13 @@ if __name__ == "__main__":
     o = env.reset()
     total_r = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step(env.action_space.sample())
+        # o, r, d, info = env.step(env.action_space.sample())
+        o, r, d, info = env.step({v_id: [0, 1] for v_id in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])
         d.update({"total_r": total_r})
-        env.render(text=d)
+        # env.render(text=d)
         if len(env.vehicles) == 0:
             total_r = 0
             print("Reset")

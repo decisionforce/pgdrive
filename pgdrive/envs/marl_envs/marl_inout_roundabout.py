@@ -1,10 +1,6 @@
-import logging
-
 import gym
 import numpy as np
-from gym.spaces import Box
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.obs import ObservationType
 from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -139,65 +135,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-
-
-    # def reset(self, *args, **kwargs):
-    #
-    #     # Multi-agent related reset
-    #     # avoid create new observation!
-    #     obses = self._agent_manager.get_observations() or list(self.observations.values())
-    #     assert len(obses) == len(self.config["target_vehicle_configs"].keys())
-    #     self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
-    #     self.done_observations = dict()
-    #
-    #     # Must change in-place!
-    #     obs_spaces = self._agent_manager.get_observation_spaces() or list(self.observation_space.spaces.values())
-    #     assert len(obs_spaces) == len(self.config["target_vehicle_configs"].keys())
-    #     for o in obs_spaces:
-    #         assert isinstance(o, Box)
-    #     self.observation_space.spaces = {k: v for k, v in zip(self.observations.keys(), obs_spaces)}
-    #     action_spaces = self._agent_manager.get_action_spaces() or list(self.action_space.spaces.values())
-    #     self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
-    #
-    #     ret = PGDriveEnvV2.reset(self, *args, **kwargs)
-    #
-    #     assert len(self.vehicles) == self.num_agents
-    #     self.for_each_vehicle(self._update_destination_for)
-    #
-    #     self._agent_manager.reset(
-    #         vehicles=self.vehicles,
-    #         observation_spaces=self.observation_space.spaces,
-    #         observations=self.observations,
-    #         action_spaces=self.action_space.spaces
-    #     )
-    #     return ret
-
-    def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
-        for v_id, v_info in info.items():
-            if v_info.get("episode_length", 0) >= self.config["horizon"]:
-                if dones[v_id] is not None:
-                    info[v_id]["max_step"] = True
-                    dones[v_id] = True
-                    self.dones[v_id] = True
-        for dead_vehicle_id, done in dones.items():
-            if done:
-                self._agent_manager.finish(dead_vehicle_id)
-                self.vehicles.pop(dead_vehicle_id)
-                self.action_space.spaces.pop(dead_vehicle_id)
-        return obs, reward, dones, info
-
-    def _reset_vehicles(self):
-        vehicles = self._agent_manager.get_vehicle_list() or list(self.vehicles.values())
-        assert len(vehicles) == len(self.observations)
-        self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}
-        self.done_vehicles = {}
-
-        # update config (for new possible spawn places)
-        for v_id, v in self.vehicles.items():
-            v.vehicle_config = self._get_target_vehicle_config(self.config["target_vehicle_configs"][v_id])
-
-        # reset
-        self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         return LidarStateObservationMARound(vehicle_config)

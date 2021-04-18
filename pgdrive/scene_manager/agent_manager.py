@@ -37,11 +37,12 @@ class AgentManager:
         for o in action_spaces.values():
             assert isinstance(o, Box)
         self.pending_object = {}
-        self.allow_respawn = True
+        self.allow_respawn = True if not self.never_allow_respawn else False
 
     def finish(self, agent_name):
         vehicle_name = self.agent_to_object[agent_name]
         v = self.active_object.pop(vehicle_name)
+        v.chassis_np.node().setStatic(True)
         assert vehicle_name not in self.active_object
         self.pending_object[vehicle_name] = v
         self._check()
@@ -58,6 +59,8 @@ class AgentManager:
             v_id = list(self.pending_object.keys())[0]
             self._check()
             v = self.pending_object.pop(v_id)
+            v.prepare_step([0, -1])
+            v.chassis_np.node().setStatic(False)
             return self.allow_respawn, dict(
                 vehicle=v,
                 observation=self.observations[v_id],
@@ -71,20 +74,22 @@ class AgentManager:
     def confirm_respawn(self, success: bool, vehicle_info):
         vehicle = vehicle_info['vehicle']
         if success:
+            vehicle.set_static(False)
             self.next_agent_count += 1
             self.active_object[vehicle.name] = vehicle
             self.object_to_agent[vehicle.name] = vehicle_info["new_name"]
             self.agent_to_object.pop(vehicle_info["old_name"])
             self.agent_to_object[vehicle_info["new_name"]] = vehicle.name
         else:
+            vehicle.set_static(True)
             self.pending_object[vehicle.name] = vehicle
         self._check()
 
     def set_allow_respawn(self, flag: bool):
-        if not self.never_allow_respawn:
-            self.allow_respawn = flag
-        else:
+        if self.never_allow_respawn:
             self.allow_respawn = False
+        else:
+            self.allow_respawn = flag
 
     def _translate(self, d):
         return {self.object_to_agent[k]: v for k, v in d.items()}
