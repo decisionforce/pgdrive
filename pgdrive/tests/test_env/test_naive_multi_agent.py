@@ -31,8 +31,7 @@ def test_naive_multi_agent_pgdrive():
             "map": "SSS",
             "num_agents": 4,
             "target_vehicle_configs": {
-                "agent{}".format(i): \
-                    {
+                "agent{}".format(i): {
                         "spawn_longitude": i * 5
                     }
                 for i in range(4)
@@ -43,13 +42,17 @@ def test_naive_multi_agent_pgdrive():
         assert isinstance(env.action_space, gym.spaces.Dict)
         obs = env.reset()
         assert isinstance(obs, dict)
-        a = env.action_space.sample()
-        assert isinstance(a, dict)
-        o, r, d, i = env.step(a)
-        assert isinstance(o, dict)
-        assert isinstance(r, dict)
-        assert isinstance(d, dict)
-        assert isinstance(i, dict)
+        for _ in range(100):
+            a = env.action_space.sample()
+            assert isinstance(a, dict)
+            o, r, d, i = env.step(a)
+            assert isinstance(o, dict)
+            assert isinstance(r, dict)
+            assert isinstance(d, dict)
+            assert isinstance(i, dict)
+            if d["__all__"]:
+                break
+
         _step(env)
     finally:
         env.close()
