@@ -11,8 +11,8 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
+from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.spawn_manager import SpawnManager
-from pgdrive.scene_manager.target_vehicle_manager import AgentManager
 from pgdrive.utils import get_np_random, norm, PGConfig
 
 MARoundaboutConfig = dict(map_config=dict(exit_length=50, lane_num=2))
@@ -122,7 +122,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def __init__(self, config=None):
         super(MultiAgentRoundaboutEnv, self).__init__(config)
-        self.target_vehicle_manager = AgentManager()
+        self.agent_manager = AgentManager()
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
@@ -176,20 +176,20 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Multi-agent related reset
         # avoid create new observation!
-        obses = self.target_vehicle_manager.get_observations() or list(self.observations.values())
+        obses = self.agent_manager.get_observations() or list(self.observations.values())
         assert len(obses) == len(self.config["target_vehicle_configs"].keys())
         self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
         self.done_observations = dict()
 
         # Must change in-place!
-        obs_spaces = self.target_vehicle_manager.get_observation_spaces() or list(
+        obs_spaces = self.agent_manager.get_observation_spaces() or list(
             self.observation_space.spaces.values()
         )
         assert len(obs_spaces) == len(self.config["target_vehicle_configs"].keys())
         for o in obs_spaces:
             assert isinstance(o, Box)
         self.observation_space.spaces = {k: v for k, v in zip(self.observations.keys(), obs_spaces)}
-        action_spaces = self.target_vehicle_manager.get_action_spaces() or list(self.action_space.spaces.values())
+        action_spaces = self.agent_manager.get_action_spaces() or list(self.action_space.spaces.values())
         self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
 
         ret = PGDriveEnvV2.reset(self, *args, **kwargs)
@@ -197,7 +197,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         assert len(self.vehicles) == self.num_agents
         self.for_each_vehicle(self._update_destination_for)
 
-        self.target_vehicle_manager.reset(
+        self.agent_manager.reset(
             vehicles=self.vehicles,
             observation_spaces=self.observation_space.spaces,
             observations=self.observations,
@@ -210,7 +210,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update respawn manager
         if self.episode_steps >= self.config["horizon"]:
-            self.target_vehicle_manager.set_allow_respawn(False)
+            self.agent_manager.set_allow_respawn(False)
         self._spawn_manager.update(self.vehicles, self.current_map)
         new_obs_dict = self._respawn()
         if new_obs_dict:
@@ -222,8 +222,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -250,7 +250,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         """
         This function can force a given vehicle to respawn!
         """
-        self.target_vehicle_manager.finish(agent_name)
+        self.agent_manager.finish(agent_name)
         new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 
@@ -258,7 +258,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        allow_respawn, vehicle_info = self.target_vehicle_manager.propose_new_vehicle()
+        allow_respawn, vehicle_info = self.agent_manager.propose_new_vehicle()
         if vehicle_info is None:  # No more vehicle to be assigned.
             return None, None
         if not allow_respawn:
@@ -266,16 +266,16 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             v = vehicle_info["vehicle"]
             v.set_position((-999, -999))
             v.set_static(True)
-            self.target_vehicle_manager.confirm_respawn(False, vehicle_info)
+            self.agent_manager.confirm_respawn(False, vehicle_info)
             return None, None
         v = vehicle_info["vehicle"]
         dead_vehicle_id = vehicle_info["old_name"]
         bp_index = self._replace_vehicles(v)
         if bp_index is None:  # No more spawn places to be assigned.
-            self.target_vehicle_manager.confirm_respawn(False, vehicle_info)
+            self.agent_manager.confirm_respawn(False, vehicle_info)
             return None, None
 
-        self.target_vehicle_manager.confirm_respawn(True, vehicle_info)
+        self.agent_manager.confirm_respawn(True, vehicle_info)
 
         new_id = vehicle_info["new_name"]
         v.set_static(False)
@@ -300,13 +300,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                     self.dones[v_id] = True
         for dead_vehicle_id, done in dones.items():
             if done:
-                self.target_vehicle_manager.finish(dead_vehicle_id)
+                self.agent_manager.finish(dead_vehicle_id)
                 self.vehicles.pop(dead_vehicle_id)
                 self.action_space.spaces.pop(dead_vehicle_id)
         return obs, reward, dones, info
 
     def _reset_vehicles(self):
-        vehicles = self.target_vehicle_manager.get_vehicle_list() or list(self.vehicles.values())
+        vehicles = self.agent_manager.get_vehicle_list() or list(self.vehicles.values())
         assert len(vehicles) == len(self.observations)
         self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}
         self.done_vehicles = {}
@@ -384,7 +384,7 @@ def _expert():
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                    i, total_r, total_r / env.target_vehicle_manager.next_agent_count
+                    i, total_r, total_r / env.agent_manager.next_agent_count
                 )
             )
             break
@@ -434,7 +434,7 @@ def _vis():
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                    i, total_r, total_r / env.target_vehicle_manager.next_agent_count
+                    i, total_r, total_r / env.agent_manager.next_agent_count
                 )
             )
             # break
