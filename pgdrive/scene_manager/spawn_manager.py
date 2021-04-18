@@ -3,7 +3,7 @@ from math import floor
 
 import numpy as np
 from pgdrive.utils import get_np_random, distance_greater
-
+from pgdrive.scene_creator.blocks.first_block import FirstBlock
 
 class SpawnManager:
     """
@@ -11,7 +11,7 @@ class SpawnManager:
     """
     def __init__(self, exit_length, lane_num, num_agents, vehicle_config):
         self.num_agents = num_agents
-        self.exit_length = exit_length
+        self.exit_length = (exit_length - FirstBlock.ENTRANCE_LENGTH)
         self.lane_num = lane_num
         self.vehicle_config = vehicle_config
         self.spawn_roads = []
