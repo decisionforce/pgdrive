@@ -111,8 +111,7 @@ class MARoundSVO(MARound):
         dist_to_others = self.distance_map[v_id]
         dist_to_others_list = sorted(dist_to_others, key=lambda k: dist_to_others[k])
         ret = [
-            dist_to_others_list[i]
-            for i in range(min(K, len(dist_to_others_list)))
+            dist_to_others_list[i] for i in range(min(K, len(dist_to_others_list)))
             if dist_to_others_list[i] < max_distance
         ]
         if len(ret) < K:
