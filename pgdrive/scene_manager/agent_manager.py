@@ -10,7 +10,8 @@ class AgentManager:
     agent name: Agent name that exists in the environment, like agent0, agent1, ....
     object name: The unique name for each object, typically be random string.
     """
-    def __init__(self, debug=False):
+
+    def __init__(self, never_allow_respawn, debug=False):
         self.agent_to_object = {}
         self.object_to_agent = {}
         self.pending_object = {}
@@ -19,7 +20,8 @@ class AgentManager:
         self.observations = {}
         self.observation_spaces = {}
         self.action_spaces = {}
-        self.allow_respawn = True
+        self.allow_respawn = True if not never_allow_respawn else False
+        self.never_allow_respawn = never_allow_respawn
         self._debug = debug
 
     def reset(self, vehicles, observation_spaces, action_spaces, observations):
@@ -79,7 +81,10 @@ class AgentManager:
         self._check()
 
     def set_allow_respawn(self, flag: bool):
-        self.allow_respawn = flag
+        if not self.never_allow_respawn:
+            self.allow_respawn = flag
+        else:
+            self.allow_respawn = False
 
     def _translate(self, d):
         return {self.object_to_agent[k]: v for k, v in d.items()}

@@ -66,7 +66,10 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
         self.done_observations = dict()
-        self._agent_manager = AgentManager(debug=self.config["debug"])
+        self._agent_manager = AgentManager(
+            never_allow_respawn=not self.config["allow_respawn"],
+            debug=self.config["debug"]
+        )
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(
@@ -131,8 +134,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -151,14 +154,12 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self.observations = {k: v for k, v in zip(self.config["target_vehicle_configs"].keys(), obses)}
         self.done_observations = dict()
 
-
         # Must change in-place!
         obs_spaces = self._agent_manager.get_observation_spaces() or list(self.observation_space.spaces.values())
         assert len(obs_spaces) == len(self.config["target_vehicle_configs"].keys())
         self.observation_space.spaces = {k: v for k, v in zip(self.observations.keys(), obs_spaces)}
         action_spaces = self._agent_manager.get_action_spaces() or list(self.action_space.spaces.values())
         self.action_space.spaces = {k: v for k, v in zip(self.observations.keys(), action_spaces)}
-
 
         # Multi-agent related reset
         # avoid create new observation!
@@ -170,10 +171,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # self.observation_space = self._get_observation_space()
         # self.action_space = self._get_action_space()
 
-
-
         ret = super(MultiAgentPGDrive, self).reset(*args, **kwargs)
-
 
         assert len(self.vehicles) == self.num_agents
         self.for_each_vehicle(self._update_destination_for)
@@ -186,9 +184,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         )
 
         return ret
-
-
-
 
     def _reset_vehicles(self):
         # TODO(pzh) deprecated this function in future!

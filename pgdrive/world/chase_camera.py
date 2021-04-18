@@ -18,7 +18,7 @@ class ChaseCamera:
     queue_length = 3
     CHASE_TASK_NAME = "update main chase camera"
     TOP_DOWN_TASK_NAME = "update main bird camera"
-    FOLLOW_LANE = True
+    FOLLOW_LANE = False
     TOP_DOWN_VIEW_HEIGHT = 120
     WHEEL_SCROLL_SPEED = 10
 
