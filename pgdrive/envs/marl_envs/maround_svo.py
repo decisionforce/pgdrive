@@ -80,8 +80,12 @@ class MARoundSVO(MARound):
         if K >= 1:
             for k, own_r in r.items():
                 other_rewards = []
-                for other_k in self._find_k_nearest(k, K):
-                    other_rewards.append(r[other_k])
+                neighbours = self._find_k_nearest(k, K)
+                for other_k in neighbours:
+                    if other_k is None:
+                        other_rewards.append(own_r)
+                    else:
+                        other_rewards.append(r[other_k])
                 if len(other_rewards) == 0:
                     other_reward = own_r
                 else:
@@ -103,9 +107,17 @@ class MARoundSVO(MARound):
         return svo, np.concatenate([o, [svo]])
 
     def _find_k_nearest(self, v_id, K):
+        max_distance = self.config["vehicle_config"]["lidar"]["distance"]
         dist_to_others = self.distance_map[v_id]
         dist_to_others_list = sorted(dist_to_others, key=lambda k: dist_to_others[k])
-        return dist_to_others_list[:K]
+        ret = [
+            dist_to_others_list[i]
+            for i in range(min(K, len(dist_to_others_list)))
+            if dist_to_others_list[i] < max_distance
+        ]
+        if len(ret) < K:
+            ret += [None] * (K - len(ret))
+        return ret
 
     def _update_distance_map(self):
         self.distance_map.clear()
