@@ -66,7 +66,6 @@ class BaseVehicle(DynamicElement):
         :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
         :param random_seed: int
         """
-        self.name = name or random_string()
         self.vehicle_config = PGConfig(vehicle_config)
 
         # self.vehicle_config = self.get_vehicle_config(vehicle_config) \
@@ -75,7 +74,7 @@ class BaseVehicle(DynamicElement):
         # observation, action
         self.action_space = self.get_action_space_before_init()
 
-        super(BaseVehicle, self).__init__(random_seed)
+        super(BaseVehicle, self).__init__(random_seed, name=name)
         # config info
         self.set_config(self.PARAMETER_SPACE.sample())
         if physics_config is not None:

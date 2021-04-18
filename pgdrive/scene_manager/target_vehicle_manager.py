@@ -1,13 +1,14 @@
 from gym.spaces import Box
 
 
-class TargetVehicleManager:
+class AgentManager:
     """
-    This class manages all
+    This class maintain the relationship between active agents in the environment with the underlying instance
+    of objects.
 
     Note:
-    vehicle name: unique name for each vehicle instance, random string.
-    agent name: agent name that exists in the environment, like agent0, agent1, ....
+    agent name: Agent name that exists in the environment, like agent0, agent1, ....
+    object name: The unique name for each object, typically be random string.
     """
     def __init__(self, ):
         self.agent_to_vehicle = {}

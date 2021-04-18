@@ -39,7 +39,7 @@ class Vehicle:
         np_random: np.random.RandomState = None,
         name: str = None
     ):
-        self.name = name or random_string()
+        self.name = random_string() if name is None else name
         self.traffic_mgr = traffic_mgr
         self._position = np.array(position).astype('float')
         self.heading = heading

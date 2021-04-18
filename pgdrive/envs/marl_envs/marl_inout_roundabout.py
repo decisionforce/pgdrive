@@ -12,7 +12,7 @@ from pgdrive.scene_creator.blocks.roundabout import Roundabout
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_manager.spawn_manager import SpawnManager
-from pgdrive.scene_manager.target_vehicle_manager import TargetVehicleManager
+from pgdrive.scene_manager.target_vehicle_manager import AgentManager
 from pgdrive.utils import get_np_random, norm, PGConfig
 
 MARoundaboutConfig = dict(map_config=dict(exit_length=50, lane_num=2))
@@ -122,7 +122,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def __init__(self, config=None):
         super(MultiAgentRoundaboutEnv, self).__init__(config)
-        self.target_vehicle_manager = TargetVehicleManager()
+        self.target_vehicle_manager = AgentManager()
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:

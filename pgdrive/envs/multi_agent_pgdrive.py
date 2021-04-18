@@ -38,34 +38,6 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     camera_height=4,
 )
 
-# target_vehicle_configs=dict(
-# agent0=dict(
-#     spawn_longitude=10,
-#     spawn_lateral=1.5,
-#     spawn_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
-#     # show_lidar=True
-#     show_side_detector=True
-# ),
-# agent1=dict(
-#     spawn_longitude=10,
-#     # show_lidar=True,
-#     spawn_lateral=-1,
-#     spawn_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-# ),
-# agent2=dict(
-#     spawn_longitude=10,
-#     spawn_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 2),
-#     # show_lidar=True,
-#     spawn_lateral=1,
-# ),
-# agent3=dict(
-#     spawn_longitude=10,
-#     # show_lidar=True,
-#     spawn_lateral=2,
-#     spawn_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-# )
-# ),
-
 
 class MultiAgentPGDrive(PGDriveEnvV2):
     """
@@ -104,11 +76,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             if not (done_info["arrive_dest"] or done_info["out_of_road"]):
                 # Does not revert done if high-priority termination happens!
                 done = False
-            # done_info["crash_vehicle"] = False
         elif vehicle.out_of_route and vehicle.on_lane and not vehicle.crash_sidewalk:
             pass  # Do nothing when out of the road!! This is not the SAFETY environment!
-            # done = False
-            # done_info["out_of_road"] = False
         return done, done_info
 
     def step(self, actions):
