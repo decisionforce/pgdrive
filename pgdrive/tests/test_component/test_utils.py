@@ -7,7 +7,7 @@ def _test_cutils(cutils):
     for _ in range(20):
         pos = np.random.normal(1000, 1000, size=(2, ))
         n = cutils.cutils_norm(*pos.tolist())
-        assert n == abs(np.linalg.norm(pos, ord=2))
+        assert abs(n - abs(np.linalg.norm(pos, ord=2))) < 1e-4
 
         clip0 = cutils.cutils_clip(pos[0], 999, 1001)
         clip1 = cutils.cutils_clip(pos[1], 999, 1001)
