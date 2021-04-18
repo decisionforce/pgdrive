@@ -40,8 +40,9 @@ class SpawnManager:
 
     def _update_spawn_roads_with_configs(self, spawn_roads):
         assert self.num_agents <= len(self.target_vehicle_configs), (
-            "Too many agents! We only accepet {} agents, but you have {} agents! "
-            "Or you should not specify the target_vehicle_configs!".format(
+            "Too many agents! We only accept {} agents, which is specified by the number of configs in "
+            "target_vehicle_configs, but you have {} agents! "
+            "You should require less agent or not to specify the target_vehicle_configs!".format(
                 len(self.target_vehicle_configs), self.num_agents
             )
         )

@@ -360,21 +360,6 @@ if __name__ == "__main__":
             "pg_world_config": {
                 "pstats": False
             },
-            "target_vehicle_configs": {
-                "agent0": {
-                    "spawn_longitude": 10,
-                    "spawn_lateral": 1.5,
-                    "spawn_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 1),
-                    # "show_lidar": True
-                    "show_side_detector": True
-                },
-                "agent1": {
-                    "spawn_longitude": 10,
-                    # "show_lidar": True,
-                    "spawn_lateral": -1,
-                    "spawn_lane_index": (FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-                },
-            }
         }
     )
     o = env.reset()
