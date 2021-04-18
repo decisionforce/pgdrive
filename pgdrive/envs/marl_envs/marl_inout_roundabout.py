@@ -16,9 +16,9 @@ from pgdrive.utils import get_np_random, norm, PGConfig
 
 MARoundaboutConfig = dict(
     map_config=dict(exit_length=50, lane_num=2),
-    bird_camera_initial_x=95,
-    bird_camera_initial_y=15,
-    bird_camera_initial_z=120
+    top_down_camera_initial_x=95,
+    top_down_camera_initial_y=15,
+    top_down_camera_initial_z=120
 )
 
 
@@ -414,7 +414,7 @@ def _vis():
             "episode length": ep_s,
             "cam_x": env.main_camera.camera_x,
             "cam_y": env.main_camera.camera_y,
-            "cam_z": env.main_camera.bird_camera_height
+            "cam_z": env.main_camera.top_down_camera_height
         }
         env.render(text=render_text)
         if d["__all__"]:

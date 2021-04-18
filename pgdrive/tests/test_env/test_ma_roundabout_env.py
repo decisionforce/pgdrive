@@ -356,7 +356,7 @@ def test_ma_roundabout_reward_done_alignment():
 
             # "use_render": True,
             # "fast": True,
-            "bird_camera_height": 160
+            "top_down_camera_height": 160
         }
     )
     # Force the seed here so that the agent1 and agent2 are in same heading! Otherwise they might be in vertical

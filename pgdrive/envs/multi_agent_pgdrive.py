@@ -33,9 +33,9 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     crash_object_penalty=1.0,
 
     # ===== Environmental Setting =====
-    bird_camera_initial_x=0,
-    bird_camera_initial_y=0,
-    bird_camera_initial_z=120,  # height
+    top_down_camera_initial_x=0,
+    top_down_camera_initial_y=0,
+    top_down_camera_initial_z=120,  # height
     traffic_density=0.,
     auto_termination=False,
     camera_height=4,
@@ -179,12 +179,12 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            bird_camera_height = self.config["bird_camera_initial_z"]
-            self.main_camera.camera.setPos(0, 0, bird_camera_height)
-            self.main_camera.bird_camera_height = bird_camera_height
+            top_down_camera_height = self.config["top_down_camera_initial_z"]
+            self.main_camera.camera.setPos(0, 0, top_down_camera_height)
+            self.main_camera.top_down_camera_height = top_down_camera_height
             self.main_camera.stop_chase(self.pg_world)
-            self.main_camera.camera_x += self.config["bird_camera_initial_x"]
-            self.main_camera.camera_y += self.config["bird_camera_initial_y"]
+            self.main_camera.camera_x += self.config["top_down_camera_initial_x"]
+            self.main_camera.camera_y += self.config["top_down_camera_initial_y"]
 
 
 if __name__ == "__main__":
