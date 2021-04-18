@@ -4,6 +4,7 @@ from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
+from pgdrive.scene_manager.agent_manager import AgentManager
 
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
@@ -52,6 +53,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
         self.done_observations = dict()
+        self.agent_manager = AgentManager()
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(
