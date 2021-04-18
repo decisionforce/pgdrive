@@ -5,6 +5,7 @@ from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.utils import setup_logger, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
+from pgdrive.scene_manager.spawn_manager import SpawnManager
 
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
@@ -60,7 +61,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
         self.done_observations = dict()
-        self.agent_manager = AgentManager(debug=self.config["debug"])
+        self._agent_manager = AgentManager(debug=self.config["debug"])
+
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(
@@ -74,7 +76,22 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             )
         if ret_config["use_render"] and ret_config["fast"]:
             logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
+
+        self._spawn_manager = SpawnManager(
+            spawn_roads=self.spawn_roads,
+            exit_length=ret_config["map_config"]["exit_length"],
+            lane_num=ret_config["map_config"]["lane_num"],
+            num_agents=ret_config["num_agents"],
+            vehicle_config=ret_config["vehicle_config"]
+        )
+        ret_config = self._update_agent_pos_configs(ret_config)
         return ret_config
+
+    def _update_agent_pos_configs(self, config):
+        config["target_vehicle_configs"] = self._spawn_manager.get_target_vehicle_configs(
+            config["num_agents"], seed=self._DEBUG_RANDOM_SEED
+        )
+        return config
 
     def done_function(self, vehicle_id):
         vehicle = self.vehicles[vehicle_id]
@@ -91,9 +108,30 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def step(self, actions):
         self._update_spaces_if_needed()
-        actions = self._preprocess_marl_actions(actions)
         o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
         o, r, d, i = self._after_vehicle_done(o, r, d, i)
+
+        # Update respawn manager
+        if self.episode_steps >= self.config["horizon"]:
+            self._agent_manager.set_allow_respawn(False)
+        self._spawn_manager.update(self.vehicles, self.current_map)
+        new_obs_dict = self._respawn()
+        if new_obs_dict:
+            for new_id, new_obs in new_obs_dict.items():
+                o[new_id] = new_obs
+                r[new_id] = 0.0
+                i[new_id] = {}
+                d[new_id] = False
+
+        # Update __all__
+        d["__all__"] = (
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
+        )
+        if d["__all__"]:
+            for k in d.keys():
+                d[k] = True
+
         return o, r, d, i
 
     def reset(self, *args, **kwargs):
@@ -119,17 +157,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self.vehicles = {k: v for k, v in zip(self.observations.keys(), vehicles)}
         self.done_vehicles = {}
         self.for_each_vehicle(lambda v: v.reset(self.current_map))
-
-    def _preprocess_marl_actions(self, actions):
-        return actions
-        # remove useless actions
-        # id_to_remove = []
-        # for id in actions.keys():
-        #     if id in self.done_vehicles.keys():
-        #         id_to_remove.append(id)
-        # for id in id_to_remove:
-        #     actions.pop(id)
-        # return actions
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         for id, done in dones.items():
