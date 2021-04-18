@@ -83,6 +83,13 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         if ret_config["use_render"] and ret_config["fast"]:
             logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
 
+        # Workaround
+        if ret_config["target_vehicle_configs"]:
+            for k, v in ret_config["target_vehicle_configs"].items():
+                old = ret_config["vehicle_config"].copy()
+                new = old.update(v)
+                ret_config["target_vehicle_configs"][k] = new
+
         self._spawn_manager = SpawnManager(
             exit_length=ret_config["map_config"]["exit_length"],
             lane_num=ret_config["map_config"]["lane_num"],
