@@ -14,7 +14,12 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_manager.spawn_manager import SpawnManager
 from pgdrive.utils import get_np_random, norm, PGConfig
 
-MARoundaboutConfig = dict(map_config=dict(exit_length=50, lane_num=2))
+MARoundaboutConfig = dict(
+    map_config=dict(exit_length=50, lane_num=2),
+    bird_camera_initial_x=95,
+    bird_camera_initial_y=15,
+    bird_camera_initial_z=120
+)
 
 
 class MARoundaboutMap(PGMap):
@@ -129,19 +134,6 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             new_map = MARoundaboutMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
-
-    def _after_lazy_init(self):
-        super(MultiAgentRoundaboutEnv, self)._after_lazy_init()
-
-        # Use top-down view by default
-        if hasattr(self, "main_camera") and self.main_camera is not None:
-            bird_camera_height = self.config["bird_camera_height"]
-            self.main_camera.camera.setPos(0, 0, bird_camera_height)
-            self.main_camera.bird_camera_height = bird_camera_height
-            self.main_camera.stop_chase(self.pg_world)
-            # self.main_camera.camera.setPos(300, 20, bird_camera_height)
-            self.main_camera.camera_x += 95
-            self.main_camera.camera_y += 15
 
     def _process_extra_config(self, config):
         config = super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
