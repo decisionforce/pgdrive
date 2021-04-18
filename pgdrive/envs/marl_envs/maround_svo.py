@@ -84,7 +84,7 @@ class MARoundSVO(MARound):
                 neighbours = self._find_k_nearest(k, K)
                 for other_k in neighbours:
                     if other_k is None:
-                        other_rewards.append(own_r)
+                        break
                     else:
                         other_rewards.append(r[other_k])
                 if len(other_rewards) == 0:
