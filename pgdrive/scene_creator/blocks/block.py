@@ -464,7 +464,7 @@ class Block(Element, BlockDefault):
             else:
                 factor = (1 + self.SIDEWALK_WIDTH / radius) * (1 + self.SIDEWALK_LINE_DIST / radius)
         direction_v = lane_end - lane_start
-        vertical_v = (-direction_v[1], direction_v[0]) / numpy.linalg.norm(direction_v)
+        vertical_v = (-direction_v[1], direction_v[0]) / norm(*direction_v)
         middle += vertical_v * (self.SIDEWALK_WIDTH / 2 + self.SIDEWALK_LINE_DIST)
         side_np.setPos(panda_position(middle, 0))
         theta = -numpy.arctan2(direction_v[1], direction_v[0])

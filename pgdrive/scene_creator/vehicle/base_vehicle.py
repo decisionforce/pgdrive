@@ -441,7 +441,6 @@ class BaseVehicle(DynamicElement):
         forward_direction_norm = norm(forward_direction[0], forward_direction[1])
         if not lateral_norm * forward_direction_norm:
             return 0
-        # cos = self.forward_direction.dot(lateral) / (np.linalg.norm(lateral) * np.linalg.norm(self.forward_direction))
         cos = (
             (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
             (lateral_norm * forward_direction_norm)
