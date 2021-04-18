@@ -10,7 +10,6 @@ class AgentManager:
     agent name: Agent name that exists in the environment, like agent0, agent1, ....
     object name: The unique name for each object, typically be random string.
     """
-
     def __init__(self, debug=False):
         self.agent_to_object = {}
         self.object_to_agent = {}

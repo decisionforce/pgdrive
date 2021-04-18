@@ -9,13 +9,26 @@ class SpawnManager:
     """
     This class maintain a list of possible spawn places.
     """
-    def __init__(self, spawn_roads, exit_length, lane_num, num_agents, vehicle_config):
+    def __init__(self, exit_length, lane_num, num_agents, vehicle_config):
+        self.num_agents = num_agents
+        self.exit_length = exit_length
+        self.lane_num = lane_num
+        self.vehicle_config = vehicle_config
+        self.spawn_roads = []
+        self.target_vehicle_configs = []
+        self.safe_spawn_places = {}
+        self.mapping = {}
+        self.need_update_spawn_places = True
+        self.initialized = False
+
+    def update_spawn_roads(self, spawn_roads):
+        assert len(spawn_roads) > 0
         interval = 10
-        num_slots = int(floor(exit_length / interval))
-        interval = exit_length / num_slots
-        assert num_agents <= lane_num * len(spawn_roads) * num_slots, (
+        num_slots = int(floor(self.exit_length / interval))
+        interval = self.exit_length / num_slots
+        assert self.num_agents <= self.lane_num * len(spawn_roads) * num_slots, (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                lane_num * len(spawn_roads) * num_slots, num_agents
+                self.lane_num * len(spawn_roads) * num_slots, self.num_agents
             )
         )
 
@@ -25,7 +38,7 @@ class SpawnManager:
         target_vehicle_configs = []
         safe_spawn_places = []
         for i, road in enumerate(spawn_roads):
-            for lane_idx in range(lane_num):
+            for lane_idx in range(self.lane_num):
                 for j in range(num_slots):
                     long = j * interval + np.random.uniform(0, 0.5 * interval)
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
@@ -35,18 +48,22 @@ class SpawnManager:
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
-                                "spawn_lateral": vehicle_config["spawn_lateral"]
+                                "spawn_lateral": self.vehicle_config["spawn_lateral"]
                             }
                         )
                     )
                     if j == 0:
                         safe_spawn_places.append(target_vehicle_configs[-1].copy())
+
         self.target_vehicle_configs = target_vehicle_configs
         self.safe_spawn_places = {v["identifier"]: v for v in safe_spawn_places}
         self.mapping = {i: set() for i in self.safe_spawn_places.keys()}
+        self.spawn_roads = spawn_roads
         self.need_update_spawn_places = True
+        self.initialized = True
 
     def get_target_vehicle_configs(self, num_agents, seed=None):
+        assert len(self.target_vehicle_configs) > 0
         target_agents = get_np_random(seed).choice(
             [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
         )
@@ -63,6 +80,7 @@ class SpawnManager:
 
     def update(self, vehicles: dict, map):
         if self.need_update_spawn_places:
+            assert self.initialized
             self.need_update_spawn_places = False
             for bid, bp in self.safe_spawn_places.items():
                 lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
