@@ -53,7 +53,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def __init__(self, config=None):
         super(MultiAgentPGDrive, self).__init__(config)
         self.done_observations = dict()
-        self.agent_manager = AgentManager()
+        self.agent_manager = AgentManager(debug=self.config["debug"])
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(

@@ -11,7 +11,7 @@ class AgentManager:
     object name: The unique name for each object, typically be random string.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         self.agent_to_object = {}
         self.object_to_agent = {}
         self.pending_object = {}
@@ -21,6 +21,7 @@ class AgentManager:
         self.observation_spaces = {}
         self.action_spaces = {}
         self.allow_respawn = True
+        self._debug = debug
 
     def reset(self, vehicles, observation_spaces, action_spaces, observations):
         self.agent_to_object = {k: v.name for k, v in vehicles.items()}
@@ -45,9 +46,10 @@ class AgentManager:
         self._check()
 
     def _check(self):
-        current_keys = sorted(list(self.pending_object.keys()) + list(self.active_object.keys()))
-        exist_keys = sorted(list(self.object_to_agent.keys()))
-        assert current_keys == exist_keys, "You should confirm_respawn() after request for propose_new_vehicle()!"
+        if self._debug:
+            current_keys = sorted(list(self.pending_object.keys()) + list(self.active_object.keys()))
+            exist_keys = sorted(list(self.object_to_agent.keys()))
+            assert current_keys == exist_keys, "You should confirm_respawn() after request for propose_new_vehicle()!"
 
     def propose_new_vehicle(self):
         self._check()
