@@ -1,4 +1,5 @@
 from collections import defaultdict
+from math import cos, sin
 
 import numpy as np
 from gym.spaces import Box
@@ -17,7 +18,7 @@ class SVOObs(LidarStateObservationMARound):
         space = Box(
             low=np.array([space.low[0]] * length),
             high=np.array([space.high[0]] * length),
-            shape=(length, ),
+            shape=(length,),
             dtype=space.dtype
         )
         return space
@@ -27,13 +28,22 @@ class MARoundSVO(MARound):
     @classmethod
     def default_config(cls):
         config = super(MARoundSVO, cls).default_config()
-        config.update(dict(num_neighbours=4))
+        config.update(dict(
+            # Number of near vehicles that participates in reward computing
+            num_neighbours=4,
+
+            # Two mode to compute utility for each vehicle:
+            # "linear": util = r_me * svo + r_other * (1 - svo), svo in [0, 1]
+            # "angle": util = r_me * cos(svo) + r_other * sin(svo), svo in [0, pi/2]
+            svo_mode="linear",
+        ))
         return config
 
     def __init__(self, config=None):
         super(MARoundSVO, self).__init__(config)
         self.svo_map = {}
         self.distance_map = defaultdict(lambda: defaultdict(lambda: float("inf")))
+        assert self.config["svo_mode"] in ["linear", "angle"]
 
     def get_single_observation(self, vehicle_config):
         return SVOObs(vehicle_config)
@@ -76,7 +86,12 @@ class MARoundSVO(MARound):
                 else:
                     other_reward = np.mean(other_rewards)
 
-                new_r = self.svo_map[k] * own_r + (1 - self.svo_map[k]) * other_reward
+                if self.config["svo_mode"] == "linear":
+                    new_r = self.svo_map[k] * own_r + (1 - self.svo_map[k]) * other_reward
+                elif self.config["svo_mode"] == "angle":
+                    svo = self.svo_map[k] * np.pi / 2
+                    new_r = cos(svo) * own_r + sin(svo) * other_reward
+
                 new_rewards[k] = new_r
         else:
             new_rewards = r
