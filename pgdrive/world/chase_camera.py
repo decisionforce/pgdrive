@@ -164,7 +164,6 @@ class ChaseCamera:
         if pg_world.taskMgr.hasTaskNamed(self.CHASE_TASK_NAME):
             pg_world.taskMgr.remove(self.CHASE_TASK_NAME)
         current_chase_vehicle.remove_display_region()
-        print(current_chase_vehicle.name)
         if not pg_world.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             # adjust hpr
             current_pos = self.camera.getPos()

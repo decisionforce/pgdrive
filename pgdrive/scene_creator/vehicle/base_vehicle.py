@@ -736,22 +736,22 @@ class BaseVehicle(DynamicElement):
     def remove_display_region(self):
         if self.render:
             self.vehicle_panel.remove_display_region(self.pg_world)
-            self.vehicle_panel.buffer.setActive(False)
+            self.vehicle_panel.buffer.set_active(False)
             self.collision_info_np.detachNode()
             self.routing_localization._arrow_node_path.detachNode()
         for sensor in self.image_sensors.values():
             sensor.remove_display_region(self.pg_world)
-            sensor.buffer.setActive(False)
+            sensor.buffer.set_active(False)
 
     def add_to_display(self):
         if self.render:
             self.vehicle_panel.add_to_display(self.pg_world, self.vehicle_panel.default_region)
-            self.vehicle_panel.buffer.setActive(True)
+            self.vehicle_panel.buffer.set_active(True)
             self.collision_info_np.reparentTo(self.pg_world.aspect2d)
             self.routing_localization._arrow_node_path.reparentTo(self.pg_world.aspect2d)
         for sensor in self.image_sensors.values():
             sensor.add_to_display(self.pg_world, sensor.default_region)
-            sensor.buffer.setActive(True)
+            sensor.buffer.set_active(True)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()

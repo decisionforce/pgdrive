@@ -212,10 +212,7 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 40,
-            "pg_world_config": {
-                "pstats": True
-            }
+            "num_agents": 8,
         }
     )
     o = env.reset()
