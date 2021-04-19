@@ -105,9 +105,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return ret_config
 
     def _update_agent_pos_configs(self, config):
-        config["target_vehicle_configs"] = self._spawn_manager.get_target_vehicle_configs(
-            seed=self._DEBUG_RANDOM_SEED
-        )
+        config["target_vehicle_configs"] = self._spawn_manager.get_target_vehicle_configs(seed=self._DEBUG_RANDOM_SEED)
         return config
 
     def done_function(self, vehicle_id):

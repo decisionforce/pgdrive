@@ -28,7 +28,8 @@ class SpawnManager:
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
-                "You should now specify config if requiring infinite number of vehicles.")
+                "You should now specify config if requiring infinite number of vehicles."
+            )
 
     def update_spawn_roads(self, spawn_roads):
         if self.target_vehicle_configs:
