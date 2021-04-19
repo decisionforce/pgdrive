@@ -15,6 +15,10 @@ class PheromoneMap:
 
     def add(self, position, values):
         x, y = self.get_indices(position)
+        if self.num_channels > 1:
+            assert len(values) == self.num_channels
+        else:
+            assert np.isscalar(values)
         self._map[x, y] = values
 
     def get_indices(self, position):
@@ -26,6 +30,11 @@ class PheromoneMap:
 
     def clear(self):
         self._map.fill(0.0)
+
+    def step(self):
+        """
+        Update for one step.
+        """
 
 
 if __name__ == '__main__':
