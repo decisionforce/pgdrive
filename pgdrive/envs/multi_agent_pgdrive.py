@@ -12,7 +12,7 @@ from pgdrive.utils.pg_config import merge_dicts
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
     is_multi_agent=True,
-    num_agents=2,
+    num_agents=2,  # If num_agents is set to None, then endless vehicles will be added only the empty spawn points exist
 
     # Whether to terminate a vehicle if it crash with others. Since in MA env the crash is extremely dense, so
     # frequently done might not be a good idea.
@@ -106,13 +106,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def _update_agent_pos_configs(self, config):
         config["target_vehicle_configs"] = self._spawn_manager.get_target_vehicle_configs(
-            config["num_agents"], seed=self._DEBUG_RANDOM_SEED
+            seed=self._DEBUG_RANDOM_SEED
         )
         return config
 
     def done_function(self, vehicle_id):
-        vehicle = self.vehicles[vehicle_id]
-        # crash will not done
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
         if done_info["crash"] and (not self.config["crash_done"]):
             assert done_info["crash_vehicle"] or done_info["arrive_dest"] or done_info["out_of_road"]
