@@ -89,7 +89,7 @@ if __name__ == "__main__":
             "accident_prob":1.0,
             "manual_control": True,
             "use_render": True,
-            "environment_num": 1,
+            "environment_num": 100,
             "start_seed": 139,
             "out_of_road_cost": 1,
             # "debug": True,
