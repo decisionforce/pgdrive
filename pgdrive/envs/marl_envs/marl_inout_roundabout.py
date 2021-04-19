@@ -206,13 +206,14 @@ def _vis():
                     "num_others": 0,
                     "distance": 40
                 },
-                "show_lidar": True,
+                "show_lidar": False,
             },
             "fast": True,
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 8,
+            "num_agents": 40,
+            "pg_world_config":{"pstats":True}
         }
     )
     o = env.reset()

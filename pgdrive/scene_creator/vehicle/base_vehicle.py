@@ -34,6 +34,7 @@ from pgdrive.world.pg_world import PGWorld
 
 
 class BaseVehicle(DynamicElement):
+    MODEL = None
     """
     Vehicle chassis and its wheels index
                     0       1
@@ -512,13 +513,14 @@ class BaseVehicle(DynamicElement):
         self.WIDTH = para[Parameter.vehicle_width]
 
         if self.render:
-            model_path = 'models/ferra/scene.gltf'
-            self.chassis_vis = self.loader.loadModel(AssetLoader.file_path(model_path))
-            self.chassis_vis.setZ(para[Parameter.vehicle_vis_z])
-            self.chassis_vis.setY(para[Parameter.vehicle_vis_y])
-            self.chassis_vis.setH(para[Parameter.vehicle_vis_h])
-            self.chassis_vis.set_scale(para[Parameter.vehicle_vis_scale])
-            self.chassis_vis.reparentTo(self.chassis_np)
+            if self.MODEL is None:
+                model_path = 'models/ferra/scene.gltf'
+                self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
+                self.MODEL.setZ(para[Parameter.vehicle_vis_z])
+                self.MODEL.setY(para[Parameter.vehicle_vis_y])
+                self.MODEL.setH(para[Parameter.vehicle_vis_h])
+                self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
+            self.MODEL.instanceTo(self.chassis_np)
 
     def _create_wheel(self):
         para = self.get_config()
