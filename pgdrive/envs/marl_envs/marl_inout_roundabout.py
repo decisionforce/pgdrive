@@ -213,7 +213,9 @@ def _vis():
             "debug": True,
             "manual_control": True,
             "num_agents": 40,
-            "pg_world_config":{"pstats":True}
+            "pg_world_config": {
+                "pstats": True
+            }
         }
     )
     o = env.reset()
