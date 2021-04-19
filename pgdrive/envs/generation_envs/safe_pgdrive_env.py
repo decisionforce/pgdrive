@@ -86,7 +86,7 @@ class SafePGDriveEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = SafePGDriveEnv(
         {
-            "accident_prob":1.0,
+            "accident_prob": 1.0,
             "manual_control": True,
             "use_render": True,
             "environment_num": 100,
@@ -97,11 +97,13 @@ if __name__ == "__main__":
             "pg_world_config": {
                 "pstats": True
             },
-            "vehicle_config": {"show_lidar": True, "show_side_detector": True, "show_lane_line_detector": True,
-                               "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
-                               "lane_line_detector": dict(num_lasers=2,
-                                                          distance=20),  # laser num, distance
-                               }
+            "vehicle_config": {
+                "show_lidar": True,
+                "show_side_detector": True,
+                "show_lane_line_detector": True,
+                "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
+                "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
+            }
         }
     )
 
