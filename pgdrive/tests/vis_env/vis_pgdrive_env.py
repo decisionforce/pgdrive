@@ -58,9 +58,9 @@ if __name__ == "__main__":
         env.render(
             text={
                 "reward": r,
-                "lane_index":env.vehicle.lane_index,
-                "dist_to_left":env.vehicle.dist_to_left,
-                "dist_to_right":env.vehicle.dist_to_right
+                "lane_index": env.vehicle.lane_index,
+                "dist_to_left": env.vehicle.dist_to_left,
+                "dist_to_right": env.vehicle.dist_to_right
             }
         )
         # if d:
