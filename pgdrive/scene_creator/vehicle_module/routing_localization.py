@@ -251,6 +251,6 @@ class RoutingLocalizationModule:
         for lane, index, l_1_dist in possible_lanes:
             if lane in self.current_ref_lanes:
                 return lane, index
-        return possible_lanes[0][:-1]
+        return possible_lanes[0][:-1] if len(possible_lanes)>0 else (None, None)
 
 
