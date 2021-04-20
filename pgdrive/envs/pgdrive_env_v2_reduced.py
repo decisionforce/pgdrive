@@ -123,7 +123,6 @@ if __name__ == '__main__':
         assert np.isscalar(reward)
         assert isinstance(info, dict)
 
-
     env = PGDriveEnvV2Reduced({"vehicle_config": {"num_stacks": 2}})
     try:
         obs = env.reset()

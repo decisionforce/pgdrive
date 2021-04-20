@@ -11,7 +11,6 @@ class StateObservation(ObservationType):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
-
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -19,7 +18,7 @@ class StateObservation(ObservationType):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + RoutingLocalizationModule.navigation_info_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):
         """
