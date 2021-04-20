@@ -261,7 +261,7 @@ class RoutingLocalizationModule:
         return len(self.current_ref_lanes)
 
     def get_current_lane(self, ego_vehicle):
-        possible_lanes = ray_localization(ego_vehicle.position, ego_vehicle.pg_world, all_result=True)
+        possible_lanes = ray_localization(ego_vehicle.position, ego_vehicle.pg_world, return_all_result=True)
         for lane, index, l_1_dist in possible_lanes:
             if lane in self.current_ref_lanes:
                 return lane, index

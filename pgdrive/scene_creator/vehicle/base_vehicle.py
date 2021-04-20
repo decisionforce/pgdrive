@@ -799,3 +799,7 @@ class BaseVehicle(DynamicElement):
 
     def set_static(self, flag):
         self.chassis_np.node().setStatic(flag)
+
+    @property
+    def reference_lanes(self):
+        return self.routing_localization.current_ref_lanes

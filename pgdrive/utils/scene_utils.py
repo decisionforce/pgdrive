@@ -122,13 +122,13 @@ def get_all_lanes(roadnet: "RoadNetwork"):
     return res
 
 
-def ray_localization(position: np.ndarray, pg_world: PGWorld, all_result=False) -> Union[List[Tuple], Tuple]:
+def ray_localization(position: np.ndarray, pg_world: PGWorld, return_all_result=False) -> Union[List[Tuple], Tuple]:
     """
     Get the index of the lane closest to a physx_world position.
     Only used when smoething is on lane ! Otherwise fall back to use get_closest_lane()
     :param position: a physx_world position [m].
     :param pg_world: PGWorld class
-    :param all_result: return a list instead of the lane with min L1 distance
+    :param return_all_result: return a list instead of the lane with min L1 distance
     :return: list(closest lane) or closest lane.
     """
     results = pg_world.physics_world.static_world.rayTestAll(
@@ -140,7 +140,7 @@ def ray_localization(position: np.ndarray, pg_world: PGWorld, all_result=False) 
             if res.getNode().getName() == BodyName.Lane:
                 lane = res.getNode().getPythonTag(BodyName.Lane)
                 lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
-    if all_result:
+    if return_all_result:
         ret = []
         if len(lane_index_dist) > 0:
             for lane, index, dist in lane_index_dist:
