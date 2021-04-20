@@ -102,7 +102,7 @@ class RoutingLocalizationModule:
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
-        lane, lane_index = ray_localization(position, ego_vehicle.pg_world)
+        lane, lane_index = self.get_current_lane(ego_vehicle)
         if lane is None:
             lane, lane_index = ego_vehicle.lane, ego_vehicle.lane_index
             ego_vehicle.on_lane = False
@@ -246,15 +246,11 @@ class RoutingLocalizationModule:
     def get_current_lane_num(self) -> float:
         return self.map.config[self.map.LANE_NUM]
 
-    # def get_navigate_landmarks(self, distance):
-    #     ret = []
-    #     for L in range(len(self.checkpoints) - 1):
-    #         start = self.checkpoints[L]
-    #         end = self.checkpoints[L + 1]
-    #         target_lanes = self.map.road_network.graph[start][end]
-    #         idx = self.get_current_lane_num() // 2 - 1
-    #         ref_lane = target_lanes[idx]
-    #         for tll in range(3, int(ref_lane.length), 3):
-    #             check_point = ref_lane.position(tll, 0)
-    #             ret.append([check_point[0], -check_point[1]])
-    #     return ret
+    def get_current_lane(self, ego_vehicle):
+        possible_lanes = ray_localization(ego_vehicle.position, ego_vehicle.pg_world, all_result=True)
+        for lane, index, l_1_dist in possible_lanes:
+            if lane in self.current_ref_lanes:
+                return lane, index
+        return possible_lanes[0][:-1]
+
+
