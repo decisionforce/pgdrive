@@ -244,7 +244,7 @@ class RoutingLocalizationModule:
         return self.map.config[self.map.LANE_WIDTH]
 
     def get_current_lane_num(self) -> float:
-        return self.map.config[self.map.LANE_NUM]
+        return len(self.current_ref_lanes)
 
     def get_current_lane(self, ego_vehicle):
         possible_lanes = ray_localization(ego_vehicle.position, ego_vehicle.pg_world, all_result=True)

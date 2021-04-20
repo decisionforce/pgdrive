@@ -29,7 +29,7 @@ class TestEnv(PGDriveEnv):
                 "fast": False,
                 "map_config": {
                     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_CONFIG: "TXO",
+                    Map.GENERATE_CONFIG: "TXOrR",
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 },
@@ -58,7 +58,9 @@ if __name__ == "__main__":
         env.render(
             text={
                 "reward": r,
-                "lane_index":env.vehicle.lane_index
+                "lane_index":env.vehicle.lane_index,
+                "dist_to_left":env.vehicle.dist_to_left,
+                "dist_to_right":env.vehicle.dist_to_right
             }
         )
         # if d:
