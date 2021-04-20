@@ -52,12 +52,12 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self,
-        pg_world: PGWorld,
-        vehicle_config: Union[dict, PGConfig] = None,
-        physics_config: dict = None,
-        random_seed: int = 0,
-        name: str = None,
+            self,
+            pg_world: PGWorld,
+            vehicle_config: Union[dict, PGConfig] = None,
+            physics_config: dict = None,
+            random_seed: int = 0,
+            name: str = None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -375,7 +375,8 @@ class BaseVehicle(DynamicElement):
         current_reference_lane = self.routing_localization.current_ref_lanes[0]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
         lateral_to_left = lateral_to_reference + self.routing_localization.get_current_lane_width() / 2
-        lateral_to_right = self.routing_localization.get_current_lateral_range() - lateral_to_left
+        lateral_to_right = self.routing_localization.get_current_lateral_range(self.position,
+                                                                               self.pg_world) - lateral_to_left
         return lateral_to_left, lateral_to_right
 
     @property
@@ -439,8 +440,8 @@ class BaseVehicle(DynamicElement):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -713,7 +714,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -728,7 +729,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -763,12 +764,12 @@ class BaseVehicle(DynamicElement):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property
