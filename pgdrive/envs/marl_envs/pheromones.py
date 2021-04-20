@@ -40,11 +40,10 @@ class PheromoneMap:
 
     def clear(self):
         self._map.fill(0.0)
+        self._tmp_map.fill(0.0)
 
     def step(self):
-        """
-        Update for one step.
-        """
+        """This function should be called when environment was stepped!"""
         self.diffuse()
         self.attenuate()
 
@@ -56,10 +55,7 @@ class PheromoneMap:
     def diffuse(self):
         if self.diffusion_rate == 1.0:
             return
-
-        # in-place replacement
         self._tmp_map.fill(0.0)
-
         for x in range(1, self.num_widths - 1):
             for y in range(1, self.num_lengths - 1):
                 val = self._map[x, y]
@@ -70,8 +66,8 @@ class PheromoneMap:
                 self._tmp_map[[x - 1, x, x + 1], y + 1] += diffused_val
                 self._tmp_map[[x - 1, x + 1], y] += diffused_val
                 self._tmp_map[x, y] += val * self.diffusion_rate
-        di = self._tmp_map - self._map
-        df = di[..., 0]
+
+        # in-place replacement
         self._map[...] = self._tmp_map
 
 
