@@ -102,7 +102,7 @@ class RoutingLocalizationModule:
         target_road_1_start = self.checkpoints[0]
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
-        self.current_road = Road(target_road_1_start,target_road_1_end)
+        self.current_road = Road(target_road_1_start, target_road_1_end)
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
@@ -125,7 +125,7 @@ class RoutingLocalizationModule:
         target_lanes_1 = self.map.road_network.graph[target_road_1_start][target_road_1_end]
         target_lanes_2 = self.map.road_network.graph[target_road_2_start][target_road_2_end]
         self.current_ref_lanes = target_lanes_1
-        self.current_road = Road(target_road_1_start,target_road_1_end)
+        self.current_road = Road(target_road_1_start, target_road_1_end)
 
         self._navi_info.fill(0.0)
         half = self.navigation_info_dim // 2
@@ -249,7 +249,7 @@ class RoutingLocalizationModule:
             left_lane = self.current_ref_lanes[0]
             assert isinstance(left_lane, StraightLane), "Reference lane should be straight lane here"
             long, lat = left_lane.local_coordinates(current_position)
-            current_position = left_lane.position(long, -left_lane.width/2)
+            current_position = left_lane.position(long, -left_lane.width / 2)
             return self._ray_lateral_range(pg_world, current_position, self.current_ref_lanes[0].direction_lateral)
         else:
             return self.get_current_lane_width() * self.get_current_lane_num()
@@ -275,7 +275,7 @@ class RoutingLocalizationModule:
         :param length: length of ray
         :return: lateral range [m]
         """
-        end_position = start_position[0]+dir[0]*length, start_position[1]+dir[1]*length
+        end_position = start_position[0] + dir[0] * length, start_position[1] + dir[1] * length
         start_position = panda_position(start_position, z=0.15)
         end_position = panda_position(end_position, z=0.15)
         mask = BitMask32.bit(FirstBlock.CONTINUOUS_COLLISION_MASK)
@@ -283,5 +283,4 @@ class RoutingLocalizationModule:
         if not res.hasHit():
             return length
         else:
-            return res.getHitFraction()*length
-
+            return res.getHitFraction() * length
