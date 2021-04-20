@@ -60,7 +60,8 @@ if __name__ == "__main__":
                 "reward": r,
                 "lane_index": env.vehicle.lane_index,
                 "dist_to_left": env.vehicle.dist_to_left,
-                "dist_to_right": env.vehicle.dist_to_right
+                "dist_to_right": env.vehicle.dist_to_right,
+                "out_of_route":env.vehicle.out_of_route
             }
         )
         # if d:
