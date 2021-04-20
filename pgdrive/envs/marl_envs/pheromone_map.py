@@ -5,8 +5,15 @@ import numpy as np
 
 class PheromoneMap:
     def __init__(
-            self, total_width, total_length, num_channels=1, granularity=0.5, attenuation_rate=1.0,
-            diffusion_rate=1.0, min_x=0, min_y=0
+        self,
+        total_width,
+        total_length,
+        num_channels=1,
+        granularity=0.5,
+        attenuation_rate=1.0,
+        diffusion_rate=1.0,
+        min_x=0,
+        min_y=0
     ):
         self.total_width = total_width
         self.total_length = total_length
