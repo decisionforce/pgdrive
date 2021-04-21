@@ -105,12 +105,10 @@ class MARoundPhero(MARound):
             ret = self.phero_map.get_nearest_pheromone(self.vehicles[v_id].position, self.config["num_neighbours"])
         return np.concatenate([o, ret])
 
-    def _render_topdown(self, film_size=None, screen_size=None, zoomin=None):
+    def _render_topdown(self, *args, **kwargs):
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import PheromoneRenderer
-            self._top_down_renderer = PheromoneRenderer(
-                self.current_map, film_size=film_size, screen_size=screen_size, zoomin=zoomin
-            )
+            self._top_down_renderer = PheromoneRenderer(self.current_map, *args, **kwargs)
         self._top_down_renderer.render(list(self.vehicles.values()), pheromone_map=self.phero_map)
 
 
@@ -167,7 +165,7 @@ def _vis():
     for s in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())
         # o, r, d, info = env.step({k: [0, 1, 0.8] for k in env.vehicles.keys()})
-        env.render(mode="top_down", film_size=(2000, 2000), screen_size=(1000, 1000), zoomin=2)
+        env.render(mode="top_down")
         # env.render(mode="top_down")
         # env.render(mode="top_down", film_size=(1000, 1000))
         if d["__all__"]:

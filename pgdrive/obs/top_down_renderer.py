@@ -78,7 +78,7 @@ class TopDownRenderer:
             self._screen.blit(self._runtime, (0, 0))
         else:
             screen_size = self._screen_size or self._film_size
-            size = (screen_size[0] * self._zoomin, screen_size[1] * self._zoomin)
+            size = (int(screen_size[0] * self._zoomin), int(screen_size[1] * self._zoomin))
             tmp = pygame.transform.smoothscale(self._runtime, size)
             self._screen.blit(tmp, (-(size[0] - screen_size[0]) / 2, -(size[1] - screen_size[1]) / 2))
         pygame.display.update()
@@ -88,28 +88,40 @@ class TopDownRenderer:
             h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(
-                vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.RED, draw_countour=True
+                vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
             )
 
 
 class PheromoneRenderer(TopDownRenderer):
-    def __init__(self, *args, **kwargs):
-        super(PheromoneRenderer, self).__init__(*args, **kwargs)
+    def __init__(self, map, film_size=(2000, 2000), screen_size=(1000, 1000), zoomin=1.5, draw_vehicle_first=True):
+        super(PheromoneRenderer, self).__init__(
+            map, film_size=film_size, screen_size=screen_size, light_background=True, zoomin=zoomin
+        )
         self._pheromone_surface = None
         self._bounding_box = self._map.road_network.get_bounding_box()
+        self._draw_vehicle_first = draw_vehicle_first
 
     def render(self, vehicles, pheromone_map):
         self._runtime.blit(self._background, (0, 0))
-        self._draw_pheromone_map(pheromone_map)
-        self._draw_vehicles(vehicles)
+
+        # It is also OK to draw pheromone first! But we should wait a while until the vehicles leave the cells to
+        # see them!
+        if self._draw_vehicle_first:
+            self._draw_vehicles(vehicles)
+            self._draw_pheromone_map(pheromone_map)
+        else:
+            self._draw_pheromone_map(pheromone_map)
+            self._draw_vehicles(vehicles)
         self.blit()
 
     def _draw_pheromone_map(self, pheromone_map):
         phero = pheromone_map.get_map(*self._bounding_box)
         if self._pheromone_surface is None:
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
-        c = (50, 200, 0)
+
+        c = (0, 150, 0)  # Dark green!
         c = (255 - c[0], 255 - c[1], 255 - c[2])
+
         phero = np.squeeze(phero, -1)
         phero = np.stack([phero * c[0], phero * c[1], phero * c[2]], axis=-1)
         pygame.surfarray.blit_array(self._pheromone_surface, phero)

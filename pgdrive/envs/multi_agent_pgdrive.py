@@ -355,10 +355,10 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
         return ret
 
-    def _render_topdown(self, film_size=None, screen_size=None):
+    def _render_topdown(self, *args, **kwargs):
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import TopDownRenderer
-            self._top_down_renderer = TopDownRenderer(self.current_map, film_size=film_size, screen_size=screen_size)
+            self._top_down_renderer = TopDownRenderer(self.current_map, *args, **kwargs)
         self._top_down_renderer.render(list(self.vehicles.values()))
 
 
