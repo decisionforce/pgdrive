@@ -398,8 +398,8 @@ def _vis():
     setup_logger(True)
     env = MultiAgentPGDrive(
         {
-            "use_render": True,
-            "fast": True,
+            # "use_render": True,
+            # "fast": True,
             "num_agents": 12,
             "allow_respawn": False,
             "manual_control": True,

@@ -43,9 +43,14 @@ color_white = (255, 255, 255)
 
 
 class TopDownRenderer:
-    def __init__(self, map, film_size=(1000, 1000)):
+    def __init__(self, map, film_size=(1000, 1000), light_background=True):
         self._map = map
         self._background = draw_top_down_map(map, simple_draw=False, return_surface=True, film_size=film_size)
+        self._light_background = light_background
+        if self._light_background:
+            pixels = pygame.surfarray.pixels2d(self._background)
+            pixels ^= 2 ** 32 - 1
+            del pixels
 
         self._runtime = self._background.copy()
 
@@ -66,3 +71,11 @@ class TopDownRenderer:
     def blit(self):
         self._screen.blit(self._runtime, (0, 0))
         pygame.display.update()
+
+
+class PheromoneRenderer(TopDownRenderer):
+    def __init__(self, map, file_size):
+        super(PheromoneRenderer, self).__init__(map, file_size)
+
+    def draw_pheromone_map(self, pheromone_map):
+        pass

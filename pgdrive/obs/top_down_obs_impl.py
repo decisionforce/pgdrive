@@ -206,7 +206,7 @@ class VehicleGraphics:
     font = None
 
     @classmethod
-    def display(cls, vehicle, surface, color, heading, label: bool = False) -> None:
+    def display(cls, vehicle, surface, color, heading, label: bool = False, draw_countour=False) -> None:
         """
         Display a vehicle on a pygame surface.
 
