@@ -65,11 +65,19 @@ class TopDownRenderer:
         # self._runtime.blit(self._background, (0, 0))
         self._size = tuple(self._background.get_size())
         self._screen = pygame.display.set_mode(self._screen_size if self._screen_size is not None else self._film_size)
-        self.blit()
+        self._screen.set_alpha(None)
         self._screen.fill(color_white)
 
+        screen_size = self._screen_size or self._film_size
+        self._blit_size = (int(screen_size[0] * self._zoomin), int(screen_size[1] * self._zoomin))
+        self._blit_rect = (-(self._blit_size[0] - screen_size[0]) / 2, -(self._blit_size[1] - screen_size[1]) / 2)
+        self.blit()
+
+    def refresh(self):
+        self._runtime.blit(self._background, self._blit_rect)
+
     def render(self, vehicles, *args, **kwargs):
-        self._runtime.blit(self._background, (0, 0))
+        self.refresh()
         self._draw_vehicles(vehicles)
         self.blit()
 
@@ -77,10 +85,8 @@ class TopDownRenderer:
         if self._screen_size is None and self._zoomin is None:
             self._screen.blit(self._runtime, (0, 0))
         else:
-            screen_size = self._screen_size or self._film_size
-            size = (int(screen_size[0] * self._zoomin), int(screen_size[1] * self._zoomin))
-            tmp = pygame.transform.smoothscale(self._runtime, size)
-            self._screen.blit(tmp, (-(size[0] - screen_size[0]) / 2, -(size[1] - screen_size[1]) / 2))
+            tmp = pygame.transform.smoothscale(self._runtime, self._blit_size)
+            self._screen.blit(tmp, self._blit_rect)
         pygame.display.update()
 
     def _draw_vehicles(self, vehicles):
@@ -102,7 +108,7 @@ class PheromoneRenderer(TopDownRenderer):
         self._draw_vehicle_first = draw_vehicle_first
 
     def render(self, vehicles, pheromone_map):
-        self._runtime.blit(self._background, (0, 0))
+        self.refresh()
 
         # It is also OK to draw pheromone first! But we should wait a while until the vehicles leave the cells to
         # see them!
