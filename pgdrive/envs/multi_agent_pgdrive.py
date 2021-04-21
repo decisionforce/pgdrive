@@ -70,6 +70,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self._agent_manager = AgentManager(
             never_allow_respawn=not self.config["allow_respawn"], debug=self.config["debug"]
         )
+        self._topdown_renderer = None
 
     def _process_extra_config(self, config) -> "PGConfig":
         ret_config = self.default_config().update(
@@ -142,8 +143,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -346,6 +347,17 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # when agent re-joined to the game, call this to set the new route to destination
         # end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         # vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
+
+    def render(self, mode='human', text= None):
+        if mode == "topdown":
+            ret = self._render_topdown()
+        else:
+            ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
+        return ret
+
+    def _render_topdown(self):
+        if self._topdown_renderer is None:
+            pass
 
 
 if __name__ == "__main__":
