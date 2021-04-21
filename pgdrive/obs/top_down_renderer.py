@@ -70,11 +70,15 @@ class TopDownRenderer:
 
         screen_size = self._screen_size or self._film_size
         self._blit_size = (int(screen_size[0] * self._zoomin), int(screen_size[1] * self._zoomin))
-        self._blit_rect = (-(self._blit_size[0] - screen_size[0]) / 2, -(self._blit_size[1] - screen_size[1]) / 2)
+        self._blit_rect = (
+            -(self._blit_size[0] - screen_size[0]) / 2, -(self._blit_size[1] - screen_size[1]) / 2, screen_size[0],
+            screen_size[1]
+        )
         self.blit()
 
     def refresh(self):
-        self._runtime.blit(self._background, self._blit_rect)
+        # self._runtime.blit(self._background, self._blit_rect)
+        self._runtime.blit(self._background, (0, 0))
 
     def render(self, vehicles, *args, **kwargs):
         self.refresh()
@@ -85,14 +89,16 @@ class TopDownRenderer:
         if self._screen_size is None and self._zoomin is None:
             self._screen.blit(self._runtime, (0, 0))
         else:
-            tmp = pygame.transform.smoothscale(self._runtime, self._blit_size)
-            self._screen.blit(tmp, self._blit_rect)
+            self._screen.blit(
+                pygame.transform.smoothscale(self._runtime, self._blit_size), (self._blit_rect[0], self._blit_rect[1])
+            )
         pygame.display.update()
 
     def _draw_vehicles(self, vehicles):
         for v in vehicles:
             h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
+
             VehicleGraphics.display(
                 vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
             )
