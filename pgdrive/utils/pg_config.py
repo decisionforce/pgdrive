@@ -209,6 +209,10 @@ class PGConfig:
         if isinstance(value, np.ndarray) and len(value) == 1:
             # handle 1-d box shape sample
             value = value[0]
+            if isinstance(value, (np.float32, np.float64, np.float)):
+                value = float(value)
+            if isinstance(value, (np.int, np.int32, np.int64, np.uint)):
+                value = int(value)
         if self._unchangeable:
             raise ValueError("This config is not changeable!")
         if (not allow_overwrite) and (self._config[key] is not None and value is not None):
