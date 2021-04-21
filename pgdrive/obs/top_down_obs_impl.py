@@ -190,7 +190,7 @@ class WorldSurface(pygame.Surface):
         ret.origin = self.origin
         ret.scaling = self.scaling
         ret.centering_position = self.centering_position
-        ret.fill(self.BLACK)
+        ret.blit(self, (0, 0))
         return ret
 
 

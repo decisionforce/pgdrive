@@ -5,15 +5,15 @@ import numpy as np
 
 class PheromoneMap:
     def __init__(
-        self,
-        total_width,
-        total_length,
-        num_channels=1,
-        granularity=0.5,
-        attenuation_rate=1.0,
-        diffusion_rate=1.0,
-        min_x=0,
-        min_y=0
+            self,
+            total_width,
+            total_length,
+            num_channels=1,
+            granularity=0.5,
+            attenuation_rate=1.0,
+            diffusion_rate=1.0,
+            min_x=0,
+            min_y=0
     ):
         self.total_width = total_width
         self.total_length = total_length
@@ -95,11 +95,20 @@ class PheromoneMap:
 
     def get_value(self, x, y):
         # x, y is index!
+        x, y = self._clip_indices(x, y)
+        return self._map[int(x), int(y)]
+
+    def _clip_indices(self, x, y):
         x = max(x, 0)
         x = min(x, self.num_widths - 1)
         y = max(y, 0)
         y = min(y, self.num_lengths - 1)
-        return self._map[int(x), int(y)]
+        return x, y
+
+    def get_map(self, minx, maxx, miny, maxy):
+        minx_id, miny_id = self._clip_indices(*self.get_indices((minx, miny)))
+        maxx_id, maxy_id = self._clip_indices(*self.get_indices((maxx, maxy)))
+        return self._map[minx_id: maxx_id, miny_id: maxy_id]
 
 
 if __name__ == '__main__':

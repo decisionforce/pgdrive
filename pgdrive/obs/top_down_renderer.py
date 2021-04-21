@@ -43,46 +43,75 @@ color_white = (255, 255, 255)
 
 
 class TopDownRenderer:
-    def __init__(self, map, film_size=None, screen_size=None, light_background=True):
+    def __init__(self, map, film_size=None, screen_size=None, light_background=True, zoomin=None):
         film_size = film_size or (1000, 1000)
+        self._zoomin = zoomin
         self._screen_size = screen_size
         self._map = map
+
         self._background = draw_top_down_map(map, simple_draw=False, return_surface=True, film_size=film_size)
+        self._film_size = self._background.get_size()
+
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2**32 - 1
+            pixels ^= 2 ** 32 - 1
             del pixels
 
         self._runtime = self._background.copy()
 
-        self._runtime.blit(self._background, (0, 0))
+        # self._runtime.blit(self._background, (0, 0))
         self._size = tuple(self._background.get_size())
-        self._screen = pygame.display.set_mode(self._screen_size if self._screen_size is not None else film_size)
+        self._screen = pygame.display.set_mode(self._screen_size if self._screen_size is not None else self._film_size)
         self.blit()
         self._screen.fill(color_white)
 
-    def render(self, vehicles):
+    def render(self, vehicles, *args, **kwargs):
         self._runtime.blit(self._background, (0, 0))
+        self._draw_vehicles(vehicles)
+        self.blit()
+
+    def blit(self):
+        if self._screen_size is None and self._zoomin is None:
+            self._screen.blit(self._runtime, (0, 0))
+        else:
+            screen_size = self._screen_size or self._film_size
+            size = (screen_size[0] * self._zoomin, screen_size[1] * self._zoomin)
+            tmp = pygame.transform.smoothscale(self._runtime, size)
+            self._screen.blit(tmp, (-(size[0] - screen_size[0]) / 2, -(size[1] - screen_size[1]) / 2))
+        pygame.display.update()
+
+    def _draw_vehicles(self, vehicles):
         for v in vehicles:
             h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(
                 vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.RED, draw_countour=True
             )
-        self.blit()
-
-    def blit(self):
-        if self._screen_size is None:
-            self._screen.blit(self._runtime, (0, 0))
-        else:
-            pygame.transform.smoothscale(self._runtime, self._screen_size, self._screen)
-        pygame.display.update()
 
 
 class PheromoneRenderer(TopDownRenderer):
-    def __init__(self, map, file_size):
-        super(PheromoneRenderer, self).__init__(map, file_size)
+    def __init__(self, *args, **kwargs):
+        super(PheromoneRenderer, self).__init__(*args, **kwargs)
+        self._pheromone_surface = None
+        self._bounding_box = self._map.road_network.get_bounding_box()
 
-    def draw_pheromone_map(self, pheromone_map):
-        pass
+    def render(self, vehicles, pheromone_map):
+        self._runtime.blit(self._background, (0, 0))
+        self._draw_pheromone_map(pheromone_map)
+        self._draw_vehicles(vehicles)
+        self.blit()
+
+    def _draw_pheromone_map(self, pheromone_map):
+        phero = pheromone_map.get_map(*self._bounding_box)
+        if self._pheromone_surface is None:
+            self._pheromone_surface = pygame.Surface(phero.shape[:2])
+        c = (50, 200, 0)
+        c = (255 - c[0], 255 - c[1], 255 - c[2])
+        phero = np.squeeze(phero, -1)
+        phero = np.stack([phero * c[0], phero * c[1], phero * c[2]], axis=-1)
+        pygame.surfarray.blit_array(self._pheromone_surface, phero)
+        tmp = pygame.transform.smoothscale(self._pheromone_surface, self._background.get_size())
+        self._runtime.blit(
+            tmp, (0, 0), special_flags=pygame.BLEND_RGB_SUB if self._light_background else pygame.BLEND_RGB_ADD
+        )
