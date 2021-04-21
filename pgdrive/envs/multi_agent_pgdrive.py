@@ -348,17 +348,17 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         # vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-    def render(self, mode='human', text=None):
+    def render(self, mode='human', text=None, *args, **kwargs):
         if mode == "top_down":
-            ret = self._render_topdown()
+            ret = self._render_topdown(*args, **kwargs)
         else:
             ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
         return ret
 
-    def _render_topdown(self):
+    def _render_topdown(self, film_size=None, screen_size=None):
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import TopDownRenderer
-            self._top_down_renderer = TopDownRenderer(self.current_map)
+            self._top_down_renderer = TopDownRenderer(self.current_map, film_size=film_size, screen_size=screen_size)
         self._top_down_renderer.render(list(self.vehicles.values()))
 
 

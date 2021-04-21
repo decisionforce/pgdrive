@@ -1,6 +1,7 @@
+import time
+
 import numpy as np
 from gym.spaces import Box, Dict
-
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv as MARound, \
     LidarStateObservationMARound
 from pgdrive.envs.marl_envs.pheromone_map import PheromoneMap
@@ -106,7 +107,6 @@ class MARoundPhero(MARound):
 
 
 def _profile():
-    import time
     env = MARoundPhero({"num_agents": 40})
     obs = env.reset()
     start = time.time()
@@ -152,6 +152,27 @@ def _test():
     env.close()
 
 
+def _vis():
+    env = MARoundPhero({"num_channels": 1, "num_agents": 40})
+    o = env.reset()
+    start = time.time()
+    for s in range(1, 100000):
+        o, r, d, info = env.step(env.action_space.sample())
+        # env.render(mode="top_down", film_size=(2000, 2000), screen_size=(1000, 1000))
+        env.render(mode="top_down", film_size=(1000, 1000))
+        if d["__all__"]:
+            env.reset()
+        if (s + 1) % 100 == 0:
+            print(
+                "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
+                    s + 1,
+                    time.time() - start, (s + 1) / (time.time() - start)
+                )
+            )
+    env.close()
+
+
 if __name__ == '__main__':
-    _test()
+    # _test()
     # _profile()
+    _vis()

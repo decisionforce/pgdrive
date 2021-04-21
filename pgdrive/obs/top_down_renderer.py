@@ -43,7 +43,9 @@ color_white = (255, 255, 255)
 
 
 class TopDownRenderer:
-    def __init__(self, map, film_size=(1000, 1000), light_background=True):
+    def __init__(self, map, film_size=None, screen_size=None, light_background=True):
+        film_size = film_size or (1000, 1000)
+        self._screen_size = screen_size
         self._map = map
         self._background = draw_top_down_map(map, simple_draw=False, return_surface=True, film_size=film_size)
         self._light_background = light_background
@@ -56,7 +58,7 @@ class TopDownRenderer:
 
         self._runtime.blit(self._background, (0, 0))
         self._size = tuple(self._background.get_size())
-        self._screen = pygame.display.set_mode(self._size)
+        self._screen = pygame.display.set_mode(self._screen_size if self._screen_size is not None else film_size)
         self.blit()
         self._screen.fill(color_white)
 
@@ -66,12 +68,15 @@ class TopDownRenderer:
             h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(
-                vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
+                vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.RED, draw_countour=True
             )
         self.blit()
 
     def blit(self):
-        self._screen.blit(self._runtime, (0, 0))
+        if self._screen_size is None:
+            self._screen.blit(self._runtime, (0, 0))
+        else:
+            pygame.transform.smoothscale(self._runtime, self._screen_size, self._screen)
         pygame.display.update()
 
 
