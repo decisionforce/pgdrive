@@ -4,7 +4,7 @@ import numpy as np
 from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
-from pgdrive.utils import import_pygame
+from pgdrive.utils.utils import import_pygame
 
 PositionType = Union[Tuple[float, float], np.ndarray]
 pygame = import_pygame()

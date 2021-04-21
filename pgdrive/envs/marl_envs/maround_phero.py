@@ -12,7 +12,10 @@ class PheroObs(LidarStateObservationMARound):
         space = super(PheroObs, self).observation_space
         assert isinstance(space, Box)
         assert len(space.shape) == 1
-        length = space.shape[0] + self.config["num_neighbours"]  # Add extra 9 pheromones information!
+
+        # Add extra 9 pheromones information!
+        length = space.shape[0] + self.config["num_neighbours"] * self.config["num_channels"]
+
         space = Box(
             low=np.array([space.low[0]] * length),
             high=np.array([space.high[0]] * length),
@@ -44,6 +47,7 @@ class MARoundPhero(MARound):
     def _post_process_config(self, config):
         config = super(MARoundPhero, self)._post_process_config(config)
         config["vehicle_config"]["num_neighbours"] = config["num_neighbours"]
+        config["vehicle_config"]["num_channels"] = config["num_channels"]
         return config
 
     def get_single_observation(self, vehicle_config):
@@ -121,7 +125,7 @@ def _profile():
 
 
 def _test():
-    env = MARoundPhero()
+    env = MARoundPhero({"num_channels": 3})
     o = env.reset()
     assert env.observation_space.contains(o)
     assert all([0 <= oo[-1] <= 1.0 for oo in o.values()])
@@ -149,5 +153,5 @@ def _test():
 
 
 if __name__ == '__main__':
-    # _test()
-    _profile()
+    _test()
+    # _profile()

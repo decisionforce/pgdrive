@@ -3,10 +3,9 @@ from typing import Optional, Union, Iterable
 import cv2
 import numpy as np
 from pgdrive.constants import Decoration
-from pgdrive.obs.top_down_obs_impl import WorldSurface, LaneGraphics
+from pgdrive.obs.top_down_obs_impl import WorldSurface, VehicleGraphics, LaneGraphics
 from pgdrive.utils.utils import import_pygame
-from pgdrive.obs.top_down_obs_impl import WorldSurface, ObservationWindow, COLOR_BLACK, \
-    VehicleGraphics, LaneGraphics
+
 pygame = import_pygame()
 
 
@@ -54,5 +53,3 @@ class TopDownRenderer:
             h = v.heading
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(vehicle=v, surface=self._screen, heading=h, color=VehicleGraphics.BLUE)
-
-
