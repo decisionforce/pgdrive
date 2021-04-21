@@ -9,15 +9,17 @@ from pgdrive.utils.utils import import_pygame
 pygame = import_pygame()
 
 
-def draw_top_down_map(map, resolution: Iterable = (512, 512), simple_draw=True, return_surface=False) -> Optional[
-    Union[np.ndarray, pygame.Surface]]:
-    surface = WorldSurface(map.film_size, 0, pygame.Surface(map.film_size))
+def draw_top_down_map(map, resolution: Iterable = (512, 512), simple_draw=True, return_surface=False, film_size=None) -> \
+        Optional[
+            Union[np.ndarray, pygame.Surface]]:
+    film_size = film_size or map.film_size
+    surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
     b_box = map.road_network.get_bounding_box()
     x_len = b_box[1] - b_box[0]
     y_len = b_box[3] - b_box[2]
     max_len = max(x_len, y_len)
     # scaling and center can be easily found by bounding box
-    scaling = map.film_size[1] / max_len - 0.1
+    scaling = film_size[1] / max_len - 0.1
     surface.scaling = scaling
     centering_pos = ((b_box[0] + b_box[1]) / 2, (b_box[2] + b_box[3]) / 2)
     surface.move_display_window_to(centering_pos)
@@ -37,19 +39,32 @@ def draw_top_down_map(map, resolution: Iterable = (512, 512), simple_draw=True, 
     return ret
 
 
+color_white = (255, 255, 255)
+
+
 class TopDownRenderer:
-    def __init__(self, map):
+    def __init__(self, map, film_size=(1000, 1000)):
         self._map = map
-        self._background = draw_top_down_map(map, simple_draw=False, return_surface=True)
+        self._background = draw_top_down_map(map, simple_draw=False, return_surface=True, film_size=film_size)
+
+        self._runtime = WorldSurface(map.film_size, 0, pygame.Surface(film_size))
+        self._runtime.scaling = self._background.scaling
+        self._runtime.move_display_window_to(self._background.centering_position)
+
+        self._runtime.blit(self._background, (0, 0))
         self._size = tuple(self._background.get_size())
         self._screen = pygame.display.set_mode(self._size)
-        self._screen.blit(self._background)
-
+        self.blit()
         self._screen.fill(color_white)
 
     def render(self, vehicles):
-        self._screen.blit(self._background)
+        self._runtime.blit(self._background, (0, 0))
         for v in vehicles:
-            h = v.heading
+            h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
-            VehicleGraphics.display(vehicle=v, surface=self._screen, heading=h, color=VehicleGraphics.BLUE)
+            VehicleGraphics.display(vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE)
+        self.blit()
+
+    def blit(self):
+        self._screen.blit(self._runtime, (0, 0))
+        pygame.display.update()
