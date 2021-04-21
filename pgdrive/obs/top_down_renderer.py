@@ -133,7 +133,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)
