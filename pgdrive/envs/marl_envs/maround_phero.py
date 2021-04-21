@@ -16,7 +16,7 @@ class PheroObs(LidarStateObservationMARound):
         space = Box(
             low=np.array([space.low[0]] * length),
             high=np.array([space.high[0]] * length),
-            shape=(length, ),
+            shape=(length,),
             dtype=space.dtype
         )
         return space
@@ -53,7 +53,7 @@ class MARoundPhero(MARound):
         ret = super(MARoundPhero, self)._get_action_space()
         new_ret = {}
         for v_id, space in ret.spaces.items():
-            new_ret[v_id] = Box(-1.0, 1.0, (2 + self.config["num_channels"], ), dtype=np.float32)
+            new_ret[v_id] = Box(-1.0, 1.0, (2 + self.config["num_channels"],), dtype=np.float32)
         new_ret = Dict(new_ret)
         return new_ret
 
@@ -95,13 +95,32 @@ class MARoundPhero(MARound):
 
     def _add_phero(self, v_id, o):
         if v_id not in self.vehicles:
-            ret = np.zeros((self.config["num_neighbours"] * self.config["num_channels"], ))
+            ret = np.zeros((self.config["num_neighbours"] * self.config["num_channels"],))
         else:
             ret = self.phero_map.get_nearest_pheromone(self.vehicles[v_id].position, self.config["num_neighbours"])
         return np.concatenate([o, ret])
 
 
-if __name__ == '__main__':
+def _profile():
+    import time
+    env = MARoundPhero({"num_agents": 40})
+    obs = env.reset()
+    start = time.time()
+    for s in range(10000):
+        o, r, d, i = env.step(env.action_space.sample())
+        if all(d.values()):
+            env.reset()
+        if (s + 1) % 100 == 0:
+            print(
+                "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
+                    s + 1,
+                    time.time() - start, (s + 1) / (time.time() - start)
+                )
+            )
+    print(f"(PGDriveEnvV2) Total Time Elapse: {time.time() - start}")
+
+
+def _test():
     env = MARoundPhero()
     o = env.reset()
     assert env.observation_space.contains(o)
@@ -127,3 +146,8 @@ if __name__ == '__main__':
             print("Reset")
             env.reset()
     env.close()
+
+
+if __name__ == '__main__':
+    # _test()
+    _profile()
