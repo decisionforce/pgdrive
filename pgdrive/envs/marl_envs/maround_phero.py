@@ -20,7 +20,7 @@ class PheroObs(LidarStateObservationMARound):
         space = Box(
             low=np.array([space.low[0]] * length),
             high=np.array([space.high[0]] * length),
-            shape=(length,),
+            shape=(length, ),
             dtype=space.dtype
         )
         return space
@@ -58,7 +58,7 @@ class MARoundPhero(MARound):
         ret = super(MARoundPhero, self)._get_action_space()
         new_ret = {}
         for v_id, space in ret.spaces.items():
-            new_ret[v_id] = Box(-1.0, 1.0, (2 + self.config["num_channels"],), dtype=np.float32)
+            new_ret[v_id] = Box(-1.0, 1.0, (2 + self.config["num_channels"], ), dtype=np.float32)
         new_ret = Dict(new_ret)
         return new_ret
 
@@ -100,7 +100,7 @@ class MARoundPhero(MARound):
 
     def _add_phero(self, v_id, o):
         if v_id not in self.vehicles:
-            ret = np.zeros((self.config["num_neighbours"] * self.config["num_channels"],))
+            ret = np.zeros((self.config["num_neighbours"] * self.config["num_channels"], ))
         else:
             ret = self.phero_map.get_nearest_pheromone(self.vehicles[v_id].position, self.config["num_neighbours"])
         return np.concatenate([o, ret])
@@ -108,8 +108,9 @@ class MARoundPhero(MARound):
     def _render_topdown(self, film_size=None, screen_size=None, zoomin=None):
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import PheromoneRenderer
-            self._top_down_renderer = PheromoneRenderer(self.current_map, film_size=film_size, screen_size=screen_size,
-                                                        zoomin=zoomin)
+            self._top_down_renderer = PheromoneRenderer(
+                self.current_map, film_size=film_size, screen_size=screen_size, zoomin=zoomin
+            )
         self._top_down_renderer.render(list(self.vehicles.values()), pheromone_map=self.phero_map)
 
 

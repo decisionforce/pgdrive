@@ -9,9 +9,11 @@ from pgdrive.utils.utils import import_pygame
 pygame = import_pygame()
 
 
-def draw_top_down_map(map, resolution: Iterable = (512, 512), simple_draw=True, return_surface=False, film_size=None) -> \
-        Optional[
-            Union[np.ndarray, pygame.Surface]]:
+def draw_top_down_map(map,
+                      resolution: Iterable = (512, 512),
+                      simple_draw=True,
+                      return_surface=False,
+                      film_size=None) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
     b_box = map.road_network.get_bounding_box()
@@ -55,7 +57,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2 ** 32 - 1
+            pixels ^= 2**32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -111,7 +113,7 @@ class PheromoneRenderer(TopDownRenderer):
         phero = np.squeeze(phero, -1)
         phero = np.stack([phero * c[0], phero * c[1], phero * c[2]], axis=-1)
         pygame.surfarray.blit_array(self._pheromone_surface, phero)
-        tmp = pygame.transform.smoothscale(self._pheromone_surface, self._background.get_size())
+        tmp = pygame.transform.scale(self._pheromone_surface, self._background.get_size())
         self._runtime.blit(
             tmp, (0, 0), special_flags=pygame.BLEND_RGB_SUB if self._light_background else pygame.BLEND_RGB_ADD
         )
