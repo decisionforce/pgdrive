@@ -49,7 +49,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2 ** 32 - 1
+            pixels ^= 2**32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -65,7 +65,9 @@ class TopDownRenderer:
         for v in vehicles:
             h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
-            VehicleGraphics.display(vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE)
+            VehicleGraphics.display(
+                vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
+            )
         self.blit()
 
     def blit(self):
