@@ -413,7 +413,7 @@ def _vis():
     total_r = 0
     for i in range(1, 100000):
         # o, r, d, info = env.step(env.action_space.sample())
-        o, r, d, info = env.step({v_id: [0, 1] for v_id in env.vehicles.keys()})
+        o, r, d, info = env.step({v_id: [0.001, 1] for v_id in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])

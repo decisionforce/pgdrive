@@ -47,9 +47,7 @@ class TopDownRenderer:
         self._map = map
         self._background = draw_top_down_map(map, simple_draw=False, return_surface=True, film_size=film_size)
 
-        self._runtime = WorldSurface(map.film_size, 0, pygame.Surface(film_size))
-        self._runtime.scaling = self._background.scaling
-        self._runtime.move_display_window_to(self._background.centering_position)
+        self._runtime = self._background.copy()
 
         self._runtime.blit(self._background, (0, 0))
         self._size = tuple(self._background.get_size())

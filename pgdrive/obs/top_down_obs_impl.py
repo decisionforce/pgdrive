@@ -110,6 +110,9 @@ class WorldSurface(pygame.Surface):
     def __init__(self, size: Tuple[int, int], flags: object, surf: pygame.SurfaceType) -> None:
         surf.fill(pygame.Color("Black"))
         super().__init__(size, flags, surf)
+        self.raw_size = size
+        self.raw_flags = flags
+        self.raw_surface = surf
         self.origin = np.array([0, 0])
         self.scaling = self.INITIAL_SCALING
         self.centering_position = self.INITIAL_CENTERING
@@ -181,6 +184,14 @@ class WorldSurface(pygame.Surface):
                 self.centering_position[0] -= self.MOVING_FACTOR
             if event.key == pygame.K_k:
                 self.centering_position[0] += self.MOVING_FACTOR
+
+    def copy(self):
+        ret = WorldSurface(size=self.raw_size, flags=self.raw_flags, surf=self.raw_surface)
+        ret.origin = self.origin
+        ret.scaling = self.scaling
+        ret.centering_position = self.centering_position
+        ret.fill(self.BLACK)
+        return ret
 
 
 class VehicleGraphics:
