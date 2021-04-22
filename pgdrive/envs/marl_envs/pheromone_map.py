@@ -3,17 +3,18 @@ import math
 import numpy as np
 from scipy.signal import convolve
 
+
 class PheromoneMap:
     def __init__(
-            self,
-            total_width,
-            total_length,
-            num_channels=1,
-            granularity=0.5,
-            attenuation_rate=1.0,
-            diffusion_rate=1.0,
-            min_x=0,
-            min_y=0
+        self,
+        total_width,
+        total_length,
+        num_channels=1,
+        granularity=0.5,
+        attenuation_rate=1.0,
+        diffusion_rate=1.0,
+        min_x=0,
+        min_y=0
     ):
         self.total_width = total_width * 1.2
         self.total_length = total_length * 1.2
@@ -33,11 +34,8 @@ class PheromoneMap:
         self._map = np.zeros((self.num_widths, self.num_lengths, self.num_channels))
 
         dif = (1 - self.diffusion_rate) / 9
-        self._kernel = np.array([
-            [dif, dif, dif],
-            [dif, dif + self.diffusion_rate, dif],
-            [dif, dif, dif]
-        ]).reshape([3, 3, 1])
+        self._kernel = np.array([[dif, dif, dif], [dif, dif + self.diffusion_rate, dif], [dif, dif,
+                                                                                          dif]]).reshape([3, 3, 1])
 
     def add(self, position, values):
         values = np.asarray(values)

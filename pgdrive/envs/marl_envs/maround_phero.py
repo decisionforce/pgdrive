@@ -30,13 +30,15 @@ class MARoundPhero(MARound):
     @classmethod
     def default_config(cls):
         config = super(MARoundPhero, cls).default_config()
-        config.update(dict(
-            attenuation_rate=1.0,
-            diffusion_rate=1.0,
-            num_channels=1,
-            num_neighbours=1,  # or 9.
-            granularity=0.5
-        ))
+        config.update(
+            dict(
+                attenuation_rate=1.0,
+                diffusion_rate=1.0,
+                num_channels=1,
+                num_neighbours=1,  # or 9.
+                granularity=0.5
+            )
+        )
         return config
 
     def __init__(self, config=None):
@@ -162,9 +164,15 @@ def _test():
 
 
 def _vis():
-    env = MARoundPhero({
-        "num_channels": 1, "num_agents": 40, "diffusion_rate": 0.95, "attenuation_rate": 0.99, "granularity": 0.5
-    })
+    env = MARoundPhero(
+        {
+            "num_channels": 1,
+            "num_agents": 40,
+            "diffusion_rate": 0.95,
+            "attenuation_rate": 0.99,
+            "granularity": 0.5
+        }
+    )
     o = env.reset()
     start = time.time()
     for s in range(1, 100000):
