@@ -32,8 +32,8 @@ class MARoundPhero(MARound):
         config = super(MARoundPhero, cls).default_config()
         config.update(
             dict(
-                attenuation_rate=1.0,
-                diffusion_rate=1.0,
+                attenuation_rate=0.99,
+                diffusion_rate=0.95,
                 num_channels=1,
                 num_neighbours=1,  # or 9.
                 granularity=0.5
@@ -177,7 +177,11 @@ def _vis():
     start = time.time()
     for s in range(1, 100000):
         # o, r, d, info = env.step(env.action_space.sample())
-        o, r, d, info = env.step({k: [0, 1, np.random.uniform(-1, 1)] for k in env.vehicles.keys()})
+        o, r, d, info = env.step(
+            {k: [np.random.uniform(-0.01, 0.01), 1, np.random.uniform(0, 1)]
+             for k in env.vehicles.keys()}
+        )
+        # o, r, d, info = env.step({k: [np.random.uniform(-0.01, 0.01), 1, np.random.uyni] for k in env.vehicles.keys()})
         env.render(mode="top_down")
         # env.render(mode="top_down")
         # env.render(mode="top_down", film_size=(1000, 1000))
