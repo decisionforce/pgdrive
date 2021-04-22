@@ -40,7 +40,7 @@ class PheromoneMap:
     def add(self, position, values):
         values = np.asarray(values)
         if values.size == 1:
-            values = values.reshape((1,))
+            values = values.reshape((1, ))
         values = (values + 1) / 2 / 2  # Rescale to 0 - 0.5 for observation!
         x, y = self.get_indices(position)
         self._map[x, y] = np.clip(values + self._map[x, y], 0.0, 1.0)
