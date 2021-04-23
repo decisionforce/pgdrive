@@ -10,8 +10,9 @@ class AgentManager:
     agent name: Agent name that exists in the environment, like agent0, agent1, ....
     object name: The unique name for each object, typically be random string.
     """
-    def __init__(self, never_allow_respawn, debug=False):
-        # when new agent joins in the game, we only change this two maps
+
+    def __init__(self, init_observations, never_allow_respawn, debug=False):
+        # when new agent joins in the game, we only change this two maps.
         self.agent_to_object = {}
         self.object_to_agent = {}
 
@@ -30,6 +31,15 @@ class AgentManager:
         self.allow_respawn = True if not never_allow_respawn else False
         self.never_allow_respawn = never_allow_respawn
         self._debug = debug
+        self._fake_init(init_observations)
+
+    def _fake_init(self, init_observations):
+        """
+        For getting env.observation_space/action_space before making vehicles
+        """
+        self.agent_to_object = {k: k for k in init_observations.keys()}  # no target vehicles created, fake init
+        self.object_to_agent = {k: k for k in init_observations.keys()}  # no target vehicles created, fake init
+        self.observations = init_observations  # fake init
 
     def reset(self, vehicles, observation_spaces, action_spaces, observations):
         self.agent_to_object = {k: v.name for k, v in vehicles.items()}

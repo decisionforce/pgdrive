@@ -95,12 +95,10 @@ class BasePGDriveEnv(gym.Env):
         assert isinstance(self.num_agents, int) and self.num_agents > 0
 
         # observation and action space
-        self.observations = self._get_observations()
-        self.observation_space = self._get_observation_space()
-        self.action_space = self._get_action_space()
         self._agent_manager = AgentManager(
-            never_allow_respawn=not self.config["allow_respawn"], debug=self.config["debug"]
-        )
+            init_observations=self._get_observations(),
+            never_allow_respawn=not self.config["allow_respawn"],
+            debug=self.config["debug"])
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -380,3 +378,8 @@ class BasePGDriveEnv(gym.Env):
     def seed(self, seed=None):
         if seed:
             self._pending_force_seed = seed
+
+    @property
+    def observations(self):
+        return {self._agent_manager.object_to_agent[obj_id]: observation for obj_id, observation in
+                self._agent_manager.observations.items()}
