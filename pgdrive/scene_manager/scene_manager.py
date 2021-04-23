@@ -40,7 +40,7 @@ class SceneManager:
         self.objects_mgr = self._get_object_manager()
 
         # common variable
-        self.target_vehicles = None
+        self.__target_vehicles = None
         self.object_to_agent = None
         self.map = None
 
@@ -66,7 +66,7 @@ class SceneManager:
         """
         pg_world = self.pg_world
         assert isinstance(target_vehicles, list)
-        self.target_vehicles = {v.name: v for v in target_vehicles}
+        self.__target_vehicles = {v.name: v for v in target_vehicles}
         self.object_to_agent = object_to_agent
         self.map = map
 
@@ -86,7 +86,7 @@ class SceneManager:
             # FIXME
             self.objects_mgr.generate(self, pg_world)
             self.traffic_mgr.generate(
-                pg_world=pg_world, map=self.map, target_vehicles=self.target_vehicles, traffic_density=traffic_density
+                pg_world=pg_world, map=self.map, target_vehicles=self.__target_vehicles, traffic_density=traffic_density
             )
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
@@ -112,9 +112,9 @@ class SceneManager:
         step_infos = {}
         if self.replay_system is None:
             # not in replay mode
-            for k in self.target_vehicles.keys():
+            for k in self.__target_vehicles.keys():
                 a = target_actions[object_to_agent[k]]
-                step_infos[object_to_agent[k]] = self.target_vehicles[k].prepare_step(a)
+                step_infos[object_to_agent[k]] = self.__target_vehicles[k].prepare_step(a)
             self.traffic_mgr.prepare_step(self)
         return step_infos
 
@@ -137,9 +137,9 @@ class SceneManager:
 
             # print("Step {}/{}. Steering {}. Acceleration {}. Brake {}.".format(
             #     i + 1, step_num,
-            #     [self.target_vehicles['default_agent'].system.get_steering_value(ii) for ii in range(4)],
-            #     [self.target_vehicles['default_agent'].system.get_wheel(ii).engine_force for ii in range(4)],
-            #     [self.target_vehicles['default_agent'].system.get_wheel(ii).brake for ii in range(4)],
+            #     [self.__target_vehicles['default_agent'].system.get_steering_value(ii) for ii in range(4)],
+            #     [self.__target_vehicles['default_agent'].system.get_wheel(ii).engine_force for ii in range(4)],
+            #     [self.__target_vehicles['default_agent'].system.get_wheel(ii).brake for ii in range(4)],
             # ))
 
         #  panda3d render and garbage collecting loop
@@ -164,7 +164,7 @@ class SceneManager:
         step_infos = self.update_state_for_all_target_vehicles()
 
         # cull distant blocks
-        poses = [v.position for v in self.target_vehicles.values()]
+        poses = [v.position for v in self.__target_vehicles.values()]
         if self.cull_scene:
             PGLOD.cull_distant_blocks(self.map.blocks, poses, self.pg_world, self.pg_world.world_config["max_distance"])
             # PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
@@ -184,7 +184,7 @@ class SceneManager:
     def update_state_for_all_target_vehicles(self):
         if self.detector_mask is not None:
             # a = set([v.name for v in self.traffic_mgr.vehicles])
-            # b = set([v.name for v in self.target_vehicles.values()])
+            # b = set([v.name for v in self.__target_vehicles.values()])
             # assert b.issubset(a)  # This may only happen during episode replays!
             is_target_vehicle_dict = {
                 v_obj.name: self.traffic_mgr.is_target_vehicle(v_obj)
@@ -207,9 +207,9 @@ class SceneManager:
 
     def for_each_target_vehicle(self, func):
         """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""
-        assert len(self.target_vehicles) > 0
+        assert len(self.__target_vehicles) > 0
         ret = dict()
-        for k, v in self.target_vehicles.items():
+        for k, v in self.__target_vehicles.items():
             ret[self.object_to_agent[k]] = func(v)
         return ret
 
@@ -242,4 +242,8 @@ class SceneManager:
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 
     def is_target_vehicle(self, v):
-        return v in self.target_vehicles.values()
+        return v in self.__target_vehicles.values()
+
+    @property
+    def target_vehicles(self):
+        return {self.object_to_agent[k]: v for k, v in self.__target_vehicles.items()}

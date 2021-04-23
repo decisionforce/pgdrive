@@ -326,6 +326,7 @@ class BasePGDriveEnv(gym.Env):
         del self.restored_maps
         self.restored_maps = dict()
         self._agent_manager.destroy()
+        # self._agent_manager=None don't set to None ! since sometimes we need close() then reset()
 
     def force_close(self):
         print("Closing environment ... Please wait")

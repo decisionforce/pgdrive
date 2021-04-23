@@ -220,7 +220,6 @@ def _vis():
     ep_s = 0
     for i in range(1, 100000):
         action = {k: [0.0, .0] for k in env.vehicles.keys()}
-        print(action)
         o, r, d, info = env.step(action)
         for r_ in r.values():
             total_r += r_
