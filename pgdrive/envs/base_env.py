@@ -276,7 +276,8 @@ class BasePGDriveEnv(gym.Env):
         # generate new traffic according to the map
         self.scene_manager.reset(
             self.current_map,
-            self.vehicles,
+            self._agent_manager.get_vehicle_list(),
+            self._agent_manager.object_to_agent,
             self.config["traffic_density"],
             self.config["accident_prob"],
             episode_data=episode_data
@@ -324,6 +325,7 @@ class BasePGDriveEnv(gym.Env):
         self.current_map = None
         del self.restored_maps
         self.restored_maps = dict()
+        self._agent_manager.destroy()
 
     def force_close(self):
         print("Closing environment ... Please wait")
@@ -394,7 +396,7 @@ class BasePGDriveEnv(gym.Env):
             if self._agent_manager.is_active_object(obj_id):
                 ret[self._agent_manager.object_to_agent[obj_id]] = space
         if not self.is_multi_agent:
-            return next(iter(ret))
+            return next(iter(ret.values()))
         else:
             return gym.spaces.Dict(ret)
 
@@ -409,7 +411,7 @@ class BasePGDriveEnv(gym.Env):
             if self._agent_manager.is_active_object(obj_id):
                 ret[self._agent_manager.object_to_agent[obj_id]] = space
         if not self.is_multi_agent:
-            return next(iter(ret))
+            return next(iter(ret.values()))
         else:
             return gym.spaces.Dict(ret)
 

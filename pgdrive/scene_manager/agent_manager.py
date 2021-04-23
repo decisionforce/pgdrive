@@ -37,9 +37,13 @@ class AgentManager:
         self.never_allow_respawn = never_allow_respawn
         self._debug = debug
 
-        # fake init
         self.__init_object_to_agent = None
-        self.observations = init_observations
+
+        # fake init. before creating pg_world and vehicles, it is necessary when all vehicles re-created in runtime
+        self.observations = copy.copy(init_observations)  #
+        self.__init_observations = init_observations
+        self.__init_observation_spaces = None
+        self.__init_action_spaces = None
         # this map will be override when the env.reset() is first called and vehicles are made
         self.agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
         self.object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
@@ -48,8 +52,11 @@ class AgentManager:
         """
         For getting env.observation_space/action_space before making vehicles
         """
-        self.observation_spaces = init_observation_space
-        self.action_spaces = init_action_space
+        self.__init_observation_spaces = init_observation_space
+        self.observation_spaces = copy.copy(init_observation_space)
+
+        self.__init_action_spaces = init_action_space
+        self.action_spaces = copy.copy(init_action_space)
 
     def init(self, init_vehicles: Dict):
         """
@@ -65,14 +72,16 @@ class AgentManager:
         self.pending_object = {}
 
         # real init {obj_name: space} map
+        self.observations = dict()
+        self.observation_spaces = dict()
+        self.action_spaces = dict()
         for agent_id, vehicle in init_vehicles.items():
-            observation = self.observations.pop(agent_id)
-            self.observations[vehicle.name] = observation
+            self.observations[vehicle.name] = self.__init_observations[agent_id]
 
-            obs_space = self.observation_spaces.pop(agent_id)
+            obs_space = self.__init_observation_spaces[agent_id]
             self.observation_spaces[vehicle.name] = obs_space
             assert isinstance(obs_space, Box)
-            action_space = self.action_spaces.pop(agent_id)
+            action_space = self.__init_action_spaces[agent_id]
             self.action_spaces[vehicle.name] = action_space
             assert isinstance(action_space, Box)
 
@@ -163,3 +172,21 @@ class AgentManager:
         if not self.INITIALIZED:
             return True
         return True if object_name in self.active_object.keys() else False
+
+    def destroy(self):
+        # when new agent joins in the game, we only change this two maps.
+        self.agent_to_object = {}
+        self.object_to_agent = {}
+
+        # BaseVehicles which can be controlled by policies when env.step() called
+        self.active_object = {}
+
+        # BaseVehicles which can be respawned
+        self.pending_object = {}
+
+        # Dict[object_id: value], init for **only** once after spawning vehicle
+        self.observations = {}
+        self.observation_spaces = {}
+        self.action_spaces = {}
+
+        self.next_agent_count = 0
