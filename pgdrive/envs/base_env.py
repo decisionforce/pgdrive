@@ -99,6 +99,8 @@ class BasePGDriveEnv(gym.Env):
             init_observations=self._get_observations(),
             never_allow_respawn=not self.config["allow_respawn"],
             debug=self.config["debug"])
+        self._agent_manager.init_space(init_observation_space=self._get_observation_space(),
+                                       init_action_space=self._get_action_space())
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -116,8 +118,6 @@ class BasePGDriveEnv(gym.Env):
         self.current_seed = self.start_seed
         self.current_map = None
 
-        self.vehicles = dict()
-        self.done_vehicles = dict()
         self.dones = None
         self.episode_rewards = defaultdict(float)
         # In MARL envs with respawn mechanism, varying episode lengths might happen.
@@ -135,17 +135,11 @@ class BasePGDriveEnv(gym.Env):
     def _get_observations(self) -> Dict[str, "ObservationType"]:
         raise NotImplementedError()
 
-    def _get_observation_space(self) -> gym.Space:
-        ret = gym.spaces.Dict({v_id: obs.observation_space for v_id, obs in self.observations.items()})
-        if not self.is_multi_agent:
-            ret = next(iter((ret.spaces.values())))
-        return ret
+    def _get_observation_space(self):
+        return {v_id: obs.observation_space for v_id, obs in self.observations.items()}
 
-    def _get_action_space(self) -> gym.Space:
-        ret = gym.spaces.Dict({v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()})
-        if not self.is_multi_agent:
-            ret = next(iter((ret.spaces.values())))
-        return ret
+    def _get_action_space(self):
+        return {v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()}
 
     def _setup_pg_world(self) -> "PGWorld":
         pg_world = PGWorld(self.config["pg_world_config"])
@@ -174,7 +168,7 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager = self._get_scene_manager()
 
         # init vehicle
-        self.vehicles = self._get_vehicles()
+        self._agent_manager.init(self._get_vehicles())
 
         # other optional initialization
         self._after_lazy_init()
@@ -272,7 +266,7 @@ class BasePGDriveEnv(gym.Env):
         self.pg_world.clear_world()
         self._update_map(episode_data, force_seed)
 
-        self._reset_vehicles()
+        self._reset_agents()
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
         self.episode_steps = 0
@@ -296,8 +290,8 @@ class BasePGDriveEnv(gym.Env):
     def _update_map(self, episode_data: Union[None, dict] = None, force_seed: Union[None, int] = None):
         raise NotImplementedError()
 
-    def _reset_vehicles(self):
-        raise NotImplementedError()
+    def _reset_agents(self):
+        self._agent_manager.reset()
 
     def _get_reset_return(self):
         raise NotImplementedError()
@@ -316,8 +310,6 @@ class BasePGDriveEnv(gym.Env):
 
             if self.vehicles:
                 self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
-            del self.vehicles
-            self.vehicles = dict()
 
             del self.controller
             self.controller = None
@@ -381,5 +373,66 @@ class BasePGDriveEnv(gym.Env):
 
     @property
     def observations(self):
-        return {self._agent_manager.object_to_agent[obj_id]: observation for obj_id, observation in
-                self._agent_manager.observations.items()}
+        """
+        Return observations of active and controllable vehicles
+        :return: Dict
+        """
+        ret = {}
+        for obj_id, observation in self._agent_manager.observations.items():
+            if self._agent_manager.is_active_object(obj_id):
+                ret[self._agent_manager.object_to_agent[obj_id]] = observation
+        return ret
+
+    @property
+    def observation_space(self) -> gym.Space:
+        """
+        Return observation spaces of active and controllable vehicles
+        :return: Dict
+        """
+        ret = {}
+        for obj_id, space in self._agent_manager.observation_spaces.items():
+            if self._agent_manager.is_active_object(obj_id):
+                ret[self._agent_manager.object_to_agent[obj_id]] = space
+        if not self.is_multi_agent:
+            return next(iter(ret))
+        else:
+            return gym.spaces.Dict(ret)
+
+    @property
+    def action_space(self) -> gym.Space:
+        """
+        Return observation spaces of active and controllable vehicles
+        :return: Dict
+        """
+        ret = {}
+        for obj_id, space in self._agent_manager.action_spaces.items():
+            if self._agent_manager.is_active_object(obj_id):
+                ret[self._agent_manager.object_to_agent[obj_id]] = space
+        if not self.is_multi_agent:
+            return next(iter(ret))
+        else:
+            return gym.spaces.Dict(ret)
+
+    @property
+    def vehicles(self):
+        """
+        Return all active vehicles
+        :return: Dict[agent_id:vehicle]
+        """
+        ret = {}
+        for obj_id, vehicle in self._agent_manager.active_object.items():
+            ret[self._agent_manager.object_to_agent[obj_id]] = vehicle
+        return ret
+
+    @property
+    def pending_vehicles(self):
+        """
+        Return pending BaseVehicles, it takes effect in MARL-env
+        :return: Dict[agent_id: pending_vehicles]
+        """
+        if not self.is_multi_agent:
+            raise ValueError("Pending agents is not available in single-agent env")
+        ret = {}
+        for obj_id, vehicle in self._agent_manager.pending_object.items():
+            ret[self._agent_manager.object_to_agent[obj_id]] = vehicle
+        return ret
