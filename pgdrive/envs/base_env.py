@@ -2,7 +2,7 @@ import os.path as osp
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
-
+from pgdrive.scene_manager.agent_manager import AgentManager
 import gym
 import numpy as np
 from panda3d.core import PNMImage
@@ -23,6 +23,7 @@ BASE_DEFAULT_CONFIG = dict(
     # ==== agents config =====
     num_agents=1,
     is_multi_agent=False,
+    allow_respawn=False,
 
     # ===== Action =====
     decision_repeat=5,
@@ -97,6 +98,9 @@ class BasePGDriveEnv(gym.Env):
         self.observations = self._get_observations()
         self.observation_space = self._get_observation_space()
         self.action_space = self._get_action_space()
+        self._agent_manager = AgentManager(
+            never_allow_respawn=not self.config["allow_respawn"], debug=self.config["debug"]
+        )
 
         # map setting
         self.start_seed = self.config["start_seed"]
