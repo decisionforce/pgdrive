@@ -11,14 +11,22 @@ class AgentManager:
     object name: The unique name for each object, typically be random string.
     """
     def __init__(self, never_allow_respawn, debug=False):
+        # when new agent joins in the game, we only change this two maps
         self.agent_to_object = {}
         self.object_to_agent = {}
-        self.pending_object = {}
+
+        # BaseVehicles which can be controlled by policies when env.step() called
         self.active_object = {}
-        self.next_agent_count = 0
+
+        # BaseVehicles which can be respawned
+        self.pending_object = {}
+
+        # Dict[object_id: value], init for **only** once after spawning vehicle
         self.observations = {}
         self.observation_spaces = {}
         self.action_spaces = {}
+
+        self.next_agent_count = 0
         self.allow_respawn = True if not never_allow_respawn else False
         self.never_allow_respawn = never_allow_respawn
         self._debug = debug
@@ -55,17 +63,17 @@ class AgentManager:
     def propose_new_vehicle(self):
         self._check()
         if len(self.pending_object) > 0:
-            v_id = list(self.pending_object.keys())[0]
+            obj_name = list(self.pending_object.keys())[0]
             self._check()
-            v = self.pending_object.pop(v_id)
+            v = self.pending_object.pop(obj_name)
             v.prepare_step([0, -1])
             v.chassis_np.node().setStatic(False)
             return self.allow_respawn, dict(
                 vehicle=v,
-                observation=self.observations[v_id],
-                observation_space=self.observation_spaces[v_id],
-                action_space=self.action_spaces[v_id],
-                old_name=self.object_to_agent[v_id],
+                observation=self.observations[obj_name],
+                observation_space=self.observation_spaces[obj_name],
+                action_space=self.action_spaces[obj_name],
+                old_name=self.object_to_agent[obj_name],
                 new_name="agent{}".format(self.next_agent_count)
             )
         return None, None
