@@ -43,4 +43,4 @@ def test_object_collision_detection(render=False):
 
 
 if __name__ == "__main__":
-    test_object_collision_detection(render=True)
+    test_object_collision_detection(render=False)

@@ -225,6 +225,7 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager.step(self.config["decision_repeat"], replaying=self.replaying)
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
+        self.scene_manager.update_detector_mask()
         infos = self.agent_manager.update_state_for_all_target_vehicles(self.scene_manager.detector_mask)
 
         if self.replaying:
