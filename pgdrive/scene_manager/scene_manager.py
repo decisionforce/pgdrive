@@ -91,9 +91,7 @@ class SceneManager:
         # if pg_world.highway_render is not None:
         #     pg_world.highway_render.set_scene_mgr(self)
 
-        self.update_state(
-            target_vehicles, replaying=replaying
-        )
+        self.update_state(target_vehicles, replaying=replaying)
 
     def setup_detector_mask(self, num_lasers, max_distance, max_span):
         self.detector_mask = DetectorMask(num_lasers=num_lasers, max_distance=max_distance, max_span=max_span)
@@ -149,7 +147,7 @@ class SceneManager:
         # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         # else:
         if not replaying:
-            self._traffic_manager.update_state(self, self.pg_world)
+            self._traffic_manager.update_state(self.pg_world)
 
         # if self.record_system is not None:
         # didn't record while replay

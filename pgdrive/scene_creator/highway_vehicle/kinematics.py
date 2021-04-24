@@ -268,18 +268,18 @@ class Vehicle:
                 d[key] -= origin_dict[key]
         return d
 
-    def destroy(self, *args):
-        self.traffic_mgr = None
-        self._position = None
-        self.heading = None
-        self.speed = None
-        self.lane_index = None
-        self.lane = None
-        self.action = None
-        self.crashed = False
-        self.log = None
-        self.history = None
-        self.np_random = None
+    # def destroy(self, *args):
+    #     self.traffic_mgr = None
+    #     self._position = None
+    #     self.heading = None
+    #     self.speed = None
+    #     self.lane_index = None
+    #     self.lane = None
+    #     self.action = None
+    #     self.crashed = False
+    #     self.log = None
+    #     self.history = None
+    #     self.np_random = None
 
     def __str__(self):
         return "{} #{}: {}".format(self.__class__.__name__, id(self) % 1000, self.position)

@@ -125,7 +125,9 @@ class TopDownMultiChannel(TopDownObservation):
 
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
-        assert len(self.env.agent_manager.get_vehicle_list()) == 1, "Don't support multi-agent top-down observation yet!"
+        assert len(
+            self.env.agent_manager.get_vehicle_list()
+        ) == 1, "Don't support multi-agent top-down observation yet!"
         vehicle = self.target_vehicle
         pos = self.canvas_runtime.pos2pix(*vehicle.position)
 
@@ -140,7 +142,6 @@ class TopDownMultiChannel(TopDownObservation):
         # TODO PZH: I hate computing these in pygame-related code!!!
         ego_heading = vehicle.heading_theta
         ego_heading = ego_heading if abs(ego_heading) > 2 * np.pi / 180 else 0
-
 
         raw_pos = vehicle.position
         self.stack_past_pos.append(raw_pos)

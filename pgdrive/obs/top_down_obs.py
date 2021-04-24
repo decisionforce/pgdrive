@@ -148,7 +148,9 @@ class TopDownObservation(ObservationType):
 
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
-        assert len(self.env.agent_manager.get_vehicle_list()) == 1, "Don't support multi-agent top-down observation yet!"
+        assert len(
+            self.env.agent_manager.get_vehicle_list()
+        ) == 1, "Don't support multi-agent top-down observation yet!"
         vehicle = self.env.agent_manager.get_vehicle_list()[0]
         pos = self.canvas_runtime.pos2pix(*vehicle.position)
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
@@ -165,7 +167,6 @@ class TopDownObservation(ObservationType):
             vehicle=vehicle, surface=self.canvas_runtime, heading=ego_heading, color=VehicleGraphics.GREEN
         )
         self._draw_traffic_vehicles(ego_vehicle_instance=vehicle)
-
 
         # Prepare a runtime canvas for rotation
         return self.obs_window.render(canvas=self.canvas_runtime, position=pos, heading=vehicle.heading_theta)

@@ -5,6 +5,7 @@ if __name__ == "__main__":
     setup_logger(True)
     env = PGDriveEnvV2(
         {
+            "map": "S",
             "start_seed": 0,
             "environment_num": 5,
             "fast": True,

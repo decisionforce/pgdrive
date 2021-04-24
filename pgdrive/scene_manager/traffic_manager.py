@@ -128,10 +128,9 @@ class TrafficManager(RandomEngine):
         for v in self.traffic_vehicles:
             v.step(dt)
 
-    def update_state(self, scene_mgr, pg_world: PGWorld):
+    def update_state(self, pg_world: PGWorld):
         """
         Update all traffic vehicles' states,
-        :param scene_mgr: Access other entities in the scene to determine the new state
         :param pg_world: World
         """
 
@@ -153,7 +152,7 @@ class TrafficManager(RandomEngine):
         for v in vehicles_to_remove:
             self.traffic_vehicles.remove(v)
             self.vehicles.remove(v.vehicle_node.kinematic_model)
-            v.destroy(pg_world)
+            # v.destroy(pg_world)
 
             if self.mode == TrafficMode.Hybrid:
                 # create a new one

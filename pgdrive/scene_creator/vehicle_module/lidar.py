@@ -38,11 +38,17 @@ class Lidar(DistanceDetector):
     #     return objects
 
     def get_surrounding_vehicles_info(self, ego_vehicle, num_others: int = 4):
+        assert ego_vehicle is not None
         from pgdrive.utils.math_utils import norm, clip
         surrounding_vehicles = list(self.get_surrounding_vehicles())
-        surrounding_vehicles.sort(
-            key=lambda v: norm(ego_vehicle.position[0] - v.position[0], ego_vehicle.position[1] - v.position[1])
-        )
+
+        try:
+            surrounding_vehicles.sort(
+                key=lambda v: norm(ego_vehicle.position[0] - v.position[0], ego_vehicle.position[1] - v.position[1])
+            )
+        except TypeError:
+            print('111')
+
         surrounding_vehicles += [None] * num_others
         res = []
         for vehicle in surrounding_vehicles[:num_others]:
