@@ -35,5 +35,5 @@ def test_pgdrive_env_v2_long_run():
 
 
 if __name__ == '__main__':
-    test_pgdrive_env_v2()
-    # test_pgdrive_env_v2_long_run()
+    # test_pgdrive_env_v2()
+    test_pgdrive_env_v2_long_run()

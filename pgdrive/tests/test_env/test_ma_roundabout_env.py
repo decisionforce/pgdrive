@@ -29,9 +29,8 @@ def _check_shape(env):
     b = set(env.observation_space.spaces.keys())
     c = set(env.action_space.spaces.keys())
     d = set(env.vehicles.keys())
-    e = set(env.scene_manager.target_vehicles.keys())
     f = set([k for k in env.observation_space.spaces.keys() if not env.dones[k]])
-    assert d == e == f, (b, c, d, e, f)
+    assert d == f, (b, c, d, f)
     assert c.issuperset(d)
     _check_space(env)
 

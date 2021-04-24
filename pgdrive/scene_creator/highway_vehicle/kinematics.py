@@ -8,7 +8,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.object.traffic_object import Object
 from pgdrive.scene_manager.scene_manager import LaneIndex
 from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random, random_string, distance_greater, norm
+from pgdrive.utils import get_np_random, random_string, distance_greater, norm, PGVector
 
 
 class Vehicle:
@@ -41,7 +41,7 @@ class Vehicle:
     ):
         self.name = random_string() if name is None else name
         self.traffic_mgr = traffic_mgr
-        self._position = np.array(position).astype('float')
+        self._position = PGVector(position)
         self.heading = heading
         self.speed = speed
         self.lane_index, _ = self.traffic_mgr.map.road_network.get_closest_lane_index(
@@ -60,10 +60,10 @@ class Vehicle:
 
     @property
     def position(self):
-        return self._position.copy()
+        return self._position
 
     def set_position(self, pos):
-        self._position = np.asarray(pos).copy()
+        self._position = PGVector(pos)
 
     @classmethod
     def make_on_lane(cls, traffic_mgr: TrafficManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
@@ -235,7 +235,7 @@ class Vehicle:
 
     @property
     def destination_direction(self) -> np.ndarray:
-        if (self.destination != self.position).any():
+        if self.destination != self.position:
             return (self.destination - self.position) / norm(*(self.destination - self.position))
         else:
             return np.zeros((2, ))

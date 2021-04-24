@@ -91,6 +91,10 @@ class SceneManager:
         # if pg_world.highway_render is not None:
         #     pg_world.highway_render.set_scene_mgr(self)
 
+        self.update_state(
+            target_vehicles, replaying=replaying
+        )
+
     def setup_detector_mask(self, num_lasers, max_distance, max_span):
         self.detector_mask = DetectorMask(num_lasers=num_lasers, max_distance=max_distance, max_span=max_span)
 
@@ -154,7 +158,7 @@ class SceneManager:
         # step_infos = self.update_state_for_all_target_vehicles()
 
         # cull distant blocks
-        poses = [v.position for v in active_vehicles.values()]
+        poses = [v.position for v in active_vehicles]
         if self.cull_scene:
             PGLOD.cull_distant_blocks(self.map.blocks, poses, self.pg_world, self.pg_world.world_config["max_distance"])
             # PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
@@ -245,12 +249,12 @@ class SceneManager:
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 
-    def is_target_vehicle(self, v):
-        return v in self.__target_vehicles.values()
+    # def is_target_vehicle(self, v):
+    #     return v in self.__target_vehicles.values()
 
-    @property
-    def target_vehicles(self):
-        return {self.object_to_agent(k): v for k, v in self.__target_vehicles.items()}
+    # @property
+    # def target_vehicles(self):
+    #     return {self.object_to_agent(k): v for k, v in self.__target_vehicles.items()}
 
     @property
     def traffic_manager(self):
@@ -259,3 +263,6 @@ class SceneManager:
     def destroy_detector_mask(self):
         self.detector_mask.clear()
         self.detector_mask = None
+
+    def get_traffic_vehicle_list(self):
+        return list(self._traffic_manager.traffic_vehicles)

@@ -232,7 +232,7 @@ class BasePGDriveEnv(gym.Env):
             self.agent_manager.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
 
         scene_manager_step_infos = self.scene_manager.update_state(
-            self.agent_manager.get_active_objects(), replaying=self.replaying
+            self.agent_manager.get_vehicle_list(), replaying=self.replaying
         )
 
         if self.recording:

@@ -48,8 +48,9 @@ class TopDownObservation(ObservationType):
         self.max_distance = max_distance
 
         # scene
-        self.road_network = None
-        self.scene_manager = None
+        # self.road_network = None
+        # self.scene_manager = None
+        # self.agent_manager = None
 
         # initialize
         pygame.init()
@@ -74,8 +75,9 @@ class TopDownObservation(ObservationType):
         self.canvas_background = WorldSurface(self.MAP_RESOLUTION, 0, pygame.Surface(self.MAP_RESOLUTION))
 
     def reset(self, env, vehicle=None):
-        self.scene_manager = env.scene_manager
+        # self.agent_manager = env.agent_manager
         self.road_network = env.current_map.road_network
+        self.env = env
         self._should_draw_map = True
 
     def render(self) -> np.ndarray:
@@ -146,8 +148,8 @@ class TopDownObservation(ObservationType):
 
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
-        assert len(self.scene_manager.target_vehicles) == 1, "Don't support multi-agent top-down observation yet!"
-        vehicle = self.scene_manager.target_vehicles[DEFAULT_AGENT]
+        assert len(self.env.agent_manager.get_vehicle_list()) == 1, "Don't support multi-agent top-down observation yet!"
+        vehicle = self.env.agent_manager.get_vehicle_list()[0]
         pos = self.canvas_runtime.pos2pix(*vehicle.position)
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
         self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))
@@ -162,15 +164,19 @@ class TopDownObservation(ObservationType):
         VehicleGraphics.display(
             vehicle=vehicle, surface=self.canvas_runtime, heading=ego_heading, color=VehicleGraphics.GREEN
         )
-        for v in self.scene_manager._traffic_manager.vehicles:
-            if v is vehicle:
+        self._draw_traffic_vehicles(ego_vehicle_instance=vehicle)
+
+
+        # Prepare a runtime canvas for rotation
+        return self.obs_window.render(canvas=self.canvas_runtime, position=pos, heading=vehicle.heading_theta)
+
+    def _draw_traffic_vehicles(self, ego_vehicle_instance):
+        for v in self.env.scene_manager.get_traffic_vehicle_list():
+            if v is ego_vehicle_instance:
                 continue
             h = v.heading
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(vehicle=v, surface=self.canvas_runtime, heading=h, color=VehicleGraphics.BLUE)
-
-        # Prepare a runtime canvas for rotation
-        return self.obs_window.render(canvas=self.canvas_runtime, position=pos, heading=vehicle.heading_theta)
 
     @staticmethod
     def blit_rotate(

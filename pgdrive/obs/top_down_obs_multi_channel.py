@@ -50,6 +50,7 @@ class TopDownMultiChannel(TopDownObservation):
         self._should_fill_stack = True
         self.max_distance = max_distance
         self.scaling = self.resolution[0] / max_distance
+        self.target_vehicle = None
         assert self.scaling == self.resolution[1] / self.max_distance
 
     def init_obs_window(self):
@@ -66,10 +67,9 @@ class TopDownMultiChannel(TopDownObservation):
         self.canvas_past_pos = pygame.Surface(self.resolution)  # A local view
 
     def reset(self, env, vehicle=None):
-        self.scene_manager = env.scene_manager
-        self.road_network = env.current_map.road_network
+        super(TopDownMultiChannel, self).reset(env, vehicle)
         self.target_vehicle = vehicle
-        self._should_draw_map = True
+        assert vehicle is not None
         self._should_fill_stack = True
 
     def draw_map(self) -> pygame.Surface:
@@ -125,28 +125,22 @@ class TopDownMultiChannel(TopDownObservation):
 
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
-        assert len(self.scene_manager.target_vehicles) == 1, "Don't support multi-agent top-down observation yet!"
-        vehicle = self.scene_manager.target_vehicles[DEFAULT_AGENT]
+        assert len(self.env.agent_manager.get_vehicle_list()) == 1, "Don't support multi-agent top-down observation yet!"
+        vehicle = self.target_vehicle
         pos = self.canvas_runtime.pos2pix(*vehicle.position)
 
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
 
-        # self._refresh(self.canvas_ego, pos, clip_size)
         self._refresh(self.canvas_runtime, pos, clip_size)
         self.canvas_past_pos.fill(COLOR_BLACK)
-        # self._draw_ego_vehicle()
+
+        self._draw_traffic_vehicles(ego_vehicle_instance=vehicle)
 
         # Draw vehicles
         # TODO PZH: I hate computing these in pygame-related code!!!
         ego_heading = vehicle.heading_theta
         ego_heading = ego_heading if abs(ego_heading) > 2 * np.pi / 180 else 0
 
-        for v in self.scene_manager._traffic_manager.vehicles:
-            if v is vehicle:
-                continue
-            h = v.heading
-            h = h if abs(h) > 2 * np.pi / 180 else 0
-            VehicleGraphics.display(vehicle=v, surface=self.canvas_runtime, heading=h, color=VehicleGraphics.BLUE)
 
         raw_pos = vehicle.position
         self.stack_past_pos.append(raw_pos)
@@ -182,7 +176,7 @@ class TopDownMultiChannel(TopDownObservation):
         return ret
 
     def _draw_ego_vehicle(self):
-        vehicle = self.scene_manager.target_vehicles[DEFAULT_AGENT]
+        vehicle = self.env.vehicle
         w = vehicle.WIDTH * self.scaling
         h = vehicle.LENGTH * self.scaling
         position = (self.resolution[0] / 2, self.resolution[1] / 2)
