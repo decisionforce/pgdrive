@@ -98,9 +98,11 @@ class BasePGDriveEnv(gym.Env):
         self._agent_manager = AgentManager(
             init_observations=self._get_observations(),
             never_allow_respawn=not self.config["allow_respawn"],
-            debug=self.config["debug"])
-        self._agent_manager.init_space(init_observation_space=self._get_observation_space(),
-                                       init_action_space=self._get_action_space())
+            debug=self.config["debug"]
+        )
+        self._agent_manager.init_space(
+            init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
+        )
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -150,7 +152,8 @@ class BasePGDriveEnv(gym.Env):
         manager = SceneManager(
             self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"],
             self._agent_manager.object_to_agent, self._agent_manager.agent_to_object,
-            self._agent_manager.meta_active_objects)
+            self._agent_manager.meta_active_objects
+        )
         return manager
 
     def lazy_init(self):

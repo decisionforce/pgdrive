@@ -124,7 +124,7 @@ class ActionRepeat(PGDriveEnv):
     def action_space(self):
         super_action_space = super(ActionRepeat, self).action_space
         return Box(
-            shape=(super_action_space.shape[0] + 1,),
+            shape=(super_action_space.shape[0] + 1, ),
             high=super_action_space.high[0],
             low=super_action_space.low[0],
             dtype=super_action_space.dtype

@@ -18,19 +18,18 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
     def __init__(
-            self,
-            config,
-            pg_world: PGWorld,
-            traffic_config: Union[Dict, "PGConfig"],
-            # traffic_mode=TrafficMode.Trigger,
-            # random_traffic: bool = False,
-            record_episode: bool,
-            cull_scene: bool,
-            object_to_agent: Callable,
-            agent_to_object: Callable,
-            get_active_objects: Callable
+        self,
+        config,
+        pg_world: PGWorld,
+        traffic_config: Union[Dict, "PGConfig"],
+        # traffic_mode=TrafficMode.Trigger,
+        # random_traffic: bool = False,
+        record_episode: bool,
+        cull_scene: bool,
+        object_to_agent: Callable,
+        agent_to_object: Callable,
+        get_active_objects: Callable
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -45,8 +44,8 @@ class SceneManager:
         # common variable
         self.__target_vehicles = None
         self.get_active_vehicles = get_active_objects
-        self.object_to_agent:Callable = object_to_agent
-        self.agent_to_object:Callable = agent_to_object
+        self.object_to_agent: Callable = object_to_agent
+        self.agent_to_object: Callable = agent_to_object
         self.map = None
 
         # for recovering, they can not exist together
@@ -64,8 +63,7 @@ class SceneManager:
     def _get_object_manager(self, object_config=None):
         return ObjectsManager()
 
-    def reset(self, map: Map, target_vehicles: List,  traffic_density: float,
-              accident_prob: float, episode_data=None):
+    def reset(self, map: Map, target_vehicles: List, traffic_density: float, accident_prob: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
@@ -90,7 +88,10 @@ class SceneManager:
             # FIXME
             self.objects_mgr.generate(self, pg_world)
             self.traffic_mgr.generate(
-                pg_world=pg_world, map=self.map, target_vehicles=self.__target_vehicles, traffic_density=traffic_density
+                pg_world=pg_world,
+                map=self.map,
+                target_vehicles=self.__target_vehicles,
+                traffic_density=traffic_density
             )
         else:
             self.replay_system = PGReplayer(self.traffic_mgr, map, episode_data, pg_world)
@@ -206,7 +207,8 @@ class SceneManager:
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.for_each_target_vehicle(
-            lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None))
+            lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None)
+        )
         return step_infos
 
     def for_each_target_vehicle(self, func):

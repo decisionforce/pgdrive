@@ -67,7 +67,8 @@ class AgentManager:
         vehicles_created = set(init_vehicles.keys())
         vehicles_in_config = set(self.__init_observations.keys())
         assert vehicles_created == vehicles_in_config, "{} not defined in target vehicles config".format(
-            vehicles_created.difference(vehicles_in_config))
+            vehicles_created.difference(vehicles_in_config)
+        )
 
         self.INITIALIZED = True
         # it is used when reset() is called to reset its original agent_id
@@ -173,16 +174,20 @@ class AgentManager:
         return list(self.__active_objects.values()) + list(self.__pending_objects.values())
 
     def get_observations(self):
-        ret = {old_agent_id: self.observations[v_name] for old_agent_id, v_name in
-               self.__agents_finished_this_frame.items()}
+        ret = {
+            old_agent_id: self.observations[v_name]
+            for old_agent_id, v_name in self.__agents_finished_this_frame.items()
+        }
         for obj_id, observation in self.observations.items():
             if self.is_active_object(obj_id):
                 ret[self.object_to_agent(obj_id)] = observation
         return ret
 
     def get_observation_spaces(self):
-        ret = {old_agent_id: self.observation_spaces[v_name] for old_agent_id, v_name in
-               self.__agents_finished_this_frame.items()}
+        ret = {
+            old_agent_id: self.observation_spaces[v_name]
+            for old_agent_id, v_name in self.__agents_finished_this_frame.items()
+        }
         for obj_id, space in self.observation_spaces.items():
             if self.is_active_object(obj_id):
                 ret[self.object_to_agent(obj_id)] = space
