@@ -268,6 +268,13 @@ class Vehicle:
                 d[key] -= origin_dict[key]
         return d
 
+    def destroy(self, *args, **kwargs):
+        self.action = {'steering': 0, 'acceleration': 0}
+        self.crashed = False
+        self.log = []
+        self.history = deque(maxlen=30)
+        self.np_random = get_np_random()
+
     # def destroy(self, *args):
     #     self.traffic_mgr = None
     #     self._position = None
