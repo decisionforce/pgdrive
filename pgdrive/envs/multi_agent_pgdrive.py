@@ -126,7 +126,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update respawn manager
         if self.episode_steps >= self.config["horizon"]:
-            self._agent_manager.set_allow_respawn(False)
+            self.agent_manager.set_allow_respawn(False)
         self._spawn_manager.update(self.vehicles, self.current_map)
         new_obs_dict = self._respawn()
         if new_obs_dict:
@@ -169,7 +169,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                     self.dones[v_id] = True
         for dead_vehicle_id, done in dones.items():
             if done:
-                self._agent_manager.finish(dead_vehicle_id)
+                self.agent_manager.finish(dead_vehicle_id)
         return obs, reward, dones, info
 
     def _get_vehicles(self):
@@ -217,7 +217,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         This function can force a given vehicle to respawn!
         """
-        self._agent_manager.finish(agent_name)
+        self.agent_manager.finish(agent_name)
         new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 
@@ -225,23 +225,23 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        allow_respawn, vehicle_info = self._agent_manager.propose_new_vehicle()
+        allow_respawn, vehicle_info = self.agent_manager.propose_new_vehicle()
         if vehicle_info is None:  # No more vehicle to be assigned.
             return None, None
         if not allow_respawn:
             # If not allow to respawn, move agents to some rural places.
             v = vehicle_info["vehicle"]
             v.set_position((-999, -999))
-            self._agent_manager.confirm_respawn(False, vehicle_info)
+            self.agent_manager.confirm_respawn(False, vehicle_info)
             return None, None
         v = vehicle_info["vehicle"]
         dead_vehicle_id = vehicle_info["old_name"]
         bp_index = self._replace_vehicles(vehicle_info)
         if bp_index is None:  # No more spawn places to be assigned.
-            self._agent_manager.confirm_respawn(False, vehicle_info)
+            self.agent_manager.confirm_respawn(False, vehicle_info)
             return None, None
 
-        self._agent_manager.confirm_respawn(True, vehicle_info)
+        self.agent_manager.confirm_respawn(True, vehicle_info)
 
         new_id = vehicle_info["new_name"]
         v.set_static(False)

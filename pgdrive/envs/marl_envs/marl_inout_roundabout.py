@@ -185,7 +185,7 @@ def _expert():
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                    i, total_r, total_r / env._agent_manager.next_agent_count
+                    i, total_r, total_r / env.agent_manager.next_agent_count
                 )
             )
             break
@@ -236,7 +236,7 @@ def _vis():
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                    i, total_r, total_r / env._agent_manager.next_agent_count
+                    i, total_r, total_r / env.agent_manager.next_agent_count
                 )
             )
             # break

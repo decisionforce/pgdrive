@@ -35,10 +35,10 @@ class TrafficManager(RandomEngine):
         self.map = None
 
         # traffic vehicle list
-        self.target_vehicles = None  # This is dict!
-        self.vehicles = None
-        self.traffic_vehicles = None
-        self.block_triggered_vehicles = None
+        self.target_vehicles = {}  # This is dict!
+        self.vehicles = {}
+        self.traffic_vehicles = deque()
+        self.block_triggered_vehicles = []
         self._spawned_vehicles = []  # auto-destroy
         self.is_target_vehicle_dict = {}
 
@@ -46,7 +46,7 @@ class TrafficManager(RandomEngine):
         self.mode = traffic_mode
         self.random_traffic = random_traffic
         self.density = 0
-        self.respawn_lanes = None
+        self.respawn_lanes = []
 
         # control randomness of traffic
         super(TrafficManager, self).__init__()
@@ -86,7 +86,7 @@ class TrafficManager(RandomEngine):
         if abs(traffic_density - 0.0) < 1e-2:
             return
         map = self.map
-        self.respawn_lanes = None
+        self.respawn_lanes = []
         if self.mode == TrafficMode.Respawn:
             # add respawn vehicle
             self._create_respawn_vehicles(pg_world, map, traffic_density)

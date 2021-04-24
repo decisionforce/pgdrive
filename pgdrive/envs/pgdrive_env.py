@@ -183,7 +183,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 raise ValueError("No such a controller type: {}".format(self.config["controller"]))
 
         # initialize track vehicles
-        vehicles = self._agent_manager.get_vehicle_list()
+        vehicles = self.agent_manager.get_vehicle_list()
         self.current_track_vehicle = vehicles[0]
         for vehicle in vehicles:
             if vehicle is not self.current_track_vehicle:
@@ -199,10 +199,9 @@ class PGDriveEnv(BasePGDriveEnv):
         self.pg_world.accept("q", self.chase_another_v)
 
         # setup the detector mask
-
         if any([v.lidar is not None for v in self.vehicles.values()]) and (not self.config["_disable_detector_mask"]):
             v = next(iter(self.vehicles.values()))
-            self.scene_manager.detector_mask = DetectorMask(
+            self.scene_manager.setup_detector_mask(
                 num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
                 max_distance=self.config["vehicle_config"]["lidar"]["distance"],
                 max_span=v.WIDTH + v.LENGTH
@@ -213,12 +212,12 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
-        self._agent_manager.prepare_step()
+        # self.agent_manager.prepare_step()
         if self.config["manual_control"] and self.config["use_render"] \
-                and self.current_track_vehicle in self._agent_manager.get_vehicle_list():
+                and self.current_track_vehicle in self.agent_manager.get_vehicle_list():
             action = self.controller.process_input()
             if self.is_multi_agent:
-                actions[self._agent_manager.object_to_agent(self.current_track_vehicle.name)] = action
+                actions[self.agent_manager.object_to_agent(self.current_track_vehicle.name)] = action
             else:
                 actions = action
 
@@ -384,11 +383,12 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _get_reset_return(self):
         ret = {}
-        self.scene_manager.update_state_for_all_target_vehicles()
+        self.scene_manager.update_detector_mask()
+        self.agent_manager.update_state_for_all_target_vehicles(self.scene_manager.detector_mask)
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
-        return ret if self.is_multi_agent else ret[DEFAULT_AGENT]
+        return ret if self.is_multi_agent else self._wrap_as_single_agent(ret)
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
@@ -517,7 +517,7 @@ class PGDriveEnv(BasePGDriveEnv):
         self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
     def chase_another_v(self) -> (str, BaseVehicle):
-        vehicles = self._agent_manager.get_vehicle_list()
+        vehicles = self.agent_manager.get_vehicle_list()
         vehicles.remove(self.current_track_vehicle)
         self.current_track_vehicle.remove_display_region()
         new_v = get_np_random().choice(vehicles)
