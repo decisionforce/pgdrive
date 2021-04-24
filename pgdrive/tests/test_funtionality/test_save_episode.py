@@ -49,6 +49,9 @@ def test_save_episode(vis=False):
                         json.dump(epi_info, f)
                 break
 
+        assert len(epi_info["frame"]) == i
+        assert len(epi_info["init_traffic"]) > 0
+
         o = env.reset(epi_info)
         for i in range(1, 100000 if vis else 2000):
             o, r, d, info = env.step([0, 1])

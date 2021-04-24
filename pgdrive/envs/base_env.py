@@ -208,6 +208,10 @@ class BasePGDriveEnv(gym.Env):
     def replaying(self):
         return self.replay_system is not None
 
+    @property
+    def recording(self):
+        return self.record_system is not None
+
     def _step_simulator(self, actions, action_infos):
         # Note that we use shallow update for info dict in this function! This will accelerate system.
         step_infos = self.agent_manager.prepare_step(actions)
@@ -221,10 +225,15 @@ class BasePGDriveEnv(gym.Env):
         # update states, if restore from episode data, position and heading will be force set in update_state() function
         infos = self.agent_manager.update_state_for_all_target_vehicles(self.scene_manager.detector_mask)
 
-        if self.record_episode:
-            scene_manager_step_infos = {}
-        else:
-            scene_manager_step_infos = self.scene_manager.update_state(self.agent_manager.get_active_objects())
+        if self.replaying:
+            self.agent_manager.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
+
+        scene_manager_step_infos = self.scene_manager.update_state(
+            self.agent_manager.get_active_objects(), replaying=self.replaying
+        )
+
+        if self.recording:
+            self.record_system.record_frame(self.scene_manager.traffic_manager.get_global_states())
 
         action_infos = merge_dicts(action_infos, infos, allow_new_keys=True, without_copy=True)
         action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
@@ -292,7 +301,25 @@ class BasePGDriveEnv(gym.Env):
         self.pg_world.clear_world()
         self._update_map(episode_data, force_seed)
 
-        replaying = False
+
+
+        self._reset_agents()
+
+        self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
+        self.episode_steps = 0
+        self.episode_rewards = defaultdict(float)
+        self.episode_lengths = defaultdict(int)
+
+        # generate new traffic according to the map
+        replaying = self.record_episode and (episode_data is not None)
+        self.scene_manager.reset(
+            self.current_map,
+            self.agent_manager.get_vehicle_list(),
+            self.config["traffic_density"],
+            self.config["accident_prob"],
+            replaying=replaying
+        )
+
         if self.replaying:
             self.replay_system.destroy(self.pg_world)
             self.replay_system = None
@@ -312,23 +339,6 @@ class BasePGDriveEnv(gym.Env):
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
                 logging.warning("You are replaying episodes! Delete detector mask!")
                 self.scene_manager.destroy_detector_mask()
-                replaying = True
-
-        self._reset_agents()
-
-        self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
-        self.episode_steps = 0
-        self.episode_rewards = defaultdict(float)
-        self.episode_lengths = defaultdict(int)
-
-        # generate new traffic according to the map
-        self.scene_manager.reset(
-            self.current_map,
-            self.agent_manager.get_vehicle_list(),
-            self.config["traffic_density"],
-            self.config["accident_prob"],
-            replaying=replaying
-        )
 
         if self.main_camera is not None:
             self.main_camera.reset()

@@ -135,21 +135,22 @@ class SceneManager:
         #  panda3d render and garbage collecting loop
         pg_world.taskMgr.step()
 
-    def update_state(self, active_vehicles) -> Dict:
+    def update_state(self, active_vehicles, replaying=False) -> Dict:
         """
         Update states after finishing movement
         :return: if this episode is done
         """
-
-        if self.replay_system is not None:
-            self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
+        # self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
+        # if self.replay_system is not None:
+        #     self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
             # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
-        else:
+        # else:
+        if not replaying:
             self._traffic_manager.update_state(self, self.pg_world)
 
-        if self.record_system is not None:
+        # if self.record_system is not None:
             # didn't record while replay
-            self.record_system.record_frame(self._traffic_manager.get_global_states())
+            # self.record_system.record_frame(self._traffic_manager.get_global_states())
 
         # step_infos = self.update_state_for_all_target_vehicles()
 
@@ -159,7 +160,7 @@ class SceneManager:
             PGLOD.cull_distant_blocks(self.map.blocks, poses, self.pg_world, self.pg_world.world_config["max_distance"])
             # PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
 
-            if self.replay_system is None:
+            if not replaying:
                 # TODO add objects to replay system and add new cull method
 
                 PGLOD.cull_distant_traffic_vehicles(
