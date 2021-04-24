@@ -379,11 +379,7 @@ class BasePGDriveEnv(gym.Env):
         Return observations of active and controllable vehicles
         :return: Dict
         """
-        ret = {}
-        for obj_id, observation in self._agent_manager.observations.items():
-            if self._agent_manager.is_active_object(obj_id):
-                ret[self._agent_manager.object_to_agent(obj_id)] = observation
-        return ret
+        return self._agent_manager.get_observations()
 
     @property
     def observation_space(self) -> gym.Space:
@@ -391,10 +387,7 @@ class BasePGDriveEnv(gym.Env):
         Return observation spaces of active and controllable vehicles
         :return: Dict
         """
-        ret = {}
-        for obj_id, space in self._agent_manager.observation_spaces.items():
-            if self._agent_manager.is_active_object(obj_id):
-                ret[self._agent_manager.object_to_agent(obj_id)] = space
+        ret = self._agent_manager.get_observation_spaces()
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -406,10 +399,7 @@ class BasePGDriveEnv(gym.Env):
         Return observation spaces of active and controllable vehicles
         :return: Dict
         """
-        ret = {}
-        for obj_id, space in self._agent_manager.action_spaces.items():
-            if self._agent_manager.is_active_object(obj_id):
-                ret[self._agent_manager.object_to_agent(obj_id)] = space
+        ret = self._agent_manager.get_action_spaces()
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:

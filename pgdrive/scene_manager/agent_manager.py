@@ -166,13 +166,24 @@ class AgentManager:
         return list(self.__active_object.values()) + list(self.__pending_object.values())
 
     def get_observations(self):
-        return list(self.observations.values())
+        ret = {}
+        for obj_id, observation in self.observations.items():
+            if self.is_active_object(obj_id):
+                ret[self.object_to_agent(obj_id)] = observation
+        return ret
 
     def get_observation_spaces(self):
-        return list(self.observation_spaces.values())
+        ret = {}
+        for obj_id, space in self.observation_spaces.items():
+            if self.is_active_object(obj_id):
+                ret[self.object_to_agent(obj_id)] = space
 
     def get_action_spaces(self):
-        return list(self.action_spaces.values())
+        ret = dict()
+        for obj_id, space in self.action_spaces.items():
+            if self.is_active_object(obj_id):
+                ret[self.object_to_agent(obj_id)] = space
+        return ret
 
     def is_active_object(self, object_name):
         if not self.INITIALIZED:
