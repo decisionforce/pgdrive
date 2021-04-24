@@ -121,7 +121,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return done, done_info
 
     def step(self, actions):
-        self._update_spaces_if_needed()
         o, r, d, i = super(MultiAgentPGDrive, self).step(actions)
         o, r, d, i = self._after_vehicle_done(o, r, d, i)
 
@@ -192,18 +191,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
         return PGConfig(vehicle_config)
 
-    def _update_spaces_if_needed(self):
-        assert self.is_multi_agent
-        current_obs_keys = set(self.observations.keys())
-        for k in current_obs_keys:
-            if k not in self.vehicles:
-                o = self.observations.pop(k)
-        current_obs_keys = set(self.observation_space.spaces.keys())
-        for k in current_obs_keys:
-            if k not in self.vehicles:
-                self.observation_space.spaces.pop(k)
-                # self.action_space.spaces.pop(k)  # Action space is updated in _respawn
-
     def _after_lazy_init(self):
         super(MultiAgentPGDrive, self)._after_lazy_init()
 
@@ -258,15 +245,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         new_id = vehicle_info["new_name"]
         v.set_static(False)
-        self.vehicles[new_id] = v  # Put it to new vehicle id.
         self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
         self._spawn_manager.confirm_respawn(spawn_place_id=bp_index, vehicle_id=new_id)
         logging.debug("{} Dead. {} Respawn!".format(dead_vehicle_id, new_id))
-
-        self.observations[new_id] = vehicle_info["observation"]
-        self.observations[new_id].reset(self, v)
-        self.observation_space.spaces[new_id] = vehicle_info["observation_space"]
-        self.action_space.spaces[new_id] = vehicle_info["action_space"]
         new_obs = self.observations[new_id].observe(v)
         return new_id, new_obs
 

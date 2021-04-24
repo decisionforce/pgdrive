@@ -29,7 +29,8 @@ class SceneManager:
             record_episode: bool,
             cull_scene: bool,
             object_to_agent: Callable,
-            agent_to_object: Callable
+            agent_to_object: Callable,
+            get_active_objects: Callable
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -43,6 +44,7 @@ class SceneManager:
 
         # common variable
         self.__target_vehicles = None
+        self.get_active_vehicles = get_active_objects
         self.object_to_agent:Callable = object_to_agent
         self.agent_to_object:Callable = agent_to_object
         self.map = None
@@ -69,7 +71,7 @@ class SceneManager:
         """
         pg_world = self.pg_world
         assert isinstance(target_vehicles, list)
-        self.__target_vehicles = {v.name: v for v in target_vehicles}
+        self.__target_vehicles = self.get_active_vehicles()
         self.map = map
 
         self.traffic_mgr.reset(pg_world, map, target_vehicles, traffic_density)

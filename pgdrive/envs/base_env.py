@@ -149,7 +149,8 @@ class BasePGDriveEnv(gym.Env):
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
             self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"],
-            self._agent_manager.object_to_agent, self._agent_manager.agent_to_object)
+            self._agent_manager.object_to_agent, self._agent_manager.agent_to_object,
+            self._agent_manager.meta_active_objects)
         return manager
 
     def lazy_init(self):

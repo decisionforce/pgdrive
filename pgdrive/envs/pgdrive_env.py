@@ -213,7 +213,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
-
+        self._agent_manager.prepare_step()
         if self.config["manual_control"] and self.config["use_render"] \
                 and self.current_track_vehicle in self._agent_manager.get_vehicle_list():
             action = self.controller.process_input()
