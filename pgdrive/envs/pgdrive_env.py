@@ -218,7 +218,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 and self.current_track_vehicle in self._agent_manager.get_vehicle_list():
             action = self.controller.process_input()
             if self.is_multi_agent:
-                actions[self._agent_manager.object_to_agent[self.current_track_vehicle.name]] = action
+                actions[self._agent_manager.object_to_agent(self.current_track_vehicle.name)] = action
             else:
                 actions = action
 

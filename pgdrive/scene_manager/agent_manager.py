@@ -18,14 +18,14 @@ class AgentManager:
 
     def __init__(self, init_observations, never_allow_respawn, debug=False):
         # when new agent joins in the game, we only change this two maps.
-        self.agent_to_object = {}
-        self.object_to_agent = {}
+        self.__agent_to_object = {}
+        self.__object_to_agent = {}
 
         # BaseVehicles which can be controlled by policies when env.step() called
-        self.active_object = {}
+        self.__active_object = {}
 
         # BaseVehicles which can be respawned
-        self.pending_object = {}
+        self.__pending_object = {}
 
         # Dict[object_id: value], init for **only** once after spawning vehicle
         self.observations = {}
@@ -40,13 +40,14 @@ class AgentManager:
         self.__init_object_to_agent = None
 
         # fake init. before creating pg_world and vehicles, it is necessary when all vehicles re-created in runtime
-        self.observations = copy.copy(init_observations)  #
-        self.__init_observations = init_observations
-        self.__init_observation_spaces = None
-        self.__init_action_spaces = None
-        # this map will be override when the env.reset() is first called and vehicles are made
-        self.agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
-        self.object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
+        self.observations = copy.copy(init_observations)  # its value is map<agent_id, obs> before init() is called
+        self.__init_observations = init_observations  # map <agent_id, observation>
+        self.__init_observation_spaces = None  # map <agent_id, space>
+        self.__init_action_spaces = None  # map <agent_id, space>
+
+        # this map will be override when the env.init() is first called and vehicles are made
+        self.__agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
+        self.__object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
 
     def init_space(self, init_observation_space, init_action_space):
         """
@@ -62,14 +63,19 @@ class AgentManager:
         """
         Agent manager is really initialized after the BaseVehicle Instances are created
         """
+        vehicles_created = set(init_vehicles.keys())
+        vehicles_in_config = set(self.__init_observations.keys())
+        assert vehicles_created == vehicles_in_config, "{} not defined in target vehicles config".format(
+            vehicles_created.difference(vehicles_in_config))
+
         self.INITIALIZED = True
-        # it is used when reset() is called
+        # it is used when reset() is called to reset its original agent_id
         self.__init_object_to_agent = {vehicle.name: agent_id for agent_id, vehicle in init_vehicles.items()}
 
-        self.agent_to_object = {agent_id: vehicle.name for agent_id, vehicle in init_vehicles.items()}
-        self.object_to_agent = {vehicle.name: agent_id for agent_id, vehicle in init_vehicles.items()}
-        self.active_object = {v.name: v for v in init_vehicles.values()}
-        self.pending_object = {}
+        self.__agent_to_object = {agent_id: vehicle.name for agent_id, vehicle in init_vehicles.items()}
+        self.__object_to_agent = {vehicle.name: agent_id for agent_id, vehicle in init_vehicles.items()}
+        self.__active_object = {v.name: v for v in init_vehicles.values()}
+        self.__pending_object = {}
 
         # real init {obj_name: space} map
         self.observations = dict()
@@ -87,40 +93,40 @@ class AgentManager:
 
     def reset(self):
         # free them in physics world
-        for v in self.pending_object.values():
+        for v in self.__pending_object.values():
             v.chassis_np.node().setStatic(False)
 
         vehicles = self.get_vehicle_list()
         assert len(vehicles) == len(self.observations) == len(self.observation_spaces) == len(self.action_spaces)
         origin_agent_id_vehicles = {self.__init_object_to_agent[v.name]: v for v in vehicles}
 
-        self.agent_to_object = {k: v.name for k, v in origin_agent_id_vehicles.items()}
-        self.object_to_agent = {v.name: k for k, v in origin_agent_id_vehicles.items()}
+        self.__agent_to_object = {k: v.name for k, v in origin_agent_id_vehicles.items()}
+        self.__object_to_agent = {v.name: k for k, v in origin_agent_id_vehicles.items()}
         self.next_agent_count = len(vehicles)
-        self.active_object = {v.name: v for v in origin_agent_id_vehicles.values()}
-        self.pending_object = {}
+        self.__active_object = {v.name: v for v in origin_agent_id_vehicles.values()}
+        self.__pending_object = {}
         self.allow_respawn = True if not self.never_allow_respawn else False
 
     def finish(self, agent_name):
-        vehicle_name = self.agent_to_object[agent_name]
-        v = self.active_object.pop(vehicle_name)
+        vehicle_name = self.__agent_to_object[agent_name]
+        v = self.__active_object.pop(vehicle_name)
         v.chassis_np.node().setStatic(True)
-        assert vehicle_name not in self.active_object
-        self.pending_object[vehicle_name] = v
+        assert vehicle_name not in self.__active_object
+        self.__pending_object[vehicle_name] = v
         self._check()
 
     def _check(self):
         if self._debug:
-            current_keys = sorted(list(self.pending_object.keys()) + list(self.active_object.keys()))
-            exist_keys = sorted(list(self.object_to_agent.keys()))
+            current_keys = sorted(list(self.__pending_object.keys()) + list(self.__active_object.keys()))
+            exist_keys = sorted(list(self.__object_to_agent.keys()))
             assert current_keys == exist_keys, "You should confirm_respawn() after request for propose_new_vehicle()!"
 
     def propose_new_vehicle(self):
         self._check()
-        if len(self.pending_object) > 0:
-            obj_name = list(self.pending_object.keys())[0]
+        if len(self.__pending_object) > 0:
+            obj_name = list(self.__pending_object.keys())[0]
             self._check()
-            v = self.pending_object.pop(obj_name)
+            v = self.__pending_object.pop(obj_name)
             v.prepare_step([0, -1])
             v.chassis_np.node().setStatic(False)
             return self.allow_respawn, dict(
@@ -128,7 +134,7 @@ class AgentManager:
                 observation=self.observations[obj_name],
                 observation_space=self.observation_spaces[obj_name],
                 action_space=self.action_spaces[obj_name],
-                old_name=self.object_to_agent[obj_name],
+                old_name=self.__object_to_agent[obj_name],
                 new_name="agent{}".format(self.next_agent_count)
             )
         return None, None
@@ -138,13 +144,13 @@ class AgentManager:
         if success:
             vehicle.set_static(False)
             self.next_agent_count += 1
-            self.active_object[vehicle.name] = vehicle
-            self.object_to_agent[vehicle.name] = vehicle_info["new_name"]
-            self.agent_to_object.pop(vehicle_info["old_name"])
-            self.agent_to_object[vehicle_info["new_name"]] = vehicle.name
+            self.__active_object[vehicle.name] = vehicle
+            self.__object_to_agent[vehicle.name] = vehicle_info["new_name"]
+            self.__agent_to_object.pop(vehicle_info["old_name"])
+            self.__agent_to_object[vehicle_info["new_name"]] = vehicle.name
         else:
             vehicle.set_static(True)
-            self.pending_object[vehicle.name] = vehicle
+            self.__pending_object[vehicle.name] = vehicle
         self._check()
 
     def set_allow_respawn(self, flag: bool):
@@ -154,10 +160,10 @@ class AgentManager:
             self.allow_respawn = flag
 
     def _translate(self, d):
-        return {self.object_to_agent[k]: v for k, v in d.items()}
+        return {self.__object_to_agent[k]: v for k, v in d.items()}
 
     def get_vehicle_list(self):
-        return list(self.active_object.values()) + list(self.pending_object.values())
+        return list(self.__active_object.values()) + list(self.__pending_object.values())
 
     def get_observations(self):
         return list(self.observations.values())
@@ -171,18 +177,44 @@ class AgentManager:
     def is_active_object(self, object_name):
         if not self.INITIALIZED:
             return True
-        return True if object_name in self.active_object.keys() else False
+        return True if object_name in self.__active_object.keys() else False
+
+    @property
+    def active_objects(self):
+        """
+        Return Map<agent_id, BaseVehicle>
+        """
+        return {self.__object_to_agent[k]: v for k, v in self.__active_object.items()}
+
+    @property
+    def pending_objects(self):
+        """
+        Return Map<agent_id, BaseVehicle>
+        """
+        return {self.__object_to_agent[k]: v for k, v in self.__pending_object.items()}
+
+    def object_to_agent(self, obj_name):
+        """
+        :param obj_name: BaseVehicle name
+        :return: agent id
+        """
+        if obj_name not in self.__active_object.keys() and self.INITIALIZED:
+            raise ValueError("You can not access a pending Object(BaseVehicle) outside the agent_manager!")
+        return self.__object_to_agent[obj_name]
+
+    def agent_to_object(self, agent_id):
+        return self.__agent_to_object[agent_id]
 
     def destroy(self):
         # when new agent joins in the game, we only change this two maps.
-        self.agent_to_object = {}
-        self.object_to_agent = {}
+        self.__agent_to_object = {}
+        self.__object_to_agent = {}
 
         # BaseVehicles which can be controlled by policies when env.step() called
-        self.active_object = {}
+        self.__active_object = {}
 
         # BaseVehicles which can be respawned
-        self.pending_object = {}
+        self.__pending_object = {}
 
         # Dict[object_id: value], init for **only** once after spawning vehicle
         self.observations = {}

@@ -148,8 +148,8 @@ class BasePGDriveEnv(gym.Env):
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
-            self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"]
-        )
+            self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"],
+            self._agent_manager.object_to_agent, self._agent_manager.agent_to_object)
         return manager
 
     def lazy_init(self):
@@ -277,7 +277,6 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager.reset(
             self.current_map,
             self._agent_manager.get_vehicle_list(),
-            self._agent_manager.object_to_agent,
             self.config["traffic_density"],
             self.config["accident_prob"],
             episode_data=episode_data
@@ -383,7 +382,7 @@ class BasePGDriveEnv(gym.Env):
         ret = {}
         for obj_id, observation in self._agent_manager.observations.items():
             if self._agent_manager.is_active_object(obj_id):
-                ret[self._agent_manager.object_to_agent[obj_id]] = observation
+                ret[self._agent_manager.object_to_agent(obj_id)] = observation
         return ret
 
     @property
@@ -395,7 +394,7 @@ class BasePGDriveEnv(gym.Env):
         ret = {}
         for obj_id, space in self._agent_manager.observation_spaces.items():
             if self._agent_manager.is_active_object(obj_id):
-                ret[self._agent_manager.object_to_agent[obj_id]] = space
+                ret[self._agent_manager.object_to_agent(obj_id)] = space
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -410,7 +409,7 @@ class BasePGDriveEnv(gym.Env):
         ret = {}
         for obj_id, space in self._agent_manager.action_spaces.items():
             if self._agent_manager.is_active_object(obj_id):
-                ret[self._agent_manager.object_to_agent[obj_id]] = space
+                ret[self._agent_manager.object_to_agent(obj_id)] = space
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -422,10 +421,7 @@ class BasePGDriveEnv(gym.Env):
         Return all active vehicles
         :return: Dict[agent_id:vehicle]
         """
-        ret = {}
-        for obj_id, vehicle in self._agent_manager.active_object.items():
-            ret[self._agent_manager.object_to_agent[obj_id]] = vehicle
-        return ret
+        return self._agent_manager.active_objects
 
     @property
     def pending_vehicles(self):
@@ -435,7 +431,4 @@ class BasePGDriveEnv(gym.Env):
         """
         if not self.is_multi_agent:
             raise ValueError("Pending agents is not available in single-agent env")
-        ret = {}
-        for obj_id, vehicle in self._agent_manager.pending_object.items():
-            ret[self._agent_manager.object_to_agent[obj_id]] = vehicle
-        return ret
+        return self._agent_manager.pending_objects

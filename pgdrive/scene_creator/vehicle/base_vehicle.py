@@ -805,5 +805,6 @@ class BaseVehicle(DynamicElement):
         return self.routing_localization.current_ref_lanes
 
     def set_wheel_friction(self, new_friction):
+        raise DeprecationWarning("Bug exists here")
         for wheel in self.wheels:
             wheel.setFrictionSlip(new_friction)

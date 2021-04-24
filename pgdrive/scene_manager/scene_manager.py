@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple, Optional, Dict, AnyStr, Union
+from typing import List, Tuple, Optional, Dict, AnyStr, Union, Callable
 
 import numpy as np
 from pgdrive.scene_creator.map import Map
@@ -26,8 +26,10 @@ class SceneManager:
             traffic_config: Union[Dict, "PGConfig"],
             # traffic_mode=TrafficMode.Trigger,
             # random_traffic: bool = False,
-            record_episode: bool = False,
-            cull_scene: bool = True,
+            record_episode: bool,
+            cull_scene: bool,
+            object_to_agent: Callable,
+            agent_to_object: Callable
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -41,7 +43,8 @@ class SceneManager:
 
         # common variable
         self.__target_vehicles = None
-        self.object_to_agent = None
+        self.object_to_agent:Callable = object_to_agent
+        self.agent_to_object:Callable = agent_to_object
         self.map = None
 
         # for recovering, they can not exist together
@@ -59,7 +62,7 @@ class SceneManager:
     def _get_object_manager(self, object_config=None):
         return ObjectsManager()
 
-    def reset(self, map: Map, target_vehicles: List, object_to_agent: Dict, traffic_density: float,
+    def reset(self, map: Map, target_vehicles: List,  traffic_density: float,
               accident_prob: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
@@ -67,7 +70,6 @@ class SceneManager:
         pg_world = self.pg_world
         assert isinstance(target_vehicles, list)
         self.__target_vehicles = {v.name: v for v in target_vehicles}
-        self.object_to_agent = object_to_agent
         self.map = map
 
         self.traffic_mgr.reset(pg_world, map, target_vehicles, traffic_density)
@@ -113,8 +115,8 @@ class SceneManager:
         if self.replay_system is None:
             # not in replay mode
             for k in self.__target_vehicles.keys():
-                a = target_actions[object_to_agent[k]]
-                step_infos[object_to_agent[k]] = self.__target_vehicles[k].prepare_step(a)
+                a = target_actions[object_to_agent(k)]
+                step_infos[object_to_agent(k)] = self.__target_vehicles[k].prepare_step(a)
             self.traffic_mgr.prepare_step(self)
         return step_infos
 
@@ -210,7 +212,7 @@ class SceneManager:
         assert len(self.__target_vehicles) > 0
         ret = dict()
         for k, v in self.__target_vehicles.items():
-            ret[self.object_to_agent[k]] = func(v)
+            ret[self.object_to_agent(k)] = func(v)
         return ret
 
     def dump_episode(self) -> None:
@@ -246,4 +248,4 @@ class SceneManager:
 
     @property
     def target_vehicles(self):
-        return {self.object_to_agent[k]: v for k, v in self.__target_vehicles.items()}
+        return {self.object_to_agent(k): v for k, v in self.__target_vehicles.items()}
