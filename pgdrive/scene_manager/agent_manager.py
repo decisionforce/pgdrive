@@ -7,6 +7,8 @@ from pgdrive.obs.observation_type import ObservationType
 from typing import List, Tuple, Optional, Dict, AnyStr, Union, Callable
 
 import numpy as np
+
+
 class AgentManager:
     """
     This class maintain the relationship between active agents in the environment with the underlying instance
@@ -177,12 +179,11 @@ class AgentManager:
         object_to_agent = self.object_to_agent
         step_infos = {}
         # if self.replay_system is None:
-            # not in replay mode
+        # not in replay mode
         for k in self.__active_objects.keys():
             a = target_actions[object_to_agent(k)]
             step_infos[object_to_agent(k)] = self.__active_objects[k].prepare_step(a)
         return step_infos
-
 
     def _translate(self, d):
         return {self.__object_to_agent[k]: v for k, v in d.items()}
@@ -273,15 +274,11 @@ class AgentManager:
 
         self.next_agent_count = 0
 
-
-
-    def update_state_for_all_target_vehicles(self, detector_mask: Union["DetectorMask", None]=None):
+    def update_state_for_all_target_vehicles(self, detector_mask: Union["DetectorMask", None] = None):
         step_infos = self.for_each_target_vehicle(
             lambda v: v.update_state(detector_mask=detector_mask.get_mask(v.name) if detector_mask else None)
         )
         return step_infos
-
-
 
     def for_each_target_vehicle(self, func):
         """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""

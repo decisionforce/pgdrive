@@ -158,7 +158,9 @@ class BasePGDriveEnv(gym.Env):
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
-            config=self.config, pg_world=self.pg_world, traffic_config=traffic_config,
+            config=self.config,
+            pg_world=self.pg_world,
+            traffic_config=traffic_config,
             cull_scene=self.config["cull_scene"],
             agent_manager=self.agent_manager
         )
@@ -300,8 +302,6 @@ class BasePGDriveEnv(gym.Env):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pg_world.clear_world()
         self._update_map(episode_data, force_seed)
-
-
 
         self._reset_agents()
 

@@ -173,6 +173,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
             reward = -self.config["crash_object_penalty"]
         return reward, step_info
 
+
 if __name__ == '__main__':
 
     def _act(env, action):

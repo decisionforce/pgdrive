@@ -17,20 +17,19 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
     def __init__(
-            self,
-            config,
-            pg_world: PGWorld,
-            traffic_config: Union[Dict, "PGConfig"],
-            # traffic_mode=TrafficMode.Trigger,
-            # random_traffic: bool = False,
-            # record_episode: bool,
-            cull_scene: bool,
-            agent_manager: "AgentManager"
-            # object_to_agent: Callable,
-            # agent_to_object: Callable,
-            # get_active_objects: Callable
+        self,
+        config,
+        pg_world: PGWorld,
+        traffic_config: Union[Dict, "PGConfig"],
+        # traffic_mode=TrafficMode.Trigger,
+        # random_traffic: bool = False,
+        # record_episode: bool,
+        cull_scene: bool,
+        agent_manager: "AgentManager"
+        # object_to_agent: Callable,
+        # agent_to_object: Callable,
+        # get_active_objects: Callable
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -143,14 +142,14 @@ class SceneManager:
         # self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
         # if self.replay_system is not None:
         #     self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
-            # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
+        # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         # else:
         if not replaying:
             self._traffic_manager.update_state(self, self.pg_world)
 
         # if self.record_system is not None:
-            # didn't record while replay
-            # self.record_system.record_frame(self._traffic_manager.get_global_states())
+        # didn't record while replay
+        # self.record_system.record_frame(self._traffic_manager.get_global_states())
 
         # step_infos = self.update_state_for_all_target_vehicles()
 
