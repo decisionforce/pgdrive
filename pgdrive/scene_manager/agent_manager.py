@@ -177,6 +177,7 @@ class AgentManager:
         for obj_id, space in self.observation_spaces.items():
             if self.is_active_object(obj_id):
                 ret[self.object_to_agent(obj_id)] = space
+        return ret
 
     def get_action_spaces(self):
         ret = dict()
