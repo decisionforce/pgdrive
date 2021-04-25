@@ -30,9 +30,7 @@ def test_base_vehicle():
         map = env.current_map
 
         # v_config = BaseVehicle.get_vehicle_config(dict())
-        v_config = PGConfig(BASE_DEFAULT_CONFIG["vehicle_config"]).update(
-            PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"]
-        )
+        v_config = PGConfig(BASE_DEFAULT_CONFIG["vehicle_config"]).update(PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"])
         v_config.update({"use_render": False, "use_image": False})
         v = BaseVehicle(pg_world, vehicle_config=v_config)
         v.add_lidar()
