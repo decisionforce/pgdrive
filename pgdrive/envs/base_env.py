@@ -141,7 +141,10 @@ class BasePGDriveEnv(gym.Env):
         return {v_id: obs.observation_space for v_id, obs in self.observations.items()}
 
     def _get_action_space(self):
-        return {v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()}
+        return {
+            v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"])
+            for v_id in self.observations.keys()
+        }
 
     def _setup_pg_world(self) -> "PGWorld":
         pg_world = PGWorld(self.config["pg_world_config"])
