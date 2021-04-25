@@ -321,31 +321,31 @@ def test_ma_roundabout_close_spawn():
 
 def test_ma_roundabout_reward_done_alignment():
     # out of road
-    # env = MultiAgentRoundaboutEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
-    # try:
-    #     _check_spaces_before_reset(env)
-    #     obs = env.reset()
-    #     _check_spaces_after_reset(env, obs)
-    #     assert env.observation_space.contains(obs)
-    #     for action in [-1, 1]:
-    #         for step in range(5000):
-    #             act = {k: [action, 1] for k in env.vehicles.keys()}
-    #             o, r, d, i = _act(env, act)
-    #             for kkk, ddd in d.items():
-    #                 if ddd and kkk != "__all__":
-    #                     assert r[kkk] == -777
-    #                     assert i[kkk]["out_of_road"]
-    #                     # print('{} done passed!'.format(kkk))
-    #             for kkk, rrr in r.items():
-    #                 if rrr == -777:
-    #                     assert d[kkk]
-    #                     assert i[kkk]["out_of_road"]
-    #                     # print('{} reward passed!'.format(kkk))
-    #             if d["__all__"]:
-    #                 env.reset()
-    #                 break
-    # finally:
-    #     env.close()
+    env = MultiAgentRoundaboutEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
+    try:
+        _check_spaces_before_reset(env)
+        obs = env.reset()
+        _check_spaces_after_reset(env, obs)
+        assert env.observation_space.contains(obs)
+        for action in [-1, 1]:
+            for step in range(5000):
+                act = {k: [action, 1] for k in env.vehicles.keys()}
+                o, r, d, i = _act(env, act)
+                for kkk, ddd in d.items():
+                    if ddd and kkk != "__all__":
+                        assert r[kkk] == -777
+                        assert i[kkk]["out_of_road"]
+                        # print('{} done passed!'.format(kkk))
+                for kkk, rrr in r.items():
+                    if rrr == -777:
+                        assert d[kkk]
+                        assert i[kkk]["out_of_road"]
+                        # print('{} reward passed!'.format(kkk))
+                if d["__all__"]:
+                    env.reset()
+                    break
+    finally:
+        env.close()
 
     # crash
     env = MultiAgentRoundaboutEnv(
@@ -580,7 +580,7 @@ def test_ma_roundabout_no_short_episode():
         start = time.time()
         d_count = 0
         d = {"__all__": False}
-        for step in range(2000):
+        for step in range(20000000):
             # act = {k: actions[np.random.choice(len(actions))] for k in o.keys()}
             act = {k: actions[np.random.choice(len(actions))] for k in env.vehicles.keys()}
             o_keys = set(o.keys()).union({"__all__"})
@@ -589,7 +589,7 @@ def test_ma_roundabout_no_short_episode():
             o, r, d, i = _act(env, act)
             for kkk, iii in i.items():
                 if d[kkk]:
-                    assert iii["episode_length"] > 1
+                    # assert iii["episode_length"] > 1
                     d_count += 1
             if d["__all__"]:
                 o = env.reset()
@@ -601,7 +601,7 @@ def test_ma_roundabout_no_short_episode():
                         time.time() - start, (step + 1) / (time.time() - start)
                     )
                 )
-            if d_count > 200:
+            if d_count > 20000:
                 break
     finally:
         env.close()
@@ -661,12 +661,12 @@ def test_ma_roundabout_horizon_termination():
 
 
 if __name__ == '__main__':
-    test_ma_roundabout_env()
-    test_ma_roundabout_horizon()
-    test_ma_roundabout_reset()
+    # test_ma_roundabout_env()
+    # test_ma_roundabout_horizon()
+    # test_ma_roundabout_reset()
     test_ma_roundabout_reward_done_alignment()
-    test_ma_roundabout_close_spawn()
-    test_ma_roundabout_reward_sign()
-    test_ma_roundabout_init_space()
-    test_ma_roundabout_no_short_episode()
-    test_ma_roundabout_horizon_termination()
+    # test_ma_roundabout_close_spawn()
+    # test_ma_roundabout_reward_sign()
+    # test_ma_roundabout_init_space()
+    # test_ma_roundabout_no_short_episode()
+    # test_ma_roundabout_horizon_termination()

@@ -257,3 +257,13 @@ class AgentManager:
         self.action_spaces = {}
 
         self.next_agent_count = 0
+
+    def get_object(self, object_id):
+        if object_id in self.__pending_objects:
+            return self.__pending_objects[object_id]
+        elif object_id in self.__active_objects:
+            return self.__active_objects[object_id]
+        elif object_id in self.__agents_finished_this_frame:
+            return self.__agents_finished_this_frame
+        else:
+            return None
