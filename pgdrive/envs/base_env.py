@@ -2,13 +2,14 @@ import os.path as osp
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
-from pgdrive.scene_manager.agent_manager import AgentManager
+
 import gym
 import numpy as np
 from panda3d.core import PNMImage
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.world.pg_world import PGWorld
@@ -39,6 +40,17 @@ BASE_DEFAULT_CONFIG = dict(
     use_chase_camera=True,
     use_chase_camera_follow_lane=False,  # If true, then vision would be more stable.
     camera_height=1.8,
+
+    # ===== Vehicle =====
+    vehicle_config=dict(
+        show_navi_mark=True,
+        wheel_friction=0.6,
+        max_engine_force=500,
+        max_brake_force=40,
+        max_steering=40,
+        max_speed=120,
+        extra_action_dim=0,
+    ),
 
     # ===== Others =====
     pg_world_config=dict(
