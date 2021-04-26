@@ -115,7 +115,8 @@ class AgentManager:
     def finish(self, agent_name):
         vehicle_name = self.__agent_to_object[agent_name]
         v = self.__active_objects.pop(vehicle_name)
-        v.chassis_np.node().setStatic(True)
+        # move to invisible place
+        self._put_to_pending_place(v)
         assert vehicle_name not in self.__active_objects
         self.__pending_objects[vehicle_name] = v
         self.__agents_finished_this_frame[agent_name] = v.name
@@ -129,14 +130,14 @@ class AgentManager:
 
     def propose_new_vehicle(self):
         self._check()
-        if len(self.__pending_objects) > 0:
+        if len(self.__pending_objects) > 0 and self.allow_respawn:
             obj_name = list(self.__pending_objects.keys())[0]
             self._check()
             v = self.__pending_objects.pop(obj_name)
             v.prepare_step([0, -1])
             v.chassis_np.node().setStatic(False)
             self.observations[obj_name].reset(v)
-            return self.allow_respawn, dict(
+            return dict(
                 vehicle=v,
                 observation=self.observations[obj_name],
                 observation_space=self.observation_spaces[obj_name],
@@ -144,7 +145,7 @@ class AgentManager:
                 old_name=self.__object_to_agent[obj_name],
                 new_name="agent{}".format(self.next_agent_count)
             )
-        return None, None
+        return None
 
     def confirm_respawn(self, success: bool, vehicle_info):
         vehicle = vehicle_info['vehicle']
@@ -156,7 +157,7 @@ class AgentManager:
             self.__agent_to_object.pop(vehicle_info["old_name"])
             self.__agent_to_object[vehicle_info["new_name"]] = vehicle.name
         else:
-            vehicle.set_static(True)
+            self._put_to_pending_place(vehicle)
             self.__pending_objects[vehicle.name] = vehicle
         self._check()
 
@@ -257,3 +258,8 @@ class AgentManager:
         self.action_spaces = {}
 
         self.next_agent_count = 0
+
+    @staticmethod
+    def _put_to_pending_place(v):
+        v.chassis_np.node().setStatic(True)
+        v.set_position((0, 0, -50))

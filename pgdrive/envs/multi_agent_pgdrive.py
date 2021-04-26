@@ -225,15 +225,10 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        allow_respawn, vehicle_info = self._agent_manager.propose_new_vehicle()
+        vehicle_info = self._agent_manager.propose_new_vehicle()
         if vehicle_info is None:  # No more vehicle to be assigned.
             return None, None
-        if not allow_respawn:
-            # If not allow to respawn, move agents to some rural places.
-            v = vehicle_info["vehicle"]
-            v.set_position((-999, -999))
-            self._agent_manager.confirm_respawn(False, vehicle_info)
-            return None, None
+
         v = vehicle_info["vehicle"]
         dead_vehicle_id = vehicle_info["old_name"]
         bp_index = self._replace_vehicles(vehicle_info)
@@ -244,7 +239,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self._agent_manager.confirm_respawn(True, vehicle_info)
 
         new_id = vehicle_info["new_name"]
-        v.set_static(False)
         self.dones[new_id] = False  # Put it in the internal dead-tracking dict.
         self._spawn_manager.confirm_respawn(spawn_place_id=bp_index, vehicle_id=new_id)
         logging.debug("{} Dead. {} Respawn!".format(dead_vehicle_id, new_id))
