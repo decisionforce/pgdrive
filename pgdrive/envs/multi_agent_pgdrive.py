@@ -137,8 +137,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -174,8 +174,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def _update_camera_after_finish(self, dead_vehicle_id):
         if dead_vehicle_id == self._agent_manager.object_to_agent(
-                self.current_track_vehicle.name) and self.pg_world.taskMgr.hasTaskNamed(
-                self.main_camera.CHASE_TASK_NAME):
+                self.current_track_vehicle.name) and self.pg_world.taskMgr.hasTaskNamed(self.main_camera.CHASE_TASK_NAME
+                                                                                        ):
             self.chase_another_v()
 
     def _get_vehicles(self):
