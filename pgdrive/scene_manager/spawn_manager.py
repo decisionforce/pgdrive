@@ -11,6 +11,7 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.utils import get_np_random
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.world.pg_world import PGWorld
+from pgdrive.utils.scene_utils import rect_region_detection
 
 
 class SpawnManager:
@@ -94,7 +95,7 @@ class SpawnManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
@@ -132,25 +133,22 @@ class SpawnManager:
         for bid, bp in self.safe_spawn_places.items():
             if bid in self.spawn_places_used:
                 continue
-            lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
-            long = bp["config"]["spawn_longitude"]
-            lat = bp["config"]["spawn_lateral"]
-            spawn_point_position = lane.position(longitudinal=long, lateral=lat)
-            region_detect_start = panda_position(spawn_point_position, z=self.REGION_DETECT_HEIGHT)
-            region_detect_end = panda_position(spawn_point_position, z=-1)
+            # save time
+            if not bp.get("spawn_point_position", False):
+                lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
+                long = bp["config"]["spawn_longitude"]
+                lat = bp["config"]["spawn_lateral"]
+                spawn_point_position = lane.position(longitudinal=long, lateral=lat)
+                bp["spawn_point_position"] = (spawn_point_position[0], spawn_point_position[1])
+                bp["spawn_point_heading"] = np.rad2deg(lane.heading_at(long))
 
-            lane_heading = np.rad2deg(lane.heading_at(long))
-            tsFrom = TransformState.makePosHpr(region_detect_start, Vec3(panda_heading(lane_heading), 0, 0))
-            tsTo = TransformState.makePosHpr(region_detect_end, Vec3(panda_heading(lane_heading), 0, 0))
-
-            shape = BulletBoxShape(Vec3(self.REGION_DETECT_LONGITUDE / 2, self.REGION_DETECT_LATERAL / 2, 1))
-            penetration = 0.0
-
-            result = pg_world.physics_world.dynamic_world.sweep_test_closest(
-                shape, tsFrom, tsTo, BitMask32.bit(CollisionGroup.EgoVehicle), penetration
-            )
+            spawn_point_position = bp["spawn_point_position"]
+            lane_heading = bp["spawn_point_heading"]
+            result = rect_region_detection(pg_world, spawn_point_position, lane_heading, self.REGION_DETECT_LONGITUDE,
+                                           self.REGION_DETECT_LATERAL, CollisionGroup.EgoVehicle)
             if (pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]) and bp.get("need_debug",
                                                                                                            True):
+                shape = BulletBoxShape(Vec3(self.REGION_DETECT_LONGITUDE / 2, self.REGION_DETECT_LATERAL / 2, 1))
                 vis_body = pg_world.render.attach_new_node(BulletGhostNode("debug"))
                 vis_body.node().addShape(shape)
                 vis_body.setH(panda_heading(lane_heading))
@@ -162,6 +160,6 @@ class SpawnManager:
             if not result.hasHit():
                 ret[bid] = bp
                 self.spawn_places_used.append(bid)
-            elif pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]:
-                print(result.getNode())
+            # elif pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]:
+            #     print(result.getNode())
         return ret

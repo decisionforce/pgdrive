@@ -16,6 +16,7 @@ class AgentManager:
     object name: The unique name for each object, typically be random string.
     """
     INITIALIZED = False  # when vehicles instances are created, it will be set to True
+    HELL_POSITION = (-999, -999, -999)  # a place to store pending vehicles
 
     def __init__(self, init_observations, never_allow_respawn, debug=False):
         # when new agent joins in the game, we only change this two maps.
@@ -133,12 +134,11 @@ class AgentManager:
         self._check()
         obj_name = list(self.__pending_objects.keys())[0]
         self._check()
-        v = self.__pending_objects.pop(obj_name)
-        v.prepare_step([0, -1])
-        self.observations[obj_name].reset(v)
+        vehicle = self.__pending_objects.pop(obj_name)
+        vehicle.prepare_step([0, -1])
+        self.observations[obj_name].reset(vehicle)
         new_agent_id = self.next_agent_id()
         dead_vehicle_id = self.__object_to_agent[obj_name]
-        vehicle = v
         vehicle.set_static(False)
         self.__active_objects[vehicle.name] = vehicle
         self.__object_to_agent[vehicle.name] = new_agent_id
@@ -254,7 +254,6 @@ class AgentManager:
 
         self.next_agent_count = 0
 
-    @staticmethod
-    def _put_to_pending_place(v):
+    def _put_to_pending_place(self, v):
         v.chassis_np.node().setStatic(True)
-        v.set_position((0, 0, -50))
+        v.set_position(self.HELL_POSITION[:-1], height=self.HELL_POSITION[-1])

@@ -138,8 +138,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -170,9 +170,14 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for dead_vehicle_id, done in dones.items():
             if done:
                 self._agent_manager.finish(dead_vehicle_id)
-                if dead_vehicle_id == self._agent_manager.object_to_agent(self.current_track_vehicle.name):
-                    self.chase_another_v()
+                self._update_camera_after_finish(dead_vehicle_id)
         return obs, reward, dones, info
+
+    def _update_camera_after_finish(self, dead_vehicle_id):
+        if dead_vehicle_id == self._agent_manager.object_to_agent(
+                self.current_track_vehicle.name) and self.pg_world.taskMgr.hasTaskNamed(
+                self.main_camera.CHASE_TASK_NAME):
+            self.chase_another_v()
 
     def _get_vehicles(self):
         return {
@@ -220,8 +225,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         This function can force a given vehicle to respawn!
         """
         self._agent_manager.finish(agent_name)
-        if agent_name == self._agent_manager.object_to_agent(self.current_track_vehicle.name):
-            self.chase_another_v()
+        self._update_camera_after_finish()
         new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 
