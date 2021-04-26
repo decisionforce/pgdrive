@@ -171,7 +171,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             if done:
                 self._agent_manager.finish(dead_vehicle_id)
                 if dead_vehicle_id == self._agent_manager.object_to_agent(self.current_track_vehicle.name):
-                    self.chase_another_v()
+                    self.chase_another_v()  # Focus to another alive vehicle
         return obs, reward, dones, info
 
     def _get_vehicles(self):
