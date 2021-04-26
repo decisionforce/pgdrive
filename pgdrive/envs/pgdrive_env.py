@@ -510,6 +510,8 @@ class PGDriveEnv(BasePGDriveEnv):
         self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
     def chase_another_v(self) -> (str, BaseVehicle):
+        if self.main_camera is None:
+            return
         vehicles = list(self._agent_manager.active_objects.values())
         if self.current_track_vehicle in vehicles:
             vehicles.remove(self.current_track_vehicle)
