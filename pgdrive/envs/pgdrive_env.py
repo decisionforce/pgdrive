@@ -515,6 +515,8 @@ class PGDriveEnv(BasePGDriveEnv):
         vehicles = list(self._agent_manager.active_objects.values())
         if self.current_track_vehicle in vehicles:
             vehicles.remove(self.current_track_vehicle)
+        if len(vehicles) == 0:
+            return
         self.current_track_vehicle.remove_display_region()
         new_v = get_np_random().choice(vehicles)
         self.current_track_vehicle = new_v

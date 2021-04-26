@@ -381,7 +381,7 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
-    _vis_debug_respawn()
-    # _profile()
+    _vis()
+    # _vis_debug_respawn()
+    # _profiwdle()
     # _long_run()
