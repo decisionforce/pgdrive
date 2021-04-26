@@ -512,6 +512,7 @@ class PGDriveEnv(BasePGDriveEnv):
     def chase_another_v(self) -> (str, BaseVehicle):
         if self.main_camera is None:
             return
+        self.main_camera.reset()
         vehicles = list(self._agent_manager.active_objects.values())
         if self.current_track_vehicle in vehicles:
             vehicles.remove(self.current_track_vehicle)
