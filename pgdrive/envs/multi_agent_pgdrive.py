@@ -173,9 +173,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return obs, reward, dones, info
 
     def _update_camera_after_finish(self, dead_vehicle_id):
-        if dead_vehicle_id == self._agent_manager.object_to_agent(
-                self.current_track_vehicle.name) and self.pg_world.taskMgr.hasTaskNamed(self.main_camera.CHASE_TASK_NAME
-                                                                                        ):
+        if self.main_camera is not None and dead_vehicle_id == self._agent_manager.object_to_agent(
+                self.current_track_vehicle.name) \
+                and self.pg_world.taskMgr.hasTaskNamed(self.main_camera.CHASE_TASK_NAME):
             self.chase_another_v()
 
     def _get_vehicles(self):
