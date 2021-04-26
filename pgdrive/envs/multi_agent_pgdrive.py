@@ -157,7 +157,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # update config (for new possible spawn places)
         for v_id, v in self.vehicles.items():
             v.vehicle_config = self._get_target_vehicle_config(self.config["target_vehicle_configs"][v_id])
-        super(MultiAgentPGDrive, self)._reset_agents()
+        super(MultiAgentPGDrive, self)._reset_agents()  # Update config before actually resetting!
         self.for_each_vehicle(self._update_destination_for)
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
