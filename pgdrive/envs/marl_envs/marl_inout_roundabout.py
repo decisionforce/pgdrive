@@ -212,7 +212,7 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 8,
+            "num_agents": 40,
         }
     )
     o = env.reset()
