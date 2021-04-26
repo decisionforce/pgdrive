@@ -253,7 +253,7 @@ def _vis_debug_respawn():
 def _vis():
     env = MultiAgentRoundaboutEnv(
         {
-            "horizon": 100,
+            "horizon": 100000,
             "vehicle_config": {
                 "lidar": {
                     "num_lasers": 72,

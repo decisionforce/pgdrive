@@ -170,7 +170,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for dead_vehicle_id, done in dones.items():
             if done:
                 self._agent_manager.finish(dead_vehicle_id)
-                self.chase_another_v()
+                if dead_vehicle_id == self._agent_manager.object_to_agent(self.current_track_vehicle.name):
+                    self.chase_another_v()
         return obs, reward, dones, info
 
     def _get_vehicles(self):
@@ -219,7 +220,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         This function can force a given vehicle to respawn!
         """
         self._agent_manager.finish(agent_name)
-        self.chase_another_v()
+        if agent_name == self._agent_manager.object_to_agent(self.current_track_vehicle.name):
+            self.chase_another_v()
         new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 
