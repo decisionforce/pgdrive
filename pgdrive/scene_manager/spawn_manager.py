@@ -2,9 +2,15 @@ import copy
 from math import floor
 
 import numpy as np
+from panda3d.bullet import BulletBoxShape, BulletGhostNode
+from panda3d.core import TransformState
+from panda3d.core import Vec3, BitMask32
 
+from pgdrive.constants import CollisionGroup
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
-from pgdrive.utils import get_np_random, distance_greater
+from pgdrive.utils import get_np_random
+from pgdrive.utils.coordinates_shift import panda_position, panda_heading
+from pgdrive.world.pg_world import PGWorld
 
 
 class SpawnManager:
@@ -12,6 +18,9 @@ class SpawnManager:
     This class maintain a list of possible spawn places.
     """
     FORCE_AGENT_NAME = "force_agent_name"
+    REGION_DETECT_HEIGHT = 10
+    REGION_DETECT_LONGITUDE = 8
+    REGION_DETECT_LATERAL = 3
 
     def __init__(self, exit_length, lane_num, num_agents, vehicle_config, target_vehicle_configs=None):
         self.num_agents = num_agents
@@ -21,24 +30,23 @@ class SpawnManager:
         self.spawn_roads = []
         self.target_vehicle_configs = []
         self.safe_spawn_places = {}
-        self.mapping = {}
         self.need_update_spawn_places = True
         self.initialized = False
         self.target_vehicle_configs = target_vehicle_configs
+        self.spawn_places_used = []
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
                 "You should now specify config if requiring infinite number of vehicles."
             )
 
-    def update_spawn_roads(self, spawn_roads):
+    def set_spawn_roads(self, spawn_roads):
         if self.target_vehicle_configs:
             target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_with_configs(spawn_roads)
         else:
             target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_randomly(spawn_roads)
         self.target_vehicle_configs = target_vehicle_configs
-        self.safe_spawn_places = {v["identifier"]: v for v in safe_spawn_places}
-        self.mapping = {i: set() for i in self.safe_spawn_places.keys()}
+        self.safe_spawn_places = {place["identifier"]: place for place in safe_spawn_places}
         self.spawn_roads = spawn_roads
         self.need_update_spawn_places = True
         self.initialized = True
@@ -86,7 +94,7 @@ class SpawnManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
@@ -116,33 +124,45 @@ class SpawnManager:
             ret["agent0"] = self.target_vehicle_configs[0]["config"]
         return copy.deepcopy(ret)
 
-    def update(self, vehicles: dict, map):
-        if self.need_update_spawn_places:
-            assert self.initialized
-            self.need_update_spawn_places = False
-            for bid, bp in self.safe_spawn_places.items():
-                lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
-                self.safe_spawn_places[bid]["position"] = lane.position(
-                    longitudinal=bp["config"]["spawn_longitude"], lateral=bp["config"]["spawn_lateral"]
-                )
-                for vid in vehicles.keys():
-                    self.confirm_respawn(bid, vid)  # Just assume everyone is all in the same spawn place at t=0.
+    def step(self):
+        self.spawn_places_used = []
 
-        for bid, vid_set in self.mapping.items():
-            removes = []
-            for vid in vid_set:
-                if (vid not in vehicles) or (distance_greater(self.safe_spawn_places[bid]["position"],
-                                                              vehicles[vid].position, length=10)):
-                    removes.append(vid)
-            for vid in removes:
-                self.mapping[bid].remove(vid)
-
-    def confirm_respawn(self, spawn_place_id, vehicle_id):
-        self.mapping[spawn_place_id].add(vehicle_id)
-
-    def get_available_spawn_places(self):
+    def get_available_spawn_places(self, pg_world: PGWorld, map):
         ret = {}
-        for bid in self.safe_spawn_places.keys():
-            if not self.mapping[bid]:  # empty
-                ret[bid] = self.safe_spawn_places[bid]
+        for bid, bp in self.safe_spawn_places.items():
+            if bid in self.spawn_places_used:
+                continue
+            lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
+            long = bp["config"]["spawn_longitude"]
+            lat = bp["config"]["spawn_lateral"]
+            spawn_point_position = lane.position(longitudinal=long,
+                                                 lateral=lat)
+            region_detect_start = panda_position(spawn_point_position, z=self.REGION_DETECT_HEIGHT)
+            region_detect_end = panda_position(spawn_point_position, z=-1)
+
+            lane_heading = np.rad2deg(lane.heading_at(long))
+            tsFrom = TransformState.makePosHpr(region_detect_start, Vec3(panda_heading(lane_heading), 0, 0))
+            tsTo = TransformState.makePosHpr(region_detect_end, Vec3(panda_heading(lane_heading), 0, 0))
+
+            shape = BulletBoxShape(Vec3(self.REGION_DETECT_LONGITUDE / 2, self.REGION_DETECT_LATERAL / 2, 1))
+            penetration = 0.0
+
+            result = pg_world.physics_world.dynamic_world.sweep_test_closest(shape, tsFrom, tsTo,
+                                                                             BitMask32.bit(CollisionGroup.EgoVehicle),
+                                                                             penetration)
+            if (pg_world.world_config["debug"] or pg_world.world_config[
+                "debug_physics_world"]) and bp.get("need_debug", True):
+                vis_body = pg_world.render.attach_new_node(BulletGhostNode("debug"))
+                vis_body.node().addShape(shape)
+                vis_body.setH(panda_heading(lane_heading))
+                vis_body.setPos(panda_position(spawn_point_position, z=2))
+                pg_world.physics_world.dynamic_world.attach(vis_body.node())
+                vis_body.node().setIntoCollideMask(BitMask32.allOff())
+                bp["need_debug"] = False
+
+            if not result.hasHit():
+                ret[bid] = bp
+                self.spawn_places_used.append(bid)
+            elif pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]:
+                print(result.getNode())
         return ret

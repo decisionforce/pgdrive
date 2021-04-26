@@ -510,8 +510,9 @@ class PGDriveEnv(BasePGDriveEnv):
         self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
     def chase_another_v(self) -> (str, BaseVehicle):
-        vehicles = self._agent_manager.get_vehicle_list()
-        vehicles.remove(self.current_track_vehicle)
+        vehicles = list(self._agent_manager.active_objects.values())
+        if self.current_track_vehicle in vehicles:
+            vehicles.remove(self.current_track_vehicle)
         self.current_track_vehicle.remove_display_region()
         new_v = get_np_random().choice(vehicles)
         self.current_track_vehicle = new_v

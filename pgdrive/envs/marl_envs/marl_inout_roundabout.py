@@ -199,7 +199,7 @@ def _expert():
 def _vis():
     env = MultiAgentRoundaboutEnv(
         {
-            "horizon": 100,
+            "horizon": 100000,
             "vehicle_config": {
                 "lidar": {
                     "num_lasers": 72,
@@ -208,6 +208,7 @@ def _vis():
                 },
                 "show_lidar": False,
             },
+            "pg_world_config":{"debug_physics_world":True},
             "fast": True,
             "use_render": True,
             "debug": False,

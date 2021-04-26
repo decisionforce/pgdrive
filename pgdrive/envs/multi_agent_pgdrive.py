@@ -96,7 +96,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             target_vehicle_configs=ret_config["target_vehicle_configs"],
         )
 
-        self._spawn_manager.update_spawn_roads(self.spawn_roads)
+        self._spawn_manager.set_spawn_roads(self.spawn_roads)
 
         ret_config = self._update_agent_pos_configs(ret_config)
         return ret_config
@@ -127,8 +127,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # Update respawn manager
         if self.episode_steps >= self.config["horizon"]:
             self._agent_manager.set_allow_respawn(False)
-        self._spawn_manager.update(self.vehicles, self.current_map)
-        new_obs_dict = self._respawn()
+        self._spawn_manager.step()
+        new_obs_dict = self._respawn_vehicles()
         if new_obs_dict:
             for new_id, new_obs in new_obs_dict.items():
                 o[new_id] = new_obs
@@ -170,6 +170,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for dead_vehicle_id, done in dones.items():
             if done:
                 self._agent_manager.finish(dead_vehicle_id)
+                self.chase_another_v()
         return obs, reward, dones, info
 
     def _get_vehicles(self):
@@ -203,7 +204,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             self.main_camera.camera_x += self.config["top_down_camera_initial_x"]
             self.main_camera.camera_y += self.config["top_down_camera_initial_y"]
 
-    def _respawn(self):
+    def _respawn_vehicles(self):
         new_obs_dict = {}
         while True:
             new_id, new_obs = self._respawn_single_vehicle()
@@ -218,6 +219,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         This function can force a given vehicle to respawn!
         """
         self._agent_manager.finish(agent_name)
+        self.chase_another_v()
         new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 
@@ -225,7 +227,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        safe_places_dict = self._spawn_manager.get_available_spawn_places()
+        safe_places_dict = self._spawn_manager.get_available_spawn_places(self.pg_world, self.current_map)
         if len(safe_places_dict) == 0 or not self._agent_manager.allow_respawn:
             # No more run, just wait!
             return None, None
@@ -244,7 +246,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self._update_destination_for(vehicle)
         vehicle.update_state(detector_mask=None)
         self.dones[new_agent_id] = False  # Put it in the internal dead-tracking dict.
-        self._spawn_manager.confirm_respawn(spawn_place_id=bp_index, vehicle_id=new_agent_id)
 
         new_obs = self.observations[new_agent_id].observe(vehicle)
         return new_agent_id, new_obs
