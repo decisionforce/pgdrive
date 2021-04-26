@@ -196,7 +196,7 @@ def _expert():
     env.close()
 
 
-def _vis():
+def _vis_debug_respawn():
     env = MultiAgentRoundaboutEnv(
         {
             "horizon": 100000,
@@ -247,6 +247,54 @@ def _vis():
             env.reset()
     env.close()
 
+def _vis():
+    env = MultiAgentRoundaboutEnv(
+        {
+            "horizon": 100,
+            "vehicle_config": {
+                "lidar": {
+                    "num_lasers": 72,
+                    "num_others": 0,
+                    "distance": 40
+                },
+                "show_lidar": False,
+            },
+            "fast": True,
+            "use_render": True,
+            "debug": False,
+            "manual_control": True,
+            "num_agents": 8,
+        }
+    )
+    o = env.reset()
+    total_r = 0
+    ep_s = 0
+    for i in range(1, 100000):
+        o, r, d, info = env.step({k: [0.0, .0] for k in env.vehicles.keys()})
+        for r_ in r.values():
+            total_r += r_
+        ep_s += 1
+        # d.update({"total_r": total_r, "episode length": ep_s})
+        render_text = {
+            "total_r": total_r,
+            "episode length": ep_s,
+            "cam_x": env.main_camera.camera_x,
+            "cam_y": env.main_camera.camera_y,
+            "cam_z": env.main_camera.top_down_camera_height
+        }
+        env.render(text=render_text)
+        if d["__all__"]:
+            print(
+                "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
+                    i, total_r, total_r / env._agent_manager.next_agent_count
+                )
+            )
+            # break
+        if len(env.vehicles) == 0:
+            total_r = 0
+            print("Reset")
+            env.reset()
+    env.close()
 
 def _profile():
     import time
@@ -329,6 +377,7 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
+    _vis_debug_respawn()
     # _profile()
     # _long_run()
