@@ -4,7 +4,6 @@ from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.spawn_manager import SpawnManager
 from pgdrive.utils import setup_logger, get_np_random, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
@@ -157,7 +156,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # update config (for new possible spawn places)
         for v_id, v in self.vehicles.items():
             v.vehicle_config = self._get_target_vehicle_config(self.config["target_vehicle_configs"][v_id])
-        super(MultiAgentPGDrive, self)._reset_agents()
+        super(MultiAgentPGDrive, self)._reset_agents()  # Update config before actually resetting!
         self.for_each_vehicle(self._update_destination_for)
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
@@ -225,7 +224,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         This function can force a given vehicle to respawn!
         """
         self._agent_manager.finish(agent_name)
-        self._update_camera_after_finish()
+        self._update_camera_after_finish(agent_name)
         new_id, new_obs = self._respawn_single_vehicle()
         return new_id, new_obs
 

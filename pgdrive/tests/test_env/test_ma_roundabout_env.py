@@ -691,14 +691,44 @@ def test_ma_roundabout_40_agent_reset_after_respawn():
         env.close()
 
 
+def test_ma_no_reset_error():
+    # It is possible that many agents are populated in the same spawn place!
+    def check_pos(vehicles):
+        while vehicles:
+            v_1 = vehicles[0]
+            for v_2 in vehicles[1:]:
+                v_1_pos = v_1.position
+                v_2_pos = v_2.position
+                assert norm(
+                    v_1_pos[0] - v_2_pos[0], v_1_pos[1] - v_2_pos[1]
+                ) > v_1.WIDTH / 2 + v_2.WIDTH / 2, "Vehicles overlap after reset()"
+            assert not v_1.crash_vehicle, "Vehicles overlap after reset()"
+            vehicles.remove(v_1)
+
+    env = MultiAgentRoundaboutEnv({"horizon": 300, "num_agents": 40})
+    try:
+        _check_spaces_before_reset(env)
+        obs = env.reset()
+        _check_spaces_after_reset(env, obs)
+        assert env.observation_space.contains(obs)
+        for step in range(300):
+            check_pos(list(env.vehicles.values()))
+            o, r, d, i = env.step({k: [0, 1] for k in env.vehicles.keys()})
+            if d["__all__"]:
+                break
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
     test_ma_roundabout_env()
     test_ma_roundabout_horizon()
     test_ma_roundabout_reset()
-    test_ma_roundabout_40_agent_reset_after_respawn()
     test_ma_roundabout_reward_done_alignment()
     test_ma_roundabout_close_spawn()
     test_ma_roundabout_reward_sign()
     test_ma_roundabout_init_space()
     test_ma_roundabout_no_short_episode()
     test_ma_roundabout_horizon_termination()
+    test_ma_roundabout_40_agent_reset_after_respawn()
+    test_ma_no_reset_error()
