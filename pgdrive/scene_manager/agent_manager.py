@@ -233,8 +233,8 @@ class AgentManager:
         :param obj_name: BaseVehicle name
         :return: agent id
         """
-        if obj_name not in self.__active_objects.keys() and self.INITIALIZED:
-            raise ValueError("You can not access a pending Object(BaseVehicle) outside the agent_manager!")
+        # if obj_name not in self.__active_objects.keys() and self.INITIALIZED:
+        #     raise ValueError("You can not access a pending Object(BaseVehicle) outside the agent_manager!")
         return self.__object_to_agent[obj_name]
 
     def agent_to_object(self, agent_id):

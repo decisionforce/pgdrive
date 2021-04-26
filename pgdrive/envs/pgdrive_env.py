@@ -373,7 +373,6 @@ class PGDriveEnv(BasePGDriveEnv):
         return reward, step_info
 
     def _reset_agents(self):
-        super(PGDriveEnv, self)._reset_agents()
         self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
     def _get_reset_return(self):
