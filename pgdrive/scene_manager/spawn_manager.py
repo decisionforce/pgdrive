@@ -94,7 +94,7 @@ class SpawnManager:
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
@@ -135,8 +135,7 @@ class SpawnManager:
             lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
             long = bp["config"]["spawn_longitude"]
             lat = bp["config"]["spawn_lateral"]
-            spawn_point_position = lane.position(longitudinal=long,
-                                                 lateral=lat)
+            spawn_point_position = lane.position(longitudinal=long, lateral=lat)
             region_detect_start = panda_position(spawn_point_position, z=self.REGION_DETECT_HEIGHT)
             region_detect_end = panda_position(spawn_point_position, z=-1)
 
@@ -147,11 +146,11 @@ class SpawnManager:
             shape = BulletBoxShape(Vec3(self.REGION_DETECT_LONGITUDE / 2, self.REGION_DETECT_LATERAL / 2, 1))
             penetration = 0.0
 
-            result = pg_world.physics_world.dynamic_world.sweep_test_closest(shape, tsFrom, tsTo,
-                                                                             BitMask32.bit(CollisionGroup.EgoVehicle),
-                                                                             penetration)
-            if (pg_world.world_config["debug"] or pg_world.world_config[
-                "debug_physics_world"]) and bp.get("need_debug", True):
+            result = pg_world.physics_world.dynamic_world.sweep_test_closest(
+                shape, tsFrom, tsTo, BitMask32.bit(CollisionGroup.EgoVehicle), penetration
+            )
+            if (pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]) and bp.get("need_debug",
+                                                                                                           True):
                 vis_body = pg_world.render.attach_new_node(BulletGhostNode("debug"))
                 vis_body.node().addShape(shape)
                 vis_body.setH(panda_heading(lane_heading))

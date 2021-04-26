@@ -208,7 +208,9 @@ def _vis_debug_respawn():
                 },
                 "show_lidar": False,
             },
-            "pg_world_config":{"debug_physics_world":True},
+            "pg_world_config": {
+                "debug_physics_world": True
+            },
             "fast": True,
             "use_render": True,
             "debug": False,
@@ -246,6 +248,7 @@ def _vis_debug_respawn():
             print("Reset")
             env.reset()
     env.close()
+
 
 def _vis():
     env = MultiAgentRoundaboutEnv(
@@ -295,6 +298,7 @@ def _vis():
             print("Reset")
             env.reset()
     env.close()
+
 
 def _profile():
     import time

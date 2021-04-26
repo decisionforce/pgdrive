@@ -250,13 +250,13 @@ def test_ma_roundabout_reset():
                     new_loc = v.routing_localization.final_lane.end
                     long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
                     flag1 = (
-                            v.routing_localization.final_lane.length - 5 < long <
-                            v.routing_localization.final_lane.length + 5
+                        v.routing_localization.final_lane.length - 5 < long <
+                        v.routing_localization.final_lane.length + 5
                     )
                     flag2 = (
-                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
-                            (0.5 - v.routing_localization.get_current_lane_num()) *
-                            v.routing_localization.get_current_lane_width()
+                        v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                        (0.5 - v.routing_localization.get_current_lane_num()) *
+                        v.routing_localization.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -501,7 +501,6 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
-
     class TestEnv(MultiAgentRoundaboutEnv):
         _respawn_count = 0
 
@@ -668,8 +667,9 @@ def test_ma_roundabout_40_agent_reset_after_respawn():
             for v_2 in vehicles[1:]:
                 v_1_pos = v_1.position
                 v_2_pos = v_2.position
-                assert norm(v_1_pos[0] - v_2_pos[0],
-                            v_1_pos[1] - v_2_pos[1]) > v_1.WIDTH / 2 + v_2.WIDTH / 2, "Vehicles overlap after reset()"
+                assert norm(
+                    v_1_pos[0] - v_2_pos[0], v_1_pos[1] - v_2_pos[1]
+                ) > v_1.WIDTH / 2 + v_2.WIDTH / 2, "Vehicles overlap after reset()"
             assert not v_1.crash_vehicle, "Vehicles overlap after reset()"
             vehicles.remove(v_1)
 
