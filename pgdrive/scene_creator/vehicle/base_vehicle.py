@@ -482,12 +482,7 @@ class BaseVehicle(DynamicElement):
         self.WIDTH = self.vehicle_config["vehicle_width"]
         chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
-        chassis_shape = BulletBoxShape(
-            Vec3(
-                self.WIDTH / 2, self.LENGTH / 2,
-                para[Parameter.vehicle_height] / 2
-            )
-        )
+        chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, para[Parameter.vehicle_height] / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)
         heading = np.deg2rad(-para[Parameter.heading] - 90)
