@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 from gym.spaces import Box, Dict
+
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
 
@@ -250,13 +251,13 @@ def test_ma_roundabout_reset():
                     new_loc = v.routing_localization.final_lane.end
                     long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
                     flag1 = (
-                        v.routing_localization.final_lane.length - 5 < long <
-                        v.routing_localization.final_lane.length + 5
+                            v.routing_localization.final_lane.length - 5 < long <
+                            v.routing_localization.final_lane.length + 5
                     )
                     flag2 = (
-                        v.routing_localization.get_current_lane_width() / 2 >= lat >=
-                        (0.5 - v.routing_localization.get_current_lane_num()) *
-                        v.routing_localization.get_current_lane_width()
+                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                            (0.5 - v.routing_localization.get_current_lane_num()) *
+                            v.routing_localization.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -501,6 +502,7 @@ def test_ma_roundabout_reward_sign():
     straight road before coming into roundabout.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
+
     class TestEnv(MultiAgentRoundaboutEnv):
         _respawn_count = 0
 
@@ -720,15 +722,33 @@ def test_ma_no_reset_error():
         env.close()
 
 
+def test_randomize_spawn_place():
+    last_pos = {}
+    env = MultiAgentRoundaboutEnv({"num_agents": 4, "use_render": True, "fast": True})
+    try:
+        obs = env.reset()
+        for step in range(1000):
+            act = {k: [1, 1] for k in env.vehicles.keys()}
+            last_pos = {kkk: v.position for kkk, v in env.vehicles.items()}
+            o, r, d, i = env.step(act)
+            obs = env.reset()
+            new_pos = {kkk: v.position for kkk, v in env.vehicles.items()}
+            for kkk, new_p in new_pos.items():
+                assert not np.all(new_p == last_pos[kkk]), (new_p, last_pos[kkk], kkk)
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
-    test_ma_roundabout_env()
-    test_ma_roundabout_horizon()
-    test_ma_roundabout_reset()
-    test_ma_roundabout_reward_done_alignment()
-    test_ma_roundabout_close_spawn()
-    test_ma_roundabout_reward_sign()
-    test_ma_roundabout_init_space()
-    test_ma_roundabout_no_short_episode()
-    test_ma_roundabout_horizon_termination()
-    test_ma_roundabout_40_agent_reset_after_respawn()
-    test_ma_no_reset_error()
+    # test_ma_roundabout_env()
+    # test_ma_roundabout_horizon()
+    # test_ma_roundabout_reset()
+    # test_ma_roundabout_reward_done_alignment()
+    # test_ma_roundabout_close_spawn()
+    # test_ma_roundabout_reward_sign()
+    # test_ma_roundabout_init_space()
+    # test_ma_roundabout_no_short_episode()
+    # test_ma_roundabout_horizon_termination()
+    # test_ma_roundabout_40_agent_reset_after_respawn()
+    # test_ma_no_reset_error()
+    test_randomize_spawn_place()

@@ -35,6 +35,7 @@ class SpawnManager:
         self.initialized = False
         self.target_vehicle_configs = target_vehicle_configs
         self.spawn_places_used = []
+        self._longitude_spawn_interval = 0
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
@@ -75,6 +76,7 @@ class SpawnManager:
         interval = 10
         num_slots = int(floor(self.exit_length / interval))
         interval = self.exit_length / num_slots
+        self._longitude_spawn_interval = interval
         if self.num_agents is not None:
             assert self.num_agents > 0
             assert self.num_agents <= self.lane_num * len(spawn_roads) * num_slots, (
@@ -128,16 +130,18 @@ class SpawnManager:
     def step(self):
         self.spawn_places_used = []
 
-    def get_available_spawn_places(self, pg_world: PGWorld, map):
+    def get_available_spawn_places(self, pg_world: PGWorld, map, randomize_longitude=False):
         ret = {}
         for bid, bp in self.safe_spawn_places.items():
             if bid in self.spawn_places_used:
                 continue
             # save time
-            if not bp.get("spawn_point_position", False):
+            if randomize_longitude or (not bp.get("spawn_point_position", False)):
                 lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
                 long = bp["config"]["spawn_longitude"]
                 lat = bp["config"]["spawn_lateral"]
+                if randomize_longitude:
+                    long = long + get_np_random().uniform(0, self._longitude_spawn_interval)
                 spawn_point_position = lane.position(longitudinal=long, lateral=lat)
                 bp["spawn_point_position"] = (spawn_point_position[0], spawn_point_position[1])
                 bp["spawn_point_heading"] = np.rad2deg(lane.heading_at(long))
@@ -148,8 +152,8 @@ class SpawnManager:
                 pg_world, spawn_point_position, lane_heading, self.REGION_DETECT_LONGITUDE, self.REGION_DETECT_LATERAL,
                 CollisionGroup.EgoVehicle
             )
-            if (pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]) and bp.get("need_debug",
-                                                                                                           True):
+            if (pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]) \
+                    and bp.get("need_debug", True):
                 shape = BulletBoxShape(Vec3(self.REGION_DETECT_LONGITUDE / 2, self.REGION_DETECT_LATERAL / 2, 1))
                 vis_body = pg_world.render.attach_new_node(BulletGhostNode("debug"))
                 vis_body.node().addShape(shape)
