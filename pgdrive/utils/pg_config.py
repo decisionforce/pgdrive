@@ -177,6 +177,7 @@ class PGConfig:
     @classmethod
     def _internal_dict_to_config(cls, d: dict) -> dict:
         ret = dict()
+        d = d or dict()
         for k, v in d.items():
             if isinstance(v, dict):
                 v = cls(v)
@@ -233,6 +234,8 @@ class PGConfig:
         self.__setitem__(key, value)
 
     def __setitem__(self, key, value):
+        if self._unchangeable:
+            raise ValueError("This config is not changeable!")
         self._config[key] = value
         super(PGConfig, self).__setattr__(key, value)
 
@@ -275,6 +278,16 @@ class PGConfig:
 
     def get(self, key, *args):
         return copy.copy(self._config.get(key, *args))
+
+    def force_update(self, new_config):
+        self._unchangeable = False
+        self.update(new_config)
+        self._unchangeable = True
+
+    def force_set(self, key, value):
+        self._unchangeable = False
+        self[key] = value
+        self._unchangeable = True
 
 
 def _is_identical(k1, v1, k2, v2):

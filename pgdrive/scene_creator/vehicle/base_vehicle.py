@@ -73,7 +73,7 @@ class BaseVehicle(DynamicElement):
         #     if vehicle_config is not None else self._default_vehicle_config()
 
         # observation, action
-        self.action_space = self.get_action_space_before_init()
+        self.action_space = self.get_action_space_before_init(extra_action_dim=self.vehicle_config["extra_action_dim"])
 
         super(BaseVehicle, self).__init__(random_seed, name=name)
         # config info
@@ -478,14 +478,11 @@ class BaseVehicle(DynamicElement):
 
     def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
         para = self.get_config()
+        self.LENGTH = self.vehicle_config["vehicle_length"]
+        self.WIDTH = self.vehicle_config["vehicle_width"]
         chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
-        chassis_shape = BulletBoxShape(
-            Vec3(
-                para[Parameter.vehicle_width] / 2, para[Parameter.vehicle_length] / 2,
-                para[Parameter.vehicle_height] / 2
-            )
-        )
+        chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, para[Parameter.vehicle_height] / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)
         heading = np.deg2rad(-para[Parameter.heading] - 90)
@@ -507,8 +504,6 @@ class BaseVehicle(DynamicElement):
         self.system = BulletVehicle(pg_physics_world.dynamic_world, chassis)
         self.system.setCoordinateSystem(ZUp)
         self.dynamic_nodes.append(self.system)  # detach chassis will also detach system, so a waring will generate
-        self.LENGTH = para[Parameter.vehicle_length]
-        self.WIDTH = para[Parameter.vehicle_width]
 
         if self.render:
             if self.MODEL is None:
@@ -624,6 +619,8 @@ class BaseVehicle(DynamicElement):
             text = "Normal" if time.time() - self.pg_world._episode_start_time > 10 else "Press H to see help message"
             self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
         else:
+            if text == BodyName.Base_vehicle_beneath:
+                text = BodyName.Traffic_vehicle
             self.render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
     def render_banner(self, text, color=COLLISION_INFO_COLOR["green"][1]):
@@ -729,8 +726,8 @@ class BaseVehicle(DynamicElement):
         return len(self.front_vehicles.intersection(self.back_vehicles))
 
     @classmethod
-    def get_action_space_before_init(cls):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2, ), dtype=np.float32)
+    def get_action_space_before_init(cls, extra_action_dim: int = 0):
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:

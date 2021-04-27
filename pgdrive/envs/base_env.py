@@ -1,4 +1,3 @@
-import logging
 import os.path as osp
 import time
 from collections import defaultdict
@@ -11,7 +10,6 @@ from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
-from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.world.pg_world import PGWorld
@@ -42,6 +40,17 @@ BASE_DEFAULT_CONFIG = dict(
     use_chase_camera=True,
     use_chase_camera_follow_lane=False,  # If true, then vision would be more stable.
     camera_height=1.8,
+
+    # ===== Vehicle =====
+    vehicle_config=dict(
+        show_navi_mark=True,
+        wheel_friction=0.6,
+        max_engine_force=500,
+        max_brake_force=40,
+        max_steering=40,
+        max_speed=120,
+        extra_action_dim=0,
+    ),
 
     # ===== Others =====
     pg_world_config=dict(
@@ -98,12 +107,12 @@ class BasePGDriveEnv(gym.Env):
         assert isinstance(self.num_agents, int) and self.num_agents > 0
 
         # observation and action space
-        self.agent_manager = AgentManager(
+        self._agent_manager = AgentManager(
             init_observations=self._get_observations(),
             never_allow_respawn=not self.config["allow_respawn"],
             debug=self.config["debug"]
         )
-        self.agent_manager.init_space(
+        self._agent_manager.init_space(
             init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
         )
 
@@ -118,11 +127,6 @@ class BasePGDriveEnv(gym.Env):
         self.controller = None
         self.restored_maps = dict()
         self.episode_steps = 0
-
-        # replay system
-        self.record_episode = self.config["record_episode"]
-        self.replay_system: Optional[PGReplayer] = None
-        self.record_system: Optional[PGRecorder] = None
 
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         self.current_seed = self.start_seed
@@ -149,7 +153,10 @@ class BasePGDriveEnv(gym.Env):
         return {v_id: obs.observation_space for v_id, obs in self.observations.items()}
 
     def _get_action_space(self):
-        return {v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()}
+        return {
+            v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"])
+            for v_id in self.observations.keys()
+        }
 
     def _setup_pg_world(self) -> "PGWorld":
         pg_world = PGWorld(self.config["pg_world_config"])
@@ -158,11 +165,9 @@ class BasePGDriveEnv(gym.Env):
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
-            config=self.config,
-            pg_world=self.pg_world,
-            traffic_config=traffic_config,
-            cull_scene=self.config["cull_scene"],
-            agent_manager=self.agent_manager
+            self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"],
+            self._agent_manager.object_to_agent, self._agent_manager.agent_to_object,
+            self._agent_manager.meta_active_objects
         )
         return manager
 
@@ -182,7 +187,7 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager = self._get_scene_manager()
 
         # init vehicle
-        self.agent_manager.init(self._get_vehicles())
+        self._agent_manager.init(self._get_vehicles())
 
         # other optional initialization
         self._after_lazy_init()
@@ -206,41 +211,17 @@ class BasePGDriveEnv(gym.Env):
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
         raise NotImplementedError()
 
-    @property
-    def replaying(self):
-        return self.replay_system is not None
-
-    @property
-    def recording(self):
-        return self.record_system is not None
-
     def _step_simulator(self, actions, action_infos):
         # Note that we use shallow update for info dict in this function! This will accelerate system.
-        step_infos = self.agent_manager.prepare_step(actions)
-        self.scene_manager.prepare_step(replaying=self.replaying)
-
-        action_infos = merge_dicts(action_infos, step_infos, allow_new_keys=True, without_copy=True)
+        scene_manager_infos = self.scene_manager.prepare_step(actions)
+        action_infos = merge_dicts(action_infos, scene_manager_infos, allow_new_keys=True, without_copy=True)
 
         # step all entities
-        self.scene_manager.step(self.config["decision_repeat"], replaying=self.replaying)
+        self.scene_manager.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
-        self.scene_manager.update_detector_mask()
-        infos = self.agent_manager.update_state_for_all_target_vehicles(self.scene_manager.detector_mask)
-
-        if self.replaying:
-            self.agent_manager.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
-
-        scene_manager_step_infos = self.scene_manager.update_state(
-            self.agent_manager.get_vehicle_list(), replaying=self.replaying
-        )
-
-        if self.recording:
-            self.record_system.record_frame(self.scene_manager.traffic_manager.get_global_states())
-
-        action_infos = merge_dicts(action_infos, infos, allow_new_keys=True, without_copy=True)
+        scene_manager_step_infos = self.scene_manager.update_state()
         action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
-
         return action_infos
 
     def _get_step_return(self, actions, step_infos):
@@ -303,6 +284,7 @@ class BasePGDriveEnv(gym.Env):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pg_world.clear_world()
         self._update_map(episode_data, force_seed)
+        self._agent_manager.reset()
 
         self._reset_agents()
 
@@ -312,34 +294,13 @@ class BasePGDriveEnv(gym.Env):
         self.episode_lengths = defaultdict(int)
 
         # generate new traffic according to the map
-        replaying = self.record_episode and (episode_data is not None)
         self.scene_manager.reset(
             self.current_map,
-            self.agent_manager.get_vehicle_list(),
+            self._agent_manager.get_vehicle_list(),
             self.config["traffic_density"],
             self.config["accident_prob"],
-            replaying=replaying
+            episode_data=episode_data
         )
-
-        if self.replaying:
-            self.replay_system.destroy(self.pg_world)
-            self.replay_system = None
-        if self.record_episode:
-            if episode_data is None:
-                self.record_system = PGRecorder(
-                    map=self.current_map,
-                    init_traffic_vehicle_states=self.scene_manager.traffic_manager.get_global_init_states()
-                )
-            else:
-                self.replay_system = PGReplayer(
-                    traffic_mgr=self.scene_manager.traffic_manager,
-                    current_map=self.current_map,
-                    episode_data=episode_data,
-                    pg_world=self.pg_world
-                )
-                logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
-                logging.warning("You are replaying episodes! Delete detector mask!")
-                self.scene_manager.destroy_detector_mask()
 
         if self.main_camera is not None:
             self.main_camera.reset()
@@ -350,7 +311,7 @@ class BasePGDriveEnv(gym.Env):
         raise NotImplementedError()
 
     def _reset_agents(self):
-        self.agent_manager.reset()
+        raise NotImplementedError
 
     def _get_reset_return(self):
         raise NotImplementedError()
@@ -363,8 +324,7 @@ class BasePGDriveEnv(gym.Env):
                 self.main_camera = None
             self.pg_world.clear_world()
 
-            if self.scene_manager is not None:
-                self.scene_manager.destroy(self.pg_world)
+            self.scene_manager.destroy(self.pg_world)
             del self.scene_manager
             self.scene_manager = None
 
@@ -378,18 +338,14 @@ class BasePGDriveEnv(gym.Env):
             del self.pg_world
             self.pg_world = None
 
-        if self.replaying:
-            self.record_system.destroy(self.pg_world)
-            self.record_system = None
-
         del self.maps
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
         del self.current_map
         self.current_map = None
         del self.restored_maps
         self.restored_maps = dict()
-        self.agent_manager.destroy()
-        # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
+        self._agent_manager.destroy()
+        # self._agent_manager=None don't set to None ! since sometimes we need close() then reset()
 
     def force_close(self):
         print("Closing environment ... Please wait")
@@ -443,7 +399,7 @@ class BasePGDriveEnv(gym.Env):
         Return observations of active and controllable vehicles
         :return: Dict
         """
-        return self.agent_manager.get_observations()
+        return self._agent_manager.get_observations()
 
     @property
     def observation_space(self) -> gym.Space:
@@ -451,7 +407,7 @@ class BasePGDriveEnv(gym.Env):
         Return observation spaces of active and controllable vehicles
         :return: Dict
         """
-        ret = self.agent_manager.get_observation_spaces()
+        ret = self._agent_manager.get_observation_spaces()
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -463,7 +419,7 @@ class BasePGDriveEnv(gym.Env):
         Return observation spaces of active and controllable vehicles
         :return: Dict
         """
-        ret = self.agent_manager.get_action_spaces()
+        ret = self._agent_manager.get_action_spaces()
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -475,7 +431,7 @@ class BasePGDriveEnv(gym.Env):
         Return all active vehicles
         :return: Dict[agent_id:vehicle]
         """
-        return self.agent_manager.active_objects
+        return self._agent_manager.active_objects
 
     @property
     def pending_vehicles(self):
@@ -485,9 +441,4 @@ class BasePGDriveEnv(gym.Env):
         """
         if not self.is_multi_agent:
             raise ValueError("Pending agents is not available in single-agent env")
-        return self.agent_manager.pending_objects
-
-    def dump_episode(self):
-        """Dump the data of an episode."""
-        assert self.record_system is not None
-        return self.record_system.dump_episode()
+        return self._agent_manager.pending_objects
