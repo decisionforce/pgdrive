@@ -18,7 +18,7 @@ class AgentManager:
     INITIALIZED = False  # when vehicles instances are created, it will be set to True
     HELL_POSITION = (-999, -999, -999)  # a place to store pending vehicles
 
-    def __init__(self, init_observations, never_allow_respawn, debug=False, delay_done=100):
+    def __init__(self, init_observations, never_allow_respawn, debug=False, delay_done=0):
         # when new agent joins in the game, we only change this two maps.
         self.__agent_to_object = {}
         self.__object_to_agent = {}
