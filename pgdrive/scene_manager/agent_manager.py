@@ -236,12 +236,8 @@ class AgentManager:
         """
         Return Map<agent_id, BaseVehicle>
         """
-        ret = {
-            self.__object_to_agent[k]: v for k, v in self.__pending_objects.items()
-        }
-        ret.update({
-            self.__object_to_agent[k]: v for k, (v, _) in self.__dying_objects.items()
-        })
+        ret = {self.__object_to_agent[k]: v for k, v in self.__pending_objects.items()}
+        ret.update({self.__object_to_agent[k]: v for k, (v, _) in self.__dying_objects.items()})
         return ret
 
     def object_to_agent(self, obj_name):
