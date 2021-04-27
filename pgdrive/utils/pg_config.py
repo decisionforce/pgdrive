@@ -285,6 +285,10 @@ class PGConfig:
         self.update(new_config)
         self._unchangeable = True
 
+    def force_set(self, key, value):
+        self._unchangeable = False
+        self[key] = value
+        self._unchangeable = True
 
 
 def _is_identical(k1, v1, k2, v2):

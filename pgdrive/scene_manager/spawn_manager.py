@@ -40,7 +40,7 @@ class SpawnManager:
         self.spawn_places_used = []
         self.vehicle_length = vehicle_config["vehicle_length"]
         self.vehicle_width = vehicle_config["vehicle_width"]
-        self.custom_target_vehicle_config = True if target_vehicle_configs is None else False
+        self.custom_target_vehicle_config = True if target_vehicle_configs is not None else False
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
@@ -119,7 +119,11 @@ class SpawnManager:
     def get_target_vehicle_configs(self, seed=None):
         # don't overwrite
         if self.custom_target_vehicle_config:
-            return copy.deepcopy(self.target_vehicle_configs)
+            ret = {}
+            for bp in self.target_vehicle_configs:
+                v_config = bp["config"]
+                ret[bp["force_agent_name"]] = v_config
+            return copy.deepcopy(ret)
 
         num_agents = self.num_agents if self.num_agents is not None else len(self.target_vehicle_configs)
         assert len(self.target_vehicle_configs) > 0
@@ -175,7 +179,7 @@ class SpawnManager:
                 vis_body.setPos(panda_position(spawn_point_position, z=2))
                 pg_world.physics_world.dynamic_world.attach(vis_body.node())
                 vis_body.node().setIntoCollideMask(BitMask32.allOff())
-                bp["need_debug"] = False
+                bp.force_set("need_debug", False)
 
             if not result.hasHit():
                 new_bp = copy.deepcopy(bp).get_dict()
