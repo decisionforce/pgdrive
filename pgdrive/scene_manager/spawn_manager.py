@@ -73,7 +73,9 @@ class SpawnManager:
             target_vehicle_configs.append(
                 PGConfig(
                     dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config, force_agent_name=v_id),
-                    unchangeable=True))
+                    unchangeable=True
+                )
+            )
             safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
 
@@ -103,15 +105,19 @@ class SpawnManager:
                     long = 1 / 2 * self.RESPAWN_REGION_LONGITUDE + j * self.RESPAWN_REGION_LONGITUDE
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
-                        PGConfig(dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
-                            config={
-                                "spawn_lane_index": lane_tuple,
-                                "spawn_longitude": long,
-                                "spawn_lateral": 0
-                            },
-                            force_agent_name=None
-                        ), unchangeable=True))  # lock the spawn positions
+                        PGConfig(
+                            dict(
+                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                                config={
+                                    "spawn_lane_index": lane_tuple,
+                                    "spawn_longitude": long,
+                                    "spawn_lateral": 0
+                                },
+                                force_agent_name=None
+                            ),
+                            unchangeable=True
+                        )
+                    )  # lock the spawn positions
                     if j == 0:
                         safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
@@ -161,8 +167,12 @@ class SpawnManager:
                 assert isinstance(lane, StraightLane), "Now we don't support respawn on circular lane"
                 long = self.RESPAWN_REGION_LONGITUDE / 2
                 spawn_point_position = lane.position(longitudinal=long, lateral=0)
-                bp.force_update({"spawn_point_heading": np.rad2deg(lane.heading_at(long)),
-                                 "spawn_point_position": (spawn_point_position[0], spawn_point_position[1])})
+                bp.force_update(
+                    {
+                        "spawn_point_heading": np.rad2deg(lane.heading_at(long)),
+                        "spawn_point_position": (spawn_point_position[0], spawn_point_position[1])
+                    }
+                )
 
             spawn_point_position = bp["spawn_point_position"]
             lane_heading = bp["spawn_point_heading"]
