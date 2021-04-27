@@ -211,7 +211,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def _respawn_vehicles(self, randomize_position=False):
         new_obs_dict = {}
-        if len(self._agent_manager.pending_objects) == 0:
+        if not self._agent_manager.has_pending_objects():
             return new_obs_dict
         while True:
             new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
