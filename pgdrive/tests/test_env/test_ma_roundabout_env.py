@@ -723,7 +723,7 @@ def test_ma_no_reset_error():
 
 def test_randomize_spawn_place():
     last_pos = {}
-    env = MultiAgentRoundaboutEnv({"num_agents": 4, "use_render": True, "fast": True})
+    env = MultiAgentRoundaboutEnv({"num_agents": 4, "use_render": False, "fast": True})
     try:
         obs = env.reset()
         for step in range(1000):

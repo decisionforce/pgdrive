@@ -1,4 +1,5 @@
 import copy
+from pgdrive.utils import PGConfig
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from math import floor
@@ -70,8 +71,9 @@ class SpawnManager:
         for v_id, v_config in self.target_vehicle_configs.items():
             lane_tuple = v_config["spawn_lane_index"]
             target_vehicle_configs.append(
-                dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config, force_agent_name=v_id)
-            )
+                PGConfig(
+                    dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config, force_agent_name=v_id),
+                    unchangeable=True))
             safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
 
@@ -101,16 +103,15 @@ class SpawnManager:
                     long = 1 / 2 * self.RESPAWN_REGION_LONGITUDE + j * self.RESPAWN_REGION_LONGITUDE
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
-                        dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                        PGConfig(dict(
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
                                 "spawn_lateral": 0
                             },
                             force_agent_name=None
-                        )
-                    )
+                        ), unchangeable=True))  # lock the spawn positions
                     if j == 0:
                         safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
@@ -156,8 +157,8 @@ class SpawnManager:
                 assert isinstance(lane, StraightLane), "Now we don't support respawn on circular lane"
                 long = self.RESPAWN_REGION_LONGITUDE / 2
                 spawn_point_position = lane.position(longitudinal=long, lateral=0)
-                bp["spawn_point_position"] = (spawn_point_position[0], spawn_point_position[1])
-                bp["spawn_point_heading"] = np.rad2deg(lane.heading_at(long))
+                bp.force_update({"spawn_point_heading": np.rad2deg(lane.heading_at(long)),
+                                 "spawn_point_position": (spawn_point_position[0], spawn_point_position[1])})
 
             spawn_point_position = bp["spawn_point_position"]
             lane_heading = bp["spawn_point_heading"]
@@ -177,9 +178,10 @@ class SpawnManager:
                 bp["need_debug"] = False
 
             if not result.hasHit():
+                new_bp = copy.deepcopy(bp).get_dict()
                 if randomize:
-                    bp["config"] = self._randomize_position_in_slot(bp["config"])
-                ret[bid] = bp
+                    new_bp["config"] = self._randomize_position_in_slot(new_bp["config"])
+                ret[bid] = new_bp
                 self.spawn_places_used.append(bid)
             # elif pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]:
             #     print(result.getNode())
