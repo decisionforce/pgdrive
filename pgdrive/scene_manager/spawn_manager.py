@@ -141,7 +141,7 @@ class SpawnManager:
                 long = bp["config"]["spawn_longitude"]
                 lat = bp["config"]["spawn_lateral"]
                 if randomize_longitude:
-                    long = long + get_np_random().uniform(0, self._longitude_spawn_interval)
+                    long = long + get_np_random().uniform(0, self._longitude_spawn_interval / 2)
                 spawn_point_position = lane.position(longitudinal=long, lateral=lat)
                 bp["spawn_point_position"] = (spawn_point_position[0], spawn_point_position[1])
                 bp["spawn_point_heading"] = np.rad2deg(lane.heading_at(long))
