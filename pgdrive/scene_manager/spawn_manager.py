@@ -1,4 +1,6 @@
 import copy
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from math import floor
 
 import numpy as np
@@ -20,8 +22,8 @@ class SpawnManager:
     """
     FORCE_AGENT_NAME = "force_agent_name"
     REGION_DETECT_HEIGHT = 10
-    REGION_DETECT_LONGITUDE = 8
-    REGION_DETECT_LATERAL = 3
+    RESPAWN_REGION_LONGITUDE = 8.
+    RESPAWN_REGION_LATERAL = 3.
 
     def __init__(self, exit_length, lane_num, num_agents, vehicle_config, target_vehicle_configs=None):
         self.num_agents = num_agents
@@ -35,7 +37,9 @@ class SpawnManager:
         self.initialized = False
         self.target_vehicle_configs = target_vehicle_configs
         self.spawn_places_used = []
-        self._longitude_spawn_interval = 0
+        self.vehicle_length = vehicle_config["vehicle_length"]
+        self.vehicle_width = vehicle_config["vehicle_width"]
+        self.custom_target_vehicle_config = True if target_vehicle_configs is None else False
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
@@ -72,8 +76,9 @@ class SpawnManager:
         return target_vehicle_configs, safe_spawn_places
 
     def _update_spawn_roads_randomly(self, spawn_roads):
+        assert not self.custom_target_vehicle_config, "This will overwrite your custom target vehicle config"
         assert len(spawn_roads) > 0
-        interval = 10
+        interval = self.RESPAWN_REGION_LONGITUDE
         num_slots = int(floor(self.exit_length / interval))
         interval = self.exit_length / num_slots
         self._longitude_spawn_interval = interval
@@ -93,15 +98,15 @@ class SpawnManager:
         for i, road in enumerate(spawn_roads):
             for lane_idx in range(self.lane_num):
                 for j in range(num_slots):
-                    long = j * interval + np.random.uniform(0, 0.5 * interval)
+                    long = 1 / 2 * self.RESPAWN_REGION_LONGITUDE + j * self.RESPAWN_REGION_LONGITUDE
                     lane_tuple = road.lane_index(lane_idx)  # like (>>>, 1C0_0_, 1) and so on.
                     target_vehicle_configs.append(
                         dict(
-                            identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                            identifier="|".join((str(s) for s in lane_tuple + (j,))),
                             config={
                                 "spawn_lane_index": lane_tuple,
                                 "spawn_longitude": long,
-                                "spawn_lateral": self.vehicle_config["spawn_lateral"]
+                                "spawn_lateral": 0
                             },
                             force_agent_name=None
                         )
@@ -111,6 +116,10 @@ class SpawnManager:
         return target_vehicle_configs, safe_spawn_places
 
     def get_target_vehicle_configs(self, seed=None):
+        # don't overwrite
+        if self.custom_target_vehicle_config:
+            return copy.deepcopy(self.target_vehicle_configs)
+
         num_agents = self.num_agents if self.num_agents is not None else len(self.target_vehicle_configs)
         assert len(self.target_vehicle_configs) > 0
         target_agents = get_np_random(seed).choice(
@@ -122,39 +131,44 @@ class SpawnManager:
         if len(target_agents) > 1:
             for real_idx, idx in enumerate(target_agents):
                 v_config = self.target_vehicle_configs[idx]["config"]
+                v_config = self._randomize_position_in_slot(v_config)
                 ret["agent{}".format(real_idx)] = v_config
         else:
-            ret["agent0"] = self.target_vehicle_configs[0]["config"]
+            ret["agent0"] = self._randomize_position_in_slot(self.target_vehicle_configs[0]["config"])
         return copy.deepcopy(ret)
 
     def step(self):
         self.spawn_places_used = []
 
-    def get_available_spawn_places(self, pg_world: PGWorld, map, randomize_longitude=False):
+    def get_available_respawn_places(self, pg_world: PGWorld, map, randomize=False):
+        """
+        In each episode, we allow the vehicles to respawn at the start of road, randomize will give vehicles a random
+        position in the respawn region
+        """
         ret = {}
         for bid, bp in self.safe_spawn_places.items():
             if bid in self.spawn_places_used:
                 continue
-            # save time
-            if randomize_longitude or (not bp.get("spawn_point_position", False)):
+
+            # save time calculate once
+            if not bp.get("spawn_point_position", False):
                 lane = map.road_network.get_lane(bp["config"]["spawn_lane_index"])
-                long = bp["config"]["spawn_longitude"]
-                lat = bp["config"]["spawn_lateral"]
-                if randomize_longitude:
-                    long = long + get_np_random().uniform(0, self._longitude_spawn_interval)
-                spawn_point_position = lane.position(longitudinal=long, lateral=lat)
+                assert isinstance(lane, StraightLane), "Now we don't support respawn on circular lane"
+                long = self.RESPAWN_REGION_LONGITUDE / 2
+                spawn_point_position = lane.position(longitudinal=long, lateral=0)
                 bp["spawn_point_position"] = (spawn_point_position[0], spawn_point_position[1])
                 bp["spawn_point_heading"] = np.rad2deg(lane.heading_at(long))
 
             spawn_point_position = bp["spawn_point_position"]
             lane_heading = bp["spawn_point_heading"]
             result = rect_region_detection(
-                pg_world, spawn_point_position, lane_heading, self.REGION_DETECT_LONGITUDE, self.REGION_DETECT_LATERAL,
+                pg_world, spawn_point_position, lane_heading, self.RESPAWN_REGION_LONGITUDE,
+                self.RESPAWN_REGION_LATERAL,
                 CollisionGroup.EgoVehicle
             )
             if (pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]) \
                     and bp.get("need_debug", True):
-                shape = BulletBoxShape(Vec3(self.REGION_DETECT_LONGITUDE / 2, self.REGION_DETECT_LATERAL / 2, 1))
+                shape = BulletBoxShape(Vec3(self.RESPAWN_REGION_LONGITUDE / 2, self.RESPAWN_REGION_LATERAL / 2, 1))
                 vis_body = pg_world.render.attach_new_node(BulletGhostNode("debug"))
                 vis_body.node().addShape(shape)
                 vis_body.setH(panda_heading(lane_heading))
@@ -164,8 +178,18 @@ class SpawnManager:
                 bp["need_debug"] = False
 
             if not result.hasHit():
+                if randomize:
+                    bp["config"] = self._randomize_position_in_slot(bp["config"])
                 ret[bid] = bp
                 self.spawn_places_used.append(bid)
             # elif pg_world.world_config["debug"] or pg_world.world_config["debug_physics_world"]:
             #     print(result.getNode())
         return ret
+
+    def _randomize_position_in_slot(self, target_vehicle_config):
+        vehicle_config = copy.deepcopy(target_vehicle_config)
+        long = self.RESPAWN_REGION_LONGITUDE - self.vehicle_length
+        lat = self.RESPAWN_REGION_LATERAL - self.vehicle_width
+        vehicle_config["spawn_longitude"] += get_np_random().uniform(-long / 2, long / 2)
+        vehicle_config["spawn_lateral"] += get_np_random().uniform(-lat / 2, lat / 2)
+        return vehicle_config

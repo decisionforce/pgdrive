@@ -127,7 +127,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         if self.episode_steps >= self.config["horizon"]:
             self._agent_manager.set_allow_respawn(False)
         self._spawn_manager.step()
-        new_obs_dict = self._respawn_vehicles(randomize_longitude=self.config["random_traffic"])
+        new_obs_dict = self._respawn_vehicles(randomize_position=self.config["random_traffic"])
         if new_obs_dict:
             for new_id, new_obs in new_obs_dict.items():
                 o[new_id] = new_obs
@@ -137,8 +137,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -209,31 +209,33 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             self.main_camera.camera_x += self.config["top_down_camera_initial_x"]
             self.main_camera.camera_y += self.config["top_down_camera_initial_y"]
 
-    def _respawn_vehicles(self, randomize_longitude=False):
+    def _respawn_vehicles(self, randomize_position=False):
         new_obs_dict = {}
+        if len(self._agent_manager.pending_objects) == 0:
+            return new_obs_dict
         while True:
-            new_id, new_obs = self._respawn_single_vehicle(randomize_longitude=randomize_longitude)
+            new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
             if new_obs is not None:
                 new_obs_dict[new_id] = new_obs
             else:
                 break
         return new_obs_dict
 
-    def _force_respawn(self, agent_name, randomize_longitude=False):
+    def _force_respawn(self, agent_name, randomize_position=False):
         """
         This function can force a given vehicle to respawn!
         """
         self._agent_manager.finish(agent_name)
         self._update_camera_after_finish(agent_name)
-        new_id, new_obs = self._respawn_single_vehicle(randomize_longitude=randomize_longitude)
+        new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
         return new_id, new_obs
 
-    def _respawn_single_vehicle(self, randomize_longitude=False):
+    def _respawn_single_vehicle(self, randomize_position=False):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        safe_places_dict = self._spawn_manager.get_available_spawn_places(
-            self.pg_world, self.current_map, randomize_longitude=randomize_longitude
+        safe_places_dict = self._spawn_manager.get_available_respawn_places(
+            self.pg_world, self.current_map, randomize=randomize_position
         )
         if len(safe_places_dict) == 0 or not self._agent_manager.allow_respawn:
             # No more run, just wait!

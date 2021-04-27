@@ -478,11 +478,13 @@ class BaseVehicle(DynamicElement):
 
     def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
         para = self.get_config()
+        self.LENGTH = self.vehicle_config["vehicle_length"]
+        self.WIDTH = self.vehicle_config["vehicle_width"]
         chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
         chassis_shape = BulletBoxShape(
             Vec3(
-                para[Parameter.vehicle_width] / 2, para[Parameter.vehicle_length] / 2,
+                self.WIDTH / 2, self.LENGTH / 2,
                 para[Parameter.vehicle_height] / 2
             )
         )
@@ -507,8 +509,6 @@ class BaseVehicle(DynamicElement):
         self.system = BulletVehicle(pg_physics_world.dynamic_world, chassis)
         self.system.setCoordinateSystem(ZUp)
         self.dynamic_nodes.append(self.system)  # detach chassis will also detach system, so a waring will generate
-        self.LENGTH = para[Parameter.vehicle_length]
-        self.WIDTH = para[Parameter.vehicle_width]
 
         if self.render:
             if self.MODEL is None:
