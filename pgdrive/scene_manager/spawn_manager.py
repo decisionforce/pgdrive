@@ -40,7 +40,8 @@ class SpawnManager:
         self.spawn_places_used = []
         self.vehicle_length = vehicle_config["vehicle_length"]
         self.vehicle_width = vehicle_config["vehicle_width"]
-        self.custom_target_vehicle_config = True if target_vehicle_configs is not None else False
+        self.custom_target_vehicle_config = True if target_vehicle_configs is not None and len(
+            target_vehicle_configs) > 0 else False
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
@@ -107,7 +108,7 @@ class SpawnManager:
                     target_vehicle_configs.append(
                         PGConfig(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
