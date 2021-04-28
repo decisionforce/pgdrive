@@ -17,6 +17,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # frequently done might not be a good idea.
     crash_done=False,
     out_of_road_done=True,
+    delay_done=25,  # Wait for 5 seconds in real world.
 
     # Whether the vehicle can rejoin the episode
     allow_respawn=True,
