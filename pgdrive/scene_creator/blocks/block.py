@@ -578,4 +578,4 @@ class Block(Element, BlockDefault):
         return list(self._sockets.keys())
 
     def get_socket_list(self):
-        return copy.deepcopy(list(self._sockets.values()))
+        return list(self._sockets.values())
