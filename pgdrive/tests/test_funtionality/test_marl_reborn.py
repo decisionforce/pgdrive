@@ -68,6 +68,28 @@ def test_respawn():
     print("Finish {} dones.".format(done_count))
 
 
+def test_delay_done():
+    env = MultiAgentRoundaboutEnv({"num_agents": 5, "delay_done": 10, "horizon": 100})
+    try:
+        env.reset()
+        dead = set()
+        for _ in range(300):
+            o, r, d, i = env.step({k: [1, 1] for k in env.vehicles.keys()})
+            for dead_name in dead:
+                assert dead_name not in o
+            print("{} there!".format(env.vehicles.keys()))
+            print("{} dead!".format([kkk for kkk, ddd in d.items() if ddd]))
+            for kkk, ddd in d.items():
+                if ddd and kkk != "__all__":
+                    dead.add(kkk)
+            if d["__all__"]:
+                env.reset()
+                dead.clear()
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
     setup_logger(True)
-    test_respawn()
+    # test_respawn()
+    test_delay_done()
