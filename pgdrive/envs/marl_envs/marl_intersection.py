@@ -215,14 +215,18 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 40,
+            "num_agents": 48,
+            "delay_done": 1000,
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [.0, .0] for k in env.vehicles.keys()})
+        actions = {k: [1.0, 1.0] for k in env.vehicles.keys()}
+        if len(env.vehicles) == 1:
+            actions = {k: [-1.0, 1.0] for k in env.vehicles.keys()}
+        o, r, d, info = env.step(actions)
         for r_ in r.values():
             total_r += r_
         ep_s += 1
@@ -232,7 +236,8 @@ def _vis():
             "episode length": ep_s,
             "cam_x": env.main_camera.camera_x,
             "cam_y": env.main_camera.camera_y,
-            "cam_z": env.main_camera.top_down_camera_height
+            "cam_z": env.main_camera.top_down_camera_height,
+            "alive": len(env.vehicles)
         }
         env.render(text=render_text)
         if d["__all__"]:
@@ -241,6 +246,7 @@ def _vis():
                     i, total_r, total_r / env._agent_manager.next_agent_count
                 )
             )
+            env.reset()
             # break
         if len(env.vehicles) == 0:
             total_r = 0
