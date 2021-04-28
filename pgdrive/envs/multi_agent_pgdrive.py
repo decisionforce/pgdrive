@@ -32,9 +32,12 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     target_vehicle_configs=dict(),
 
     # ===== New Reward Setting =====
-    out_of_road_penalty=5.0,
-    crash_vehicle_penalty=5.0,
-    crash_object_penalty=5.0,
+    out_of_road_penalty=10,
+    crash_vehicle_penalty=10,
+    crash_object_penalty=10,
+    crash_vehicle_cost=1,
+    crash_object_cost=1,
+    out_of_road_cost=0,  # Do not count out of road into cost!
 
     # ===== Environmental Setting =====
     top_down_camera_initial_x=0,
