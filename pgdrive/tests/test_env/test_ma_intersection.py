@@ -68,7 +68,7 @@ def _act(env, action):
     return obs, reward, done, info
 
 
-def test_ma_roundabout_env():
+def test_ma_intersection_env():
     for env in [MultiAgentIntersectionEnv({"delay_done": 0, "num_agents": 1,
                                            "vehicle_config": {"lidar": {"num_others": 8}}}),
                 MultiAgentIntersectionEnv({"num_agents": 1, "delay_done": 0,
@@ -93,7 +93,7 @@ def test_ma_roundabout_env():
             env.close()
 
 
-def test_ma_roundabout_horizon():
+def test_ma_intersection_horizon():
     # test horizon
     for _ in range(3):  # This function is really easy to break, repeat multiple times!
         env = MultiAgentIntersectionEnv(
@@ -150,7 +150,7 @@ def test_ma_roundabout_horizon():
             env.close()
 
 
-def test_ma_roundabout_reset():
+def test_ma_intersection_reset():
     env = MultiAgentIntersectionEnv({"horizon": 50, "num_agents": 4})
     try:
         _check_spaces_before_reset(env)
@@ -243,7 +243,7 @@ def test_ma_roundabout_reset():
         env.close()
 
 
-def test_ma_roundabout_close_spawn():
+def test_ma_intersection_close_spawn():
     def _no_close_spawn(vehicles):
         vehicles = list(vehicles.values())
         for c1, v1 in enumerate(vehicles):
@@ -270,7 +270,7 @@ def test_ma_roundabout_close_spawn():
         MultiAgentIntersectionEnv._DEBUG_RANDOM_SEED = None
 
 
-def test_ma_roundabout_reward_done_alignment():
+def test_ma_intersection_reward_done_alignment():
     # out of road
     env = MultiAgentIntersectionEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
     try:
@@ -447,10 +447,10 @@ def test_ma_roundabout_reward_done_alignment():
         env.close()
 
 
-def test_ma_roundabout_reward_sign():
+def test_ma_intersection_reward_sign():
     """
     If agent is simply moving forward without any steering, it will at least gain ~100 rewards, since we have a long
-    straight road before coming into roundabout.
+    straight road before coming into intersection.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
     class TestEnv(MultiAgentIntersectionEnv):
@@ -487,7 +487,7 @@ def test_ma_roundabout_reward_sign():
         env.close()
 
 
-def test_ma_roundabout_init_space():
+def test_ma_intersection_init_space():
     try:
         for start_seed in [5000, 6000, 7000]:
             for num_agents in [16, 32]:
@@ -519,7 +519,7 @@ def test_ma_roundabout_init_space():
             env.close()
 
 
-def test_ma_roundabout_no_short_episode():
+def test_ma_intersection_no_short_episode():
     env = MultiAgentIntersectionEnv({
         "horizon": 300,
         "num_agents": 40,
@@ -559,7 +559,7 @@ def test_ma_roundabout_no_short_episode():
         env.close()
 
 
-def test_ma_roundabout_horizon_termination():
+def test_ma_intersection_horizon_termination():
     # test horizon
     env = MultiAgentIntersectionEnv({
         "horizon": 100,
@@ -612,7 +612,7 @@ def test_ma_roundabout_horizon_termination():
         env.close()
 
 
-def test_ma_roundabout_40_agent_reset_after_respawn():
+def test_ma_intersection_40_agent_reset_after_respawn():
     def check_pos(vehicles):
         while vehicles:
             v_1 = vehicles[0]
@@ -693,15 +693,15 @@ def test_randomize_spawn_place():
 
 
 if __name__ == '__main__':
-    # test_ma_roundabout_env()
-    # test_ma_roundabout_horizon()
-    # test_ma_roundabout_reset()
-    # test_ma_roundabout_reward_done_alignment()
-    # test_ma_roundabout_close_spawn()
-    # test_ma_roundabout_reward_sign()
-    # test_ma_roundabout_init_space()
-    # test_ma_roundabout_no_short_episode()
-    # test_ma_roundabout_horizon_termination()
-    test_ma_roundabout_40_agent_reset_after_respawn()
+    # test_ma_intersection_env()
+    # test_ma_intersection_horizon()
+    # test_ma_intersection_reset()
+    # test_ma_intersection_reward_done_alignment()
+    # test_ma_intersection_close_spawn()
+    # test_ma_intersection_reward_sign()
+    # test_ma_intersection_init_space()
+    # test_ma_intersection_no_short_episode()
+    # test_ma_intersection_horizon_termination()
+    test_ma_intersection_40_agent_reset_after_respawn()
     # test_ma_no_reset_error()
     # test_randomize_spawn_place()
