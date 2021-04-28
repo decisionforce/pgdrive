@@ -275,7 +275,7 @@ def _profile():
                     time.time() - start, (s + 1) / (time.time() - start)
                 )
             )
-    print(f"(PGDriveEnvV2) Total Time Elapse: {time.time() - start}")
+    print(f"(MAIntersection) Total Time Elapse: {time.time() - start}")
 
 
 def _long_run():
