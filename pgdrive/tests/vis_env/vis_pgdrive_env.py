@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     o = env.reset()
     print(env.pg_world.physics_world.report_bodies())
-    print("vehicle num", len(env.scene_manager._traffic_manager.vehicles))
+    print("vehicle num", len(env.scene_manager.traffic_manager.vehicles))
     for i in range(1, 100000):
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption

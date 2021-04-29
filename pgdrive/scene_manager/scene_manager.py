@@ -39,7 +39,7 @@ class SceneManager:
         self.pg_world = pg_world
 
         self.agent_manager = agent_manager
-        self._traffic_manager = self._get_traffic_manager(traffic_config)
+        self.traffic_manager = self._gettraffic_manager(traffic_config)
         self._objects_manager = self._get_object_manager()
 
         # common variable
@@ -58,7 +58,7 @@ class SceneManager:
         self.cull_scene = cull_scene
         self.detector_mask = None
 
-    def _get_traffic_manager(self, traffic_config):
+    def _gettraffic_manager(self, traffic_config):
         return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
     def _get_object_manager(self, object_config=None):
@@ -73,7 +73,7 @@ class SceneManager:
         # self.__target_vehicles = self.get_active_vehicles()
         self.map = map
 
-        self._traffic_manager.reset(pg_world, map, target_vehicles, traffic_density)
+        self.traffic_manager.reset(pg_world, map, target_vehicles, traffic_density)
         self._objects_manager.reset(pg_world, map, accident_prob)
 
         if self.detector_mask is not None:
@@ -81,7 +81,7 @@ class SceneManager:
 
         if not replaying:
             self._objects_manager.generate(self, pg_world)
-            self._traffic_manager.generate(
+            self.traffic_manager.generate(
                 pg_world=pg_world,
                 map=self.map,
                 target_vehicles=self.agent_manager.get_active_objects(),
@@ -103,7 +103,7 @@ class SceneManager:
         :param target_actions: Dict[agent_id:action]
         :return:
         """
-        # self._traffic_manager.prepare_step(self)
+        # self.traffic_manager.prepare_step(self)
         # object_to_agent = self.object_to_agent
         # step_infos = {}
         if not replaying:
@@ -111,7 +111,7 @@ class SceneManager:
             # for k in self.__target_vehicles.keys():
             #     a = target_actions[object_to_agent(k)]
             #     step_infos[object_to_agent(k)] = self.__target_vehicles[k].prepare_step(a)
-            self._traffic_manager.prepare_step(self)
+            self.traffic_manager.prepare_step(self)
         # return {}
         # return step_infos
 
@@ -127,7 +127,7 @@ class SceneManager:
         for i in range(step_num):
             if not replaying:
                 # not in replay mode
-                self._traffic_manager.step(dt)
+                self.traffic_manager.step(dt)
                 pg_world.step()
             if pg_world.force_fps.real_time_simulation and i < step_num - 1:
                 # insert frame to render in min step_size
@@ -147,11 +147,11 @@ class SceneManager:
         # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         # else:
         if not replaying:
-            self._traffic_manager.update_state(self.pg_world)
+            self.traffic_manager.update_state(self.pg_world)
 
         # if self.record_system is not None:
         # didn't record while replay
-        # self.record_system.record_frame(self._traffic_manager.get_global_states())
+        # self.record_system.record_frame(self.traffic_manager.get_global_states())
 
         # step_infos = self.update_state_for_all_target_vehicles()
 
@@ -165,7 +165,7 @@ class SceneManager:
                 # TODO add objects to replay system and add new cull method
 
                 PGLOD.cull_distant_traffic_vehicles(
-                    self._traffic_manager.traffic_vehicles, poses, self.pg_world,
+                    self.traffic_manager.traffic_vehicles, poses, self.pg_world,
                     self.pg_world.world_config["max_distance"]
                 )
                 PGLOD.cull_distant_objects(
@@ -178,42 +178,42 @@ class SceneManager:
 
     def update_detector_mask(self):
         if self.detector_mask is not None:
-            # a = set([v.name for v in self._traffic_manager.vehicles])
+            # a = set([v.name for v in self.traffic_manager.vehicles])
             # b = set([v.name for v in self.__target_vehicles.values()])
             # assert b.issubset(a)  # This may only happen during episode replays!
             is_target_vehicle_dict = {
-                v_obj.name: self._traffic_manager.is_target_vehicle(v_obj)
-                for v_obj in self._traffic_manager.vehicles + self._objects_manager.objects
+                v_obj.name: self.traffic_manager.is_target_vehicle(v_obj)
+                for v_obj in self.traffic_manager.vehicles + self._objects_manager.objects
             }
             self.detector_mask.update_mask(
                 position_dict={
                     v_obj.name: v_obj.position
-                    for v_obj in self._traffic_manager.vehicles + self._objects_manager.objects
+                    for v_obj in self.traffic_manager.vehicles + self._objects_manager.objects
                 },
                 heading_dict={
                     v_obj.name: v_obj.heading_theta
-                    for v_obj in self._traffic_manager.vehicles + self._objects_manager.objects
+                    for v_obj in self.traffic_manager.vehicles + self._objects_manager.objects
                 },
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
 
     # def update_state_for_all_target_vehicles(self):
     #     if self.detector_mask is not None:
-    #         # a = set([v.name for v in self._traffic_manager.vehicles])
+    #         # a = set([v.name for v in self.traffic_manager.vehicles])
     #         # b = set([v.name for v in self.__target_vehicles.values()])
     #         # assert b.issubset(a)  # This may only happen during episode replays!
     #         is_target_vehicle_dict = {
-    #             v_obj.name: self._traffic_manager.is_target_vehicle(v_obj)
-    #             for v_obj in self._traffic_manager.vehicles + self._objects_manager.objects
+    #             v_obj.name: self.traffic_manager.is_target_vehicle(v_obj)
+    #             for v_obj in self.traffic_manager.vehicles + self._objects_manager.objects
     #         }
     #         self.detector_mask.update_mask(
     #             position_dict={
     #                 v_obj.name: v_obj.position
-    #                 for v_obj in self._traffic_manager.vehicles + self._objects_manager.objects
+    #                 for v_obj in self.traffic_manager.vehicles + self._objects_manager.objects
     #             },
     #             heading_dict={
     #                 v_obj.name: v_obj.heading_theta
-    #                 for v_obj in self._traffic_manager.vehicles + self._objects_manager.objects
+    #                 for v_obj in self.traffic_manager.vehicles + self._objects_manager.objects
     #             },
     #             is_target_vehicle_dict=is_target_vehicle_dict
     #         )
@@ -232,8 +232,8 @@ class SceneManager:
 
     def destroy(self, pg_world: PGWorld = None):
         pg_world = self.pg_world if pg_world is None else pg_world
-        self._traffic_manager.destroy(pg_world)
-        self._traffic_manager = None
+        self.traffic_manager.destroy(pg_world)
+        self.traffic_manager = None
 
         self._objects_manager.destroy(pg_world)
         self._objects_manager = None
@@ -241,7 +241,7 @@ class SceneManager:
         self.map = None
 
     def __repr__(self):
-        info = "traffic:" + self._traffic_manager.__repr__()
+        info = "traffic:" + self.traffic_manager.__repr__()
         return info
 
     def __del__(self):
@@ -256,11 +256,11 @@ class SceneManager:
 
     @property
     def traffic_manager(self):
-        return self._traffic_manager
+        return self.traffic_manager
 
     def destroy_detector_mask(self):
         self.detector_mask.clear()
         self.detector_mask = None
 
     def get_traffic_vehicle_list(self):
-        return list(self._traffic_manager.traffic_vehicles)
+        return list(self.traffic_manager.traffic_vehicles)
