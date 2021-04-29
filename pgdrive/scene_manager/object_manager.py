@@ -10,7 +10,7 @@ from pgdrive.utils import RandomEngine
 from pgdrive.world.pg_world import PGWorld
 
 
-class ObjectsManager(RandomEngine):
+class ObjectManager(RandomEngine):
     """
     This class is used to manager all static object, such as traffic cones, warning tripod.
     """
@@ -32,7 +32,7 @@ class ObjectsManager(RandomEngine):
         self.accident_prob = 0.
 
         # init random engine
-        super(ObjectsManager, self).__init__()
+        super(ObjectManager, self).__init__()
 
     def reset(self, pg_world: PGWorld, map: Map, accident_prob: float = 0):
         """

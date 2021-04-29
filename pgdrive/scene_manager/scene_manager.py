@@ -5,7 +5,7 @@ import numpy as np
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.PGLOD import PGLOD
 from pgdrive.scene_manager.agent_manager import AgentManager
-from pgdrive.scene_manager.object_manager import ObjectsManager
+from pgdrive.scene_manager.object_manager import ObjectManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import PGConfig
@@ -55,7 +55,7 @@ class SceneManager:
         return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
     def _get_object_manager(self, object_config=None):
-        return ObjectsManager()
+        return ObjectManager()
 
     def reset(self, map: Map, target_vehicles: List, traffic_density: float, accident_prob: float, episode_data=None):
         """
@@ -63,7 +63,6 @@ class SceneManager:
         """
         pg_world = self.pg_world
         assert isinstance(target_vehicles, list)
-        # self.__target_vehicles = self.get_active_vehicles()
         self.map = map
 
         self.traffic_manager.reset(pg_world, map, target_vehicles, traffic_density)
@@ -79,7 +78,6 @@ class SceneManager:
             self.record_system = None
 
         if episode_data is None:
-            # FIXME
             self.object_manager.generate(self, pg_world)
             self.traffic_manager.generate(
                 pg_world=pg_world,
