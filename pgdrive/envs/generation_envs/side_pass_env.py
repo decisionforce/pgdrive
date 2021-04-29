@@ -44,7 +44,7 @@ class SidePassEnv(PGDriveEnv):
         breakdown_vehicle.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
         self.scene_manager.traffic_mgr.vehicles.append(self.breakdown_vehicle.vehicle_node.kinematic_model)
-        self.alert = self.scene_manager.objects_mgr.spawn_one_object(
+        self.alert = self.scene_manager.object_manager.spawn_one_object(
             "Traffic Triangle", lane, (">>>", "1C0_0_", 0), 22, 0
         )
         self.alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
@@ -59,7 +59,7 @@ class SidePassEnv(PGDriveEnv):
         ]
 
         for p in pos:
-            cone = self.scene_manager.objects_mgr.spawn_one_object(
+            cone = self.scene_manager.object_manager.spawn_one_object(
                 "Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0], p[1] * 2 / 3
             )
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
@@ -82,7 +82,7 @@ class SidePassEnv(PGDriveEnv):
 
         for p in pos:
             p_ = (p[0] + 5, -p[1])
-            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("3R0_0_", "3R0_1_", 0), *p_)
+            cone = self.scene_manager.object_manager.spawn_one_object("Traffic Cone", lane, ("3R0_0_", "3R0_1_", 0), *p_)
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
 
@@ -93,13 +93,13 @@ class SidePassEnv(PGDriveEnv):
             )
             v.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
 
-        alert = self.scene_manager.objects_mgr.spawn_one_object(
+        alert = self.scene_manager.object_manager.spawn_one_object(
             "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -35, 0
         )
         alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
         self.scene_manager.traffic_mgr.vehicles.append(alert)
 
-        alert = self.scene_manager.objects_mgr.spawn_one_object(
+        alert = self.scene_manager.object_manager.spawn_one_object(
             "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -60, 0
         )
         alert.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
@@ -114,7 +114,7 @@ class SidePassEnv(PGDriveEnv):
 
         for p in pos:
             p_ = (p[0] + 5, p[1] * 3.5 / 3)
-            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("4C0_0_", "4C0_1_", 2), *p_)
+            cone = self.scene_manager.object_manager.spawn_one_object("Traffic Cone", lane, ("4C0_0_", "4C0_1_", 2), *p_)
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
 
@@ -131,7 +131,7 @@ class SidePassEnv(PGDriveEnv):
 
         for p in pos:
             p_ = (p[0] + 60, -p[1] * 3.5 / 3)
-            cone = self.scene_manager.objects_mgr.spawn_one_object("Traffic Cone", lane, ("4C0_1_", "5R0_0_", 0), *p_)
+            cone = self.scene_manager.object_manager.spawn_one_object("Traffic Cone", lane, ("4C0_1_", "5R0_0_", 0), *p_)
             cone.attach_to_pg_world(self.pg_world.pbr_worldNP, self.pg_world.physics_world)
             self.scene_manager.traffic_mgr.vehicles.append(cone)
 

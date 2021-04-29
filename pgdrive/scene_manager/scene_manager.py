@@ -39,7 +39,7 @@ class SceneManager:
         self.pg_world = pg_world
 
         self.traffic_mgr = self._get_traffic_manager(traffic_config)
-        self.objects_mgr = self._get_object_manager()
+        self.object_manager = self._get_object_manager()
 
         # common variable
         self.__target_vehicles = None
@@ -73,7 +73,7 @@ class SceneManager:
         self.map = map
 
         self.traffic_mgr.reset(pg_world, map, target_vehicles, traffic_density)
-        self.objects_mgr.reset(pg_world, map, accident_prob)
+        self.object_manager.reset(pg_world, map, accident_prob)
         if self.detector_mask is not None:
             self.detector_mask.clear()
 
@@ -86,7 +86,7 @@ class SceneManager:
 
         if episode_data is None:
             # FIXME
-            self.objects_mgr.generate(self, pg_world)
+            self.object_manager.generate(self, pg_world)
             self.traffic_mgr.generate(
                 pg_world=pg_world,
                 map=self.map,
@@ -181,7 +181,7 @@ class SceneManager:
                     self.traffic_mgr.traffic_vehicles, poses, self.pg_world, self.pg_world.world_config["max_distance"]
                 )
                 PGLOD.cull_distant_objects(
-                    self.objects_mgr._spawned_objects, poses, self.pg_world, self.pg_world.world_config["max_distance"]
+                    self.object_manager._spawned_objects, poses, self.pg_world, self.pg_world.world_config["max_distance"]
                 )
 
         return step_infos
@@ -193,16 +193,16 @@ class SceneManager:
             # assert b.issubset(a)  # This may only happen during episode replays!
             is_target_vehicle_dict = {
                 v_obj.name: self.traffic_mgr.is_target_vehicle(v_obj)
-                for v_obj in self.traffic_mgr.vehicles + self.objects_mgr.objects
+                for v_obj in self.traffic_mgr.vehicles + self.object_manager.objects
             }
             self.detector_mask.update_mask(
                 position_dict={
                     v_obj.name: v_obj.position
-                    for v_obj in self.traffic_mgr.vehicles + self.objects_mgr.objects
+                    for v_obj in self.traffic_mgr.vehicles + self.object_manager.objects
                 },
                 heading_dict={
                     v_obj.name: v_obj.heading_theta
-                    for v_obj in self.traffic_mgr.vehicles + self.objects_mgr.objects
+                    for v_obj in self.traffic_mgr.vehicles + self.object_manager.objects
                 },
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
@@ -229,8 +229,8 @@ class SceneManager:
         self.traffic_mgr.destroy(pg_world)
         self.traffic_mgr = None
 
-        self.objects_mgr.destroy(pg_world)
-        self.objects_mgr = None
+        self.object_manager.destroy(pg_world)
+        self.object_manager = None
 
         self.map = None
         if self.record_system is not None:
