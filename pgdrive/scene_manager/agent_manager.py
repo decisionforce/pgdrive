@@ -1,9 +1,10 @@
 import copy
 import logging
-# from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from typing import Dict
+from typing import Dict, List
 
 from gym.spaces import Box
+
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 
 
 class AgentManager:
@@ -54,6 +55,9 @@ class AgentManager:
         self.__agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
         self.__object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
 
+    def _get_vehicles(self, pg_world, config_dict):
+        return {key: BaseVehicle(pg_world, v_config) for key, v_config in config_dict.items()}
+
     def init_space(self, init_observation_space, init_action_space):
         """
         For getting env.observation_space/action_space before making vehicles
@@ -66,10 +70,11 @@ class AgentManager:
         self.__init_action_spaces = init_action_space
         self.action_spaces = copy.copy(init_action_space)
 
-    def init(self, init_vehicles: Dict):
+    def init(self, pg_world, config_dict: Dict):
         """
         Agent manager is really initialized after the BaseVehicle Instances are created
         """
+        init_vehicles = self._get_vehicles(pg_world=pg_world, config_dict=config_dict)
         vehicles_created = set(init_vehicles.keys())
         vehicles_in_config = set(self.__init_observations.keys())
         assert vehicles_created == vehicles_in_config, "{} not defined in target vehicles config".format(
@@ -99,6 +104,9 @@ class AgentManager:
             action_space = self.__init_action_spaces[agent_id]
             self.action_spaces[vehicle.name] = action_space
             assert isinstance(action_space, Box)
+
+    def append(self, vehicles: List):
+        pass
 
     def reset(self):
         self.__agents_finished_this_frame = dict()

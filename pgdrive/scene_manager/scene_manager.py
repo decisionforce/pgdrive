@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple, Optional, Dict, AnyStr, Union
+from typing import Optional, Dict, AnyStr, Union
 
 import numpy as np
 from pgdrive.scene_creator.map import Map
@@ -12,9 +12,6 @@ from pgdrive.utils import PGConfig
 from pgdrive.world.pg_world import PGWorld
 
 logger = logging.getLogger(__name__)
-
-LaneIndex = Tuple[str, str, int]
-Route = List[LaneIndex]
 
 
 class SceneManager:

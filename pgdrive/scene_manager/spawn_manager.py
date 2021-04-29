@@ -135,9 +135,13 @@ class SpawnManager:
 
         num_agents = self.num_agents if self.num_agents is not None else len(self.target_vehicle_configs)
         assert len(self.target_vehicle_configs) > 0
-        target_agents = get_np_random(seed).choice(
-            [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
-        )
+
+        if num_agents == -1:  # Infinite number of agents
+            target_agents = list(range(len(self.target_vehicle_configs)))
+        else:
+            target_agents = get_np_random(seed).choice(
+                [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
+            )
 
         # for rllib compatibility
         ret = {}

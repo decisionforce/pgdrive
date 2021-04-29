@@ -3,10 +3,11 @@ from collections import deque
 from typing import Union, List
 
 import numpy as np
+
 import pgdrive.utils.math_utils as utils
+from pgdrive.constants import LaneIndex
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.object.traffic_object import Object
-from pgdrive.scene_manager.scene_manager import LaneIndex
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random, random_string, distance_greater, norm
 
@@ -30,14 +31,15 @@ class Vehicle:
     """ Range for random initial speeds [m/s] """
     MAX_SPEED = 40.
     """ Maximum reachable speed [m/s] """
+
     def __init__(
-        self,
-        traffic_mgr: TrafficManager,
-        position: List,
-        heading: float = 0,
-        speed: float = 0,
-        np_random: np.random.RandomState = None,
-        name: str = None
+            self,
+            traffic_mgr: TrafficManager,
+            position: List,
+            heading: float = 0,
+            speed: float = 0,
+            np_random: np.random.RandomState = None,
+            name: str = None
     ):
         self.name = random_string() if name is None else name
         self.traffic_mgr = traffic_mgr
@@ -83,7 +85,8 @@ class Vehicle:
 
     @classmethod
     def create_random(
-        cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
+            cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None,
+            random_seed=None
     ):
         """
         Create a random vehicle on the road.
@@ -238,7 +241,7 @@ class Vehicle:
         if (self.destination != self.position).any():
             return (self.destination - self.position) / norm(*(self.destination - self.position))
         else:
-            return np.zeros((2, ))
+            return np.zeros((2,))
 
     @property
     def on_road(self) -> bool:

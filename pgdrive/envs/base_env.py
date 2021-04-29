@@ -6,6 +6,7 @@ from typing import Union, Dict, AnyStr, Optional, Tuple
 import gym
 import numpy as np
 from panda3d.core import PNMImage
+
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -194,13 +195,13 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager = self._get_scene_manager()
 
         # init vehicle
-        self.agent_manager.init(self._get_vehicles())
+        self.agent_manager.init(pg_world=self.pg_world, config_dict=self._get_target_vehicle_config())
 
         # other optional initialization
         self._after_lazy_init()
 
-    def _get_vehicles(self):
-        return {self.DEFAULT_AGENT: BaseVehicle(self.pg_world, self.config["vehicle_config"])}
+    def _get_target_vehicle_config(self):
+        return {self.DEFAULT_AGENT: self.config["vehicle_config"]}
 
     def _after_lazy_init(self):
         pass
