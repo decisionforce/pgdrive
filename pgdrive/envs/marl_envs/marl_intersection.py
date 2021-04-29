@@ -12,8 +12,8 @@ from pgdrive.utils import get_np_random, norm, PGConfig
 
 MAIntersectionConfig = dict(
     map_config=dict(exit_length=60, lane_num=2),
-    top_down_camera_initial_x=95,
-    top_down_camera_initial_y=15,
+    top_down_camera_initial_x=80,
+    top_down_camera_initial_y=0,
     top_down_camera_initial_z=120
 )
 
