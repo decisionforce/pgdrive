@@ -1,4 +1,5 @@
 from pgdrive import ActionRepeat
+from pgdrive.constants import TerminationState
 
 
 def _test_action_repeat(config):
