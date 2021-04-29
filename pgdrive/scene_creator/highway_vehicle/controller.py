@@ -31,15 +31,15 @@ class ControlledVehicle(Vehicle):
     DELTA_SPEED = 5  # [m/s]
 
     def __init__(
-            self,
-            road: TrafficManager,
-            position: List,
-            heading: float = 0,
-            speed: float = 0,
-            target_lane_index: LaneIndex = None,
-            target_speed: float = None,
-            route: Route = None,
-            np_random: np.random.RandomState = None,
+        self,
+        road: TrafficManager,
+        position: List,
+        heading: float = 0,
+        speed: float = 0,
+        target_lane_index: LaneIndex = None,
+        target_speed: float = None,
+        route: Route = None,
+        np_random: np.random.RandomState = None,
     ):
         super().__init__(road, position, heading, speed, np_random=np_random)
         self.target_lane_index = target_lane_index or self.lane_index
@@ -216,7 +216,7 @@ class ControlledVehicle(Vehicle):
             zip(
                 *[
                     self.traffic_mgr.map.road_network.
-                        position_heading_along_route(route, coordinates[0] + self.speed * t, 0) for t in times
+                    position_heading_along_route(route, coordinates[0] + self.speed * t, 0) for t in times
                 ]
             )
         )

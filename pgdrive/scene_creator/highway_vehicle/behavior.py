@@ -45,17 +45,17 @@ class IDMVehicle(ControlledVehicle):
     LANE_CHANGE_DELAY = 1.0  # [s]
 
     def __init__(
-            self,
-            traffic_mgr: TrafficManager,
-            position: List,
-            heading: float = 0,
-            speed: float = 0,
-            target_lane_index: int = None,
-            target_speed: float = None,
-            route: Route = None,
-            enable_lane_change: bool = True,
-            timer: float = None,
-            np_random: np.random.RandomState = None,
+        self,
+        traffic_mgr: TrafficManager,
+        position: List,
+        heading: float = 0,
+        speed: float = 0,
+        target_lane_index: int = None,
+        target_speed: float = None,
+        route: Route = None,
+        enable_lane_change: bool = True,
+        timer: float = None,
+        np_random: np.random.RandomState = None,
     ):
         super().__init__(
             traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
@@ -132,7 +132,7 @@ class IDMVehicle(ControlledVehicle):
         super().step(dt)
 
     def acceleration(
-            self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+        self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -195,7 +195,7 @@ class IDMVehicle(ControlledVehicle):
         tau = self.TIME_WANTED
         d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.LENGTH / 2 - d0, 0)
         v1_0 = front_vehicle.speed
-        delta = 4 * (a0 * a1 * tau) ** 2 + 8 * a0 * (a1 ** 2) * d + 4 * a0 * a1 * v1_0 ** 2
+        delta = 4 * (a0 * a1 * tau)**2 + 8 * a0 * (a1**2) * d + 4 * a0 * a1 * v1_0**2
         v_max = -a0 * tau + np.sqrt(delta) / (2 * a1)
 
         # Speed control
@@ -279,7 +279,7 @@ class IDMVehicle(ControlledVehicle):
             old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (
-                    new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
+                new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
             )
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
                 return False
@@ -325,18 +325,18 @@ class LinearVehicle(IDMVehicle):
     TIME_WANTED = 2.5
 
     def __init__(
-            self,
-            traffic_mgr: TrafficManager,
-            position: List,
-            heading: float = 0,
-            speed: float = 0,
-            target_lane_index: int = None,
-            target_speed: float = None,
-            route: Route = None,
-            enable_lane_change: bool = True,
-            timer: float = None,
-            data: dict = None,
-            np_random=None
+        self,
+        traffic_mgr: TrafficManager,
+        position: List,
+        heading: float = 0,
+        speed: float = 0,
+        target_lane_index: int = None,
+        target_speed: float = None,
+        route: Route = None,
+        enable_lane_change: bool = True,
+        timer: float = None,
+        data: dict = None,
+        np_random=None
     ):
         super().__init__(
             traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, enable_lane_change, timer,
@@ -350,12 +350,12 @@ class LinearVehicle(IDMVehicle):
     def randomize_behavior(self):
         ua = self.traffic_mgr.np_random.uniform(size=np.shape(self.ACCELERATION_PARAMETERS))
         self.ACCELERATION_PARAMETERS = self.ACCELERATION_RANGE[
-                                           0] + ua * (self.ACCELERATION_RANGE[1] - self.ACCELERATION_RANGE[0])
+            0] + ua * (self.ACCELERATION_RANGE[1] - self.ACCELERATION_RANGE[0])
         ub = self.traffic_mgr.np_random.uniform(size=np.shape(self.STEERING_PARAMETERS))
         self.STEERING_PARAMETERS = self.STEERING_RANGE[0] + ub * (self.STEERING_RANGE[1] - self.STEERING_RANGE[0])
 
     def acceleration(
-            self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+        self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
     ) -> float:
         """
         Compute an acceleration command with a Linear Model.
@@ -381,10 +381,10 @@ class LinearVehicle(IDMVehicle):
         )
 
     def acceleration_features(
-            self,
-            ego_vehicle: ControlledVehicle,
-            front_vehicle: Vehicle = None,
-            rear_vehicle: Vehicle = None
+        self,
+        ego_vehicle: ControlledVehicle,
+        front_vehicle: Vehicle = None,
+        rear_vehicle: Vehicle = None
     ) -> np.ndarray:
         vt, dv, dp = 0, 0, 0
         if ego_vehicle:
@@ -421,7 +421,7 @@ class LinearVehicle(IDMVehicle):
         features = np.array(
             [
                 utils.wrap_to_pi(lane_future_heading - self.heading) * self.LENGTH / utils.not_zero(self.speed),
-                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed) ** 2)
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
             ]
         )
         return features
