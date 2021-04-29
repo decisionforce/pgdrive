@@ -81,7 +81,7 @@ class SceneManager:
             self.traffic_manager.generate(
                 pg_world=pg_world,
                 map=self.map,
-                target_vehicles=self.agent_manager.active_agents,
+                target_vehicles=self.agent_manager.active_objects,
                 traffic_density=traffic_density
             )
         else:
