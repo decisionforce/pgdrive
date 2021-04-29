@@ -108,13 +108,13 @@ class BasePGDriveEnv(gym.Env):
         assert isinstance(self.num_agents, int) and self.num_agents > 0
 
         # observation and action space
-        self._agent_manager = AgentManager(
+        self.agent_manager = AgentManager(
             init_observations=self._get_observations(),
             never_allow_respawn=not self.config["allow_respawn"],
             debug=self.config["debug"],
             delay_done=self.config["delay_done"]
         )
-        self._agent_manager.init_space(
+        self.agent_manager.init_space(
             init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
         )
 
@@ -168,8 +168,8 @@ class BasePGDriveEnv(gym.Env):
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
             self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"],
-            self._agent_manager.object_to_agent, self._agent_manager.agent_to_object,
-            self._agent_manager.meta_active_objects
+            self.agent_manager.object_to_agent, self.agent_manager.agent_to_object,
+            self.agent_manager.meta_active_objects
         )
         return manager
 
@@ -189,7 +189,7 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager = self._get_scene_manager()
 
         # init vehicle
-        self._agent_manager.init(self._get_vehicles())
+        self.agent_manager.init(self._get_vehicles())
 
         # other optional initialization
         self._after_lazy_init()
@@ -286,7 +286,7 @@ class BasePGDriveEnv(gym.Env):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pg_world.clear_world()
         self._update_map(episode_data, force_seed)
-        self._agent_manager.reset()
+        self.agent_manager.reset()
 
         self._reset_agents()
 
@@ -298,7 +298,7 @@ class BasePGDriveEnv(gym.Env):
         # generate new traffic according to the map
         self.scene_manager.reset(
             self.current_map,
-            self._agent_manager.get_vehicle_list(),
+            self.agent_manager.get_vehicle_list(),
             self.config["traffic_density"],
             self.config["accident_prob"],
             episode_data=episode_data
@@ -346,8 +346,8 @@ class BasePGDriveEnv(gym.Env):
         self.current_map = None
         del self.restored_maps
         self.restored_maps = dict()
-        self._agent_manager.destroy()
-        # self._agent_manager=None don't set to None ! since sometimes we need close() then reset()
+        self.agent_manager.destroy()
+        # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
 
     def force_close(self):
         print("Closing environment ... Please wait")
@@ -401,7 +401,7 @@ class BasePGDriveEnv(gym.Env):
         Return observations of active and controllable vehicles
         :return: Dict
         """
-        return self._agent_manager.get_observations()
+        return self.agent_manager.get_observations()
 
     @property
     def observation_space(self) -> gym.Space:
@@ -409,7 +409,7 @@ class BasePGDriveEnv(gym.Env):
         Return observation spaces of active and controllable vehicles
         :return: Dict
         """
-        ret = self._agent_manager.get_observation_spaces()
+        ret = self.agent_manager.get_observation_spaces()
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -421,7 +421,7 @@ class BasePGDriveEnv(gym.Env):
         Return observation spaces of active and controllable vehicles
         :return: Dict
         """
-        ret = self._agent_manager.get_action_spaces()
+        ret = self.agent_manager.get_action_spaces()
         if not self.is_multi_agent:
             return next(iter(ret.values()))
         else:
@@ -433,7 +433,7 @@ class BasePGDriveEnv(gym.Env):
         Return all active vehicles
         :return: Dict[agent_id:vehicle]
         """
-        return self._agent_manager.active_objects
+        return self.agent_manager.active_objects
 
     @property
     def pending_vehicles(self):
@@ -443,4 +443,4 @@ class BasePGDriveEnv(gym.Env):
         """
         if not self.is_multi_agent:
             raise ValueError("Pending agents is not available in single-agent env")
-        return self._agent_manager.pending_objects
+        return self.agent_manager.pending_objects

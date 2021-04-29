@@ -38,7 +38,7 @@ class SceneManager:
         # scene manager control all movements in pg_world
         self.pg_world = pg_world
 
-        self._agent_manager = agent_manager
+        self.agent_manager = agent_manager
         self._traffic_manager = self._get_traffic_manager(traffic_config)
         self._objects_manager = self._get_object_manager()
 
@@ -84,7 +84,7 @@ class SceneManager:
             self._traffic_manager.generate(
                 pg_world=pg_world,
                 map=self.map,
-                target_vehicles=self._agent_manager.get_active_objects(),
+                target_vehicles=self.agent_manager.get_active_objects(),
                 traffic_density=traffic_density
             )
 
