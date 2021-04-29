@@ -167,8 +167,11 @@ class BasePGDriveEnv(gym.Env):
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
-            pg_world=self.pg_world, traffic_config=traffic_config, record_episode=self.config["record_episode"],
-            cull_scene=self.config["cull_scene"], agent_manager=self.agent_manager
+            pg_world=self.pg_world,
+            traffic_config=traffic_config,
+            record_episode=self.config["record_episode"],
+            cull_scene=self.config["cull_scene"],
+            agent_manager=self.agent_manager
         )
         return manager
 
