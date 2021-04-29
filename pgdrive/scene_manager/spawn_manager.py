@@ -89,7 +89,7 @@ class SpawnManager:
         interval = self.exit_length / num_slots
         self._longitude_spawn_interval = interval
         if self.num_agents is not None:
-            assert self.num_agents > 0
+            assert self.num_agents > 0 or self.num_agents == -1
             assert self.num_agents <= self.lane_num * len(spawn_roads) * num_slots, (
                 "Too many agents! We only accepet {} agents, but you have {} agents!".format(
                     self.lane_num * len(spawn_roads) * num_slots, self.num_agents

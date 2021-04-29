@@ -109,14 +109,15 @@ class BasePGDriveEnv(gym.Env):
         self.is_multi_agent = self.config["is_multi_agent"]
         if not self.is_multi_agent:
             assert self.num_agents == 1
-        assert isinstance(self.num_agents, int) and self.num_agents > 0
+        assert isinstance(self.num_agents, int) and (self.num_agents > 0 or self.num_agents == -1)
 
         # observation and action space
         self.agent_manager = AgentManager(
             init_observations=self._get_observations(),
             never_allow_respawn=not self.config["allow_respawn"],
             debug=self.config["debug"],
-            delay_done=self.config["delay_done"]
+            delay_done=self.config["delay_done"],
+            infinite_agents=self.num_agents == -1
         )
         self.agent_manager.init_space(
             init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()

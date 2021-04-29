@@ -1,47 +1,27 @@
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
-from pgdrive.utils import setup_logger
-from pgdrive.constants import TerminationState
+
 
 def test_infinite_agents():
-    env = MultiAgentRoundaboutEnv({"num_agents": -1,"delay_done": 0})
-    o = env.reset()
+    env = MultiAgentRoundaboutEnv({"num_agents": -1, "delay_done": 0, "horizon": 50})
+    try:
+        o = env.reset()
+        max_num = old_num_of_vehicles = len(env.vehicles)
+        for i in range(1, 300):
+            o, r, d, info = env.step({k: [0, 1] for k in env.vehicles})
+            # print("Current active agents: ", len(env.vehicles),
+            #       ". Objects: ", len(env.agent_manager._object_to_agent))
+            max_num = max(len(env.vehicles), max_num)
+            # env.render(mode="top_down")
+            for kkk, iii in info.items():
+                if d[kkk]:
+                    assert iii["episode_length"] > 1
+            if d["__all__"]:
+                o = env.reset()
+                print("Finish {} steps.".format(i))
+    finally:
+        env.close()
+    assert max_num > old_num_of_vehicles
 
-    v_id_0 = "agent0"
-    v_id_1 = "agent1"
-    count = 2
-    tracks = []
-    done_count = 0
-    for i in range(1, 1000):
-        o, r, d, info = env.step({v_id_0: [-1, 1], v_id_1: [1, 1]})
-        assert set(o.keys()) == set(r.keys()) == set(info.keys())
-        assert set(o.keys()).union({"__all__"}) == set(d.keys())
-        tracks.append(d)
-        if d[v_id_0]:
-            assert info[v_id_0][TerminationState.OUT_OF_ROAD]
-            assert info[v_id_0]["cost"] == out_of_road_cost
-            assert r[v_id_0] == -out_of_road_penalty
-            v_id_0 = "agent{}".format(count)
-            count += 1
-            done_count += 1
-        if d[v_id_1]:
-            assert info[v_id_1][TerminationState.OUT_OF_ROAD]
-            assert info[v_id_1]["cost"] == out_of_road_cost
-            assert r[v_id_1] == -out_of_road_penalty
-            v_id_1 = "agent{}".format(count)
-            count += 1
-            done_count += 1
-        if all(d.values()):
-            raise ValueError()
-        if i % 100 == 0:  # Horizon
-            v_id_0 = "agent0"
-            v_id_1 = "agent1"
-            count = 2
-            o = env.reset()
-            assert set(o.keys()) == {"agent0", "agent1"}
-            assert set(env.observations.keys()) == {"agent0", "agent1"}
-            assert set(env.action_space.spaces.keys()) == {"agent0", "agent1"}
-            assert set(env.config.target_vehicle_configs.keys()) == {"agent0", "agent1"}
-            assert set(env.vehicles.keys()) == {"agent0", "agent1"}
-    env.close()
-    assert done_count > 0
-    print("Finish {} dones.".format(done_count))
+
+if __name__ == '__main__':
+    test_infinite_agents()
