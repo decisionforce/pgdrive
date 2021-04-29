@@ -181,7 +181,8 @@ class SceneManager:
                     self.traffic_mgr.traffic_vehicles, poses, self.pg_world, self.pg_world.world_config["max_distance"]
                 )
                 PGLOD.cull_distant_objects(
-                    self.object_manager._spawned_objects, poses, self.pg_world, self.pg_world.world_config["max_distance"]
+                    self.object_manager._spawned_objects, poses, self.pg_world,
+                    self.pg_world.world_config["max_distance"]
                 )
 
         return step_infos
