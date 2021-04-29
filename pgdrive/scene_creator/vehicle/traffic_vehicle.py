@@ -77,13 +77,13 @@ class PGTrafficVehicle(DynamicElement):
         self.step(1e-1)
         # self.carNP.setQuat(LQuaternionf(math.cos(-1 * np.pi / 4), 0, 0, math.sin(-1 * np.pi / 4)))
 
-    def prepare_step(self, scene_mgr) -> None:
+    def prepare_step(self, scene_manager) -> None:
         """
         Determine the action according to the elements in scene
-        :param scene_mgr: scene
+        :param scene_manager: scene
         :return: None
         """
-        self.vehicle_node.kinematic_model.act(scene_mgr=scene_mgr)
+        self.vehicle_node.kinematic_model.act(scene_manager=scene_manager)
 
     def step(self, dt):
         self.vehicle_node.kinematic_model.step(dt)

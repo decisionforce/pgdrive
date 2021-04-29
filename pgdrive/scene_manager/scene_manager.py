@@ -86,7 +86,7 @@ class SceneManager:
             self.detector_mask = None
 
         # if pg_world.highway_render is not None:
-        #     pg_world.highway_render.set_scene_mgr(self)
+        #     pg_world.highway_render.set_scene_manager(self)
         if self.record_episode:
             if episode_data is None:
                 self.record_system = PGRecorder(map, self.traffic_manager.get_global_init_states())
