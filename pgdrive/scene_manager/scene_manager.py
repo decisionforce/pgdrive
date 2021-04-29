@@ -56,15 +56,14 @@ class SceneManager:
     def _get_object_manager(self, object_config=None):
         return ObjectManager()
 
-    def reset(self, map: Map, target_vehicles: List, traffic_density: float, accident_prob: float, episode_data=None):
+    def reset(self, map: Map, traffic_density: float, accident_prob: float, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
         pg_world = self.pg_world
-        assert isinstance(target_vehicles, list)
         self.map = map
 
-        self.traffic_manager.reset(pg_world, map, target_vehicles, traffic_density)
+        self.traffic_manager.reset(pg_world, map, self.agent_manager.get_vehicle_list(), traffic_density)
         self.object_manager.reset(pg_world, map, accident_prob)
         if self.detector_mask is not None:
             self.detector_mask.clear()
@@ -139,7 +138,7 @@ class SceneManager:
         """
 
         if self.replay_system is not None:
-            self.for_each_target_vehicle(lambda v: self.replay_system.replay_frame(v, self.pg_world))
+            self.agent_manager.for_each_active_agents(lambda v: self.replay_system.replay_frame(v, self.pg_world))
             # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         else:
             self.traffic_manager.update_state(self, self.pg_world)
@@ -187,18 +186,10 @@ class SceneManager:
                 },
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
-        step_infos = self.for_each_target_vehicle(
+        step_infos = self.agent_manager.for_each_active_agents(
             lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None)
         )
         return step_infos
-
-    def for_each_target_vehicle(self, func):
-        """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""
-        assert len(self.agent_manager.active_agents) > 0
-        ret = dict()
-        for k, v in self.agent_manager.active_agents.items():
-            ret[k] = func(v)
-        return ret
 
     def dump_episode(self) -> None:
         """Dump the data of an episode."""

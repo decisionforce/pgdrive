@@ -309,3 +309,13 @@ class AgentManager:
     @property
     def allow_respawn(self):
         return self.has_pending_objects() and self._allow_respawn
+
+    def for_each_active_agents(self, func, *args, **kwargs):
+        """
+        This func is a function that take each vehicle as the first argument and *arg and **kwargs as others.
+        """
+        assert len(self.active_agents) > 0, "Not enough vehicles exist!"
+        ret = dict()
+        for k, v in self.active_agents.items():
+            ret[k] = func(v, *args, **kwargs)
+        return ret

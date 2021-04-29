@@ -303,7 +303,6 @@ class BasePGDriveEnv(gym.Env):
         # generate new traffic according to the map
         self.scene_manager.reset(
             self.current_map,
-            self.agent_manager.get_vehicle_list(),
             self.config["traffic_density"],
             self.config["accident_prob"],
             episode_data=episode_data
@@ -375,14 +374,7 @@ class BasePGDriveEnv(gym.Env):
             sensor.save_image("{}.jpg".format(name))
 
     def for_each_vehicle(self, func, *args, **kwargs):
-        """
-        func is a function that take each vehicle as the first argument and *arg and **kwargs as others.
-        """
-        assert len(self.vehicles) > 0, "No vehicles exist!"
-        ret = dict()
-        for k, v in self.vehicles.items():
-            ret[k] = func(v, *args, **kwargs)
-        return ret
+        return self.agent_manager.for_each_active_agents(func, *args, **kwargs)
 
     @property
     def vehicle(self):
