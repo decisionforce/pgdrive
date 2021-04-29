@@ -1,5 +1,6 @@
 import logging
 
+from pgdrive.constants import TerminationState
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.road.road import Road
@@ -17,6 +18,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # frequently done might not be a good idea.
     crash_done=False,
     out_of_road_done=True,
+    delay_done=25,  # Wait for 5 seconds in real world.
 
     # Whether the vehicle can rejoin the episode
     allow_respawn=True,
@@ -31,9 +33,12 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     target_vehicle_configs=dict(),
 
     # ===== New Reward Setting =====
-    out_of_road_penalty=5.0,
-    crash_vehicle_penalty=5.0,
-    crash_object_penalty=5.0,
+    out_of_road_penalty=10,
+    crash_vehicle_penalty=10,
+    crash_object_penalty=10,
+    crash_vehicle_cost=1,
+    crash_object_cost=1,
+    out_of_road_cost=0,  # Do not count out of road into cost!
 
     # ===== Environmental Setting =====
     top_down_camera_initial_x=0,
@@ -106,15 +111,17 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def done_function(self, vehicle_id):
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
-        if done_info["crash"] and (not self.config["crash_done"]):
-            assert done_info["crash_vehicle"] or done_info["arrive_dest"] or done_info["out_of_road"]
-            if not (done_info["arrive_dest"] or done_info["out_of_road"]):
+        if done_info[TerminationState.CRASH] and (not self.config["crash_done"]):
+            assert done_info[TerminationState.CRASH_VEHICLE] or \
+                   done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]
+            if not (done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]):
                 # Does not revert done if high-priority termination happens!
                 done = False
 
-        if done_info["out_of_road"] and (not self.config["out_of_road_done"]):
-            assert done_info["crash_vehicle"] or done_info["arrive_dest"] or done_info["out_of_road"]
-            if not done_info["arrive_dest"]:
+        if done_info[TerminationState.OUT_OF_ROAD] and (not self.config["out_of_road_done"]):
+            assert done_info[TerminationState.CRASH_VEHICLE] or \
+                   done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]
+            if not done_info[TerminationState.SUCCESS]:
                 done = False
 
         return done, done_info
@@ -163,12 +170,14 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for v_id, v_info in info.items():
             if v_info.get("episode_length", 0) >= self.config["horizon"]:
                 if dones[v_id] is not None:
-                    info[v_id]["max_step"] = True
+                    info[v_id][TerminationState.MAX_STEP] = True
                     dones[v_id] = True
                     self.dones[v_id] = True
         for dead_vehicle_id, done in dones.items():
             if done:
-                self._agent_manager.finish(dead_vehicle_id)
+                self._agent_manager.finish(
+                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False)
+                )
                 self._update_camera_after_finish(dead_vehicle_id)
         return obs, reward, dones, info
 
@@ -225,7 +234,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         This function can force a given vehicle to respawn!
         """
-        self._agent_manager.finish(agent_name)
+        self._agent_manager.finish(agent_name, ignore_delay_done=True)
         self._update_camera_after_finish(agent_name)
         new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
         return new_id, new_obs
