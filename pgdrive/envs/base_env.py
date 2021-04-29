@@ -302,10 +302,7 @@ class BasePGDriveEnv(gym.Env):
 
         # generate new traffic according to the map
         self.scene_manager.reset(
-            self.current_map,
-            self.config["traffic_density"],
-            self.config["accident_prob"],
-            episode_data=episode_data
+            self.current_map, self.config["traffic_density"], self.config["accident_prob"], episode_data=episode_data
         )
 
         if self.main_camera is not None:
