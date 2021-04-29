@@ -38,6 +38,8 @@ class InterSection(Block):
     ANGLE = 90  # may support other angle in the future
     EXIT_PART_LENGTH = 30
 
+    enable_u_turn = False
+
     # LEFT_TURN_NUM = 1 now it is useless
 
     def _try_plug_into_previous_block(self) -> bool:
@@ -88,8 +90,9 @@ class InterSection(Block):
         self._create_left_turn(radius, lane_num, attach_left_lane, attach_road, intersect_nodes, part_idx)
 
         # u-turn
-        adverse_road = -attach_road
-        self._create_u_turn(attach_road, part_idx)
+        if self.enable_u_turn:
+            adverse_road = -attach_road
+            self._create_u_turn(attach_road, part_idx)
 
         # go forward part
         lanes_on_road = copy.deepcopy(attach_lanes)
@@ -185,7 +188,7 @@ class InterSection(Block):
 
     def _create_u_turn(self, attach_road, part_idx):
         # set to CONTINUOUS to debug
-        line_type = LineType.CONTINUOUS
+        line_type = LineType.NONE
         lanes = attach_road.get_lanes(self.block_network) if part_idx != 0 else self.positive_lanes
         attach_left_lane = lanes[0]
         lane_num = len(lanes)
@@ -206,3 +209,6 @@ class InterSection(Block):
             side_lane_line_type=line_type,
             inner_lane_line_type=line_type
         )
+
+    def add_u_turn(self, enable_u_turn: bool):
+        self.enable_u_turn = enable_u_turn

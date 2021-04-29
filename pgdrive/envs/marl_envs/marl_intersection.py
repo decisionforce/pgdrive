@@ -40,6 +40,7 @@ class MAIntersectionMap(PGMap):
         # Build Intersection
         InterSection.EXIT_PART_LENGTH = length
         last_block = InterSection(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
+        last_block.add_u_turn(True)
         last_block.construct_block(
             parent_node_path,
             pg_physics_world,
@@ -335,7 +336,7 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
-    # _vis_debug_respawn()
+    # _vis()
+    _vis_debug_respawn()
     # _profiwdle()
     # _long_run()
