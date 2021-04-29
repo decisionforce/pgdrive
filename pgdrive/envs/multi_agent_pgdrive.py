@@ -172,7 +172,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                     self.dones[v_id] = True
         for dead_vehicle_id, done in dones.items():
             if done:
-                self._agent_manager.finish(dead_vehicle_id)
+                self._agent_manager.finish(
+                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get("arrive_dest", False)
+                )
                 self._update_camera_after_finish(dead_vehicle_id)
         return obs, reward, dones, info
 
@@ -229,7 +231,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         """
         This function can force a given vehicle to respawn!
         """
-        self._agent_manager.finish(agent_name)
+        self._agent_manager.finish(agent_name, ignore_delay_done=True)
         self._update_camera_after_finish(agent_name)
         new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
         return new_id, new_obs

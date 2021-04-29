@@ -122,7 +122,10 @@ class AgentManager:
         self.__pending_objects = {}
         self._allow_respawn = True if not self.never_allow_respawn else False
 
-    def finish(self, agent_name):
+    def finish(self, agent_name, ignore_delay_done=False):
+        """
+        ignore_delay_done: Whether to ignore the delay done. This is not required when the agent success the episode!
+        """
         vehicle_name = self.__agent_to_object[agent_name]
         v = self.__active_objects.pop(vehicle_name)
         if self._delay_done > 0:
