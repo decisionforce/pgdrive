@@ -189,10 +189,10 @@ class InterSection(Block):
         lanes = attach_road.get_lanes(self.block_network) if part_idx != 0 else self.positive_lanes
         attach_left_lane = lanes[0]
         lane_num = len(lanes)
-        left_turn_radius = self.lane_width/2
+        left_turn_radius = self.lane_width / 2
         left_bend, _ = create_bend_straight(
-            attach_left_lane, 0.1, left_turn_radius, np.deg2rad(180), False,
-            attach_left_lane.width_at(0), (LineType.NONE, LineType.NONE)
+            attach_left_lane, 0.1, left_turn_radius, np.deg2rad(180), False, attach_left_lane.width_at(0),
+            (LineType.NONE, LineType.NONE)
         )
         left_road_start = (-attach_road).start_node
         CreateRoadFrom(
