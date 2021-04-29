@@ -128,7 +128,7 @@ class AgentManager:
         """
         vehicle_name = self.__agent_to_object[agent_name]
         v = self.__active_objects.pop(vehicle_name)
-        if self._delay_done > 0:
+        if (not ignore_delay_done) and (self._delay_done > 0):
             self._put_to_dying_queue(v, vehicle_name)
         else:
             # move to invisible place

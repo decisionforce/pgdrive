@@ -6,6 +6,7 @@ from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import distance_greater, norm
 from pgdrive.constants import TerminationState
 
+
 def _check_spaces_before_reset(env):
     a = set(env.config["target_vehicle_configs"].keys())
     b = set(env.observation_space.spaces.keys())

@@ -2,6 +2,7 @@ from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
 from pgdrive.utils import setup_logger
 from pgdrive.constants import TerminationState
 
+
 def test_respawn():
     out_of_road_cost = 5555
     out_of_road_penalty = 2222

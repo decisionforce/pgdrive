@@ -112,13 +112,15 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def done_function(self, vehicle_id):
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
         if done_info[TerminationState.CRASH] and (not self.config["crash_done"]):
-            assert done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]
+            assert done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.SUCCESS
+                                                                          ] or done_info[TerminationState.OUT_OF_ROAD]
             if not (done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]):
                 # Does not revert done if high-priority termination happens!
                 done = False
 
         if done_info[TerminationState.OUT_OF_ROAD] and (not self.config["out_of_road_done"]):
-            assert done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]
+            assert done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.SUCCESS
+                                                                          ] or done_info[TerminationState.OUT_OF_ROAD]
             if not done_info[TerminationState.SUCCESS]:
                 done = False
 

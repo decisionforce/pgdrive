@@ -8,8 +8,8 @@ def _test_action_repeat(config):
         for i in range(100):
             _, _, d, info = env.step(env.action_space.sample())
 
-            for k in ["simulation_time", "real_return", "action_repeat", "primitive_steps_count", TerminationState.MAX_STEP, "render",
-                      "trajectory"]:
+            for k in ["simulation_time", "real_return", "action_repeat", "primitive_steps_count",
+                      TerminationState.MAX_STEP, "render", "trajectory"]:
                 assert k in info
 
             assert len(info["trajectory"]) == info["action_repeat"]

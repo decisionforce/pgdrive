@@ -114,7 +114,8 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
         # for compatibility
         # crash almost equals to crashing with vehicles
-        done_info[TerminationState.CRASH] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        done_info[TerminationState.CRASH
+                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
