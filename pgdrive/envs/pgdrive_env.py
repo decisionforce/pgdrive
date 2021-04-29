@@ -516,7 +516,7 @@ class PGDriveEnv(BasePGDriveEnv):
         if self.main_camera is None:
             return
         self.main_camera.reset()
-        vehicles = list(self.agent_manager.active_objects.values())
+        vehicles = list(self.agent_manager.active_agents.values())
         if self.current_track_vehicle in vehicles:
             vehicles.remove(self.current_track_vehicle)
         if len(vehicles) == 0:

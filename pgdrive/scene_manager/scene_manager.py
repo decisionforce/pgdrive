@@ -1,9 +1,10 @@
 import logging
-from typing import List, Tuple, Optional, Dict, AnyStr, Union, Callable
+from typing import List, Tuple, Optional, Dict, AnyStr, Union
 
 import numpy as np
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_manager.PGLOD import PGLOD
+from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.object_manager import ObjectsManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
 from pgdrive.scene_manager.traffic_manager import TrafficManager
@@ -18,18 +19,14 @@ Route = List[LaneIndex]
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(
-        self,
-        config,
-        pg_world: PGWorld,
-        traffic_config: Union[Dict, "PGConfig"],
-        # traffic_mode=TrafficMode.Trigger,
-        # random_traffic: bool = False,
-        record_episode: bool,
-        cull_scene: bool,
-        object_to_agent: Callable,
-        agent_to_object: Callable,
-        get_active_objects: Callable
+            self,
+            pg_world: PGWorld,
+            traffic_config: Union[Dict, "PGConfig"],
+            record_episode: bool,
+            cull_scene: bool,
+            agent_manager: "AgentManager",
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -40,12 +37,9 @@ class SceneManager:
 
         self.traffic_manager = self._get_traffic_manager(traffic_config)
         self.object_manager = self._get_object_manager()
+        self.agent_manager = agent_manager  # Only a reference
 
         # common variable
-        self.__target_vehicles = None
-        self.get_active_vehicles = get_active_objects
-        self.object_to_agent: Callable = object_to_agent
-        self.agent_to_object: Callable = agent_to_object
         self.map = None
 
         # for recovering, they can not exist together
@@ -69,7 +63,7 @@ class SceneManager:
         """
         pg_world = self.pg_world
         assert isinstance(target_vehicles, list)
-        self.__target_vehicles = self.get_active_vehicles()
+        # self.__target_vehicles = self.get_active_vehicles()
         self.map = map
 
         self.traffic_manager.reset(pg_world, map, target_vehicles, traffic_density)
@@ -90,7 +84,7 @@ class SceneManager:
             self.traffic_manager.generate(
                 pg_world=pg_world,
                 map=self.map,
-                target_vehicles=self.__target_vehicles,
+                target_vehicles=self.agent_manager.active_agents,
                 traffic_density=traffic_density
             )
         else:
@@ -113,13 +107,12 @@ class SceneManager:
         :param target_actions: Dict[agent_id:action]
         :return:
         """
-        object_to_agent = self.object_to_agent
         step_infos = {}
         if self.replay_system is None:
             # not in replay mode
-            for k in self.__target_vehicles.keys():
-                a = target_actions[object_to_agent(k)]
-                step_infos[object_to_agent(k)] = self.__target_vehicles[k].prepare_step(a)
+            for k in self.agent_manager.active_agents.keys():
+                a = target_actions[k]
+                step_infos[k] = self.agent_manager.get_agent(k).prepare_step(a)
             self.traffic_manager.prepare_step(self)
         return step_infos
 
@@ -161,7 +154,7 @@ class SceneManager:
         step_infos = self.update_state_for_all_target_vehicles()
 
         # cull distant blocks
-        poses = [v.position for v in self.__target_vehicles.values()]
+        poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene:
             PGLOD.cull_distant_blocks(self.map.blocks, poses, self.pg_world, self.pg_world.world_config["max_distance"])
             # PGLOD.cull_distant_blocks(self.map.blocks, self.ego_vehicle.position, self.pg_world)
@@ -170,7 +163,8 @@ class SceneManager:
                 # TODO add objects to replay system and add new cull method
 
                 PGLOD.cull_distant_traffic_vehicles(
-                    self.traffic_manager.traffic_vehicles, poses, self.pg_world, self.pg_world.world_config["max_distance"]
+                    self.traffic_manager.traffic_vehicles, poses, self.pg_world,
+                    self.pg_world.world_config["max_distance"]
                 )
                 PGLOD.cull_distant_objects(
                     self.object_manager._spawned_objects, poses, self.pg_world,
@@ -181,9 +175,6 @@ class SceneManager:
 
     def update_state_for_all_target_vehicles(self):
         if self.detector_mask is not None:
-            # a = set([v.name for v in self.traffic_manager.vehicles])
-            # b = set([v.name for v in self.__target_vehicles.values()])
-            # assert b.issubset(a)  # This may only happen during episode replays!
             is_target_vehicle_dict = {
                 v_obj.name: self.traffic_manager.is_target_vehicle(v_obj)
                 for v_obj in self.traffic_manager.vehicles + self.object_manager.objects
@@ -206,10 +197,10 @@ class SceneManager:
 
     def for_each_target_vehicle(self, func):
         """Apply the func (a function take only the vehicle as argument) to each target vehicles and return a dict!"""
-        assert len(self.__target_vehicles) > 0
+        assert len(self.agent_manager.active_agents) > 0
         ret = dict()
-        for k, v in self.__target_vehicles.items():
-            ret[self.object_to_agent(k)] = func(v)
+        for k, v in self.agent_manager.active_agents.items():
+            ret[k] = func(v)
         return ret
 
     def dump_episode(self) -> None:
@@ -241,8 +232,8 @@ class SceneManager:
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 
     def is_target_vehicle(self, v):
-        return v in self.__target_vehicles.values()
+        return v in self.agent_manager.active_agents.values()
 
     @property
     def target_vehicles(self):
-        return {self.object_to_agent(k): v for k, v in self.__target_vehicles.items()}
+        return {k: v for k, v in self.agent_manager.active_agents.items()}

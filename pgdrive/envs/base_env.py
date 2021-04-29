@@ -167,9 +167,8 @@ class BasePGDriveEnv(gym.Env):
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
         manager = SceneManager(
-            self.config, self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"],
-            self.agent_manager.object_to_agent, self.agent_manager.agent_to_object,
-            self.agent_manager.meta_active_objects
+            pg_world=self.pg_world, traffic_config=traffic_config, record_episode=self.config["record_episode"],
+            cull_scene=self.config["cull_scene"], agent_manager=self.agent_manager
         )
         return manager
 
@@ -326,9 +325,10 @@ class BasePGDriveEnv(gym.Env):
                 self.main_camera = None
             self.pg_world.clear_world()
 
-            self.scene_manager.destroy(self.pg_world)
-            del self.scene_manager
-            self.scene_manager = None
+            if self.scene_manager is not None:
+                self.scene_manager.destroy(self.pg_world)
+                del self.scene_manager
+                self.scene_manager = None
 
             if self.vehicles:
                 self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
@@ -433,7 +433,7 @@ class BasePGDriveEnv(gym.Env):
         Return all active vehicles
         :return: Dict[agent_id:vehicle]
         """
-        return self.agent_manager.active_objects
+        return self.agent_manager.active_agents
 
     @property
     def pending_vehicles(self):
