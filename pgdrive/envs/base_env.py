@@ -23,7 +23,7 @@ BASE_DEFAULT_CONFIG = dict(
     environment_num=1,
 
     # ==== agents config =====
-    num_agents=1,
+    num_agents=1,  # Note that this can be set to >1 in MARL envs, or set to -1 for as many vehicles as possible.
     is_multi_agent=False,
     allow_respawn=False,
     delay_done=0,  # How many steps for the agent to stay static at the death place after done.
