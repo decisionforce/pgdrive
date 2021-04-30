@@ -197,9 +197,9 @@ class AgentManager:
 
     def _add_new_vehicle(self):
         agent_name = "newly_added{}".format(self.next_newly_added_agent_count)
-        next_config = self._init_config_dict[
-            "agent{}".format(((-self.next_newly_added_agent_count-1) % len(self._init_object_to_agent)))
-        ]
+        next_config = self._init_config_dict["agent{}".format(
+            ((-self.next_newly_added_agent_count - 1) % len(self._init_object_to_agent))
+        )]
         new_v = self._get_vehicles({agent_name: next_config})[agent_name]
         new_v_name = new_v.name
         self._newly_added_object_to_agent[new_v_name] = agent_name

@@ -90,7 +90,8 @@ class SpawnManager:
         interval = self.RESPAWN_REGION_LONGITUDE
         num_slots = int(floor(self.exit_length / interval))
         assert num_slots > 0, "The exist length {} should greater than minimal longitude interval {}.".format(
-            self.exit_length, interval)
+            self.exit_length, interval
+        )
         interval = self.exit_length / num_slots
         self._longitude_spawn_interval = interval
         if self.num_agents is not None:
@@ -114,7 +115,7 @@ class SpawnManager:
                     target_vehicle_configs.append(
                         PGConfig(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
