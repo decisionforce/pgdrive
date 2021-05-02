@@ -16,13 +16,14 @@ logger = logging.getLogger(__name__)
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
+
     def __init__(
-        self,
-        pg_world: PGWorld,
-        traffic_config: Union[Dict, "PGConfig"],
-        record_episode: bool,
-        cull_scene: bool,
-        agent_manager: "AgentManager",
+            self,
+            pg_world: PGWorld,
+            traffic_config: Union[Dict, "PGConfig"],
+            record_episode: bool,
+            cull_scene: bool,
+            agent_manager: "AgentManager",
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -48,7 +49,7 @@ class SceneManager:
         self.detector_mask = None
 
     def _get_traffic_manager(self, traffic_config):
-        return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
+        return TrafficManager(self, traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
     def _get_object_manager(self, object_config=None):
         return ObjectManager()
@@ -60,7 +61,7 @@ class SceneManager:
         pg_world = self.pg_world
         self.map = map
 
-        self.traffic_manager.reset(pg_world, map, self.agent_manager.get_vehicle_list(), traffic_density)
+        self.traffic_manager.reset(pg_world, map, traffic_density)
         self.object_manager.reset(pg_world, map, accident_prob)
         if self.detector_mask is not None:
             self.detector_mask.clear()
@@ -77,7 +78,6 @@ class SceneManager:
             self.traffic_manager.generate(
                 pg_world=pg_world,
                 map=self.map,
-                target_vehicles=self.agent_manager.active_objects,
                 traffic_density=traffic_density
             )
         else:
@@ -106,7 +106,7 @@ class SceneManager:
             for k in self.agent_manager.active_agents.keys():
                 a = target_actions[k]
                 step_infos[k] = self.agent_manager.get_agent(k).prepare_step(a)
-            self.traffic_manager.prepare_step(self)
+            self.traffic_manager.prepare_step()
         return step_infos
 
     def step(self, step_num: int = 1) -> None:
@@ -138,7 +138,7 @@ class SceneManager:
             self.agent_manager.for_each_active_agents(lambda v: self.replay_system.replay_frame(v, self.pg_world))
             # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
         else:
-            self.traffic_manager.update_state(self, self.pg_world)
+            self.traffic_manager.update_state()
 
         if self.record_system is not None:
             # didn't record while replay

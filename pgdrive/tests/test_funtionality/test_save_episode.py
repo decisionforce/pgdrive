@@ -13,7 +13,7 @@ class TestEnv(PGDriveEnv):
                 "environment_num": 1,
                 "traffic_density": 0.1,
                 "start_seed": 5,
-                "manual_control": vis,
+                # "manual_control": vis,
                 "use_render": vis,
                 "traffic_mode": TrafficMode.Hybrid,
                 "record_episode": save_episode,

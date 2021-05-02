@@ -16,7 +16,7 @@ class TestEnv(PGDriveEnv):
                 "start_seed": 5,
                 "pg_world_config": {
                     "onscreen_message": True,
-                    # "debug_physics_world": True,
+                    "debug_physics_world": True,
                     "pstats": True,
                     # "debug_static_world":True,
                 },
@@ -51,10 +51,6 @@ if __name__ == "__main__":
     env = TestEnv()
 
     o = env.reset()
-    print(env.pg_world.physics_world.report_bodies())
-    print("vehicle num", len(env.scene_manager.traffic_manager.vehicles))
-    current_road = env.vehicle.routing_localization.current_road
-    env.vehicle.routing_localization.set_route(current_road.start_node, (-current_road).end_node)
     for i in range(1, 100000):
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption
