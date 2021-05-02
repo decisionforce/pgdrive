@@ -16,14 +16,13 @@ logger = logging.getLogger(__name__)
 
 class SceneManager:
     """Manage all traffic vehicles, and all runtime elements (in the future)"""
-
     def __init__(
-            self,
-            pg_world: PGWorld,
-            traffic_config: Union[Dict, "PGConfig"],
-            record_episode: bool,
-            cull_scene: bool,
-            agent_manager: "AgentManager",
+        self,
+        pg_world: PGWorld,
+        traffic_config: Union[Dict, "PGConfig"],
+        record_episode: bool,
+        cull_scene: bool,
+        agent_manager: "AgentManager",
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -75,11 +74,7 @@ class SceneManager:
 
         if episode_data is None:
             self.object_manager.generate(self, pg_world)
-            self.traffic_manager.generate(
-                pg_world=pg_world,
-                map=self.map,
-                traffic_density=traffic_density
-            )
+            self.traffic_manager.generate(pg_world=pg_world, map=self.map, traffic_density=traffic_density)
         else:
             self.replay_system = PGReplayer(self.traffic_manager, map, episode_data, pg_world)
             logging.warning("You are replaying episodes! Delete detector mask!")
@@ -173,10 +168,14 @@ class SceneManager:
                 for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
             }
             self.detector_mask.update_mask(
-                position_dict={v_obj.name: v_obj.position
-                               for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles},
-                heading_dict={v_obj.name: v_obj.heading_theta
-                              for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles},
+                position_dict={
+                    v_obj.name: v_obj.position
+                    for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
+                },
+                heading_dict={
+                    v_obj.name: v_obj.heading_theta
+                    for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
+                },
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.agent_manager.for_each_active_agents(

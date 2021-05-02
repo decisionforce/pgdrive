@@ -26,7 +26,7 @@ class PGReplayer:
             car.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
         logging.debug("Recover {} Traffic Vehicles".format(len(self.restore_vehicles)))
 
-    def replay_frame(self,ego_vehicle, pg_world: PGWorld):
+    def replay_frame(self, ego_vehicle, pg_world: PGWorld):
         assert self.restore_episode_info is not None, "Not frame data in episode info"
         if len(self.restore_episode_info) == 0:
             return True
