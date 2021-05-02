@@ -15,7 +15,7 @@ class TestEnv(PGDriveEnv):
                 "start_seed": 5,
                 # "manual_control": vis,
                 "use_render": vis,
-                "traffic_mode": TrafficMode.Hybrid,
+                "traffic_mode": TrafficMode.Trigger,
                 "record_episode": save_episode,
                 "map_config": {
                     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,

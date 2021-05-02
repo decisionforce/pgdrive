@@ -170,13 +170,13 @@ class SceneManager:
         if self.detector_mask is not None:
             is_target_vehicle_dict = {
                 v_obj.name: self.agent_manager.is_active_object(v_obj.name)
-                for v_obj in self.get_interactive_objects()
+                for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
             }
             self.detector_mask.update_mask(
                 position_dict={v_obj.name: v_obj.position
-                               for v_obj in self.get_interactive_objects()},
+                               for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles},
                 heading_dict={v_obj.name: v_obj.heading_theta
-                              for v_obj in self.get_interactive_objects()},
+                              for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles},
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.agent_manager.for_each_active_agents(
