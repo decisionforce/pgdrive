@@ -16,7 +16,7 @@ def _evaluate(env_config, num_episode):
         action = expert(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
         # double  check lidar
-        lidar = [True if p==1.0 else False for p in env.vehicle.lidar.cloud_points]
+        lidar = [True if p == 1.0 else False for p in env.vehicle.lidar.cloud_points]
         if not all(lidar):
             lidar_success = True
         ep_reward += reward

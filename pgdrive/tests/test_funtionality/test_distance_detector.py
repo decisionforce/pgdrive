@@ -84,7 +84,7 @@ def test_lidar_with_mask(render=False):
         # for test
         env.agent_manager._pending_objects[another_v.name] = another_v
 
-        objs = vehicle.side_detector.get_detected_objects() +vehicle.lane_line_detector.get_detected_objects()
+        objs = vehicle.side_detector.get_detected_objects() + vehicle.lane_line_detector.get_detected_objects()
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
@@ -108,7 +108,7 @@ def test_lidar_with_mask(render=False):
     finally:
         env.close()
 
+
 if __name__ == "__main__":
     test_lidar_with_mask(render=False)
     test_original_lidar(render=False)
-
