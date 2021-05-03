@@ -17,6 +17,11 @@ MABottleneckConfig = dict(
     top_down_camera_initial_y=15,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
+    vehicle_config={"show_lidar": False,
+                    "show_side_detector": False,
+                    "show_lane_line_detector": False,
+                    "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
+                    "lane_line_detector": dict(num_lasers=2, distance=20)}  # laser num, distance
 )
 
 
@@ -60,7 +65,7 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
 
     @staticmethod
     def default_config() -> PGConfig:
-        MABottleneckConfig["map_config"]["lane_num"]=MABottleneckConfig["map_config"]["bottle_lane_num"]
+        MABottleneckConfig["map_config"]["lane_num"] = MABottleneckConfig["map_config"]["bottle_lane_num"]
         return MultiAgentPGDrive.default_config().update(MABottleneckConfig, allow_overwrite=True)
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
@@ -127,6 +132,7 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
         if self.config["cross_yellow_line_done"]:
             ret = ret or vehicle.on_yellow_continuous_line
         return ret
+
 
 def _draw():
     env = MultiAgentBottleneckEnv()
@@ -276,6 +282,8 @@ def _vis():
         }
         track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
         render_text["tack_v_reward"] = r[track_v]
+        render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
+        render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
         env.render(text=render_text)
         if d["__all__"]:
             print(
