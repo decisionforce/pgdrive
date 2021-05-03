@@ -211,7 +211,7 @@ class PGDriveEnv(BasePGDriveEnv):
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
         self.agent_manager.prepare_step()
         if self.config["manual_control"] and self.config["use_render"] \
-                and self.current_track_vehicle in self.agent_manager.get_vehicle_list():
+                and self.current_track_vehicle in self.agent_manager.get_vehicle_list() and not self.main_camera.is_bird_view_camera(self.pg_world):
             action = self.controller.process_input()
             if self.is_multi_agent:
                 actions[self.agent_manager.object_to_agent(self.current_track_vehicle.name)] = action
@@ -307,7 +307,7 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH
-                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
@@ -350,7 +350,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -615,6 +615,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
