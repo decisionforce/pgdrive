@@ -70,15 +70,15 @@ def _act(env, action):
 
 def test_ma_bottleneck_env():
     for env in [MultiAgentBottleneckEnv({"delay_done": 0, "num_agents": 1,
-                                           "vehicle_config": {"lidar": {"num_others": 8}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 8}}}),
                 MultiAgentBottleneckEnv({"num_agents": 1, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 0}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 0}}}),
                 MultiAgentBottleneckEnv({"num_agents": 4, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 8}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 8}}}),
                 MultiAgentBottleneckEnv({"num_agents": 4, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 0}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 0}}}),
                 MultiAgentBottleneckEnv({"num_agents": 8, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 0}}})]:
+                                         "vehicle_config": {"lidar": {"num_others": 0}}})]:
         try:
             _check_spaces_before_reset(env)
             obs = env.reset()
@@ -295,7 +295,7 @@ def test_ma_bottleneck_reward_done_alignment():
                     if ddd and kkk != "__all__" and not d["__all__"] and not i[kkk]["max_step"]:
                         if r[kkk] != -777:
                             raise ValueError
-                        assert r[kkk]==-777
+                        assert r[kkk] == -777
                         assert i[kkk]["out_of_road"]
                         # print('{} done passed!'.format(kkk))
                 for kkk, rrr in r.items():

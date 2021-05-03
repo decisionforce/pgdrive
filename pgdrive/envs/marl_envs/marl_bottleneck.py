@@ -17,11 +17,13 @@ MABottleneckConfig = dict(
     top_down_camera_initial_y=15,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
-    vehicle_config={"show_lidar": False,
-                    # "show_side_detector": True,
-                    # "show_lane_line_detector": True,
-                    "side_detector": dict(num_lasers=4, distance=50),  # laser num, distance
-                    "lane_line_detector": dict(num_lasers=4, distance=20)}  # laser num, distance
+    vehicle_config={
+        "show_lidar": False,
+        # "show_side_detector": True,
+        # "show_lane_line_detector": True,
+        "side_detector": dict(num_lasers=4, distance=50),  # laser num, distance
+        "lane_line_detector": dict(num_lasers=4, distance=20)
+    }  # laser num, distance
 )
 
 
@@ -46,22 +48,25 @@ class MABottleneckMap(PGMap):
 
         # Build Bottleneck
         merge = Merge(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
-        merge.construct_from_config(dict(lane_num=self.config["bottle_lane_num"] - self.config["neck_lane_num"],
-                                         length=self.config["neck_length"]), parent_node_path, pg_physics_world)
+        merge.construct_from_config(
+            dict(
+                lane_num=self.config["bottle_lane_num"] - self.config["neck_lane_num"],
+                length=self.config["neck_length"]
+            ), parent_node_path, pg_physics_world
+        )
         self.blocks.append(merge)
         split = Split(2, merge.get_socket(index=0), self.road_network, random_seed=1)
         split.construct_from_config(
-            {"length": self.config["exit_length"],
-             "lane_num": self.config["bottle_lane_num"] - self.config["neck_lane_num"]},
-            parent_node_path, pg_physics_world)
+            {
+                "length": self.config["exit_length"],
+                "lane_num": self.config["bottle_lane_num"] - self.config["neck_lane_num"]
+            }, parent_node_path, pg_physics_world
+        )
         self.blocks.append(split)
 
 
 class MultiAgentBottleneckEnv(MultiAgentPGDrive):
-    spawn_roads = [
-        Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
-        -Road(Split.node(2, 0, 0), Split.node(2, 0, 1))
-    ]
+    spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3), -Road(Split.node(2, 0, 0), Split.node(2, 0, 1))]
 
     @staticmethod
     def default_config() -> PGConfig:
