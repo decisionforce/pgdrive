@@ -63,7 +63,6 @@ class TrafficManager(RandomEngine):
 
         # clear traffic in last episdoe
         self._clear_traffic(pg_world)
-        self._spawned_vehicles = []
 
         # self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
         # update global info
@@ -99,6 +98,7 @@ class TrafficManager(RandomEngine):
         All traffic vehicles make driving decision here
         :return: None
         """
+        # trigger vehicles
         scene_manager = self._scene_mgr
         if self.mode != TrafficMode.Respawn:
             for v in scene_manager.agent_manager.active_objects.values():
@@ -155,6 +155,7 @@ class TrafficManager(RandomEngine):
         if self._spawned_vehicles is not None:
             for v in self._spawned_vehicles:
                 v.destroy(pg_world)
+        self._spawned_vehicles = []
 
     def reset(self, pg_world: PGWorld, map: Map, traffic_density: float) -> None:
         """
@@ -169,7 +170,6 @@ class TrafficManager(RandomEngine):
         self.is_target_vehicle_dict.clear()
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
-        self._spawned_vehicles = []
 
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.update_random_seed(map.random_seed if not self.random_traffic else None)
@@ -418,7 +418,7 @@ class TrafficManager(RandomEngine):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 
     def __repr__(self):
-        return self._traffic_vehicles.__repr__()
+        return self.vehicles.__repr__()
 
     def is_target_vehicle(self, v):
         if v.name in self.is_target_vehicle_dict and self.is_target_vehicle_dict[v.name]:
