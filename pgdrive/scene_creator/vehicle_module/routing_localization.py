@@ -37,12 +37,12 @@ class RoutingLocalizationModule:
         self.current_ref_lanes = None
         self.current_road = None
         self._target_checkpoints_index = None
-        self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
+        self._navi_info = np.zeros((self.navigation_info_dim,))  # navi information res
 
         # Vis
         self._is_showing = True  # store the state of navigation mark
         self._show_navi_point = (
-            pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+                pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         )
         self._goal_node_path = None
         self._arrow_node_path = None
@@ -75,13 +75,17 @@ class RoutingLocalizationModule:
             self._goal_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
-    def update(self, map: Map, start_road_node=None, final_road_node=None, random_seed=False):
+    def update(self, map: Map, current_lane_index, final_road_node=None, random_seed=False):
+        start_road_node = current_lane_index[0]
         self.map = map
         if start_road_node is None:
             start_road_node = FirstBlock.NODE_1
         if final_road_node is None:
+            current_road_negative = Road(*current_lane_index[:-1]).is_negative_road()
             random_seed = random_seed if random_seed is not False else map.random_seed
-            sockets = map.blocks[-1].get_socket_list()
+            # choose first block when born on negative road
+            block = map.blocks[0] if current_road_negative else map.blocks[-1]
+            sockets = block.get_socket_list()
             while True:
                 socket = get_np_random(random_seed).choice(sockets)
                 if not socket.is_socket_node(start_road_node):
@@ -90,7 +94,8 @@ class RoutingLocalizationModule:
                     sockets.remove(socket)
                     if len(sockets) == 0:
                         raise ValueError("Can not set a destination!")
-            final_road_node = socket.positive_road.end_node
+            # choose negative road end node when current road is negative road
+            final_road_node = socket.negative_road.end_node if current_road_negative else socket.positive_road.end_node
         self.set_route(start_road_node, final_road_node)
 
     def set_route(self, start_road_node: str, end_road_node: str):
@@ -172,8 +177,8 @@ class RoutingLocalizationModule:
         angle = 0.0
         if isinstance(ref_lane, CircularLane):
             bendradius = ref_lane.radius / (
-                BlockParameterSpace.CURVE[Parameter.radius].max +
-                self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
             )
             dir = ref_lane.direction
             if dir == 1:
@@ -181,11 +186,11 @@ class RoutingLocalizationModule:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
-            clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
-        ), lanes_heading, check_point
+                   clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                        1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                                   1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+                   clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+               ), lanes_heading, check_point
 
     def _update_navi_arrow(self, lanes_heading):
         lane_0_heading = lanes_heading[0]

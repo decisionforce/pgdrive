@@ -578,7 +578,7 @@ class BaseVehicle(DynamicElement):
         :return: None
         """
         lane, new_l_index = ray_localization(np.array(self.spawn_place), self.pg_world)
-        self.routing_localization.update(map, start_road_node=new_l_index[0])
+        self.routing_localization.update(map, current_lane_index=new_l_index)
         assert lane is not None, "spawn place is not on road!"
         self.lane_index = new_l_index
         self.lane = lane
