@@ -5,7 +5,7 @@ from pgdrive import PGDriveEnv
 from pgdrive.examples import expert, get_terminal_state
 
 
-def _evaluate(env_config, num_episode):
+def _evaluate(env_config, num_episode, has_traffic=True):
     s = time.time()
     np.random.seed(0)
     env = PGDriveEnv(env_config)
@@ -28,7 +28,8 @@ def _evaluate(env_config, num_episode):
             ep_reward = 0
             ep_len = 0
             obs = env.reset()
-            assert lidar_success
+            if has_traffic:
+                assert lidar_success
             lidar_success = False
     env.close()
     t = time.time() - s
@@ -65,7 +66,8 @@ def test_expert_without_traffic():
             load_map_from_json=False,
             random_traffic=False
         ),
-        num_episode=3
+        num_episode=3,
+        has_traffic=False
     )
     assert 320 <= ep_reward <= 340, ep_reward
     assert success_rate == 1.0, success_rate
