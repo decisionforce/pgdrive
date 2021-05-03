@@ -18,10 +18,10 @@ MABottleneckConfig = dict(
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
     vehicle_config={"show_lidar": False,
-                    "show_side_detector": False,
-                    "show_lane_line_detector": False,
-                    "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
-                    "lane_line_detector": dict(num_lasers=2, distance=20)}  # laser num, distance
+                    # "show_side_detector": True,
+                    # "show_lane_line_detector": True,
+                    "side_detector": dict(num_lasers=4, distance=50),  # laser num, distance
+                    "lane_line_detector": dict(num_lasers=4, distance=20)}  # laser num, distance
 )
 
 
@@ -65,6 +65,8 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
 
     @staticmethod
     def default_config() -> PGConfig:
+        assert MABottleneckConfig["vehicle_config"]["side_detector"]["num_lasers"] > 2
+        assert MABottleneckConfig["vehicle_config"]["lane_line_detector"]["num_lasers"] > 2
         MABottleneckConfig["map_config"]["lane_num"] = MABottleneckConfig["map_config"]["bottle_lane_num"]
         return MultiAgentPGDrive.default_config().update(MABottleneckConfig, allow_overwrite=True)
 
