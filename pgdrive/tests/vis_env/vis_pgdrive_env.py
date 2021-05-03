@@ -30,7 +30,7 @@ class TestEnv(PGDriveEnv):
                 "fast": False,
                 "map_config": {
                     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_CONFIG: "X",
+                    Map.GENERATE_CONFIG: "SXO",
                     Map.LANE_WIDTH: 3.5,
                     Map.LANE_NUM: 3,
                 },

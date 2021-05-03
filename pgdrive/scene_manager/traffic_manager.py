@@ -141,6 +141,8 @@ class TrafficManager(RandomEngine):
         # remove vehicles out of road
         for v in vehicles_to_remove:
             self._traffic_vehicles.remove(v)
+            v.destroy(scene_manager.pg_world)
+            self._spawned_vehicles.remove(v)
 
             if self.mode == TrafficMode.Hybrid:
                 # create a new one
@@ -426,7 +428,7 @@ class TrafficManager(RandomEngine):
     @property
     def vehicles(self):
         return list(self._scene_mgr.agent_manager.active_objects.values()) + \
-               [v.vehicle_node.kinematic_model for v in self._traffic_vehicles]
+               [v.vehicle_node.kinematic_model for v in self._spawned_vehicles]
 
     @property
     def traffic_vehicles(self):
