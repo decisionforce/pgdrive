@@ -12,10 +12,11 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import get_np_random, norm, PGConfig
 
 MABottleneckConfig = dict(
-    map_config=dict(exit_length=60, bottle_lane_num=6, neck_lane_num=2, neck_length=20),
+    map_config=dict(exit_length=60, bottle_lane_num=4, neck_lane_num=1, neck_length=20),
     top_down_camera_initial_x=95,
     top_down_camera_initial_y=15,
-    top_down_camera_initial_z=120
+    top_down_camera_initial_z=120,
+    cross_yellow_line_done=True,
 )
 
 
@@ -77,6 +78,55 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         return LidarStateObservationMARound(vehicle_config)
 
+    def reward_function(self, vehicle_id: str):
+        """
+        Override this func to get a new reward function
+        :param vehicle_id: id of BaseVehicle
+        :return: reward
+        """
+        vehicle = self.vehicles[vehicle_id]
+        step_info = dict()
+
+        # Reward for moving forward in current lane
+        if vehicle.lane in vehicle.routing_localization.current_ref_lanes:
+            current_lane = vehicle.lane
+        else:
+            current_lane = vehicle.routing_localization.current_ref_lanes[0]
+            current_road = vehicle.current_road
+        long_last, _ = current_lane.local_coordinates(vehicle.last_position)
+        long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
+
+        # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
+        if self.config["use_lateral"]:
+            lateral_factor = clip(
+                1 - 2 * abs(lateral_now) / vehicle.routing_localization.get_current_lane_width(), 0.0, 1.0
+            )
+        else:
+            lateral_factor = 1.0
+
+        reward = 0.0
+        reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
+        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
+
+        step_info["step_reward"] = reward
+
+        if vehicle.arrive_destination:
+            reward = +self.config["success_reward"]
+        elif self._is_out_of_road(vehicle):
+            reward = -self.config["out_of_road_penalty"]
+        elif vehicle.crash_vehicle:
+            reward = -self.config["crash_vehicle_penalty"]
+        elif vehicle.crash_object:
+            reward = -self.config["crash_object_penalty"]
+        return reward, step_info
+
+    def _is_out_of_road(self, vehicle):
+        # A specified function to determine whether this vehicle should be done.
+        # return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+        ret = vehicle.on_white_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+        if self.config["cross_yellow_line_done"]:
+            ret = ret or vehicle.on_yellow_continuous_line
+        return ret
 
 def _draw():
     env = MultiAgentBottleneckEnv()
@@ -203,9 +253,9 @@ def _vis():
             },
             "fast": True,
             "use_render": True,
-            "debug": False,
+            # "debug": True,
             "manual_control": True,
-            "num_agents": 8,
+            "num_agents": 20,
         }
     )
     o = env.reset()
@@ -224,6 +274,8 @@ def _vis():
             "cam_y": env.main_camera.camera_y,
             "cam_z": env.main_camera.top_down_camera_height
         }
+        track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
+        render_text["tack_v_reward"] = r[track_v]
         env.render(text=render_text)
         if d["__all__"]:
             print(
