@@ -75,12 +75,12 @@ class ParkingLot(Block):
         # add parking space
         for i in range(parking_space_num):
             no_cross = self._add_one_parking_space(copy.copy(self.get_socket_list()[0]).get_socket_in_reverse(),
-                                                   self.pre_block_socket.get_socket_in_reverse(), i+1,
+                                                   self.pre_block_socket.get_socket_in_reverse(), i + 1,
                                                    radius, i * self.parking_space_width,
                                                    (parking_space_num - i - 1) * self.parking_space_width) and no_cross
 
         for i in range(parking_space_num, 2 * parking_space_num):
-            index = i+1
+            index = i + 1
             i -= parking_space_num
             no_cross = self._add_one_parking_space(self.pre_block_socket, copy.copy(self.get_socket_list()[0]), index,
                                                    radius, i * self.parking_space_width,
@@ -117,7 +117,7 @@ class ParkingLot(Block):
                                        self._global_network,
                                        center_line_type=LineType.NONE,
                                        inner_lane_line_type=LineType.NONE,
-                                       side_lane_line_type=LineType.SIDE if dist_to_in<1e-3 else LineType.NONE)
+                                       side_lane_line_type=LineType.SIDE if dist_to_in < 1e-3 else LineType.NONE)
         if dist_to_in < 1e-3:
             no_cross = no_cross and bend_no_cross
 
@@ -126,7 +126,7 @@ class ParkingLot(Block):
                                                self._global_network,
                                                center_line_type=LineType.CONTINUOUS,
                                                inner_lane_line_type=LineType.NONE,
-                                               side_lane_line_type=LineType.SIDE if dist_to_in<1e-3 else LineType.NONE,
+                                               side_lane_line_type=LineType.SIDE if dist_to_in < 1e-3 else LineType.NONE,
                                                center_line_color=LineColor.GREY)
 
         # lane into parking space and parking space, 2
@@ -167,12 +167,12 @@ class ParkingLot(Block):
 
         # give it a new road name to make it be a two way road (1,2) = (5,6) = parking space !
         parking_road = Road(self.road_node(part_idx, 5), self.road_node(part_idx, 6))
-        no_cross = no_cross and CreateTwoWayRoad(Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2)),
-                                                 self.block_network, self._global_network,
-                                                 parking_road,
-                                                 center_line_type=LineType.NONE,
-                                                 inner_lane_line_type=LineType.NONE,
-                                                 side_lane_line_type=LineType.SIDE if dist_to_out<1e-3 else LineType.NONE)
+        CreateTwoWayRoad(Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2)),
+                         self.block_network, self._global_network,
+                         parking_road,
+                         center_line_type=LineType.NONE,
+                         inner_lane_line_type=LineType.NONE,
+                         side_lane_line_type=LineType.SIDE if dist_to_out < 1e-3 else LineType.NONE)
 
         # out part
         parking_lane = parking_road.get_lanes(self.block_network)[0]
@@ -186,7 +186,7 @@ class ParkingLot(Block):
                                       self._global_network,
                                       center_line_type=LineType.NONE,
                                       inner_lane_line_type=LineType.NONE,
-                                      side_lane_line_type=LineType.SIDE if dist_to_out<1e-3 else LineType.NONE)
+                                      side_lane_line_type=LineType.SIDE if dist_to_out < 1e-3 else LineType.NONE)
         if dist_to_out < 1e-3:
             no_cross = no_cross and bend_success
 
