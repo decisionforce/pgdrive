@@ -14,16 +14,16 @@ from pgdrive.utils.scene_utils import check_lane_on_road
 
 
 def create_bend_straight(
-    previous_lane: "StraightLane",
-    following_lane_length,
-    radius: float,
-    angle: float,
-    clockwise: bool = True,
-    width: float = AbstractLane.DEFAULT_WIDTH,
-    line_types: Tuple[LineType, LineType] = None,
-    forbidden: bool = False,
-    speed_limit: float = 20,
-    priority: int = 0
+        previous_lane: "StraightLane",
+        following_lane_length,
+        radius: float,
+        angle: float,
+        clockwise: bool = True,
+        width: float = AbstractLane.DEFAULT_WIDTH,
+        line_types: Tuple[LineType, LineType] = None,
+        forbidden: bool = False,
+        speed_limit: float = 20,
+        priority: int = 0
 ):
     bend_direction = 1 if clockwise else -1
     center = previous_lane.position(previous_lane.length, bend_direction * radius)
@@ -60,18 +60,19 @@ def create_bend_straight(
 
 
 def CreateRoadFrom(
-    lane: Union["AbstractLane", "StraightLane", "CircularLane"],
-    lane_num: int,
-    road: "Road",
-    roadnet_to_add_lanes: "RoadNetwork",  # mostly, block network
-    roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global_network
-    toward_smaller_lane_index: bool = True,
-    ignore_start: str = None,
-    ignore_end: str = None,
-    center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
-    detect_one_side=True,
-    side_lane_line_type=LineType.SIDE,
-    inner_lane_line_type=LineType.BROKEN
+        lane: Union["AbstractLane", "StraightLane", "CircularLane"],
+        lane_num: int,
+        road: "Road",
+        roadnet_to_add_lanes: "RoadNetwork",  # mostly, block network
+        roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global_network
+        toward_smaller_lane_index: bool = True,
+        ignore_start: str = None,
+        ignore_end: str = None,
+        center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
+        detect_one_side=True,
+        side_lane_line_type=LineType.SIDE,
+        inner_lane_line_type=LineType.BROKEN,
+        center_line_color = LineColor.YELLOW
 ) -> bool:
     """
         | | | |
@@ -125,8 +126,8 @@ def CreateRoadFrom(
     if not detect_one_side:
         # Because of side walk, the width of side walk should be consider
         no_cross = not (
-            check_lane_on_road(roadnet_to_check_cross, origin_lane, factor, ignore)
-            or check_lane_on_road(roadnet_to_check_cross, lanes[0], -0.95, ignore)
+                check_lane_on_road(roadnet_to_check_cross, origin_lane, factor, ignore)
+                or check_lane_on_road(roadnet_to_check_cross, lanes[0], -0.95, ignore)
         )
     else:
         no_cross = not check_lane_on_road(roadnet_to_check_cross, origin_lane, factor, ignore)
@@ -134,7 +135,7 @@ def CreateRoadFrom(
         roadnet_to_add_lanes.add_lane(road.start_node, road.end_node, l)
     if lane_num == 0:
         lanes[-1].line_types = [center_line_type, side_lane_line_type]
-    lanes[0].line_color = [LineColor.YELLOW, LineColor.GREY]
+    lanes[0].line_color = [center_line_color, LineColor.GREY]
     return no_cross
 
 
@@ -154,15 +155,16 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List[AbstractLane
 
 
 def CreateAdverseRoad(
-    positive_road: "Road",
-    roadnet_to_get_road: "RoadNetwork",  # mostly, block network
-    roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global network
-    ignore_start: str = None,
-    ignore_end: str = None,
-    center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
-    side_lane_line_type=LineType.SIDE,
-    inner_lane_line_type=LineType.BROKEN
-) -> (str, str, bool):
+        positive_road: "Road",
+        roadnet_to_get_road: "RoadNetwork",  # mostly, block network
+        roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global network
+        ignore_start: str = None,
+        ignore_end: str = None,
+        center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
+        side_lane_line_type=LineType.SIDE,
+        inner_lane_line_type=LineType.BROKEN,
+        center_line_color=LineColor.YELLOW
+) -> bool:
     adverse_road = -positive_road
     lanes = get_lanes_on_road(positive_road, roadnet_to_get_road)
     reference_lane = lanes[-1]
@@ -199,14 +201,77 @@ def CreateAdverseRoad(
         ignore_end=ignore_end,
         side_lane_line_type=side_lane_line_type,
         inner_lane_line_type=inner_lane_line_type,
+        center_line_type=center_line_type,
+        center_line_color=center_line_color
+    )
+    positive_road.get_lanes(roadnet_to_get_road)[0].line_color = [center_line_color, LineColor.GREY]
+    return success
+
+
+def CreateTwoWayRoad(road_to_change: "Road",
+                     roadnet_to_get_road: "RoadNetwork",  # mostly, block network
+                     roadnet_to_check_cross: "RoadNetwork",  # mostly, previous global network
+                     new_road_name: Road = None,
+                     ignore_start: str = None,
+                     ignore_end: str = None,
+                     center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
+                     side_lane_line_type=LineType.SIDE,
+                     inner_lane_line_type=LineType.BROKEN
+                     ) -> bool:
+    """
+    This function will add a new road in reverse direction to the road network
+    Then the road will change from:
+    ---------->
+    ---------->
+    to:
+    <--------->
+    <--------->
+    As a result, vehicles can drive in both direction
+    :return: cross or not
+    """
+    adverse_road = Road(road_to_change.end_node, road_to_change.start_node) if new_road_name is None else new_road_name
+    lanes = get_lanes_on_road(road_to_change, roadnet_to_get_road)
+    reference_lane = lanes[-1]
+    num = len(lanes)
+    width = reference_lane.width_at(0)
+    if isinstance(reference_lane, StraightLane):
+        start_point = reference_lane.position(lanes[-1].length, -(num - 1) * width)
+        end_point = reference_lane.position(0, -(num - 1) * width)
+        symmetric_lane = StraightLane(
+            start_point, end_point, width, lanes[-1].line_types, reference_lane.forbidden, reference_lane.speed_limit,
+            reference_lane.priority
+        )
+    elif isinstance(reference_lane, CircularLane):
+        start_phase = reference_lane.end_phase
+        end_phase = reference_lane.start_phase
+        clockwise = False if reference_lane.direction == 1 else True
+        if not clockwise:
+            radius = reference_lane.radius + (num - 1) * width
+        else:
+            radius = reference_lane.radius - (num - 1) * width
+        symmetric_lane = CircularLane(
+            reference_lane.center, radius, start_phase, end_phase, clockwise, width, reference_lane.line_types,
+            reference_lane.forbidden, reference_lane.speed_limit, reference_lane.priority
+        )
+    else:
+        raise ValueError("Creating other lanes is not supported")
+    success = CreateRoadFrom(
+        symmetric_lane,
+        num,
+        adverse_road,
+        roadnet_to_get_road,
+        roadnet_to_check_cross,
+        ignore_start=ignore_start,
+        ignore_end=ignore_end,
+        side_lane_line_type=side_lane_line_type,
+        inner_lane_line_type=inner_lane_line_type,
         center_line_type=center_line_type
     )
-    positive_road.get_lanes(roadnet_to_get_road)[0].line_color = [LineColor.YELLOW, LineColor.GREY]
     return success
 
 
 def block_socket_merge(
-    socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
+        socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
@@ -216,7 +281,7 @@ def block_socket_merge(
 
 
 def create_wave_lanes(
-    pre_lane, lateral_dist: float, wave_length: float, last_straight_length: float, lane_width, toward_left=True
+        pre_lane, lateral_dist: float, wave_length: float, last_straight_length: float, lane_width, toward_left=True
 ):
     """
     Prodeuce two lanes in adverse direction
