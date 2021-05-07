@@ -1,26 +1,26 @@
 import gym
 import copy
 from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
-from pgdrive.scene_creator.blocks.std_intersection import StdInterSection
+from pgdrive.scene_creator.blocks.straight import Straight
 import numpy as np
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
-from pgdrive.scene_creator.blocks.intersection import InterSection
+from pgdrive.scene_creator.blocks.t_intersection import TInterSection
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import get_np_random, norm, PGConfig
 
-MAIntersectionConfig = dict(
-    map_config=dict(exit_length=60, lane_num=1),
+MAParkingLotConfig = dict(
+    map_config=dict(exit_length=20, lane_num=1),
     top_down_camera_initial_x=80,
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120
 )
 
 
-class MAIntersectionMap(PGMap):
+class MAParkingLotMap(PGMap):
     def _generate(self, pg_world):
         length = self.config["exit_length"]
 
@@ -44,62 +44,35 @@ class MAIntersectionMap(PGMap):
         )
         self.blocks.append(last_block)
 
-        # Build Intersection
-        InterSection.EXIT_PART_LENGTH = 4
-        last_block = InterSection(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
-        last_block.add_u_turn(True)
+        last_block = ParkingLot(1, last_block.get_socket(0), self.road_network, 1)
+        last_block.construct_block(parent_node_path, pg_physics_world, {"one_side_vehicle_number": 8})
+        self.blocks.append(last_block)
+
+        # Build ParkingLot
+        TInterSection.EXIT_PART_LENGTH = 10
+        last_block = TInterSection(2, last_block.get_socket(index=0), self.road_network, random_seed=1)
         last_block.construct_block(
             parent_node_path,
             pg_physics_world,
             extra_config={
-                "exit_radius": 10,
-                "inner_radius": 30,
-                "angle": 70,
+                "t_type":1,
                 "change_lane_num":0
                 # Note: lane_num is set in config.map_config.lane_num
             }
         )
         self.blocks.append(last_block)
 
-        last = last_block
 
-        last = StdInterSection(2, last.get_socket(0), self.road_network, 1)
-        last.construct_block(parent_node_path, pg_physics_world, dict(radius=4))
-        inter_1 = last
-        self.blocks.append(last)
-
-        last = ParkingLot(3, last.get_socket(1), self.road_network, 1)
-        last.construct_block(parent_node_path, pg_physics_world)
-        self.blocks.append(last)
-
-        last = StdInterSection(4, last.get_socket(0), self.road_network, 1)
-        last.construct_block(parent_node_path, pg_physics_world, dict(radius=4))
-        self.blocks.append(last)
-
-        last = StdInterSection(5, last.get_socket(2), self.road_network, 1)
-        last.construct_block(parent_node_path, pg_physics_world, dict(radius=4))
-        self.blocks.append(last)
-
-        last = ParkingLot(6, last.get_socket(2), self.road_network, 1)
-        last.construct_block(parent_node_path, pg_physics_world)
-        self.blocks.append(last)
-
-        inter_4 = StdInterSection(7, inter_1.get_socket(2), self.road_network, 1)
-        inter_4.construct_block(parent_node_path, pg_physics_world, dict(radius=4))
-        self.blocks.append(last)
-
-
-class MultiAgentIntersectionEnv(MultiAgentPGDrive):
+class MultiAgentParkingLotEnv(MultiAgentPGDrive):
     spawn_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
-        # -Road(InterSection.node(1, 0, 0), InterSection.node(1, 0, 1)),
-        # -Road(InterSection.node(1, 1, 0), InterSection.node(1, 1, 1)),
-        # -Road(InterSection.node(1, 2, 0), InterSection.node(1, 2, 1)),
+        -Road(TInterSection.node(2, 0, 0), TInterSection.node(2, 0, 1)),
+        -Road(TInterSection.node(2, 2, 0), TInterSection.node(2, 2, 1)),
     ]
 
     @staticmethod
     def default_config() -> PGConfig:
-        return MultiAgentPGDrive.default_config().update(MAIntersectionConfig, allow_overwrite=True)
+        return MultiAgentPGDrive.default_config().update(MAParkingLotConfig, allow_overwrite=True)
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
@@ -109,13 +82,17 @@ class MultiAgentIntersectionEnv(MultiAgentPGDrive):
 
         if self.current_map is None:
             self.current_seed = 0
-            new_map = MAIntersectionMap(self.pg_world, map_config)
+            new_map = MAParkingLotMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
+            spawn_roads = copy.deepcopy(self.spawn_roads)
+            spawn_roads += self.current_map.blocks[-2].spawn_roads
+            self._spawn_manager.set_spawn_roads(spawn_roads)
 
     def _update_destination_for(self, vehicle):
         # when agent re-joined to the game, call this to set the new route to destination
         end_roads = copy.deepcopy(self.spawn_roads)
+        end_roads.remove(vehicle.routing_localization.current_road)
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
@@ -124,7 +101,7 @@ class MultiAgentIntersectionEnv(MultiAgentPGDrive):
 
 
 def _draw():
-    env = MultiAgentIntersectionEnv()
+    env = MultiAgentParkingLotEnv()
     o = env.reset()
     from pgdrive.utils import draw_top_down_map
     import matplotlib.pyplot as plt
@@ -135,7 +112,7 @@ def _draw():
 
 
 def _expert():
-    env = MultiAgentIntersectionEnv(
+    env = MultiAgentParkingLotEnv(
         {
             "vehicle_config": {
                 "lidar": {
@@ -153,7 +130,7 @@ def _expert():
             # "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 4,
+            "num_agents": 3,
         }
     )
     o = env.reset()
@@ -181,7 +158,7 @@ def _expert():
 
 
 def _vis_debug_respawn():
-    env = MultiAgentIntersectionEnv(
+    env = MultiAgentParkingLotEnv(
         {
             "horizon": 100000,
             "vehicle_config": {
@@ -199,7 +176,7 @@ def _vis_debug_respawn():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 40,
+            "num_agents": 3,
         }
     )
     o = env.reset()
@@ -235,7 +212,7 @@ def _vis_debug_respawn():
 
 
 def _vis():
-    env = MultiAgentIntersectionEnv(
+    env = MultiAgentParkingLotEnv(
         {
             "horizon": 100000,
             "vehicle_config": {
@@ -250,7 +227,7 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 4,
+            "num_agents": -1,
             "delay_done": 1000,
         }
     )
@@ -292,7 +269,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentIntersectionEnv({"num_agents": 16})
+    env = MultiAgentParkingLotEnv({"num_agents": 3})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -310,15 +287,15 @@ def _profile():
                     time.time() - start, (s + 1) / (time.time() - start)
                 )
             )
-    print(f"(MAIntersection) Total Time Elapse: {time.time() - start}")
+    print(f"(MAParkingLot) Total Time Elapse: {time.time() - start}")
 
 
 def _long_run():
-    # Please refer to test_ma_Intersection_reward_done_alignment()
+    # Please refer to test_ma_ParkingLot_reward_done_alignment()
     _out_of_road_penalty = 3
-    env = MultiAgentIntersectionEnv(
+    env = MultiAgentParkingLotEnv(
         {
-            "num_agents": 32,
+            "num_agents": 3,
             "vehicle_config": {
                 "lidar": {
                     "num_others": 8

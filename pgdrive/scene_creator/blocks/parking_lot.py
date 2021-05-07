@@ -24,6 +24,9 @@ class ParkingLot(Block):
     SOCKET_NUM = 1
 
     def _try_plug_into_previous_block(self) -> bool:
+        self.spawn_roads = []
+        self.dest_roads = []
+        
         no_cross = True
         para = self.get_config()
         assert self.positive_lane_num == 1, "Lane number of previous block must be 1 in each direction"
@@ -122,6 +125,7 @@ class ParkingLot(Block):
             no_cross = no_cross and bend_no_cross
 
         straight_road = Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2))
+        self.dest_roads.append(straight_road)
         no_cross = no_cross and CreateRoadFrom(straight, self.positive_lane_num, straight_road, self.block_network,
                                                self._global_network,
                                                center_line_type=LineType.CONTINUOUS,
@@ -167,6 +171,7 @@ class ParkingLot(Block):
 
         # give it a new road name to make it be a two way road (1,2) = (5,6) = parking space !
         parking_road = Road(self.road_node(part_idx, 5), self.road_node(part_idx, 6))
+        self.spawn_roads.append(parking_road)
         CreateTwoWayRoad(Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2)),
                          self.block_network, self._global_network,
                          parking_road,
