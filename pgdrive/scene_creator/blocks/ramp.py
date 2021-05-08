@@ -1,5 +1,6 @@
-import numpy as np
+import math
 
+import numpy as np
 from pgdrive.constants import Decoration
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import ExtendStraightLane, CreateRoadFrom, CreateAdverseRoad, \
@@ -48,8 +49,8 @@ class InRampOnStraight(Ramp):
 
         # extend road and acc raod part, part 0
         self.set_part_idx(0)
-        sin_angle = np.sin(np.deg2rad(self.ANGLE))
-        cos_angle = np.cos(np.deg2rad(self.ANGLE))
+        sin_angle = math.sin(np.deg2rad(self.ANGLE))
+        cos_angle = math.cos(np.deg2rad(self.ANGLE))
         longitude_len = sin_angle * self.RADIUS * 2 + cos_angle * self.CONNECT_PART_LEN + self.RAMP_LEN
 
         extend_lane = ExtendStraightLane(
@@ -101,7 +102,7 @@ class InRampOnStraight(Ramp):
         straight_road = Road(self.add_road_node(), self.add_road_node())
         self.block_network.add_lane(straight_road.start_node, straight_road.end_node, straight_part)
         no_cross = (not check_lane_on_road(self._global_network, straight_part, 0.95)) and no_cross
-        self.add_reborn_roads(straight_road)
+        self.add_respawn_roads(straight_road)
 
         # p1 road 0, 1
         bend_1, connect_part = create_bend_straight(
@@ -174,8 +175,8 @@ class OutRampOnStraight(Ramp):
 
     def _try_plug_into_previous_block(self) -> bool:
         no_cross = True
-        sin_angle = np.sin(np.deg2rad(self.ANGLE))
-        cos_angle = np.cos(np.deg2rad(self.ANGLE))
+        sin_angle = math.sin(np.deg2rad(self.ANGLE))
+        cos_angle = math.cos(np.deg2rad(self.ANGLE))
         longitude_len = sin_angle * self.RADIUS * 2 + cos_angle * self.CONNECT_PART_LEN + self.RAMP_LEN + self.EXTRA_LEN
 
         self.set_part_idx(0)

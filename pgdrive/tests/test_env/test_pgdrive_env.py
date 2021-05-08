@@ -1,10 +1,10 @@
+import copy
 import os
 
 import numpy as np
 import pytest
-
 from pgdrive import PGDriveEnv
-from pgdrive.constants import DEFAULT_AGENT
+from pgdrive.constants import TerminationState
 from pgdrive.scene_creator.vehicle_module.PID_controller import PIDController, Target
 
 # Key: case name, value: environmental config
@@ -35,7 +35,8 @@ blackbox_test_configs = dict(
 pid_control_config = dict(environment_num=1, start_seed=5, map="CrXROSTR", traffic_density=0.0, use_render=False)
 
 info_keys = [
-    "cost", "velocity", "steering", "acceleration", "step_reward", "crash_vehicle", "out_of_road", "arrive_dest"
+    "cost", "velocity", "steering", "acceleration", "step_reward", TerminationState.CRASH_VEHICLE,
+    TerminationState.OUT_OF_ROAD, TerminationState.SUCCESS
 ]
 
 assert "__init__.py" not in os.listdir(os.path.dirname(__file__)), "Please remove __init__.py in tests directory."
@@ -53,7 +54,7 @@ def _act(env, action):
 
 @pytest.mark.parametrize("config", list(blackbox_test_configs.values()), ids=list(blackbox_test_configs.keys()))
 def test_pgdrive_env_blackbox(config):
-    env = PGDriveEnv(config=config)
+    env = PGDriveEnv(config=copy.deepcopy(config))
     try:
         obs = env.reset()
         assert env.observation_space.contains(obs)
@@ -67,9 +68,12 @@ def test_pgdrive_env_blackbox(config):
 
 
 def test_zombie():
-    env = PGDriveEnv(pid_control_config)
+    conf = copy.deepcopy(pid_control_config)
+    # conf["use_render"] = True
+    # conf["fast"] = True
+    env = PGDriveEnv(conf)
+    env.seed(0)
     target = Target(0.375, 30)
-    dest = [-288.88415527, -411.55871582]
     try:
         o = env.reset()
         steering_controller = PIDController(1.6, 0.0008, 27.3)
@@ -80,20 +84,40 @@ def test_zombie():
         acc = acc_controller.get_result(acc_error)
         for i in range(1, 1000000):
             o, r, d, info = env.step([-steering, acc])
+            # env.render(text={
+            #     "o": o[0],
+            #     "lat": env.vehicle.lane.local_coordinates(env.vehicle.position)[0],
+            #     "tar": target.lateral
+            # })
             steering_error = o[0] - target.lateral
             steering = steering_controller.get_result(steering_error)
             t_speed = target.speed if abs(o[12] - 0.5) < 0.01 else target.speed - 10
             acc_error = env.vehicles[env.DEFAULT_AGENT].speed - t_speed
             acc = acc_controller.get_result(acc_error)
             if d:
-                assert info["arrive_dest"]
-                assert abs(env.vehicles[env.DEFAULT_AGENT].position[0] - dest[0]) < 0.15 and \
-                       abs(env.vehicles[env.DEFAULT_AGENT].position[1] - dest[1]) < 0.15
+                # We assert the vehicle should arrive the middle lane in the final block.
+                assert info[TerminationState.SUCCESS]
+                assert len(env.current_map.blocks[-1].positive_lanes) == 3
+                middle_lane = env.vehicle.routing_localization.final_road.get_lanes(env.current_map.road_network)[1]
+
+                # Current recorded lane of ego should be exactly the same as the final-middle-lane.
+                assert middle_lane == env.vehicle.lane
+
+                # Ego should in the middle of final-middle-lane
+                # new result is 0.1, I have visualized it, and everything works well
+                assert abs(middle_lane.local_coordinates(env.vehicle.position)[1]) < 0.5
+
+                # Ego should in the utmost location of the final-middle-lane
+                assert abs(middle_lane.local_coordinates(env.vehicle.position)[0] - middle_lane.length) < 10
+
+                # The speed should also be perfectly controlled.
+                assert abs(env.vehicle.speed - target.speed) < 1
+
                 break
     finally:
         env.close()
 
 
 if __name__ == '__main__':
-    # pytest.main(["-s", "test_pgdrive_env.py"])
-    test_zombie()
+    pytest.main(["-s", "test_pgdrive_env.py"])
+    # test_zombie()

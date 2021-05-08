@@ -29,36 +29,25 @@ class ChangeFrictionEnv(PGDriveEnv):
                 wheel_friction=self._random_state.uniform(self.config["friction_min"], self.config["friction_max"])
             )
 
-    def _reset_vehicles(self):
+    def _reset_agents(self):
         if self.config["change_friction"] and self.vehicle is not None:
-            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
-            del self.vehicles
-
+            if self.vehicles:
+                self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
+            # self.agent_manager.destroy()
             # We reset the friction here!
             parameter = self.parameter_list[self.current_seed]
-            v_config = self.config["vehicle_config"]
-            v_config["wheel_friction"] = parameter["wheel_friction"]
-
-            self.vehicles = self._get_vehicles()
+            self.config["vehicle_config"]["wheel_friction"] = parameter["wheel_friction"]
+            self.agent_manager.init(pg_world=self.pg_world, config_dict=self._get_target_vehicle_config())
 
             # initialize track vehicles
-            # first tracked vehicles
-            vehicles = sorted(self.vehicles.items())
-            self.current_track_vehicle = vehicles[0][1]
-            self.current_track_vehicle_id = vehicles[0][0]
-            for _, vehicle in vehicles:
-                if vehicle is not self.current_track_vehicle:
-                    # for display
-                    vehicle.remove_display_region()
-
-        self.vehicles.update(self.done_vehicles)
-        self.done_vehicles = {}
-        self.for_each_vehicle(lambda v: v.reset(self.current_map))
+            vehicles = self.agent_manager.get_vehicle_list()
+            self.current_track_vehicle = vehicles[0]
+        super(ChangeFrictionEnv, self)._reset_agents()
 
 
 if __name__ == '__main__':
     env = ChangeFrictionEnv(config={"environment_num": 100, "start_seed": 1000, "change_friction": True})
-    env.seed(100000)
+    env.seed(1010)
     obs = env.reset()
     for s in range(100):
         action = np.array([0.0, 1.0])

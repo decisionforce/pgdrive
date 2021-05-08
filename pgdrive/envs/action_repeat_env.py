@@ -1,6 +1,6 @@
 import numpy as np
 from gym.spaces import Box
-
+from pgdrive.constants import TerminationState
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import PGConfig
 
@@ -38,13 +38,6 @@ class ActionRepeat(PGDriveEnv):
             self.fixed_action_repeat = self.config["fixed_action_repeat"]
         else:
             self.fixed_action_repeat = None
-            self.action_space = Box(
-                shape=(self.action_space.shape[0] + 1, ),
-                high=self.action_space.high[0],
-                low=self.action_space.low[0],
-                dtype=self.action_space.dtype
-            )
-
         # self.gamma = self.config["gamma"]
         # Modify gamma to make sure it behaves like the one applied to ORIGINAL steps.
         # self.gamma =
@@ -106,7 +99,7 @@ class ActionRepeat(PGDriveEnv):
         i["real_return"] = real_ret
         i["action_repeat"] = action_repeat
         i["primitive_steps_count"] = self.primitive_steps_count
-        i["max_step"] = self.primitive_steps_count > self.config["horizon"]
+        i[TerminationState.MAX_STEP] = self.primitive_steps_count > self.config["horizon"]
         i["render"] = render_list
         i["trajectory"] = [
             dict(
@@ -127,13 +120,23 @@ class ActionRepeat(PGDriveEnv):
         o, *_ = self.step(np.array([0.0, 0.0, 0.0]))
         return o
 
+    @property
+    def action_space(self):
+        super_action_space = super(ActionRepeat, self).action_space
+        return Box(
+            shape=(super_action_space.shape[0] + 1, ),
+            high=super_action_space.high[0],
+            low=super_action_space.low[0],
+            dtype=super_action_space.dtype
+        )
+
 
 if __name__ == '__main__':
     env = ActionRepeat(dict(fixed_action_repeat=25))
     env.reset()
     for i in range(5000):
         _, _, d, info = env.step([0, 0])
-        print("max_step: ", info["max_step"], i, info["primitive_steps_count"])
+        print("max_step: ", info[TerminationState.MAX_STEP], i, info["primitive_steps_count"])
         if d:
             break
     env.close()

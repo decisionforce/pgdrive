@@ -3,11 +3,11 @@ from typing import Sequence, Tuple
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletCylinderShape
 from panda3d.core import NodePath
-
 from pgdrive.constants import BodyName
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import Element
+from pgdrive.utils import get_np_random, random_string, distance_greater, norm
 
 LaneIndex = Tuple[str, str, int]
 
@@ -33,7 +33,7 @@ class Object(Element):
     HEIGHT = 1.2
     MASS = 1
 
-    def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0.):
+    def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0., name=None):
         """
        :param lane: the lane to spawn object
         :param lane_index: the lane_index of the spawn point
@@ -95,6 +95,7 @@ class TrafficTriangle(Object):
     """Placed behind the vehicle when it breaks down"""
 
     NAME = BodyName.Traffic_triangle
+    RADIUS = 0.5
 
     def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0.):
         super(TrafficTriangle, self).__init__(lane, lane_index, position, heading)

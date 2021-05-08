@@ -7,7 +7,6 @@ from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode
 from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallbackObject
-
 from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask
 from pgdrive.utils import is_mac, setup_logger
 from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
@@ -152,7 +151,8 @@ class PGWorld(ShowBase.ShowBase):
             gltf.patch_loader(self.loader)
 
             # Display logo
-            if self.mode == RENDER_MODE_ONSCREEN:
+            if self.mode == RENDER_MODE_ONSCREEN and (not self.world_config["debug"]) \
+                    and (not self.world_config["fast_launch_window"]):
                 self._loading_logo = OnscreenImage(
                     image=AssetLoader.file_path("PGDrive-large.png"),
                     pos=(0, 0, 0),
@@ -181,7 +181,7 @@ class PGWorld(ShowBase.ShowBase):
         self.light = None
 
         # physics world
-        self.physics_world = PGPhysicsWorld()
+        self.physics_world = PGPhysicsWorld(self.world_config["debug_static_world"])
 
         # collision callback
         self.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(pg_collision_callback))
@@ -333,6 +333,16 @@ class PGWorld(ShowBase.ShowBase):
         #     time.sleep(0.1)
         self.physics_world.destroy()
         self.destroy()
+
+        AssetLoader.destroy()
+
+        import sys
+        if sys.version_info >= (3, 0):
+            import builtins
+        else:
+            import __builtin__ as builtins
+        if hasattr(builtins, 'base'):
+            del builtins.base
 
     def toggle_help_message(self):
         if self.on_screen_message:

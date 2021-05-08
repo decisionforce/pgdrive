@@ -6,12 +6,13 @@ import sys
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
-from pgdrive.constants import DEFAULT_AGENT
+from pgdrive.constants import DEFAULT_AGENT, TerminationState
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs import LidarStateObservation, ImageStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos
 from pgdrive.world.chase_camera import ChaseCamera
@@ -33,21 +34,21 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         Map.LANE_WIDTH: 3.5,
         Map.LANE_NUM: 3,
         Map.SEED: 10,
-        "draw_map_resolution": 1024  # Drawing the map in a canvas of (x, x) pixels.
+        "draw_map_resolution": 1024,  # Drawing the map in a canvas of (x, x) pixels.
+        "block_type_version": "v1",
+        "exit_length": 50,
     },
     load_map_from_json=True,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
-    # ==== agents config =====
-    num_agents=1,
-
     # ===== Observation =====
     use_topdown=False,  # Use top-down view
     use_image=False,
+    _disable_detector_mask=False,
 
     # ===== Traffic =====
     traffic_density=0.1,
-    traffic_mode=TrafficMode.Trigger,  # "Reborn", "Trigger", "Hybrid"
+    traffic_mode=TrafficMode.Trigger,  # "Respawn", "Trigger", "Hybrid"
     random_traffic=False,  # Traffic is randomized at default.
 
     # ===== Object =====
@@ -65,9 +66,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         mini_map=(84, 84, 250),  # buffer length, width
         rgb_cam=(84, 84),  # buffer length, width
         depth_cam=(84, 84, True),  # buffer length, width, view_ground
-        show_navi_mark=True,
         increment_steering=False,
-        wheel_friction=0.6,
         side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
         show_side_detector=False,
         lane_line_detector=dict(num_lasers=0, distance=20),  # laser num, distance
@@ -78,16 +77,18 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         # use_image=False,
         # rgb_clip=True,
 
-        # ===== vehicle born =====
-        born_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
-        born_longitude=5.0,
-        born_lateral=0.0,
+        # ===== vehicle spawn =====
+        spawn_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+        spawn_longitude=5.0,
+        spawn_lateral=0.0,
 
         # ==== others ====
         overtake_stat=False,  # we usually set to True when evaluation
         action_check=False,
         use_saver=False,
         save_level=0.5,
+        vehicle_length=4,
+        vehicle_width=1.5
     ),
     rgb_clip=True,
 
@@ -123,7 +124,6 @@ class PGDriveEnv(BasePGDriveEnv):
         super(PGDriveEnv, self).__init__(config)
 
         self.current_track_vehicle: Optional[BaseVehicle] = None
-        self.current_track_vehicle_id: Optional[str] = None
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
@@ -179,11 +179,9 @@ class PGDriveEnv(BasePGDriveEnv):
                 raise ValueError("No such a controller type: {}".format(self.config["controller"]))
 
         # initialize track vehicles
-        # first tracked vehicles
-        vehicles = sorted(self.vehicles.items())
-        self.current_track_vehicle = vehicles[0][1]
-        self.current_track_vehicle_id = vehicles[0][0]
-        for _, vehicle in vehicles:
+        vehicles = self.agent_manager.get_vehicle_list()
+        self.current_track_vehicle = vehicles[0]
+        for vehicle in vehicles:
             if vehicle is not self.current_track_vehicle:
                 # for display
                 vehicle.remove_display_region()
@@ -192,32 +190,50 @@ class PGDriveEnv(BasePGDriveEnv):
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
             self.main_camera = ChaseCamera(self.pg_world.cam, self.config["camera_height"], 7, self.pg_world)
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
-            self.main_camera.chase(self.current_track_vehicle, self.pg_world)
+            self.main_camera.track(self.current_track_vehicle, self.pg_world)
+            self.pg_world.accept("b", self.bird_view_camera)
         self.pg_world.accept("q", self.chase_another_v)
+
+        # setup the detector mask
+
+        if any([v.lidar is not None for v in self.vehicles.values()]) and (not self.config["_disable_detector_mask"]):
+            v = next(iter(self.vehicles.values()))
+            self.scene_manager.detector_mask = DetectorMask(
+                num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
+                max_distance=self.config["vehicle_config"]["lidar"]["distance"],
+                max_span=v.WIDTH + v.LENGTH
+            )
 
     def _get_observations(self):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
-
+        self.agent_manager.prepare_step()
         if self.config["manual_control"] and self.config["use_render"] \
-                and self.current_track_vehicle_id in self.vehicles.keys():
+                and self.current_track_vehicle in self.agent_manager.get_vehicle_list() and not self.main_camera.is_bird_view_camera(self.pg_world):
             action = self.controller.process_input()
-            if self.num_agents == 1:
-                actions = action
+            if self.is_multi_agent:
+                actions[self.agent_manager.object_to_agent(self.current_track_vehicle.name)] = action
             else:
-                actions[self.current_track_vehicle_id] = action
+                actions = action
 
-        if self.num_agents == 1:
-            actions = {DEFAULT_AGENT: actions}
-
-        # Check whether some actions are not provided.
-        given_keys = set(actions.keys())
-        have_keys = set(self.vehicles.keys())
-        assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
-            given_keys, have_keys
-        )
+        if not self.is_multi_agent:
+            actions = {v_id: actions for v_id in self.vehicles.keys()}
+        else:
+            if self.config["vehicle_config"]["action_check"]:
+                # Check whether some actions are not provided.
+                given_keys = set(actions.keys())
+                have_keys = set(self.vehicles.keys())
+                assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
+                    given_keys, have_keys
+                )
+            else:
+                # That would be OK if extra actions is given. This is because, when evaluate a policy with naive
+                # implementation, the "termination observation" will still be given in T=t-1. And at T=t, when you
+                # collect action from policy(last_obs) without masking, then the action for "termination observation"
+                # will still be computed. We just filter it out here.
+                actions = {v_id: actions[v_id] for v_id in self.vehicles.keys()}
 
         saver_info = dict()
         for v_id, v in self.vehicles.items():
@@ -237,7 +253,8 @@ class PGDriveEnv(BasePGDriveEnv):
             done_function_result, done_infos[v_id] = self.done_function(v_id)
             rewards[v_id], reward_infos[v_id] = self.reward_function(v_id)
             _, cost_infos[v_id] = self.cost_function(v_id)
-            self.dones[v_id] = done_function_result or self.dones[v_id]
+            done = done_function_result or self.dones[v_id]
+            self.dones[v_id] = done
 
         should_done = self.config["auto_termination"] and (self.episode_steps >= (self.current_map.num_blocks * 250))
 
@@ -255,34 +272,42 @@ class PGDriveEnv(BasePGDriveEnv):
             for k in self.dones:
                 self.dones[k] = True
 
-        if self.num_agents == 1:
-            return obses[DEFAULT_AGENT], rewards[DEFAULT_AGENT], self.dones[DEFAULT_AGENT], step_infos[DEFAULT_AGENT]
+        dones = {k: self.dones[k] for k in self.vehicles.keys()}
+        for v_id, r in rewards.items():
+            self.episode_rewards[v_id] += r
+            step_infos[v_id]["episode_reward"] = self.episode_rewards[v_id]
+            self.episode_lengths[v_id] += 1
+            step_infos[v_id]["episode_length"] = self.episode_lengths[v_id]
+        if not self.is_multi_agent:
+            return self._wrap_as_single_agent(obses), self._wrap_as_single_agent(rewards), \
+                   self._wrap_as_single_agent(dones), self._wrap_as_single_agent(step_infos)
         else:
-            return obses, rewards, self.dones, step_infos
+            return obses, rewards, dones, step_infos
 
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
         done = False
-        done_info = dict(crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
+        done_info = dict(crash=False, crash_vehicle=False, crash_object=False, out_of_road=False, arrive_dest=False)
         if vehicle.arrive_destination:
             done = True
             logging.info("Episode ended! Reason: arrive_dest.")
-            done_info["arrive_dest"] = True
+            done_info[TerminationState.SUCCESS] = True
         elif vehicle.crash_vehicle:
             done = True
             logging.info("Episode ended! Reason: crash. ")
-            done_info["crash_vehicle"] = True
+            done_info[TerminationState.CRASH_VEHICLE] = True
         elif vehicle.out_of_route or not vehicle.on_lane or vehicle.crash_sidewalk:
             done = True
             logging.info("Episode ended! Reason: out_of_road.")
-            done_info["out_of_road"] = True
+            done_info[TerminationState.OUT_OF_ROAD] = True
         elif vehicle.crash_object:
             done = True
-            done_info["crash_object"] = True
+            done_info[TerminationState.CRASH_OBJECT] = True
 
         # for compatibility
         # crash almost equals to crashing with vehicles
-        done_info["crash"] = done_info["crash_vehicle"] or done_info["crash_object"]
+        done_info[TerminationState.CRASH
+                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
@@ -339,31 +364,29 @@ class PGDriveEnv(BasePGDriveEnv):
         step_info["step_reward"] = reward
 
         # for done
-        if vehicle.crash_vehicle:
+        if vehicle.arrive_destination:
+            reward += self.config["success_reward"]
+        elif vehicle.out_of_route:
+            reward -= self.config["out_of_road_penalty"]
+        elif vehicle.crash_vehicle:
             reward -= self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
             reward -= self.config["crash_object_penalty"]
-        elif vehicle.out_of_route:
-            reward -= self.config["out_of_road_penalty"]
-        elif vehicle.arrive_destination:
-            reward += self.config["success_reward"]
 
         return reward, step_info
 
-    def _reset_vehicles(self):
-        self.vehicles.update(self.done_vehicles)
-        self.done_vehicles = {}
+    def _reset_agents(self):
         self.for_each_vehicle(lambda v: v.reset(self.current_map))
 
     def _get_reset_return(self):
         ret = {}
-        self.for_each_vehicle(lambda v: v.update_state())
+        self.scene_manager.update_state_for_all_target_vehicles()
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
-        return ret[DEFAULT_AGENT] if self.num_agents == 1 else ret
+        return ret if self.is_multi_agent else ret[DEFAULT_AGENT]
 
-    def _update_map(self, episode_data: dict = None):
+    def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
             # Since in episode data map data only contains one map, values()[0] is the map_parameters
             map_data = episode_data["map_data"].values()
@@ -386,7 +409,15 @@ class PGDriveEnv(BasePGDriveEnv):
             self.current_map.unload_from_pg_world(self.pg_world)
 
         # create map
-        self.current_seed = get_np_random().randint(self.start_seed, self.start_seed + self.env_num)
+        if force_seed is not None:
+            self.current_seed = force_seed
+        elif self._pending_force_seed is not None:
+            self.current_seed = self._pending_force_seed
+            self._pending_force_seed = None
+        else:
+            self.current_seed = get_np_random(self._DEBUG_RANDOM_SEED
+                                              ).randint(self.start_seed, self.start_seed + self.env_num)
+
         if self.maps.get(self.current_seed, None) is None:
 
             if self.config["load_map_from_json"]:
@@ -483,15 +514,24 @@ class PGDriveEnv(BasePGDriveEnv):
         self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
     def chase_another_v(self) -> (str, BaseVehicle):
-        vehicles = sorted(list(self.vehicles.items()) + list(self.done_vehicles.items())) * 2
-        for index, v in enumerate(vehicles):
-            if vehicles[index - 1][1] == self.current_track_vehicle:
-                self.current_track_vehicle.remove_display_region()
-                self.current_track_vehicle = v[1]
-                self.current_track_vehicle_id = v[0]
-                self.current_track_vehicle.add_to_display()
-                self.main_camera.chase(self.current_track_vehicle, self.pg_world)
+        if self.main_camera is None:
+            return
+        self.main_camera.reset()
+        vehicles = list(self.agent_manager.active_agents.values())
+        if not self.main_camera.is_bird_view_camera(self.pg_world):
+            if self.current_track_vehicle in vehicles:
+                vehicles.remove(self.current_track_vehicle)
+            if len(vehicles) == 0:
                 return
+            self.current_track_vehicle.remove_display_region()
+            new_v = get_np_random().choice(vehicles)
+            self.current_track_vehicle = new_v
+        self.current_track_vehicle.add_to_display()
+        self.main_camera.track(self.current_track_vehicle, self.pg_world)
+        return
+
+    def bird_view_camera(self):
+        self.main_camera.stop_track(self.pg_world, self.current_track_vehicle)
 
     def saver(self, v_id: str, actions):
         """
@@ -565,7 +605,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
 
 def _auto_termination(vehicle, should_done):
-    return {"max_step": True if should_done else False}
+    return {TerminationState.MAX_STEP: True if should_done else False}
 
 
 if __name__ == '__main__':

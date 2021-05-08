@@ -1,6 +1,6 @@
-import copy
 import os.path as osp
 import time
+from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import gym
@@ -10,6 +10,7 @@ from panda3d.core import PNMImage
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.world.pg_world import PGWorld
@@ -20,6 +21,12 @@ BASE_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
     start_seed=0,
     environment_num=1,
+
+    # ==== agents config =====
+    num_agents=1,  # Note that this can be set to >1 in MARL envs, or set to -1 for as many vehicles as possible.
+    is_multi_agent=False,
+    allow_respawn=False,
+    delay_done=0,  # How many steps for the agent to stay static at the death place after done.
 
     # ===== Action =====
     decision_repeat=5,
@@ -36,6 +43,17 @@ BASE_DEFAULT_CONFIG = dict(
     use_chase_camera_follow_lane=False,  # If true, then vision would be more stable.
     camera_height=1.8,
 
+    # ===== Vehicle =====
+    vehicle_config=dict(
+        show_navi_mark=True,
+        wheel_friction=0.6,
+        max_engine_force=500,
+        max_brake_force=40,
+        max_steering=40,
+        max_speed=120,
+        extra_action_dim=0,
+    ),
+
     # ===== Others =====
     pg_world_config=dict(
         window_size=(1200, 900),  # width, height
@@ -51,6 +69,9 @@ BASE_DEFAULT_CONFIG = dict(
 
         # only render physics world without model, a special debug option
         debug_physics_world=False,
+
+        # debug static world
+        debug_static_world=False,
 
         # set to true only when on headless machine and use rgb image!!!!!!
         headless_image=False,
@@ -71,6 +92,9 @@ BASE_DEFAULT_CONFIG = dict(
 class BasePGDriveEnv(gym.Env):
     DEFAULT_AGENT = DEFAULT_AGENT
 
+    # Force to use this seed if necessary. Note that the recipient of the forced seed should be explicitly implemented.
+    _DEBUG_RANDOM_SEED = None
+
     @classmethod
     def default_config(cls) -> "PGConfig":
         return PGConfig(BASE_DEFAULT_CONFIG)
@@ -82,12 +106,22 @@ class BasePGDriveEnv(gym.Env):
         self.config = self._post_process_config(merged_config)
 
         self.num_agents = self.config["num_agents"]
-        assert isinstance(self.num_agents, int) and self.num_agents > 0
+        self.is_multi_agent = self.config["is_multi_agent"]
+        if not self.is_multi_agent:
+            assert self.num_agents == 1
+        assert isinstance(self.num_agents, int) and (self.num_agents > 0 or self.num_agents == -1)
 
         # observation and action space
-        self.observations = self._get_observations()
-        self.observation_space = self._get_observation_space()
-        self.action_space = self._get_action_space()
+        self.agent_manager = AgentManager(
+            init_observations=self._get_observations(),
+            never_allow_respawn=not self.config["allow_respawn"],
+            debug=self.config["debug"],
+            delay_done=self.config["delay_done"],
+            infinite_agents=self.num_agents == -1
+        )
+        self.agent_manager.init_space(
+            init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
+        )
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -105,9 +139,11 @@ class BasePGDriveEnv(gym.Env):
         self.current_seed = self.start_seed
         self.current_map = None
 
-        self.vehicles = dict()
-        self.done_vehicles = dict()
         self.dones = None
+        self.episode_rewards = defaultdict(float)
+        # In MARL envs with respawn mechanism, varying episode lengths might happen.
+        self.episode_lengths = defaultdict(int)
+        self._pending_force_seed = None
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
@@ -120,17 +156,14 @@ class BasePGDriveEnv(gym.Env):
     def _get_observations(self) -> Dict[str, "ObservationType"]:
         raise NotImplementedError()
 
-    def _get_observation_space(self) -> gym.Space:
-        ret = gym.spaces.Dict({v_id: obs.observation_space for v_id, obs in self.observations.items()})
-        if self.num_agents == 1:
-            ret = ret[DEFAULT_AGENT]
-        return ret
+    def _get_observation_space(self):
+        return {v_id: obs.observation_space for v_id, obs in self.observations.items()}
 
-    def _get_action_space(self) -> gym.Space:
-        ret = gym.spaces.Dict({v_id: BaseVehicle.get_action_space_before_init() for v_id in self.observations.keys()})
-        if self.num_agents == 1:
-            ret = ret[DEFAULT_AGENT]
-        return ret
+    def _get_action_space(self):
+        return {
+            v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"])
+            for v_id in self.observations.keys()
+        }
 
     def _setup_pg_world(self) -> "PGWorld":
         pg_world = PGWorld(self.config["pg_world_config"])
@@ -138,7 +171,14 @@ class BasePGDriveEnv(gym.Env):
 
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
-        return SceneManager(self.pg_world, traffic_config, self.config["record_episode"], self.config["cull_scene"])
+        manager = SceneManager(
+            pg_world=self.pg_world,
+            traffic_config=traffic_config,
+            record_episode=self.config["record_episode"],
+            cull_scene=self.config["cull_scene"],
+            agent_manager=self.agent_manager
+        )
+        return manager
 
     def lazy_init(self):
         """
@@ -156,13 +196,13 @@ class BasePGDriveEnv(gym.Env):
         self.scene_manager = self._get_scene_manager()
 
         # init vehicle
-        self.vehicles = self._get_vehicles()
+        self.agent_manager.init(pg_world=self.pg_world, config_dict=self._get_target_vehicle_config())
 
         # other optional initialization
         self._after_lazy_init()
 
-    def _get_vehicles(self):
-        return {self.DEFAULT_AGENT: BaseVehicle(self.pg_world, self.config["vehicle_config"])}
+    def _get_target_vehicle_config(self):
+        return {self.DEFAULT_AGENT: self.config["vehicle_config"]}
 
     def _after_lazy_init(self):
         pass
@@ -173,7 +213,8 @@ class BasePGDriveEnv(gym.Env):
         actions, action_infos = self._preprocess_actions(actions)
         step_infos = self._step_simulator(actions, action_infos)
         o, r, d, i = self._get_step_return(actions, step_infos)
-        return o, copy.deepcopy(r), copy.deepcopy(d), copy.deepcopy(i)
+        # return o, copy.deepcopy(r), copy.deepcopy(d), copy.deepcopy(i)
+        return o, r, d, i
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
@@ -241,29 +282,29 @@ class BasePGDriveEnv(gym.Env):
         # logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
         return None
 
-    def reset(self, episode_data: dict = None):
+    def reset(self, episode_data: dict = None, force_seed: Union[None, int] = None):
         """
         Reset the env, scene can be restored and replayed by giving episode_data
         Reset the environment or load an episode from episode data to recover is
         :param episode_data: Feed the episode data to replay an episode
+        :param force_seed: The seed to set the env.
         :return: None
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pg_world.clear_world()
-        self._update_map(episode_data)
+        self._update_map(episode_data, force_seed)
+        self.agent_manager.reset()
 
-        self._reset_vehicles()
+        self._reset_agents()
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
         self.episode_steps = 0
+        self.episode_rewards = defaultdict(float)
+        self.episode_lengths = defaultdict(int)
 
         # generate new traffic according to the map
         self.scene_manager.reset(
-            self.current_map,
-            self.vehicles,
-            self.config["traffic_density"],
-            self.config["accident_prob"],
-            episode_data=episode_data
+            self.current_map, self.config["traffic_density"], self.config["accident_prob"], episode_data=episode_data
         )
 
         if self.main_camera is not None:
@@ -271,11 +312,11 @@ class BasePGDriveEnv(gym.Env):
 
         return self._get_reset_return()
 
-    def _update_map(self, episode_data: dict = None):
+    def _update_map(self, episode_data: Union[None, dict] = None, force_seed: Union[None, int] = None):
         raise NotImplementedError()
 
-    def _reset_vehicles(self):
-        raise NotImplementedError()
+    def _reset_agents(self):
+        raise NotImplementedError
 
     def _get_reset_return(self):
         raise NotImplementedError()
@@ -288,13 +329,13 @@ class BasePGDriveEnv(gym.Env):
                 self.main_camera = None
             self.pg_world.clear_world()
 
-            self.scene_manager.destroy(self.pg_world)
-            del self.scene_manager
-            self.scene_manager = None
+            if self.scene_manager is not None:
+                self.scene_manager.destroy(self.pg_world)
+                del self.scene_manager
+                self.scene_manager = None
 
-            self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
-            del self.vehicles
-            self.vehicles = dict()
+            if self.vehicles:
+                self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
 
             del self.controller
             self.controller = None
@@ -309,6 +350,8 @@ class BasePGDriveEnv(gym.Env):
         self.current_map = None
         del self.restored_maps
         self.restored_maps = dict()
+        self.agent_manager.destroy()
+        # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
 
     def force_close(self):
         print("Closing environment ... Please wait")
@@ -330,13 +373,7 @@ class BasePGDriveEnv(gym.Env):
             sensor.save_image("{}.jpg".format(name))
 
     def for_each_vehicle(self, func, *args, **kwargs):
-        """
-        func is a function that take each vehicle as the first argument and *arg and **kwargs as others.
-        """
-        ret = dict()
-        for k, v in self.vehicles.items():
-            ret[k] = func(v, *args, **kwargs)
-        return ret
+        return self.agent_manager.for_each_active_agents(func, *args, **kwargs)
 
     @property
     def vehicle(self):
@@ -347,3 +384,60 @@ class BasePGDriveEnv(gym.Env):
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         raise NotImplementedError()
+
+    def _wrap_as_single_agent(self, data):
+        return data[next(iter(self.vehicles.keys()))]
+
+    def seed(self, seed=None):
+        if seed:
+            self._pending_force_seed = seed
+
+    @property
+    def observations(self):
+        """
+        Return observations of active and controllable vehicles
+        :return: Dict
+        """
+        return self.agent_manager.get_observations()
+
+    @property
+    def observation_space(self) -> gym.Space:
+        """
+        Return observation spaces of active and controllable vehicles
+        :return: Dict
+        """
+        ret = self.agent_manager.get_observation_spaces()
+        if not self.is_multi_agent:
+            return next(iter(ret.values()))
+        else:
+            return gym.spaces.Dict(ret)
+
+    @property
+    def action_space(self) -> gym.Space:
+        """
+        Return observation spaces of active and controllable vehicles
+        :return: Dict
+        """
+        ret = self.agent_manager.get_action_spaces()
+        if not self.is_multi_agent:
+            return next(iter(ret.values()))
+        else:
+            return gym.spaces.Dict(ret)
+
+    @property
+    def vehicles(self):
+        """
+        Return all active vehicles
+        :return: Dict[agent_id:vehicle]
+        """
+        return self.agent_manager.active_agents
+
+    @property
+    def pending_vehicles(self):
+        """
+        Return pending BaseVehicles, it takes effect in MARL-env
+        :return: Dict[agent_id: pending_vehicles]
+        """
+        if not self.is_multi_agent:
+            raise ValueError("Pending agents is not available in single-agent env")
+        return self.agent_manager.pending_objects

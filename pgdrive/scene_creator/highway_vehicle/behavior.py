@@ -1,11 +1,12 @@
 from typing import Tuple, Union, List
 
 import numpy as np
+
 import pgdrive.utils.math_utils as utils
+from pgdrive.constants import Route, LaneIndex
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.object.traffic_object import Object
-from pgdrive.scene_manager.scene_manager import SceneManager, Route, LaneIndex
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils.math_utils import clip
 
@@ -88,7 +89,7 @@ class IDMVehicle(ControlledVehicle):
         )
         return v
 
-    def act(self, action: Union[dict, str] = None, scene_mgr: SceneManager = None):
+    def act(self, action: Union[dict, str] = None, scene_manager=None):
         """
         Execute an action.
 
@@ -96,7 +97,7 @@ class IDMVehicle(ControlledVehicle):
         of acceleration and lane changes on its own, based on the IDM and MOBIL models.
 
         :param action: the action
-        :param scene_mgr: access other elements in scene
+        :param scene_manager: access other elements in scene
         """
         if self.crashed:
             return
@@ -107,7 +108,7 @@ class IDMVehicle(ControlledVehicle):
         if self.enable_lane_change:
             self.change_lane_policy()
         action['steering'] = self.steering_control(self.target_lane_index)
-        action['steering'] = np.clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
+        action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
 
         # Longitudinal: IDM
         action['acceleration'] = self.acceleration(
@@ -343,8 +344,8 @@ class LinearVehicle(IDMVehicle):
         )
         self.data = data if data is not None else {}
 
-    def act(self, action: Union[dict, str] = None, scene_mgr: SceneManager = None):
-        super().act(action, scene_mgr)
+    def act(self, action: Union[dict, str] = None, scene_manager=None):
+        super().act(action, scene_manager)
 
     def randomize_behavior(self):
         ua = self.traffic_mgr.np_random.uniform(size=np.shape(self.ACCELERATION_PARAMETERS))
@@ -372,7 +373,11 @@ class LinearVehicle(IDMVehicle):
         :return: the acceleration command for the ego-vehicle [m/s2]
         """
         return float(
-            np.dot(self.ACCELERATION_PARAMETERS, self.acceleration_features(ego_vehicle, front_vehicle, rear_vehicle))
+            utils.dot3(
+                self.ACCELERATION_PARAMETERS,
+                self.acceleration_features(ego_vehicle, front_vehicle, rear_vehicle)
+                # np.dot(self.ACCELERATION_PARAMETERS, self.acceleration_features(ego_vehicle, front_vehicle, rear_vehicle))
+            )
         )
 
     def acceleration_features(

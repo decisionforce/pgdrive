@@ -65,14 +65,14 @@ if __name__ == "__main__":
     #     sensor.remove_display_region(env.pg_world)
     # env.vehicle.vehicle_panel.remove_display_region(env.pg_world)
     # env.vehicle.collision_info_np.detachNode()
-    # env.vehicle.routing_localization.right_arrow.detachNode()
+    # env.vehicle.routing_localization._right_arrow.detachNode()
 
     env.vehicle.chassis_np.setPos(244, 0, 1.5)
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         env.render(
             # text={
-            #     "vehicle_num": len(env.scene_manager.traffic_mgr.traffic_vehicles),
+            #     "vehicle_num": len(env.scene_manager.traffic_manager.traffic_vehicles),
             #     "dist_to_left:": env.vehicle.dist_to_left,
             #     "dist_to_right:": env.vehicle.dist_to_right,
             #     "env_seed": env.current_map.random_seed

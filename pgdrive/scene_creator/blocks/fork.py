@@ -30,8 +30,8 @@ class InFork(Fork):
 
         # extend road and acc raod part, part 0
         self.set_part_idx(0)
-        sin_angle = np.sin(np.deg2rad(self.ANGLE))
-        cos_angle = np.cos(np.deg2rad(self.ANGLE))
+        sin_angle = math.sinsin(np.deg2rad(self.ANGLE))
+        cos_angle = math.cos(np.deg2rad(self.ANGLE))
         longitude_len = sin_angle * self.RADIUS * 2 + cos_angle * self.CONNECT_PART_LEN + self.RAMP_LEN
 
         extend_lane = ExtendStraightLane(
@@ -79,7 +79,7 @@ class InFork(Fork):
             speed_limit=self.SPEED_LIMIT
         )
         bend_1_road = Road(self.add_road_node(), self.add_road_node())
-        self.add_reborn_roads(bend_1_road)
+        self.add_respawn_roads(bend_1_road)
         connect_road = Road(bend_1_road.end_node, self.add_road_node())
         self.block_network.add_lane(bend_1_road.start_node, bend_1_road.end_node, bend_1)
         self.block_network.add_lane(connect_road.start_node, connect_road.end_node, connect_part)
@@ -150,8 +150,8 @@ class OutFork(Fork):
 
     def _try_plug_into_previous_block(self) -> bool:
         no_cross = True
-        sin_angle = np.sin(np.deg2rad(self.ANGLE))
-        cos_angle = np.cos(np.deg2rad(self.ANGLE))
+        sin_angle = math.sin(np.deg2rad(self.ANGLE))
+        cos_angle = math.cos(np.deg2rad(self.ANGLE))
         longitude_len = sin_angle * self.RADIUS * 2 + cos_angle * self.CONNECT_PART_LEN + self.RAMP_LEN
 
         self.set_part_idx(0)

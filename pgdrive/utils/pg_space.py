@@ -3,11 +3,10 @@ import typing as tp
 from collections import namedtuple, OrderedDict
 
 import numpy as np
-
 from pgdrive.utils import get_np_random
 
 PGBoxSpace = namedtuple("PGBoxSpace", "max min")
-PGDiscreteSpace = namedtuple("PGDiscreteSpace", "number")
+PGDiscreteSpace = namedtuple("PGDiscreteSpace", "max min")
 PGConstantSpace = namedtuple("PGConstantSpace", "value")
 """
 This filed is mostly copied from gym==0.17.2
@@ -165,7 +164,7 @@ class PGSpace(Dict):
             if isinstance(value, PGBoxSpace):
                 ret[key] = Box(low=value.min, high=value.max, shape=(1, ))
             elif isinstance(value, PGDiscreteSpace):
-                ret[key] = Discrete(value.number)
+                ret[key] = Box(low=value.min, high=value.max, shape=(1, ), dtype=np.int64)
             elif isinstance(value, PGConstantSpace):
                 ret[key] = Box(low=value.value, high=value.value, shape=(1, ))
             else:
@@ -185,14 +184,15 @@ class Parameter:
     dir = "dir"
     radius_inner = "inner_radius"  # only for roundabout use
     radius_exit = "exit_radius"
+    exit_length = "exit_length"  # The length of the exit parts straight lane, for roundabout use only.
     t_intersection_type = "t_type"
     lane_num = "lane_num"
     change_lane_num = "change_lane_num"
     decrease_increase = "decrease_increase"
 
     # vehicle
-    vehicle_length = "v_len"
-    vehicle_width = "v_width"
+    # vehicle_length = "v_len"
+    # vehicle_width = "v_width"
     vehicle_height = "v_height"
     front_tire_longitude = "f_tire_long"
     rear_tire_longitude = "r_tire_long"
@@ -202,10 +202,10 @@ class Parameter:
     mass = "mass"
     chassis_height = "chassis_height"
     heading = "heading"
-    steering_max = "steering_max"
-    engine_force_max = "e_f_max"
-    brake_force_max = "b_f_max"
-    speed_max = "s_max"
+    # steering_max = "steering_max"
+    # engine_force_max = "e_f_max"
+    # brake_force_max = "b_f_max"
+    # speed_max = "s_max"
 
     # vehicle visualization
     vehicle_vis_z = "vis_z"
@@ -217,8 +217,6 @@ class Parameter:
 class VehicleParameterSpace:
     BASE_VEHICLE = {
         # Now the parameter sample is not available and thus the value space is incorrect
-        Parameter.vehicle_length: PGConstantSpace(4.0),
-        Parameter.vehicle_width: PGConstantSpace(1.5),
         Parameter.vehicle_height: PGConstantSpace(1),
         Parameter.chassis_height: PGConstantSpace(0.3),
         Parameter.front_tire_longitude: PGConstantSpace(1.05),
@@ -235,10 +233,10 @@ class VehicleParameterSpace:
         Parameter.vehicle_vis_scale: PGConstantSpace(0.013),
 
         # TODO the following parameters will be opened soon using PGBoxSPace
-        Parameter.steering_max: PGConstantSpace(40.0),
-        Parameter.engine_force_max: PGConstantSpace(500.0),
-        Parameter.brake_force_max: PGConstantSpace(40.0),
-        Parameter.speed_max: PGConstantSpace(120),
+        # Parameter.steering_max: PGConstantSpace(40.0),
+        # Parameter.engine_force_max: PGConstantSpace(500.0),
+        # Parameter.brake_force_max: PGConstantSpace(40.0),
+        # Parameter.speed_max: PGConstantSpace(120),
     }
 
 
@@ -252,34 +250,35 @@ class BlockParameterSpace:
         Parameter.length: PGBoxSpace(min=40.0, max=80.0),
         Parameter.radius: PGBoxSpace(min=25.0, max=60.0),
         Parameter.angle: PGBoxSpace(min=45, max=135),
-        Parameter.dir: PGDiscreteSpace(2)
+        Parameter.dir: PGDiscreteSpace(min=0, max=1)
     }
     INTERSECTION = {
         Parameter.radius: PGConstantSpace(10),
-        Parameter.change_lane_num: PGDiscreteSpace(number=2),  # 0, 1
-        Parameter.decrease_increase: PGDiscreteSpace(number=2)  # 0, decrease, 1 increase
+        Parameter.change_lane_num: PGDiscreteSpace(min=0, max=1),  # 0, 1
+        Parameter.decrease_increase: PGDiscreteSpace(min=0, max=1)  # 0, decrease, 1 increase
     }
     ROUNDABOUT = {
+        # The radius of the
         Parameter.radius_exit: PGBoxSpace(min=5, max=15),  # TODO Should we reduce this?
         Parameter.radius_inner: PGBoxSpace(min=15, max=45),  # TODO Should we reduce this?
         Parameter.angle: PGConstantSpace(60)
     }
     T_INTERSECTION = {
         Parameter.radius: PGConstantSpace(10),
-        Parameter.t_intersection_type: PGDiscreteSpace(number=3),  # 3 different t type for previous socket
-        Parameter.change_lane_num: PGDiscreteSpace(2),  # 0,1
-        Parameter.decrease_increase: PGDiscreteSpace(2)  # 0, decrease, 1 increase
+        Parameter.t_intersection_type: PGDiscreteSpace(min=0, max=2),  # 3 different t type for previous socket
+        Parameter.change_lane_num: PGDiscreteSpace(min=0, max=1),  # 0,1
+        Parameter.decrease_increase: PGDiscreteSpace(min=0, max=1)  # 0, decrease, 1 increase
     }
     RAMP_PARAMETER = {
         Parameter.length: PGBoxSpace(min=20, max=40)  # accelerate/decelerate part length
     }
     FORK_PARAMETER = {
         Parameter.length: PGBoxSpace(min=20, max=40),  # accelerate/decelerate part length
-        Parameter.lane_num: PGDiscreteSpace(2)
+        Parameter.lane_num: PGDiscreteSpace(min=0, max=1)
     }
     BOTTLENECK_PARAMETER = {
         Parameter.length: PGBoxSpace(min=20, max=50),  # the length of straigh part
-        Parameter.lane_num: PGDiscreteSpace(2),  # the lane num increased or descreased now fix to 1
+        Parameter.lane_num: PGDiscreteSpace(min=1, max=2),  # the lane num increased or descreased now 1-2
     }
 
 
@@ -461,7 +460,7 @@ if __name__ == "__main__":
     config = {
         "length": PGBoxSpace(min=10.0, max=80.0),
         "angle": PGBoxSpace(min=50.0, max=360.0),
-        "goal": PGDiscreteSpace(number=3)
+        "goal": PGDiscreteSpace(min=0, max=2)
     }
     config = PGSpace(config)
     print(config.sample())

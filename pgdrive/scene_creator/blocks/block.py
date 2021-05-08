@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from typing import Dict, Union, List
-
+import copy
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletGhostNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
@@ -17,7 +17,7 @@ from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.element import Element
-from pgdrive.utils.math_utils import norm
+from pgdrive.utils.math_utils import norm, PGVector
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
 
 
@@ -38,6 +38,13 @@ class BlockSocket:
     @classmethod
     def get_real_index(cls, block_name: str, index: int):
         return "{}-socket{}".format(block_name, index)
+
+    def is_socket_node(self, road_node):
+        if road_node == self.positive_road.start_node or road_node == self.positive_road.end_node or \
+                road_node == self.negative_road.start_node or road_node == self.negative_road.end_node:
+            return True
+        else:
+            return False
 
 
 class Block(Element, BlockDefault):
@@ -74,7 +81,7 @@ class Block(Element, BlockDefault):
         self.block_network = RoadNetwork()
 
         # used to spawn npc
-        self._reborn_roads = []
+        self._respawn_roads = []
 
         # own sockets, one block derives from a socket, but will have more sockets to connect other blocks
         self._sockets = OrderedDict()
@@ -110,11 +117,15 @@ class Block(Element, BlockDefault):
             self.side_normal = self.loader.loadTexture(AssetLoader.file_path("textures", "sidewalk", "normal.png"))
             self.sidewalk = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
 
-    def construct_block(self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld) -> bool:
+    def construct_block(
+        self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
+    ) -> bool:
         """
         Randomly Construct a block, if overlap return False
         """
         self.set_config(self.PARAMETER_SPACE.sample())
+        if extra_config:
+            self.set_config(extra_config)
         success = self._sample_topology()
         self._create_in_world()
         self.attach_to_pg_world(root_render_np, pg_physics_world)
@@ -158,27 +169,27 @@ class Block(Element, BlockDefault):
         assert socket_index in self._sockets, (socket_index, self._sockets.keys())
         return self._sockets[socket_index]
 
-    def add_reborn_roads(self, reborn_roads: Union[List[Road], Road]):
+    def add_respawn_roads(self, respawn_roads: Union[List[Road], Road]):
         """
         Use this to add spawn roads instead of modifying the list directly
         """
-        if isinstance(reborn_roads, List):
-            for road in reborn_roads:
-                self._add_one_reborn_road(road)
-        elif isinstance(reborn_roads, Road):
-            self._add_one_reborn_road(reborn_roads)
+        if isinstance(respawn_roads, List):
+            for road in respawn_roads:
+                self._add_one_respawn_road(road)
+        elif isinstance(respawn_roads, Road):
+            self._add_one_respawn_road(respawn_roads)
         else:
             raise ValueError("Only accept List[Road] or Road in this func")
 
-    def get_reborn_roads(self):
-        return self._reborn_roads
+    def get_respawn_roads(self):
+        return self._respawn_roads
 
-    def get_reborn_lanes(self):
+    def get_respawn_lanes(self):
         """
         return a 2-dim array [[]] to keep the lane index
         """
         ret = []
-        for road in self._reborn_roads:
+        for road in self._respawn_roads:
             lanes = road.get_lanes(self.block_network)
             ret.append(lanes)
         return ret
@@ -230,16 +241,16 @@ class Block(Element, BlockDefault):
             socket.set_index(self._block_name, len(self._sockets))
         self._sockets[socket.index] = socket
 
-    def _add_one_reborn_road(self, reborn_road: Road):
-        assert isinstance(reborn_road, Road), "Spawn roads list only accept Road Type"
-        self._reborn_roads.append(reborn_road)
+    def _add_one_respawn_road(self, respawn_road: Road):
+        assert isinstance(respawn_road, Road), "Spawn roads list only accept Road Type"
+        self._respawn_roads.append(respawn_road)
 
     def _clear_topology(self):
         self._global_network -= self.block_network
         self.block_network.graph.clear()
         self.PART_IDX = 0
         self.ROAD_IDX = 0
-        self._reborn_roads.clear()
+        self._respawn_roads.clear()
         self._sockets.clear()
 
     def _try_plug_into_previous_block(self) -> bool:
@@ -375,7 +386,7 @@ class Block(Element, BlockDefault):
         else:
             node_name = BodyName.Broken_line
         body_node = BulletGhostNode(node_name)
-        body_node.setActive(False)
+        body_node.set_active(False)
         body_node.setKinematic(False)
         body_node.setStatic(True)
         body_np = parent_np.attachNewNode(body_node)
@@ -413,7 +424,7 @@ class Block(Element, BlockDefault):
             body_np = parent_np.attachNewNode(node_name)
         else:
             body_node = BulletGhostNode(node_name)
-            body_node.setActive(False)
+            body_node.set_active(False)
             body_node.setKinematic(False)
             body_node.setStatic(True)
             body_np = parent_np.attachNewNode(body_node)
@@ -444,7 +455,7 @@ class Block(Element, BlockDefault):
     def _add_sidewalk2bullet(self, lane_start, lane_end, middle, radius=0.0, direction=0):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         body_node = BulletRigidBodyNode(BodyName.Sidewalk)
-        body_node.setActive(False)
+        body_node.set_active(False)
         body_node.setKinematic(False)
         body_node.setStatic(True)
         side_np = self.sidewalk_node_path.attachNewNode(body_node)
@@ -461,7 +472,7 @@ class Block(Element, BlockDefault):
             else:
                 factor = (1 + self.SIDEWALK_WIDTH / radius) * (1 + self.SIDEWALK_LINE_DIST / radius)
         direction_v = lane_end - lane_start
-        vertical_v = (-direction_v[1], direction_v[0]) / numpy.linalg.norm(direction_v)
+        vertical_v = PGVector((-direction_v[1], direction_v[0])) / norm(*direction_v)
         middle += vertical_v * (self.SIDEWALK_WIDTH / 2 + self.SIDEWALK_LINE_DIST)
         side_np.setPos(panda_position(middle, 0))
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
@@ -517,7 +528,7 @@ class Block(Element, BlockDefault):
         """
         segment_np = NodePath(LaneNode(BodyName.Lane, lane, lane_index))
         segment_node = segment_np.node()
-        segment_node.setActive(False)
+        segment_node.set_active(False)
         segment_node.setKinematic(False)
         segment_node.setStatic(True)
         shape = BulletBoxShape(Vec3(length / 2, 0.1, width / 2))

@@ -1,14 +1,15 @@
+import math
 from collections import deque
 from typing import Union, List
 
 import numpy as np
 
 import pgdrive.utils.math_utils as utils
+from pgdrive.constants import LaneIndex
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.object.traffic_object import Object
-from pgdrive.scene_manager.scene_manager import LaneIndex
 from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random
+from pgdrive.utils import get_np_random, random_string, distance_greater, norm
 
 
 class Vehicle:
@@ -37,7 +38,9 @@ class Vehicle:
         heading: float = 0,
         speed: float = 0,
         np_random: np.random.RandomState = None,
+        name: str = None
     ):
+        self.name = random_string() if name is None else name
         self.traffic_mgr = traffic_mgr
         self._position = np.array(position).astype('float')
         self.heading = heading
@@ -90,8 +93,8 @@ class Vehicle:
         vehicle in the road with density based on the number of lanes.
 
         :param longitude: the longitude on lane
-        :param lane: the lane where the vehicle is born
-        :param traffic_mgr: the traffic_mgr where the vehicle is driving
+        :param lane: the lane where the vehicle is spawn
+        :param traffic_mgr: the traffic_manager where the vehicle is driving
         :param speed: initial speed in [m/s]. If None, will be chosen randomly
         :return: A vehicle with random position and/or speed
         """
@@ -141,9 +144,9 @@ class Vehicle:
         self.clip_actions()
         delta_f = self.action['steering']
         beta = np.arctan(1 / 2 * np.tan(delta_f))
-        v = self.speed * np.array([np.cos(self.heading + beta), np.sin(self.heading + beta)])
+        v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
         self._position += v * dt
-        self.heading += self.speed * np.sin(beta) / (self.LENGTH / 2) * dt
+        self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
         self.speed += self.action['acceleration'] * dt
         # for performance reason,
         # self.on_state_update()
@@ -207,7 +210,7 @@ class Vehicle:
 
     def _is_colliding(self, other):
         # Fast spherical pre-check
-        if np.linalg.norm(other.position - self.position) > self.LENGTH:
+        if distance_greater(other.position, self.position, self.LENGTH):
             return False
         # Accurate rectangular check
         return utils.rotated_rectangles_intersect(
@@ -217,7 +220,7 @@ class Vehicle:
 
     @property
     def direction(self) -> np.ndarray:
-        return np.array([np.cos(self.heading), np.sin(self.heading)])
+        return np.array([math.cos(self.heading), math.sin(self.heading)])
 
     @property
     def velocity(self) -> np.ndarray:
@@ -234,13 +237,13 @@ class Vehicle:
     @property
     def destination_direction(self) -> np.ndarray:
         if (self.destination != self.position).any():
-            return (self.destination - self.position) / np.linalg.norm(self.destination - self.position)
+            return (self.destination - self.position) / norm(*(self.destination - self.position))
         else:
             return np.zeros((2, ))
 
     @property
     def on_road(self) -> bool:
-        """ Is the vehicle on its current lane, or off-traffic_mgr ? """
+        """ Is the vehicle on its current lane, or off-traffic_manager ? """
         return self.lane.on_lane(self.position)
 
     def front_distance_to(self, other: "Vehicle") -> float:
@@ -284,3 +287,7 @@ class Vehicle:
 
     def __repr__(self):
         return self.__str__()
+
+    @property
+    def heading_theta(self):
+        return self.heading

@@ -3,7 +3,7 @@ import numpy as np
 
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.utils.math_utils import clip
+from pgdrive.utils.math_utils import clip, norm
 
 
 class StateObservation(ObservationType):
@@ -17,7 +17,7 @@ class StateObservation(ObservationType):
     @property
     def observation_space(self):
         # Navi info + Other states
-        shape = self.ego_state_obs_dim + RoutingLocalizationModule.Navi_obs_dim + self.get_side_detector_dim()
+        shape = self.ego_state_obs_dim + RoutingLocalizationModule.navigation_info_dim + self.get_side_detector_dim()
         return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):
@@ -51,7 +51,7 @@ class StateObservation(ObservationType):
         """
         navi_info = vehicle.routing_localization.get_navi_info()
         ego_state = self.vehicle_state(vehicle)
-        return np.asarray(ego_state + navi_info, dtype=np.float32)
+        return np.concatenate([ego_state, navi_info])
 
     @staticmethod
     def vehicle_state(vehicle):
@@ -63,7 +63,7 @@ class StateObservation(ObservationType):
         if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
             info += vehicle.side_detector.get_cloud_points()
         else:
-            lateral_to_left, lateral_to_right, = vehicle.dist_to_left, vehicle.dist_to_right
+            lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
             total_width = float(
                 (vehicle.routing_localization.get_current_lane_num() + 1) *
                 vehicle.routing_localization.get_current_lane_width()
@@ -71,6 +71,11 @@ class StateObservation(ObservationType):
             lateral_to_left /= total_width
             lateral_to_right /= total_width
             info += [clip(lateral_to_left, 0.0, 1.0), clip(lateral_to_right, 0.0, 1.0)]
+
+        # print("Heading Diff: ", [
+        #     vehicle.heading_diff(current_reference_lane)
+        #     for current_reference_lane in vehicle.routing_localization.current_ref_lanes
+        # ])
 
         current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
         info += [
@@ -83,8 +88,7 @@ class StateObservation(ObservationType):
         ]
         heading_dir_last = vehicle.last_heading_dir
         heading_dir_now = vehicle.heading
-        cos_beta = heading_dir_now.dot(heading_dir_last
-                                       ) / (np.linalg.norm(heading_dir_now) * np.linalg.norm(heading_dir_last))
+        cos_beta = heading_dir_now.dot(heading_dir_last) / (norm(*heading_dir_now) * norm(*heading_dir_last))
         beta_diff = np.arccos(clip(cos_beta, 0.0, 1.0))
         # print(beta)
         yaw_rate = beta_diff / 0.1
@@ -140,6 +144,13 @@ class LidarStateObservation(ObservationType):
         :return: observation in 9 + 10 + 16 + 240 dim
         """
         state = self.state_observe(vehicle)
+        other_v_info = self.lidar_observe(vehicle)
+        return np.concatenate((state, np.asarray(other_v_info)))
+
+    def state_observe(self, vehicle):
+        return self.state_obs.observe(vehicle)
+
+    def lidar_observe(self, vehicle):
         other_v_info = []
         if vehicle.lidar is not None:
             if self.config["lidar"]["num_others"] > 0:
@@ -149,10 +160,7 @@ class LidarStateObservation(ObservationType):
                 gaussian_noise=self.config["lidar"]["gaussian_noise"],
                 dropout_prob=self.config["lidar"]["dropout_prob"]
             )
-        return np.concatenate((state, np.asarray(other_v_info)))
-
-    def state_observe(self, vehicle):
-        return self.state_obs.observe(vehicle)
+        return other_v_info
 
     def _add_noise_to_cloud_points(self, points, gaussian_noise, dropout_prob):
         if gaussian_noise > 0.0:

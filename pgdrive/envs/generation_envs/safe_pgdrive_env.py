@@ -1,5 +1,7 @@
+from pgdrive.constants import TerminationState
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import PGConfig
+from pgdrive.utils.math_utils import clip
 
 
 class SafePGDriveEnv(PGDriveEnv):
@@ -22,9 +24,9 @@ class SafePGDriveEnv(PGDriveEnv):
 
     def done_function(self, vehicle_id: str):
         done, done_info = super(SafePGDriveEnv, self).done_function(vehicle_id)
-        if done_info["crash_vehicle"]:
+        if done_info[TerminationState.CRASH_VEHICLE]:
             done = False
-        elif done_info["crash_object"]:
+        elif done_info[TerminationState.CRASH_OBJECT]:
             done = False
         return done, done_info
 
@@ -59,31 +61,49 @@ class SafePGDriveEnv(PGDriveEnv):
 
         step_info["step_reward"] = reward
 
-        if vehicle.crash_vehicle:
-            reward = -self.config["crash_vehicle_penalty"]
-            print(reward)
-        elif vehicle.crash_object:
-            reward = -self.config["crash_object_penalty"]
-            print(reward)
+        if vehicle.arrive_destination:
+            reward = +self.config["success_reward"]
         elif vehicle.out_of_route:
             reward = -self.config["out_of_road_penalty"]
-            print(reward)
-        elif vehicle.arrive_destination:
-            reward = +self.config["success_reward"]
+        elif vehicle.crash_vehicle:
+            reward = -self.config["crash_vehicle_penalty"]
+        elif vehicle.crash_object:
+            reward = -self.config["crash_object_penalty"]
         return reward, step_info
+
+    def cost_function(self, vehicle_id: str):
+        vehicle = self.vehicles[vehicle_id]
+        step_info = dict()
+        step_info["cost"] = 0
+        if vehicle.crash_vehicle:
+            step_info["cost"] = self.config["crash_vehicle_cost"]
+        elif vehicle.crash_object:
+            step_info["cost"] = self.config["crash_object_cost"]
+        elif vehicle.out_of_route or vehicle.crash_sidewalk:
+            step_info["cost"] = self.config["out_of_road_cost"]
+        return step_info['cost'], step_info
 
 
 if __name__ == "__main__":
     env = SafePGDriveEnv(
         {
+            "accident_prob": 1.0,
             "manual_control": True,
             "use_render": True,
             "environment_num": 100,
-            "start_seed": 75,
+            "start_seed": 139,
+            "out_of_road_cost": 1,
             # "debug": True,
             "cull_scene": True,
             "pg_world_config": {
                 "pstats": True
+            },
+            "vehicle_config": {
+                "show_lidar": True,
+                "show_side_detector": True,
+                "show_lane_line_detector": True,
+                "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
+                "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
             }
         }
     )
@@ -96,6 +116,7 @@ if __name__ == "__main__":
         env.render(text={"cost": total_cost, "seed": env.current_map.random_seed, "reward": r})
         if d:
             total_cost = 0
+            print("done_cost:{}".format(info["cost"]))
             print("Reset")
             env.reset()
     env.close()

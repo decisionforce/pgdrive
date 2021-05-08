@@ -1,5 +1,6 @@
-import numpy as np
+import math
 
+import numpy as np
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, create_bend_straight
 from pgdrive.scene_creator.lane.abs_lane import LineType
@@ -20,7 +21,7 @@ class Roundabout(Block):
     EXIT_PART_LENGTH = 30
 
     def _try_plug_into_previous_block(self) -> bool:
-        para = self.get_config()
+        para = self.get_config(copy=False)
         no_cross = True
         attach_road = self.pre_block_socket.positive_road
         for i in range(4):
@@ -31,7 +32,7 @@ class Roundabout(Block):
             if i < 3:
                 no_cross = CreateAdverseRoad(exit_road, self.block_network, self._global_network) and no_cross
                 attach_road = -exit_road
-        self.add_reborn_roads([socket.negative_road for socket in self.get_socket_list()])
+        self.add_respawn_roads([socket.negative_road for socket in self.get_socket_list()])
         return no_cross
 
     def _create_circular_part(self, road: Road, part_idx: int, radius_exit: float, radius_inner: float,
@@ -132,7 +133,7 @@ class Roundabout(Block):
         tool_lane = StraightLane(tool_lane_start, tool_lane_end)
 
         beneath = (self.positive_lane_num * 2 - 1) * self.lane_width / 2 + radius_exit
-        cos = np.cos(np.deg2rad(angle))
+        cos = math.cos(np.deg2rad(angle))
         radius_this_seg = beneath / cos - radius_exit
 
         bend, _ = create_bend_straight(
@@ -155,6 +156,6 @@ class Roundabout(Block):
 
     def get_socket(self, index: int) -> BlockSocket:
         socket = super(Roundabout, self).get_socket(index)
-        if socket.negative_road in self.get_reborn_roads():
-            self._reborn_roads.remove(socket.negative_road)
+        if socket.negative_road in self.get_respawn_roads():
+            self._respawn_roads.remove(socket.negative_road)
         return socket

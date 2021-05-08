@@ -2,7 +2,6 @@ import copy
 from typing import Union, Any
 
 import numpy as np
-
 from pgdrive.utils.utils import merge_dicts
 
 
@@ -178,6 +177,7 @@ class PGConfig:
     @classmethod
     def _internal_dict_to_config(cls, d: dict) -> dict:
         ret = dict()
+        d = d or dict()
         for k, v in d.items():
             if isinstance(v, dict):
                 v = cls(v)
@@ -202,14 +202,18 @@ class PGConfig:
     def __getitem__(self, item):
         self._check_and_raise_key_error(item)
         ret = self._config[item]
-        if isinstance(ret, np.ndarray) and len(ret) == 1:
-            # handle 1-d box shape sample
-            ret = ret[0]
         return ret
 
     def _set_item(self, key, value, allow_overwrite):
         """A helper function to replace __setattr__ and __setitem__!"""
         self._check_and_raise_key_error(key)
+        if isinstance(value, np.ndarray) and len(value) == 1:
+            # handle 1-d box shape sample
+            value = value[0]
+            if isinstance(value, (np.float32, np.float64, np.float)):
+                value = float(value)
+            if isinstance(value, (np.int, np.int32, np.int64, np.uint)):
+                value = int(value)
         if self._unchangeable:
             raise ValueError("This config is not changeable!")
         if (not allow_overwrite) and (self._config[key] is not None and value is not None):
@@ -230,6 +234,8 @@ class PGConfig:
         self.__setitem__(key, value)
 
     def __setitem__(self, key, value):
+        if self._unchangeable:
+            raise ValueError("This config is not changeable!")
         self._config[key] = value
         super(PGConfig, self).__setattr__(key, value)
 
@@ -272,6 +278,16 @@ class PGConfig:
 
     def get(self, key, *args):
         return copy.copy(self._config.get(key, *args))
+
+    def force_update(self, new_config):
+        self._unchangeable = False
+        self.update(new_config)
+        self._unchangeable = True
+
+    def force_set(self, key, value):
+        self._unchangeable = False
+        self[key] = value
+        self._unchangeable = True
 
 
 def _is_identical(k1, v1, k2, v2):

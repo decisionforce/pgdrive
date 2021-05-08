@@ -3,7 +3,6 @@ from typing import Union
 
 from numpy.random import RandomState
 from panda3d.core import NodePath
-
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.pg_blocks import PGBlock
@@ -21,14 +20,22 @@ class NextStep:
 class BigGenerateMethod:
     BLOCK_SEQUENCE = "block_sequence"
     BLOCK_NUM = "block_num"
+    SINGLE_BLOCK = "single_block"
 
 
 class BIG:
     MAX_TRIAL = 2
 
     def __init__(
-        self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-        pg_physics_world: PGPhysicsWorld, random_seed: int
+        self,
+        lane_num: int,
+        lane_width: float,
+        global_network: RoadNetwork,
+        render_node_path: NodePath,
+        pg_physics_world: PGPhysicsWorld,
+        random_seed: int,
+        block_type_version: str,
+        exit_length=50
     ):
         self._block_sequence = None
         self._random_seed = random_seed
@@ -41,12 +48,20 @@ class BIG:
         self._physics_world = pg_physics_world
         self._global_network = global_network
         self.blocks = []
+        self._exit_length = exit_length
         first_block = FirstBlock(
-            self._global_network, self._lane_width, self._lane_num, self._render_node_path, self._physics_world,
-            self._random_seed
+            self._global_network,
+            self._lane_width,
+            self._lane_num,
+            self._render_node_path,
+            self._physics_world,
+            self._random_seed,
+            length=self._exit_length
         )
         self.blocks.append(first_block)
         self.next_step = NextStep.forward
+        assert block_type_version in ["v1", "v2"]
+        self.block_type_version = block_type_version
 
     def generate(self, generate_method: str, parameter: Union[str, int]):
         """
@@ -82,12 +97,12 @@ class BIG:
         Sample a random block type
         """
         if self._block_sequence is None:
-            block_types = PGBlock.all_blocks()
-            block_probabilities = PGBlock.block_probability()
+            block_types = PGBlock.all_blocks(self.block_type_version)
+            block_probabilities = PGBlock.block_probability(self.block_type_version)
             block_type = self.np_random.choice(block_types, p=block_probabilities)
         else:
             type_id = self._block_sequence[len(self.blocks)]
-            block_type = PGBlock.get_block(type_id)
+            block_type = PGBlock.get_block(type_id, self.block_type_version)
 
         socket = self.np_random.choice(self.blocks[-1].get_socket_indices())
         block = block_type(len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network, block_seed)

@@ -1,20 +1,24 @@
 import time
 
 import numpy as np
-
 from pgdrive import PGDriveEnv
 from pgdrive.examples import expert, get_terminal_state
 
 
-def _evaluate(env_config, num_episode):
+def _evaluate(env_config, num_episode, has_traffic=True):
     s = time.time()
     np.random.seed(0)
     env = PGDriveEnv(env_config)
     obs = env.reset()
+    lidar_success = False
     success_list, reward_list, ep_reward, ep_len, ep_count = [], [], 0, 0, 0
     while ep_count < num_episode:
         action = expert(obs, deterministic=True)
         obs, reward, done, info = env.step(action)
+        # double  check lidar
+        lidar = [True if p == 1.0 else False for p in env.vehicle.lidar.cloud_points]
+        if not all(lidar):
+            lidar_success = True
         ep_reward += reward
         ep_len += 1
         if done:
@@ -24,6 +28,9 @@ def _evaluate(env_config, num_episode):
             ep_reward = 0
             ep_len = 0
             obs = env.reset()
+            if has_traffic:
+                assert lidar_success
+            lidar_success = False
     env.close()
     t = time.time() - s
     ep_reward_mean = sum(reward_list) / len(reward_list)
@@ -34,19 +41,35 @@ def _evaluate(env_config, num_episode):
 
 def test_expert_with_traffic(use_render=False):
     ep_reward, success_rate = _evaluate(
-        dict(environment_num=1, start_seed=3, load_map_from_json=False, random_traffic=False, use_render=use_render),
+        dict(
+            environment_num=1,
+            map="CCC",
+            start_seed=4,
+            load_map_from_json=False,
+            random_traffic=False,
+            use_render=use_render,
+            vehicle_config=dict(show_lidar=True)
+        ),
         num_episode=3
     )
-    assert 315 < ep_reward < 345, ep_reward
+    assert 430 < ep_reward < 450, ep_reward
     assert success_rate == 1.0, success_rate
 
 
 def test_expert_without_traffic():
     ep_reward, success_rate = _evaluate(
-        dict(environment_num=1, start_seed=0, traffic_density=0, load_map_from_json=False, random_traffic=False),
-        num_episode=3
+        dict(
+            environment_num=1,
+            map="CCC",
+            start_seed=0,
+            traffic_density=0,
+            load_map_from_json=False,
+            random_traffic=False
+        ),
+        num_episode=3,
+        has_traffic=False
     )
-    assert 250 <= ep_reward <= 285, ep_reward
+    assert 320 <= ep_reward <= 340, ep_reward
     assert success_rate == 1.0, success_rate
 
 

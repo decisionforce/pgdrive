@@ -18,6 +18,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     @staticmethod
     def default_config() -> PGConfig:
+        raise ValueError("This class is deprecated! Please use MultiAgentRoundaboutEnv instead!")
         config = MultiAgentPGDrive.default_config()
         config.update(
             {
@@ -29,8 +30,8 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
                 },
                 "map": "O",
                 "vehicle_config": {
-                    "born_longitude": 0,
-                    "born_lateral": 0,
+                    "spawn_longitude": 0,
+                    "spawn_lateral": 0,
                 },
                 # clear base config
                 "num_agents": 4,
@@ -48,10 +49,10 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     def _process_extra_config(self, config):
         config = super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
-        config = self._update_agent_pos_configs(config)
+        config = self._init_agent_pos_configs(config)
         return super(MultiAgentRoundaboutEnv, self)._process_extra_config(config)
 
-    def _update_agent_pos_configs(self, config):
+    def _init_agent_pos_configs(self, config):
         target_vehicle_configs = []
         assert config["num_agents"] <= config["map_config"]["lane_num"] * len(self.target_nodes), (
             "Too many agents! We only accepet {} agents, but you have {} agents!".format(
@@ -75,11 +76,12 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         for real_idx, idx in enumerate(target_agents):
             agent_name, v_config = target_vehicle_configs[idx]
             # for rllib compatibility
-            ret["agent{}".format(real_idx)] = dict(born_lane_index=v_config)
+            ret["agent{}".format(real_idx)] = dict(spawn_lane_index=v_config)
         config["target_vehicle_configs"] = ret
         return config
 
     def step(self, actions):
+        raise ValueError("This class is deprecated! Please use MultiAgentRoundaboutEnv instead!")
         o, r, d, i = super(MultiAgentRoundaboutEnv, self).step(actions)
         self._update_target()
         return o, r, d, i
@@ -95,6 +97,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
 
 if __name__ == "__main__":
+    raise ValueError("This class is deprecated! Please use MultiAgentRoundaboutEnv instead!")
     env = MultiAgentRoundaboutEnv(
         {
             "use_render": True,
@@ -114,7 +117,7 @@ if __name__ == "__main__":
         }
     )
     o = env.reset()
-    env.main_camera.set_follow_lane(True)
+    # env.main_camera.set_follow_lane(True)
     total_r = 0
     for i in range(1, 100000):
         o, r, d, info = env.step(env.action_space.sample())

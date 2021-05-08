@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 from panda3d.bullet import BulletWorld
 from panda3d.core import Vec4, BitMask32
 
@@ -6,6 +8,16 @@ DEFAULT_AGENT = "default_agent"
 RENDER_MODE_NONE = "none"  # Do not render
 RENDER_MODE_ONSCREEN = "onscreen"  # Pop up a window and draw image in it
 RENDER_MODE_OFFSCREEN = "offscreen"  # Draw image in buffer and collect image from memory
+
+
+class TerminationState:
+    SUCCESS = "arrive_dest"
+    OUT_OF_ROAD = "out_of_road"
+    MAX_STEP = "max_step"
+    CRASH = "crash"
+    CRASH_VEHICLE = "crash_vehicle"
+    CRASH_OBJECT = "crash_object"
+
 
 HELP_MESSAGE = "Keyboard Shortcuts:\n" \
                "  W: Acceleration\n" \
@@ -16,7 +28,7 @@ HELP_MESSAGE = "Keyboard Shortcuts:\n" \
                "  H: Help Message\n" \
                "  F: Switch FPS between unlimited and realtime\n" \
                "  Q: Track Another Vehicle\n" \
-               "  B: Bird-View Camera (control: I, J, K, L)\n" \
+               "  B: Top-down View Camera (control: WASD-=)\n" \
                "  +: Lift Camera\n" \
                "  -: Lower Camera\n" \
                "  Esc: Quit\n"
@@ -41,8 +53,8 @@ class BodyName:
     Broken_line = "Broken Line"
     Sidewalk = "Sidewalk"
     Ground = "Ground"
-    Ego_vehicle = "Target Vehicle"
-    Ego_vehicle_beneath = "Target Vehicle Beneath"
+    Base_vehicle = "Target Vehicle"
+    Base_vehicle_beneath = "Target Vehicle Beneath"
     Traffic_vehicle = "Traffic Vehicle"
     Lane = "Lane"
     Traffic_cone = "Traffic Cone"
@@ -57,7 +69,8 @@ COLOR = {
     BodyName.Traffic_vehicle: "red",
     BodyName.Traffic_cone: "orange",
     BodyName.Traffic_triangle: "orange",
-    BodyName.Ego_vehicle: "red"
+    BodyName.Base_vehicle: "red",
+    BodyName.Base_vehicle_beneath: "red"
 }
 
 
@@ -140,7 +153,7 @@ class CollisionGroup:
             (cls.LaneSurface, cls.ContinuousLaneLine, False),
 
             # vehicle beneath
-            (cls.EgoVehicleBeneath, cls.EgoVehicleBeneath, False),
+            (cls.EgoVehicleBeneath, cls.EgoVehicleBeneath, True),
             (cls.EgoVehicleBeneath, cls.ContinuousLaneLine, True),
 
             # continuous lane line
@@ -151,3 +164,7 @@ class CollisionGroup:
     def set_collision_rule(cls, world: BulletWorld):
         for rule in cls.collision_rules():
             world.setGroupCollisionFlag(*rule)
+
+
+LaneIndex = Tuple[str, str, int]
+Route = List[LaneIndex]

@@ -109,6 +109,9 @@ class TopDownObservation(ObservationType):
 
         # Setup the maximize size of the canvas
         # scaling and center can be easily found by bounding box
+
+        # TODO(pzh) We can reuse function draw_top_down_map here!
+
         b_box = self.road_network.get_bounding_box()
         self.canvas_background.fill(COLOR_BLACK)
         self.canvas_runtime.fill(COLOR_BLACK)
@@ -159,7 +162,7 @@ class TopDownObservation(ObservationType):
         VehicleGraphics.display(
             vehicle=vehicle, surface=self.canvas_runtime, heading=ego_heading, color=VehicleGraphics.GREEN
         )
-        for v in self.scene_manager.traffic_mgr.vehicles:
+        for v in self.scene_manager.traffic_manager.vehicles:
             if v is vehicle:
                 continue
             h = v.heading
