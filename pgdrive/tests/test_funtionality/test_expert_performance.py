@@ -39,7 +39,7 @@ def _evaluate(env_config, num_episode, has_traffic=True):
     return ep_reward_mean, success_rate
 
 
-def test_expert_with_traffic(use_render=True):
+def test_expert_with_traffic(use_render=False):
     ep_reward, success_rate = _evaluate(
         dict(
             environment_num=1,

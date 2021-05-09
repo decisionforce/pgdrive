@@ -431,7 +431,7 @@ class GraphLookupTable:
                 dist = lane.distance(position)
                 distance_index_mapping.append((dist, (Decoration.start, Decoration.end, id)))
 
-        sorted(distance_index_mapping, key=lambda d: d[0])
+        distance_index_mapping = sorted(distance_index_mapping, key=lambda d: d[0])
         if return_all:
             return distance_index_mapping
         else:
