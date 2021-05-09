@@ -27,6 +27,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -54,8 +55,8 @@ class BlockSocket:
         new_socket.positive_road, new_socket.negative_road = self.negative_road, self.positive_road
         return new_socket
 
-    def __eq__(self, other):
-        return True if self.positive_road==other.positive_road and self.negative_road == other.negative_road else False
+    def is_same_socket(self, other):
+        return True if self.positive_road == other.positive_road and self.negative_road == other.negative_road else False
 
 
 class Block(Element, BlockDefault):
@@ -73,11 +74,12 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
         assert self.ID is not None, "Each Block must has its unique ID When define Block"
-        assert len(self.ID)==1, "Block ID must be a character "
+        assert len(self.ID) == 1, "Block ID must be a character "
         assert self.SOCKET_NUM is not None, "The number of Socket should be specified when define a new block"
         if block_index == 0:
             from pgdrive.scene_creator.blocks import FirstBlock
@@ -130,7 +132,7 @@ class Block(Element, BlockDefault):
             self.sidewalk = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
 
     def construct_block(
-        self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
+            self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
     ) -> bool:
         """
         Randomly Construct a block, if overlap return False
@@ -414,14 +416,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:

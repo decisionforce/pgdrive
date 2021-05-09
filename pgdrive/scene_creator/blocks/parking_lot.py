@@ -96,7 +96,7 @@ class ParkingLot(Block):
         no_cross = True
 
         # lane into parking space and parking space, 1
-        if in_socket == self.pre_block_socket or in_socket == self.pre_block_socket.get_socket_in_reverse():
+        if in_socket.is_same_socket(self.pre_block_socket) or in_socket.is_same_socket(self.pre_block_socket.get_socket_in_reverse()):
             net = self._global_network
         else:
             net = self.block_network
@@ -135,7 +135,7 @@ class ParkingLot(Block):
 
         # lane into parking space and parking space, 2
         neg_road: Road = out_socket.negative_road
-        if out_socket == self.pre_block_socket or out_socket == self.pre_block_socket.get_socket_in_reverse():
+        if out_socket.is_same_socket(self.pre_block_socket) or out_socket.is_same_socket(self.pre_block_socket.get_socket_in_reverse()):
             net = self._global_network
         else:
             net = self.block_network
