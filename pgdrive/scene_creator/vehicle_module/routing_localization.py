@@ -37,12 +37,12 @@ class RoutingLocalizationModule:
         self.current_ref_lanes = None
         self.current_road = None
         self._target_checkpoints_index = None
-        self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
+        self._navi_info = np.zeros((self.navigation_info_dim,))  # navi information res
 
         # Vis
         self._is_showing = True  # store the state of navigation mark
         self._show_navi_point = (
-            pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+                pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         )
         self._goal_node_path = None
         self._arrow_node_path = None
@@ -177,8 +177,8 @@ class RoutingLocalizationModule:
         angle = 0.0
         if isinstance(ref_lane, CircularLane):
             bendradius = ref_lane.radius / (
-                BlockParameterSpace.CURVE[Parameter.radius].max +
-                self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
             )
             dir = ref_lane.direction
             if dir == 1:
@@ -186,11 +186,11 @@ class RoutingLocalizationModule:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
-            clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
-        ), lanes_heading, check_point
+                   clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                        1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                                   1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+                   clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+               ), lanes_heading, check_point
 
     def _update_navi_arrow(self, lanes_heading):
         lane_0_heading = lanes_heading[0]
@@ -274,7 +274,8 @@ class RoutingLocalizationModule:
         return len(self.current_ref_lanes)
 
     def get_current_lane(self, ego_vehicle):
-        possible_lanes = ray_localization(ego_vehicle.position, ego_vehicle.pg_world, return_all_result=True)
+        possible_lanes = ray_localization(np.array(ego_vehicle.heading.tolist()), ego_vehicle.position,
+                                          ego_vehicle.pg_world, return_all_result=True)
         for lane, index, l_1_dist in possible_lanes:
             if lane in self.current_ref_lanes:
                 return lane, index

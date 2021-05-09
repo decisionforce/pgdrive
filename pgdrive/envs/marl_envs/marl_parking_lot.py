@@ -45,7 +45,7 @@ class MAParkingLotMap(PGMap):
         self.blocks.append(last_block)
 
         last_block = ParkingLot(1, last_block.get_socket(0), self.road_network, 1)
-        last_block.construct_block(parent_node_path, pg_physics_world, {"one_side_vehicle_number": 8})
+        last_block.construct_block(parent_node_path, pg_physics_world, {"one_side_vehicle_number": 4})
         self.blocks.append(last_block)
 
         # Build ParkingLot
@@ -87,10 +87,12 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             self.current_map = self.maps[self.current_seed]
             spawn_roads = copy.deepcopy(self.spawn_roads)
             spawn_roads += self.current_map.blocks[-2].spawn_roads
-            self._spawn_manager.set_spawn_roads(spawn_roads)
+            self._spawn_manager.set_spawn_roads(spawn_roads, force_update_all=True)
+
 
     def _update_destination_for(self, vehicle):
         # when agent re-joined to the game, call this to set the new route to destination
+        return
         end_roads = copy.deepcopy(self.spawn_roads)
         end_roads.remove(vehicle.routing_localization.current_road)
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
@@ -227,7 +229,7 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": -1,
+            "num_agents": 3,
             "delay_done": 1000,
         }
     )
@@ -348,7 +350,7 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
-    # _vis_debug_respawn()
+    # _vis()
+    _vis_debug_respawn()
     # _profiwdle()
     # _long_run()

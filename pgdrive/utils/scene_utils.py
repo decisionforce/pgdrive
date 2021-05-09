@@ -26,7 +26,7 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List["AbstractLan
 
 
 def block_socket_merge(
-    socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
+        socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
@@ -128,10 +128,12 @@ def get_all_lanes(roadnet: "RoadNetwork"):
     return res
 
 
-def ray_localization(position: np.ndarray, pg_world: PGWorld, return_all_result=False) -> Union[List[Tuple], Tuple]:
+def ray_localization(heading: np.ndarray, position: np.ndarray, pg_world: PGWorld, return_all_result=False) -> Union[
+    List[Tuple], Tuple]:
     """
     Get the index of the lane closest to a physx_world position.
     Only used when smoething is on lane ! Otherwise fall back to use get_closest_lane()
+    :param heading: heading to help filter lanes
     :param position: a physx_world position [m].
     :param pg_world: PGWorld class
     :param return_all_result: return a list instead of the lane with min L1 distance
@@ -145,7 +147,12 @@ def ray_localization(position: np.ndarray, pg_world: PGWorld, return_all_result=
         for res in results.getHits():
             if res.getNode().getName() == BodyName.Lane:
                 lane = res.getNode().getPythonTag(BodyName.Lane)
-                lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
+                long, _ = lane.info.local_coordinates(position)
+                lane_heading = lane.info.heading_at(long)
+                dir = np.array([math.cos(lane_heading), math.sin(lane_heading)])
+                cosangle = dir.dot(heading) / (np.linalg.norm(dir) * np.linalg.norm(heading))
+                if cosangle > 0:
+                    lane_index_dist.append((lane.info, lane.index, lane.info.distance(position)))
     if return_all_result:
         ret = []
         if len(lane_index_dist) > 0:
@@ -163,13 +170,13 @@ def ray_localization(position: np.ndarray, pg_world: PGWorld, return_all_result=
 
 
 def rect_region_detection(
-    pg_world: PGWorld,
-    position: Tuple,
-    heading: float,
-    heading_direction_length: float,
-    side_direction_width: float,
-    detection_group: int,
-    height=10
+        pg_world: PGWorld,
+        position: Tuple,
+        heading: float,
+        heading_direction_length: float,
+        side_direction_width: float,
+        detection_group: int,
+        height=10
 ):
     """
 
