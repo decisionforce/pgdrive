@@ -186,16 +186,16 @@ class RoadNetwork:
                     indexes.append((_from, _to, _id))
         self.indices = indexes
 
-    def get_closest_lane_index(self, position):
-        return self._graph_helper.get(position)
+    def get_closest_lane_index(self, position, return_all=False):
+        return self._graph_helper.get(position, return_all)
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-        np_random: np.random.RandomState = None
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+            np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -301,12 +301,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?
@@ -397,7 +397,7 @@ class GraphLookupTable:
         self.graph = graph
         self.debug = debug
 
-    def get(self, position):
+    def get(self, position, return_all):
         log = dict()
         count = 0
         for _, (_from, to_dict) in enumerate(self.graph.items()):
@@ -431,7 +431,11 @@ class GraphLookupTable:
                 dist = lane.distance(position)
                 distance_index_mapping.append((dist, (Decoration.start, Decoration.end, id)))
 
-        ret_ind = np.argmin([d for d, _ in distance_index_mapping])
-        index = distance_index_mapping[ret_ind][1]
-        distance = distance_index_mapping[ret_ind][0]
-        return index, distance
+        sorted(distance_index_mapping, key=lambda d: d[0])
+        if return_all:
+            return distance_index_mapping
+        else:
+            ret_ind = 0
+            index = distance_index_mapping[ret_ind][1]
+            distance = distance_index_mapping[ret_ind][0]
+            return index, distance
