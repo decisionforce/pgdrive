@@ -26,18 +26,26 @@ class ParkingSpaceManager:
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
+        self.v_dest_pair = {}
         self.reset()
 
-    def get_parking_space(self):
+    def get_parking_space(self, v_id):
         parking_space_idx = get_np_random().choice([i for i in range(len(self.parking_space_available))])
         parking_space = list(self.parking_space_available)[parking_space_idx]
         self.parking_space_available.remove(parking_space)
+        self.v_dest_pair[v_id] = parking_space
         return parking_space
 
     def add_available_parking_space(self, parking_space: Road):
         self.parking_space_available.add(parking_space)
 
+    def after_vehicle_done(self, v_id):
+        if v_id in self.v_dest_pair:
+            dest = self.v_dest_pair.pop(v_id)
+            self.parking_space_available.add(dest)
+
     def reset(self):
+        self.v_dest_pair = {}
         self.parking_space_available = set(copy.deepcopy(self._parking_spaces))
 
 
@@ -115,25 +123,56 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             spawn_roads += self.current_map.blocks[-2].spawn_roads
             self._spawn_manager.set_spawn_roads(spawn_roads, force_update_all=True)
 
-    def _update_destination_for(self, vehicle):
+    def _update_destination_for(self, vehicle_id):
+        vehicle = self.vehicles[vehicle_id]
         # when agent re-joined to the game, call this to set the new route to destination
         end_roads = copy.deepcopy(self.spawn_roads)
         if vehicle.routing_localization.current_road in end_roads:
-            end_road = self.current_map.parking_space_manager.get_parking_space()
+            end_road = self.current_map.parking_space_manager.get_parking_space(vehicle_id)
         else:
             end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
     def _respawn_single_vehicle(self, randomize_position=False):
-        new_id, new_obs, = super(MultiAgentParkingLotEnv, self)._respawn_single_vehicle()
-        if new_id is None or new_obs is None:
+        """
+        Exclude destination parking space
+        """
+        safe_places_dict = self._spawn_manager.get_available_respawn_places(
+            self.pg_world, self.current_map, randomize=randomize_position
+        )
+        filter_ret = {}
+        for id, config in safe_places_dict.items():
+            spawn_l_index = config["config"]["spawn_lane_index"]
+            spawn_road = Road(spawn_l_index[0], spawn_l_index[1])
+            if spawn_road in self.spawn_roads:
+                filter_ret[id] = config
+                continue
+            spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
+            if spawn_road in self.current_map.parking_space_manager.parking_space_available:
+                # not other vehicle's destination
+                filter_ret[id] = config
+        safe_places_dict = filter_ret
+        if len(safe_places_dict) == 0 or not self.agent_manager.allow_respawn:
+            # No more run, just wait!
             return None, None
-        new_v_index = self.vehicles[new_id].lane_index
-        dest_available = Road(new_v_index[0], new_v_index[1])
-        if dest_available in self.spawn_roads:
-            dest = self.current_map.parking_lot.in_direction_parking_space(dest_available)
-            self.current_map.parking_space_manager.add_available_parking_space(dest)
-        return new_id, new_obs
+        assert len(safe_places_dict) > 0
+        bp_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
+        new_spawn_place = safe_places_dict[bp_index]
+
+        if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] is not None:
+            if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] != self.agent_manager.next_agent_id():
+                return None, None
+
+        new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
+        new_spawn_place_config = new_spawn_place["config"]
+        vehicle.vehicle_config.update(new_spawn_place_config)
+        vehicle.reset(self.current_map)
+        self._update_destination_for(new_agent_id)
+        vehicle.update_state(detector_mask=None)
+        self.dones[new_agent_id] = False  # Put it in the internal dead-tracking dict.
+
+        new_obs = self.observations[new_agent_id].observe(vehicle)
+        return new_agent_id, new_obs
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         return LidarStateObservationMARound(vehicle_config)
@@ -141,6 +180,12 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
     def _reset_agents(self):
         self.current_map.parking_space_manager.reset()
         super(MultiAgentParkingLotEnv, self)._reset_agents()
+
+    def done_function(self, vehicle_id):
+        done, info = super(MultiAgentParkingLotEnv, self).done_function(vehicle_id)
+        if done:
+            self.current_map.parking_space_manager.after_vehicle_done(vehicle_id)
+        return done, info
 
 
 def _draw():
@@ -271,7 +316,7 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 1,
+            "num_agents": 2,
             "delay_done": 1000,
         }
     )
@@ -293,7 +338,8 @@ def _vis():
             "cam_x": env.main_camera.camera_x,
             "cam_y": env.main_camera.camera_y,
             "cam_z": env.main_camera.top_down_camera_height,
-            "alive": len(env.vehicles)
+            "alive": len(env.vehicles),
+            "parking_space_num": len(env.current_map.parking_space_manager.parking_space_available)
         }
         env.render(text=render_text)
         if d["__all__"]:
