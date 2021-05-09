@@ -94,7 +94,7 @@ class PGTrafficVehicle(DynamicElement):
         self.node_path.setH(heading)
 
     def update_state(self, pg_world: PGWorld):
-        dir = np.array(math.cos(self.heading), math.sin(self.heading))
+        dir = np.array([math.cos(self.heading), math.sin(self.heading)])
         lane, lane_index = ray_localization(dir, self.position, pg_world)
         if lane is not None:
             self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
