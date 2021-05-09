@@ -3,6 +3,7 @@ import copy
 from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
 from pgdrive.scene_creator.blocks.straight import Straight
 import numpy as np
+from pgdrive.utils import setup_logger
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
@@ -16,8 +17,28 @@ MAParkingLotConfig = dict(
     map_config=dict(exit_length=20, lane_num=1),
     top_down_camera_initial_x=80,
     top_down_camera_initial_y=0,
-    top_down_camera_initial_z=120
+    top_down_camera_initial_z=120,
+    vehicle_config={"enable_reverse": True}
 )
+
+
+class ParkingSpaceManager:
+    def __init__(self, parking_spaces: list):
+        self.parking_space_available = set()
+        self._parking_spaces = parking_spaces
+        self.reset()
+
+    def get_parking_space(self):
+        parking_space_idx = get_np_random().choice([i for i in range(len(self.parking_space_available))])
+        parking_space = list(self.parking_space_available)[parking_space_idx]
+        self.parking_space_available.remove(parking_space)
+        return parking_space
+
+    def add_available_parking_space(self, parking_space: Road):
+        self.parking_space_available.add(parking_space)
+
+    def reset(self):
+        self.parking_space_available = set(copy.deepcopy(self._parking_spaces))
 
 
 class MAParkingLotMap(PGMap):
@@ -47,6 +68,8 @@ class MAParkingLotMap(PGMap):
         last_block = ParkingLot(1, last_block.get_socket(0), self.road_network, 1)
         last_block.construct_block(parent_node_path, pg_physics_world, {"one_side_vehicle_number": 4})
         self.blocks.append(last_block)
+        self.parking_space_manager = ParkingSpaceManager(last_block.dest_roads)
+        self.parking_lot = last_block
 
         # Build ParkingLot
         TInterSection.EXIT_PART_LENGTH = 10
@@ -55,8 +78,8 @@ class MAParkingLotMap(PGMap):
             parent_node_path,
             pg_physics_world,
             extra_config={
-                "t_type":1,
-                "change_lane_num":0
+                "t_type": 1,
+                "change_lane_num": 0
                 # Note: lane_num is set in config.map_config.lane_num
             }
         )
@@ -64,6 +87,9 @@ class MAParkingLotMap(PGMap):
 
 
 class MultiAgentParkingLotEnv(MultiAgentPGDrive):
+    """
+    Env will be done when vehicle is on yellow or white continuous lane line!
+    """
     spawn_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
         -Road(TInterSection.node(2, 0, 0), TInterSection.node(2, 0, 1)),
@@ -89,17 +115,32 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             spawn_roads += self.current_map.blocks[-2].spawn_roads
             self._spawn_manager.set_spawn_roads(spawn_roads, force_update_all=True)
 
-
     def _update_destination_for(self, vehicle):
         # when agent re-joined to the game, call this to set the new route to destination
-        return
         end_roads = copy.deepcopy(self.spawn_roads)
-        end_roads.remove(vehicle.routing_localization.current_road)
-        end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
+        if vehicle.routing_localization.current_road in end_roads:
+            end_road = self.current_map.parking_space_manager.get_parking_space()
+        else:
+            end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
+
+    def _respawn_single_vehicle(self, randomize_position=False):
+        new_id, new_obs, = super(MultiAgentParkingLotEnv, self)._respawn_single_vehicle()
+        if new_id is None or new_obs is None:
+            return None, None
+        new_v_index = self.vehicles[new_id].lane_index
+        dest_available = Road(new_v_index[0], new_v_index[1])
+        if dest_available in self.spawn_roads:
+            dest = self.current_map.parking_lot.in_direction_parking_space(dest_available)
+            self.current_map.parking_space_manager.add_available_parking_space(dest)
+        return new_id, new_obs
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         return LidarStateObservationMARound(vehicle_config)
+
+    def _reset_agents(self):
+        self.current_map.parking_space_manager.reset()
+        super(MultiAgentParkingLotEnv, self)._reset_agents()
 
 
 def _draw():
@@ -214,6 +255,7 @@ def _vis_debug_respawn():
 
 
 def _vis():
+    # vis_big(block_type_version="v2")
     env = MultiAgentParkingLotEnv(
         {
             "horizon": 100000,
@@ -229,7 +271,7 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 3,
+            "num_agents": 1,
             "delay_done": 1000,
         }
     )
@@ -350,7 +392,7 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
-    _vis_debug_respawn()
+    _vis()
+    # _vis_debug_respawn()
     # _profiwdle()
     # _long_run()

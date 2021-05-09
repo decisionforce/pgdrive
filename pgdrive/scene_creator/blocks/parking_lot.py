@@ -26,7 +26,7 @@ class ParkingLot(Block):
     def _try_plug_into_previous_block(self) -> bool:
         self.spawn_roads = []
         self.dest_roads = []
-        
+
         no_cross = True
         para = self.get_config()
         assert self.positive_lane_num == 1, "Lane number of previous block must be 1 in each direction"
@@ -96,7 +96,8 @@ class ParkingLot(Block):
         no_cross = True
 
         # lane into parking space and parking space, 1
-        if in_socket.is_same_socket(self.pre_block_socket) or in_socket.is_same_socket(self.pre_block_socket.get_socket_in_reverse()):
+        if in_socket.is_same_socket(self.pre_block_socket) or in_socket.is_same_socket(
+                self.pre_block_socket.get_socket_in_reverse()):
             net = self._global_network
         else:
             net = self.block_network
@@ -135,7 +136,8 @@ class ParkingLot(Block):
 
         # lane into parking space and parking space, 2
         neg_road: Road = out_socket.negative_road
-        if out_socket.is_same_socket(self.pre_block_socket) or out_socket.is_same_socket(self.pre_block_socket.get_socket_in_reverse()):
+        if out_socket.is_same_socket(self.pre_block_socket) or out_socket.is_same_socket(
+                self.pre_block_socket.get_socket_in_reverse()):
             net = self._global_network
         else:
             net = self.block_network
@@ -232,3 +234,27 @@ class ParkingLot(Block):
                            side_lane_line_type=LineType.NONE)
 
         return no_cross
+
+    @staticmethod
+    def in_direction_parking_space(road: Road):
+        """
+        Give a parking space in out-direction, return in direction road
+        """
+        start_node = copy.deepcopy(road.start_node)
+        end_node = copy.deepcopy(road.end_node)
+        assert start_node[-2] == "5" and end_node[-2] == "6", "It is not out-direction of this parking space"
+        start_node = start_node[:-2] + "1" + Block.DASH
+        end_node = end_node[:-2] + "2" + Block.DASH
+        return Road(start_node, end_node)
+
+    @staticmethod
+    def out_direction_parking_space(road: Road):
+        """
+        Give a parking space in in-direction, return out-direction road
+        """
+        start_node = copy.deepcopy(road.start_node)
+        end_node = copy.deepcopy(road.end_node)
+        assert start_node[-2] == "1" and end_node[-2] == "2", "It is not in-direction of this parking space"
+        start_node = start_node[:-2] + "5" + Block.DASH
+        end_node = end_node[:-2] + "6" + Block.DASH
+        return Road(start_node, end_node)
