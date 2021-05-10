@@ -287,7 +287,7 @@ class BlockParameterSpace:
     PARKING_LOT_PARAMETER = {
         Parameter.one_side_vehicle_num: PGDiscreteSpace(min=2, max=10),
         Parameter.radius: PGConstantSpace(value=4),
-        Parameter.length: PGConstantSpace(value=5)
+        Parameter.length: PGConstantSpace(value=8)
     }
 
 

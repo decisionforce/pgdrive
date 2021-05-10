@@ -499,5 +499,5 @@ if __name__ == "__main__":
     # _draw()
     _vis()
     # _vis_debug_respawn()
-    # _profiwdle()
+    # _profile()
     # _long_run()
