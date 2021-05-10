@@ -28,7 +28,6 @@ class ParkingSpaceManager:
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
-
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
@@ -401,12 +400,16 @@ def _vis():
         env.render(text=render_text)
         for kkk, ddd in d.items():
             if ddd and kkk != "__all__":
-                print("{} done! State: {}".format(kkk, {
-                    "arrive_dest": info[kkk]["arrive_dest"],
-                    "out_of_road": info[kkk]["out_of_road"],
-                    "crash": info[kkk]["crash"],
-                    "max_step": info[kkk]["max_step"],
-                }))
+                print(
+                    "{} done! State: {}".format(
+                        kkk, {
+                            "arrive_dest": info[kkk]["arrive_dest"],
+                            "out_of_road": info[kkk]["out_of_road"],
+                            "crash": info[kkk]["crash"],
+                            "max_step": info[kkk]["max_step"],
+                        }
+                    )
+                )
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
