@@ -1,19 +1,16 @@
-import gym
-from pgdrive.scene_manager.spawn_manager import SpawnManager
-import logging
 import copy
-from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
-from pgdrive.scene_creator.blocks.straight import Straight
-import numpy as np
-from pgdrive.utils import setup_logger
+import logging
+
+from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
-from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
 from pgdrive.scene_creator.blocks.t_intersection import TInterSection
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils import get_np_random, norm, PGConfig
+from pgdrive.scene_manager.spawn_manager import SpawnManager
+from pgdrive.utils import get_np_random, PGConfig
 
 MAParkingLotConfig = dict(
     map_config=dict(exit_length=20, lane_num=1),
@@ -31,6 +28,7 @@ class ParkingSpaceManager:
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
+
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
@@ -401,6 +399,14 @@ def _vis():
             "parking_space_num": len(env.current_map.parking_space_manager.parking_space_available)
         }
         env.render(text=render_text)
+        for kkk, ddd in d.items():
+            if ddd and kkk != "__all__":
+                print("{} done! State: {}".format(kkk, {
+                    "arrive_dest": info[kkk]["arrive_dest"],
+                    "out_of_road": info[kkk]["out_of_road"],
+                    "crash": info[kkk]["crash"],
+                    "max_step": info[kkk]["max_step"],
+                }))
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
