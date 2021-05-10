@@ -76,7 +76,7 @@ class ParkingLot(Block):
         self.add_sockets(socket)
 
         # add parking space
-        for i in range(parking_space_num):
+        for i in range(int(parking_space_num)):
             no_cross = self._add_one_parking_space(copy.copy(self.get_socket_list()[0]).get_socket_in_reverse(),
                                                    self.pre_block_socket.get_socket_in_reverse(), i + 1,
                                                    radius, i * self.parking_space_width,

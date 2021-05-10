@@ -1,4 +1,6 @@
 import gym
+from pgdrive.scene_manager.spawn_manager import SpawnManager
+import logging
 import copy
 from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
 from pgdrive.scene_creator.blocks.straight import Straight
@@ -18,11 +20,18 @@ MAParkingLotConfig = dict(
     top_down_camera_initial_x=80,
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120,
-    vehicle_config={"enable_reverse": True}
+    vehicle_config={"enable_reverse": True},
+    parking_space_num=8
 )
 
 
 class ParkingSpaceManager:
+    """
+    Manage parking spaces, when env.reset() is called, vehicles will be assigned to different spawn points including:
+    parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
+    vehicle who drives into this parking lot.
+    """
+
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
@@ -56,11 +65,6 @@ class MAParkingLotMap(PGMap):
         parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
 
-        length = self.config["exit_length"]
-
-        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
-        assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
-
         # Build a first-block
         last_block = FirstBlock(
             self.road_network,
@@ -74,7 +78,8 @@ class MAParkingLotMap(PGMap):
         self.blocks.append(last_block)
 
         last_block = ParkingLot(1, last_block.get_socket(0), self.road_network, 1)
-        last_block.construct_block(parent_node_path, pg_physics_world, {"one_side_vehicle_number": 4})
+        last_block.construct_block(parent_node_path, pg_physics_world,
+                                   {"one_side_vehicle_number": int(self.config["parking_space_num"] / 2)})
         self.blocks.append(last_block)
         self.parking_space_manager = ParkingSpaceManager(last_block.dest_roads)
         self.parking_lot = last_block
@@ -98,15 +103,68 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
     """
     Env will be done when vehicle is on yellow or white continuous lane line!
     """
-    spawn_roads = [
+    in_spawn_roads = [
         Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
         -Road(TInterSection.node(2, 0, 0), TInterSection.node(2, 0, 1)),
         -Road(TInterSection.node(2, 2, 0), TInterSection.node(2, 2, 1)),
     ]
 
+    out_spawn_roads = None
+
+    @property
+    def spawn_roads(self):
+        return self.in_spawn_roads + self.out_spawn_roads
+
     @staticmethod
     def default_config() -> PGConfig:
         return MultiAgentPGDrive.default_config().update(MAParkingLotConfig, allow_overwrite=True)
+
+    @staticmethod
+    def _get_out_spawn_roads(parking_space_num):
+        ret = []
+        for i in range(1, parking_space_num + 1):
+            ret.append(Road(ParkingLot.node(1, i, 5), ParkingLot.node(1, i, 6)))
+        return ret
+
+    def _process_extra_config(self, config) -> "PGConfig":
+        ret_config = self.default_config().update(
+            config, allow_overwrite=False, stop_recursive_update=["target_vehicle_configs"]
+        )
+        if not ret_config["crash_done"] and ret_config["crash_vehicle_penalty"] > 2:
+            logging.warning(
+                "Are you sure you wish to set crash_vehicle_penalty={} when crash_done=False?".format(
+                    ret_config["crash_vehicle_penalty"]
+                )
+            )
+        if ret_config["use_render"] and ret_config["fast"]:
+            logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
+
+        # add extra assert
+        parking_space_num = ret_config["parking_space_num"]
+        assert parking_space_num % 2 == 0, "number of parking spaces must be multiples of 2"
+        assert parking_space_num >= 4, "minimal number of parking space is 4"
+        self.out_spawn_roads = self._get_out_spawn_roads(parking_space_num)
+        ret_config["map_config"]["parking_space_num"] = ret_config["parking_space_num"]
+        # Workaround
+        if ret_config["target_vehicle_configs"]:
+            for k, v in ret_config["target_vehicle_configs"].items():
+                old = ret_config["vehicle_config"].copy()
+                new = old.update(v)
+                ret_config["target_vehicle_configs"][k] = new
+
+        self._spawn_manager = SpawnManager(
+            exit_length=ret_config["map_config"]["exit_length"],
+            lane_num=ret_config["map_config"]["lane_num"],
+            num_agents=ret_config["num_agents"],
+            vehicle_config=ret_config["vehicle_config"],
+            target_vehicle_configs=ret_config["target_vehicle_configs"],
+            seed=self._DEBUG_RANDOM_SEED
+        )
+
+        self._spawn_manager.set_spawn_roads(self.spawn_roads)
+
+        ret_config = self._update_agent_pos_configs(ret_config)
+        return ret_config
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         if episode_data is not None:
@@ -119,14 +177,11 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             new_map = MAParkingLotMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
-            spawn_roads = copy.deepcopy(self.spawn_roads)
-            spawn_roads += self.current_map.blocks[-2].spawn_roads
-            self._spawn_manager.set_spawn_roads(spawn_roads, force_update_all=True)
 
     def _update_destination_for(self, vehicle_id):
         vehicle = self.vehicles[vehicle_id]
         # when agent re-joined to the game, call this to set the new route to destination
-        end_roads = copy.deepcopy(self.spawn_roads)
+        end_roads = copy.deepcopy(self.in_spawn_roads)
         if vehicle.routing_localization.current_road in end_roads:
             end_road = self.current_map.parking_space_manager.get_parking_space(vehicle_id)
         else:
@@ -140,17 +195,20 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         safe_places_dict = self._spawn_manager.get_available_respawn_places(
             self.pg_world, self.current_map, randomize=randomize_position
         )
+        # ===== filter spawn places =====
         filter_ret = {}
         for id, config in safe_places_dict.items():
             spawn_l_index = config["config"]["spawn_lane_index"]
             spawn_road = Road(spawn_l_index[0], spawn_l_index[1])
-            if spawn_road in self.spawn_roads:
+            if spawn_road in self.in_spawn_roads:
                 filter_ret[id] = config
                 continue
             spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
             if spawn_road in self.current_map.parking_space_manager.parking_space_available:
                 # not other vehicle's destination
                 filter_ret[id] = config
+
+        # ===== same as super() =====
         safe_places_dict = filter_ret
         if len(safe_places_dict) == 0 or not self.agent_manager.allow_respawn:
             # No more run, just wait!
@@ -264,7 +322,7 @@ def _vis_debug_respawn():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 3,
+            "num_agents": 11,
         }
     )
     o = env.reset()
@@ -316,8 +374,9 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 2,
-            "delay_done": 1000,
+            "num_agents": 7,
+            "delay_done": 10,
+            "parking_space_num": 4
         }
     )
     o = env.reset()
