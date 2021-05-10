@@ -200,7 +200,7 @@ class AgentManager:
         next_config = self._init_config_dict["agent{}".format(
             ((-self.next_newly_added_agent_count - 1) % len(self._init_object_to_agent))
         )]
-        new_v:BaseVehicle = self._get_vehicles({agent_name: next_config})[agent_name]
+        new_v: BaseVehicle = self._get_vehicles({agent_name: next_config})[agent_name]
         new_v_name = new_v.name
         new_v.remove_display_region()
         self._newly_added_object_to_agent[new_v_name] = agent_name

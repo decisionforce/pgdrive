@@ -23,7 +23,7 @@ def test_get_lane_index(use_render=False):
                 else:
                     idx = old_lane_idx.index(v.lane_index)
                     if old_res[idx][0] > 2. and idx > 2:
-                        raise ValueError("L1 dist:{} of {} is too large".format(old_res[idx][0],idx))
+                        raise ValueError("L1 dist:{} of {} is too large".format(old_res[idx][0], idx))
     finally:
         env.close()
 

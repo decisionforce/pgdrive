@@ -31,7 +31,6 @@ class ParkingSpaceManager:
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
-
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
@@ -78,8 +77,9 @@ class MAParkingLotMap(PGMap):
         self.blocks.append(last_block)
 
         last_block = ParkingLot(1, last_block.get_socket(0), self.road_network, 1)
-        last_block.construct_block(parent_node_path, pg_physics_world,
-                                   {"one_side_vehicle_number": int(self.config["parking_space_num"] / 2)})
+        last_block.construct_block(
+            parent_node_path, pg_physics_world, {"one_side_vehicle_number": int(self.config["parking_space_num"] / 2)}
+        )
         self.blocks.append(last_block)
         self.parking_space_manager = ParkingSpaceManager(last_block.dest_roads)
         self.parking_lot = last_block

@@ -38,61 +38,82 @@ class ParkingLot(Block):
         radius = para[Parameter.radius]
 
         main_straight_road_length = 2 * radius + (parking_space_num - 1) * self.parking_space_width
-        main_lane = ExtendStraightLane(self.positive_lanes[0], main_straight_road_length,
-                                       [LineType.BROKEN, LineType.NONE])
+        main_lane = ExtendStraightLane(
+            self.positive_lanes[0], main_straight_road_length, [LineType.BROKEN, LineType.NONE]
+        )
         road = Road(self.pre_block_socket.positive_road.end_node, self.road_node(0, 0))
 
         # main straight part
-        no_cross = CreateRoadFrom(main_lane, self.positive_lane_num, road, self.block_network,
-                                  self._global_network,
-                                  center_line_type=LineType.BROKEN,
-                                  inner_lane_line_type=LineType.BROKEN,
-                                  side_lane_line_type=LineType.NONE,
-                                  center_line_color=LineColor.GREY) and no_cross
-        no_cross = CreateAdverseRoad(road, self.block_network, self._global_network,
-                                     center_line_type=LineType.BROKEN,
-                                     inner_lane_line_type=LineType.BROKEN,
-                                     side_lane_line_type=LineType.NONE,
-                                     center_line_color=LineColor.GREY) and no_cross
+        no_cross = CreateRoadFrom(
+            main_lane,
+            self.positive_lane_num,
+            road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.BROKEN,
+            inner_lane_line_type=LineType.BROKEN,
+            side_lane_line_type=LineType.NONE,
+            center_line_color=LineColor.GREY
+        ) and no_cross
+        no_cross = CreateAdverseRoad(
+            road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.BROKEN,
+            inner_lane_line_type=LineType.BROKEN,
+            side_lane_line_type=LineType.NONE,
+            center_line_color=LineColor.GREY
+        ) and no_cross
 
         # socket part
         parking_lot_out_lane = ExtendStraightLane(main_lane, self.SOCKET_LENGTH, [LineType.BROKEN, LineType.NONE])
         parking_lot_out_road = Road(self.road_node(0, 0), self.road_node(0, 1))
 
         # out socket part
-        no_cross = CreateRoadFrom(parking_lot_out_lane, self.positive_lane_num, parking_lot_out_road,
-                                  self.block_network,
-                                  self._global_network,
-                                  center_line_type=LineType.BROKEN,
-                                  inner_lane_line_type=LineType.BROKEN,
-                                  side_lane_line_type=LineType.SIDE) and no_cross
+        no_cross = CreateRoadFrom(
+            parking_lot_out_lane,
+            self.positive_lane_num,
+            parking_lot_out_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.BROKEN,
+            inner_lane_line_type=LineType.BROKEN,
+            side_lane_line_type=LineType.SIDE
+        ) and no_cross
 
-        no_cross = CreateAdverseRoad(parking_lot_out_road, self.block_network, self._global_network,
-                                     center_line_type=LineType.BROKEN,
-                                     inner_lane_line_type=LineType.BROKEN,
-                                     side_lane_line_type=LineType.SIDE) and no_cross
+        no_cross = CreateAdverseRoad(
+            parking_lot_out_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.BROKEN,
+            inner_lane_line_type=LineType.BROKEN,
+            side_lane_line_type=LineType.SIDE
+        ) and no_cross
 
         socket = self.create_socket_from_positive_road(parking_lot_out_road)
         self.add_sockets(socket)
 
         # add parking space
         for i in range(int(parking_space_num)):
-            no_cross = self._add_one_parking_space(copy.copy(self.get_socket_list()[0]).get_socket_in_reverse(),
-                                                   self.pre_block_socket.get_socket_in_reverse(), i + 1,
-                                                   radius, i * self.parking_space_width,
-                                                   (parking_space_num - i - 1) * self.parking_space_width) and no_cross
+            no_cross = self._add_one_parking_space(
+                copy.copy(self.get_socket_list()[0]).get_socket_in_reverse(),
+                self.pre_block_socket.get_socket_in_reverse(), i + 1, radius, i * self.parking_space_width,
+                (parking_space_num - i - 1) * self.parking_space_width
+            ) and no_cross
 
         for i in range(parking_space_num, 2 * parking_space_num):
             index = i + 1
             i -= parking_space_num
-            no_cross = self._add_one_parking_space(self.pre_block_socket, copy.copy(self.get_socket_list()[0]), index,
-                                                   radius, i * self.parking_space_width,
-                                                   (parking_space_num - i - 1) * self.parking_space_width) and no_cross
+            no_cross = self._add_one_parking_space(
+                self.pre_block_socket, copy.copy(self.get_socket_list()[0]), index, radius,
+                i * self.parking_space_width, (parking_space_num - i - 1) * self.parking_space_width
+            ) and no_cross
 
         return no_cross
 
-    def _add_one_parking_space(self, in_socket: BlockSocket, out_socket: BlockSocket, part_idx: int, radius, dist_to_in,
-                               dist_to_out) -> bool:
+    def _add_one_parking_space(
+        self, in_socket: BlockSocket, out_socket: BlockSocket, part_idx: int, radius, dist_to_in, dist_to_out
+    ) -> bool:
         no_cross = True
 
         # lane into parking space and parking space, 1
@@ -107,32 +128,48 @@ class ParkingLot(Block):
             # a straight part will be added
             in_lane = ExtendStraightLane(in_lane, dist_to_in, [LineType.NONE, LineType.NONE])
             in_road = Road(in_socket.positive_road.end_node, self.road_node(part_idx, 0))
-            CreateRoadFrom(in_lane, self.positive_lane_num, in_road, self.block_network,
-                           self._global_network,
-                           center_line_type=LineType.NONE,
-                           inner_lane_line_type=LineType.NONE,
-                           side_lane_line_type=LineType.NONE)
+            CreateRoadFrom(
+                in_lane,
+                self.positive_lane_num,
+                in_road,
+                self.block_network,
+                self._global_network,
+                center_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE
+            )
             start_node = self.road_node(part_idx, 0)
 
-        bend, straight = create_bend_straight(in_lane, self.parking_space_length, radius, self.ANGLE, True,
-                                              self.parking_space_width)
+        bend, straight = create_bend_straight(
+            in_lane, self.parking_space_length, radius, self.ANGLE, True, self.parking_space_width
+        )
         bend_road = Road(start_node, self.road_node(part_idx, 1))
-        bend_no_cross = CreateRoadFrom(bend, self.positive_lane_num, bend_road, self.block_network,
-                                       self._global_network,
-                                       center_line_type=LineType.NONE,
-                                       inner_lane_line_type=LineType.NONE,
-                                       side_lane_line_type=LineType.SIDE if dist_to_in < 1e-3 else LineType.NONE)
+        bend_no_cross = CreateRoadFrom(
+            bend,
+            self.positive_lane_num,
+            bend_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.SIDE if dist_to_in < 1e-3 else LineType.NONE
+        )
         if dist_to_in < 1e-3:
             no_cross = no_cross and bend_no_cross
 
         straight_road = Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2))
         self.dest_roads.append(straight_road)
-        no_cross = no_cross and CreateRoadFrom(straight, self.positive_lane_num, straight_road, self.block_network,
-                                               self._global_network,
-                                               center_line_type=LineType.CONTINUOUS,
-                                               inner_lane_line_type=LineType.NONE,
-                                               side_lane_line_type=LineType.SIDE if dist_to_in < 1e-3 else LineType.NONE,
-                                               center_line_color=LineColor.GREY)
+        no_cross = no_cross and CreateRoadFrom(
+            straight,
+            self.positive_lane_num,
+            straight_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.CONTINUOUS,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.SIDE if dist_to_in < 1e-3 else LineType.NONE,
+            center_line_color=LineColor.GREY
+        )
 
         # lane into parking space and parking space, 2
         neg_road: Road = out_socket.negative_road
@@ -148,90 +185,136 @@ class ParkingLot(Block):
             # a straight part will be added
             neg_lane = ExtendStraightLane(neg_lane, dist_to_out, [LineType.NONE, LineType.NONE])
             neg_road = Road(neg_road.end_node, self.road_node(part_idx, 3))
-            CreateRoadFrom(neg_lane, self.positive_lane_num, neg_road, self.block_network,
-                           self._global_network,
-                           center_line_type=LineType.NONE,
-                           inner_lane_line_type=LineType.NONE,
-                           side_lane_line_type=LineType.NONE)
+            CreateRoadFrom(
+                neg_lane,
+                self.positive_lane_num,
+                neg_road,
+                self.block_network,
+                self._global_network,
+                center_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE
+            )
             start_node = self.road_node(part_idx, 3)
 
-        bend, straight = create_bend_straight(neg_lane, self.lane_width, radius, self.ANGLE, False,
-                                              self.parking_space_width)
+        bend, straight = create_bend_straight(
+            neg_lane, self.lane_width, radius, self.ANGLE, False, self.parking_space_width
+        )
         bend_road = Road(start_node, self.road_node(part_idx, 4))
-        CreateRoadFrom(bend, self.positive_lane_num, bend_road, self.block_network,
-                       self._global_network,
-                       center_line_type=LineType.NONE,
-                       inner_lane_line_type=LineType.NONE,
-                       side_lane_line_type=LineType.NONE)
+        CreateRoadFrom(
+            bend,
+            self.positive_lane_num,
+            bend_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.NONE
+        )
 
         straight_road = Road(self.road_node(part_idx, 4), self.road_node(part_idx, 1))
-        CreateRoadFrom(straight, self.positive_lane_num, straight_road, self.block_network,
-                       self._global_network,
-                       center_line_type=LineType.NONE,
-                       inner_lane_line_type=LineType.NONE,
-                       side_lane_line_type=LineType.NONE)
+        CreateRoadFrom(
+            straight,
+            self.positive_lane_num,
+            straight_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.NONE
+        )
 
         # give it a new road name to make it be a two way road (1,2) = (5,6) = parking space !
         parking_road = Road(self.road_node(part_idx, 5), self.road_node(part_idx, 6))
         self.spawn_roads.append(parking_road)
-        CreateTwoWayRoad(Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2)),
-                         self.block_network, self._global_network,
-                         parking_road,
-                         center_line_type=LineType.NONE,
-                         inner_lane_line_type=LineType.NONE,
-                         side_lane_line_type=LineType.SIDE if dist_to_out < 1e-3 else LineType.NONE)
+        CreateTwoWayRoad(
+            Road(self.road_node(part_idx, 1), self.road_node(part_idx, 2)),
+            self.block_network,
+            self._global_network,
+            parking_road,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.SIDE if dist_to_out < 1e-3 else LineType.NONE
+        )
 
         # out part
         parking_lane = parking_road.get_lanes(self.block_network)[0]
 
         # out part 1
-        bend, straight = create_bend_straight(parking_lane, 0.1 if dist_to_out < 1e-3 else dist_to_out, radius,
-                                              self.ANGLE, True, parking_lane.width)
-        out_bend_road = Road(self.road_node(part_idx, 6),
-                             self.road_node(part_idx, 7) if dist_to_out > 1e-3 else out_socket.positive_road.start_node)
-        bend_success = CreateRoadFrom(bend, self.positive_lane_num, out_bend_road, self.block_network,
-                                      self._global_network,
-                                      center_line_type=LineType.NONE,
-                                      inner_lane_line_type=LineType.NONE,
-                                      side_lane_line_type=LineType.SIDE if dist_to_out < 1e-3 else LineType.NONE)
+        bend, straight = create_bend_straight(
+            parking_lane, 0.1 if dist_to_out < 1e-3 else dist_to_out, radius, self.ANGLE, True, parking_lane.width
+        )
+        out_bend_road = Road(
+            self.road_node(part_idx, 6),
+            self.road_node(part_idx, 7) if dist_to_out > 1e-3 else out_socket.positive_road.start_node
+        )
+        bend_success = CreateRoadFrom(
+            bend,
+            self.positive_lane_num,
+            out_bend_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.SIDE if dist_to_out < 1e-3 else LineType.NONE
+        )
         if dist_to_out < 1e-3:
             no_cross = no_cross and bend_success
 
         if dist_to_out > 1e-3:
             out_straight_road = Road(self.road_node(part_idx, 7), out_socket.positive_road.start_node)
-            no_cross = no_cross and CreateRoadFrom(straight, self.positive_lane_num, out_straight_road,
-                                                   self.block_network,
-                                                   self._global_network,
-                                                   center_line_type=LineType.NONE,
-                                                   inner_lane_line_type=LineType.NONE,
-                                                   side_lane_line_type=LineType.NONE)
+            no_cross = no_cross and CreateRoadFrom(
+                straight,
+                self.positive_lane_num,
+                out_straight_road,
+                self.block_network,
+                self._global_network,
+                center_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE
+            )
         # out part 2
         extend_lane = ExtendStraightLane(parking_lane, self.lane_width, [LineType.NONE, LineType.NONE])
-        CreateRoadFrom(extend_lane, self.positive_lane_num,
-                       Road(self.road_node(part_idx, 6), self.road_node(part_idx, 8)), self.block_network,
-                       self._global_network,
-                       center_line_type=LineType.NONE,
-                       inner_lane_line_type=LineType.NONE,
-                       side_lane_line_type=LineType.NONE)
+        CreateRoadFrom(
+            extend_lane,
+            self.positive_lane_num,
+            Road(self.road_node(part_idx, 6), self.road_node(part_idx, 8)),
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.NONE
+        )
 
-        bend, straight = create_bend_straight(extend_lane, 0.1 if dist_to_in < 1e-3 else dist_to_in, radius,
-                                              self.ANGLE, False, parking_lane.width)
-        out_bend_road = Road(self.road_node(part_idx, 8),
-                             self.road_node(part_idx,
-                                            9) if dist_to_in > 1e-3 else in_socket.negative_road.start_node)
-        CreateRoadFrom(bend, self.positive_lane_num, out_bend_road, self.block_network,
-                       self._global_network,
-                       center_line_type=LineType.NONE,
-                       inner_lane_line_type=LineType.NONE,
-                       side_lane_line_type=LineType.NONE)
+        bend, straight = create_bend_straight(
+            extend_lane, 0.1 if dist_to_in < 1e-3 else dist_to_in, radius, self.ANGLE, False, parking_lane.width
+        )
+        out_bend_road = Road(
+            self.road_node(part_idx, 8),
+            self.road_node(part_idx, 9) if dist_to_in > 1e-3 else in_socket.negative_road.start_node
+        )
+        CreateRoadFrom(
+            bend,
+            self.positive_lane_num,
+            out_bend_road,
+            self.block_network,
+            self._global_network,
+            center_line_type=LineType.NONE,
+            inner_lane_line_type=LineType.NONE,
+            side_lane_line_type=LineType.NONE
+        )
         if dist_to_in > 1e-3:
             out_straight_road = Road(self.road_node(part_idx, 9), in_socket.negative_road.start_node)
-            CreateRoadFrom(straight, self.positive_lane_num, out_straight_road,
-                           self.block_network,
-                           self._global_network,
-                           center_line_type=LineType.NONE,
-                           inner_lane_line_type=LineType.NONE,
-                           side_lane_line_type=LineType.NONE)
+            CreateRoadFrom(
+                straight,
+                self.positive_lane_num,
+                out_straight_road,
+                self.block_network,
+                self._global_network,
+                center_line_type=LineType.NONE,
+                inner_lane_line_type=LineType.NONE,
+                side_lane_line_type=LineType.NONE
+            )
 
         return no_cross
 

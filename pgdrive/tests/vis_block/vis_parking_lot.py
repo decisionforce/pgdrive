@@ -35,6 +35,5 @@ if __name__ == "__main__":
     inter_4 = StdInterSection(6, inter_1.get_socket(2), global_network, 1)
     inter_4.construct_block(test.render, test.world, dict(radius=4))
 
-
     # test.show_bounding_box(global_network)
     test.run()

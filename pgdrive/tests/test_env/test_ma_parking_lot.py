@@ -70,15 +70,15 @@ def _act(env, action):
 
 def test_ma_parking_lot_env():
     for env in [MultiAgentParkingLotEnv({"delay_done": 0, "num_agents": 1,
-                                           "vehicle_config": {"lidar": {"num_others": 8}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 8}}}),
                 MultiAgentParkingLotEnv({"num_agents": 1, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 0}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 0}}}),
                 MultiAgentParkingLotEnv({"num_agents": 4, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 8}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 8}}}),
                 MultiAgentParkingLotEnv({"num_agents": 4, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 0}}}),
+                                         "vehicle_config": {"lidar": {"num_others": 0}}}),
                 MultiAgentParkingLotEnv({"num_agents": 8, "delay_done": 0,
-                                           "vehicle_config": {"lidar": {"num_others": 0}}})]:
+                                         "vehicle_config": {"lidar": {"num_others": 0}}})]:
         try:
             _check_spaces_before_reset(env)
             obs = env.reset()
@@ -253,13 +253,11 @@ def test_ma_parking_lot_close_spawn():
                 assert distance_greater(v1.position, v2.position, length=2.2)
 
     MultiAgentParkingLotEnv._DEBUG_RANDOM_SEED = 1
-    env = MultiAgentParkingLotEnv(
-        {
-            # "use_render": True, "fast": True,
-            "horizon": 50,
-            "num_agents": 11,
-        }
-    )
+    env = MultiAgentParkingLotEnv({
+        # "use_render": True, "fast": True,
+        "horizon": 50,
+        "num_agents": 11,
+    })
     env.seed(100)
     try:
         _check_spaces_before_reset(env)
@@ -377,7 +375,7 @@ def test_ma_parking_lot_reward_done_alignment():
             "horizon": 200,
             "num_agents": 11,
             "crash_vehicle_penalty": 1.7777,
-            "parking_space_num":16
+            "parking_space_num": 16
         }
     )
     try:
@@ -528,7 +526,7 @@ def test_ma_parking_lot_init_space():
 def test_ma_parking_lot_no_short_episode():
     env = MultiAgentParkingLotEnv({
         "horizon": 300,
-        "parking_space_num":32,
+        "parking_space_num": 32,
         "num_agents": 35,
     })
     try:
@@ -632,7 +630,7 @@ def test_ma_parking_lot_40_agent_reset_after_respawn():
             assert not v_1.crash_vehicle, "Vehicles overlap after reset()"
             vehicles.remove(v_1)
 
-    env = MultiAgentParkingLotEnv({"horizon": 50, "num_agents": 32, "parking_space_num":32, "use_render":False})
+    env = MultiAgentParkingLotEnv({"horizon": 50, "num_agents": 32, "parking_space_num": 32, "use_render": False})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()

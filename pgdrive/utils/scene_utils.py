@@ -26,7 +26,7 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List["AbstractLan
 
 
 def block_socket_merge(
-        socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
+    socket_1: "BlockSocket", socket_2: "BlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
@@ -128,8 +128,10 @@ def get_all_lanes(roadnet: "RoadNetwork"):
     return res
 
 
-def ray_localization(heading: np.ndarray, position: np.ndarray, pg_world: PGWorld, return_all_result=False) -> Union[
-    List[Tuple], Tuple]:
+def ray_localization(heading: np.ndarray,
+                     position: np.ndarray,
+                     pg_world: PGWorld,
+                     return_all_result=False) -> Union[List[Tuple], Tuple]:
     """
     Get the index of the lane closest to a physx_world position.
     Only used when smoething is on lane ! Otherwise fall back to use get_closest_lane()
@@ -170,13 +172,13 @@ def ray_localization(heading: np.ndarray, position: np.ndarray, pg_world: PGWorl
 
 
 def rect_region_detection(
-        pg_world: PGWorld,
-        position: Tuple,
-        heading: float,
-        heading_direction_length: float,
-        side_direction_width: float,
-        detection_group: int,
-        height=10
+    pg_world: PGWorld,
+    position: Tuple,
+    heading: float,
+    heading_direction_length: float,
+    side_direction_width: float,
+    detection_group: int,
+    height=10
 ):
     """
 
