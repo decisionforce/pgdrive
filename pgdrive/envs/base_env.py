@@ -53,6 +53,8 @@ BASE_DEFAULT_CONFIG = dict(
         max_speed=120,
         extra_action_dim=0,
         enable_reverse=False,
+        random_navi_mark_color=False,
+        show_dest_mark=False,
     ),
 
     # ===== Others =====

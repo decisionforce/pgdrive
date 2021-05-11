@@ -25,7 +25,7 @@ class RoutingLocalizationModule:
     CKPT_UPDATE_RANGE = 5
     FORCE_CALCULATE = False
 
-    def __init__(self, pg_world, show_navi_mark: bool = False):
+    def __init__(self, pg_world, show_navi_mark: bool = False, random_navi_mark_color=False, show_dest_mark=False):
         """
         This class define a helper for localizing vehicles and retrieving navigation information.
         It now only support from first block start to the end node, but can be extended easily.
@@ -37,17 +37,20 @@ class RoutingLocalizationModule:
         self.current_ref_lanes = None
         self.current_road = None
         self._target_checkpoints_index = None
-        self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
+        self._navi_info = np.zeros((self.navigation_info_dim,))  # navi information res
+        self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
 
         # Vis
         self._is_showing = True  # store the state of navigation mark
-        self._show_navi_point = (
-            pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+        self._show_navi_info = (
+                pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         )
+        self._dest_node_path = None
         self._goal_node_path = None
         self._arrow_node_path = None
-        if self._show_navi_point:
+        if self._show_navi_info:
             self._goal_node_path = pg_world.render.attachNewNode("target")
+            self._dest_node_path = pg_world.render.attachNewNode("dest")
             self._arrow_node_path = pg_world.aspect2d.attachNewNode("arrow")
             navi_arrow_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "navi_arrow.gltf"))
             navi_arrow_model.setScale(0.1, 0.12, 0.2)
@@ -69,10 +72,20 @@ class RoutingLocalizationModule:
             if show_navi_mark:
                 navi_point_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
                 navi_point_model.reparentTo(self._goal_node_path)
+
+                dest_point_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
+                dest_point_model.reparentTo(self._dest_node_path)
             self._goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
-            self._goal_node_path.setColor(0.6, 0.8, 0.5, 0.7)
+            self._dest_node_path.setTransparency(TransparencyAttrib.M_alpha)
+
+            self._goal_node_path.setColor(self.navi_mark_color[0], self.navi_mark_color[1], self.navi_mark_color[2],
+                                          0.7)
+            self._dest_node_path.setColor(self.navi_mark_color[0], self.navi_mark_color[1], self.navi_mark_color[2],
+                                          0.7)
             self._goal_node_path.hide(BitMask32.allOn())
+            self._dest_node_path.hide(BitMask32.allOn())
             self._goal_node_path.show(CamMask.MainCam)
+            self._dest_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
     def update(self, map: Map, current_lane_index, final_road_node=None, random_seed=False):
@@ -109,13 +122,19 @@ class RoutingLocalizationModule:
         assert len(self.checkpoints) > 2
         # update routing info
         self.final_road = Road(self.checkpoints[-2], end_road_node)
-        self.final_lane = self.final_road.get_lanes(self.map.road_network)[-1]
+        final_lanes = self.final_road.get_lanes(self.map.road_network)
+        self.final_lane = final_lanes[-1]
         self._target_checkpoints_index = [0, 1]
         self._navi_info.fill(0.0)
         target_road_1_start = self.checkpoints[0]
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
         self.current_road = Road(target_road_1_start, target_road_1_end)
+        if self._dest_node_path is not None:
+            ref_lane = final_lanes[0]
+            later_middle = (float(self.get_current_lane_num()) / 2 - 0.5) * self.get_current_lane_width()
+            check_point = ref_lane.position(ref_lane.length, later_middle)
+            self._dest_node_path.setPos(check_point[0], -check_point[1], 1.8)
 
     def update_navigation_localization(self, ego_vehicle):
         position = ego_vehicle.position
@@ -150,7 +169,7 @@ class RoutingLocalizationModule:
             lanes_id=1, lanes=target_lanes_2, ego_vehicle=ego_vehicle
         )
 
-        if self._show_navi_point:
+        if self._show_navi_info:
             pos_of_goal = checkpoint
             self._goal_node_path.setPos(pos_of_goal[0], -pos_of_goal[1], 1.8)
             self._goal_node_path.setH(self._goal_node_path.getH() + 3)
@@ -177,8 +196,8 @@ class RoutingLocalizationModule:
         angle = 0.0
         if isinstance(ref_lane, CircularLane):
             bendradius = ref_lane.radius / (
-                BlockParameterSpace.CURVE[Parameter.radius].max +
-                self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
             )
             dir = ref_lane.direction
             if dir == 1:
@@ -186,11 +205,11 @@ class RoutingLocalizationModule:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
-            clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
-        ), lanes_heading, check_point
+                   clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                        1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                                   1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+                   clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+               ), lanes_heading, check_point
 
     def _update_navi_arrow(self, lanes_heading):
         lane_0_heading = lanes_heading[0]
@@ -244,7 +263,7 @@ class RoutingLocalizationModule:
         return self._navi_info
 
     def destroy(self):
-        if self._show_navi_point:
+        if self._show_navi_info:
             self._arrow_node_path.removeNode()
             self._goal_node_path.removeNode()
 

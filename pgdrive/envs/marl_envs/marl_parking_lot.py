@@ -17,7 +17,7 @@ MAParkingLotConfig = dict(
     top_down_camera_initial_x=80,
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120,
-    vehicle_config={"enable_reverse": True},
+    vehicle_config={"enable_reverse": True, "random_navi_mark_color":True, "show_dest_mark":True},
     parking_space_num=8
 )
 
