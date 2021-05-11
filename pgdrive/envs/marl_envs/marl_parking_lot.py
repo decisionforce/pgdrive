@@ -201,7 +201,8 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         for id, config in safe_places_dict.items():
             spawn_l_index = config["config"]["spawn_lane_index"]
             spawn_road = Road(spawn_l_index[0], spawn_l_index[1])
-            if spawn_road in self.in_spawn_roads:
+            if spawn_road in self.in_spawn_roads and len(self.current_map.parking_space_manager.parking_space_available
+                                                         ) > 0:
                 filter_ret[id] = config
                 continue
             spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
