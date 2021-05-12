@@ -34,7 +34,6 @@ class ParkingSpaceManager:
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
-
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
