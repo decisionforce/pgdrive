@@ -203,16 +203,18 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         for id, config in safe_places_dict.items():
             spawn_l_index = config["config"]["spawn_lane_index"]
             spawn_road = Road(spawn_l_index[0], spawn_l_index[1])
-            if spawn_road in self.in_spawn_roads and len(self.current_map.parking_space_manager.parking_space_available
-                                                         ) > 0:
-                filter_ret[id] = config
-                continue
-            if ParkingLot.is_out_direction_parking_space(spawn_road):
-                # avoid sweep test bug
-                spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
-            if spawn_road in self.current_map.parking_space_manager.parking_space_available:
-                # not other vehicle's destination
-                filter_ret[id] = config
+            if spawn_road in self.in_spawn_roads:
+                if len(self.current_map.parking_space_manager.parking_space_available
+                    ) > 0:
+                    filter_ret[id] = config
+            else:
+                # spawn in parking space
+                if ParkingLot.is_out_direction_parking_space(spawn_road):
+                    # avoid sweep test bug
+                    spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
+                if spawn_road in self.current_map.parking_space_manager.parking_space_available:
+                    # not other vehicle's destination
+                    filter_ret[id] = config
 
         # ===== same as super() =====
         safe_places_dict = filter_ret
