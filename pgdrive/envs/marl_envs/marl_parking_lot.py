@@ -207,7 +207,9 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
                                                          ) > 0:
                 filter_ret[id] = config
                 continue
-            spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
+            if ParkingLot.is_out_direction_parking_space(spawn_road):
+                # avoid sweep test bug
+                spawn_road = self.current_map.parking_lot.in_direction_parking_space(spawn_road)
             if spawn_road in self.current_map.parking_space_manager.parking_space_available:
                 # not other vehicle's destination
                 filter_ret[id] = config
