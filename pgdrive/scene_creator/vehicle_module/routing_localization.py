@@ -27,12 +27,12 @@ class RoutingLocalizationModule:
     LINE_TO_DEST_HEIGHT = 0.6
 
     def __init__(
-        self,
-        pg_world,
-        show_navi_mark: bool = False,
-        random_navi_mark_color=False,
-        show_dest_mark=False,
-        show_line_to_dest=False
+            self,
+            pg_world,
+            show_navi_mark: bool = False,
+            random_navi_mark_color=False,
+            show_dest_mark=False,
+            show_line_to_dest=False
     ):
         """
         This class define a helper for localizing vehicles and retrieving navigation information.
@@ -45,13 +45,13 @@ class RoutingLocalizationModule:
         self.current_ref_lanes = None
         self.current_road = None
         self._target_checkpoints_index = None
-        self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
+        self._navi_info = np.zeros((self.navigation_info_dim,))  # navi information res
         self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
 
         # Vis
         self._is_showing = True  # store the state of navigation mark
         self._show_navi_info = (
-            pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+                pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
         )
         self._dest_node_path = None
         self._goal_node_path = None
@@ -142,7 +142,7 @@ class RoutingLocalizationModule:
         :return: None
         """
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
-        assert len(self.checkpoints) > 2
+        assert len(self.checkpoints) > 2, "Can not find a route from {} to {}".format(start_road_node, end_road_node)
         # update routing info
         self.final_road = Road(self.checkpoints[-2], end_road_node)
         final_lanes = self.final_road.get_lanes(self.map.road_network)
@@ -225,8 +225,8 @@ class RoutingLocalizationModule:
         angle = 0.0
         if isinstance(ref_lane, CircularLane):
             bendradius = ref_lane.radius / (
-                BlockParameterSpace.CURVE[Parameter.radius].max +
-                self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
             )
             dir = ref_lane.direction
             if dir == 1:
@@ -234,11 +234,11 @@ class RoutingLocalizationModule:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
-            clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
-        ), lanes_heading, check_point
+                   clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                        1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                                   1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+                   clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+               ), lanes_heading, check_point
 
     def _update_navi_arrow(self, lanes_heading):
         lane_0_heading = lanes_heading[0]
