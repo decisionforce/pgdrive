@@ -52,12 +52,12 @@ class BaseVehicle(DynamicElement):
     WIDTH = None
 
     def __init__(
-        self,
-        pg_world: PGWorld,
-        vehicle_config: Union[dict, PGConfig] = None,
-        physics_config: dict = None,
-        random_seed: int = 0,
-        name: str = None,
+            self,
+            pg_world: PGWorld,
+            vehicle_config: Union[dict, PGConfig] = None,
+            physics_config: dict = None,
+            random_seed: int = 0,
+            name: str = None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -452,8 +452,8 @@ class BaseVehicle(DynamicElement):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -589,7 +589,15 @@ class BaseVehicle(DynamicElement):
         :param map: new map
         :return: None
         """
-        lane, new_l_index = ray_localization(np.array(self.heading.tolist()), np.array(self.spawn_place), self.pg_world)
+        possible_lanes = ray_localization(np.array(self.heading.tolist()), np.array(self.spawn_place), self.pg_world,
+                                          return_all_result=True)
+        possible_lane_indexes = [lane_index for lane, lane_index, dist in possible_lanes]
+        try:
+            idx = possible_lane_indexes.index(self.vehicle_config["spawn_lane_index"])
+        except ValueError:
+            lane, new_l_index = possible_lanes[0][:-1]
+        else:
+            lane, new_l_index = possible_lanes[idx][:-1]
         self.routing_localization.update(map, current_lane_index=new_l_index)
         assert lane is not None, "spawn place is not on road!"
         self.lane_index = new_l_index
@@ -730,7 +738,7 @@ class BaseVehicle(DynamicElement):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -745,7 +753,7 @@ class BaseVehicle(DynamicElement):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -780,12 +788,12 @@ class BaseVehicle(DynamicElement):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property

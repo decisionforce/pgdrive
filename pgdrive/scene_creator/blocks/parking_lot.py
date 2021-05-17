@@ -98,7 +98,7 @@ class ParkingLot(Block):
             no_cross = self._add_one_parking_space(
                 copy.copy(self.get_socket_list()[0]).get_socket_in_reverse(),
                 self.pre_block_socket.get_socket_in_reverse(), i + 1, radius, i * self.parking_space_width,
-                                                               (parking_space_num - i - 1) * self.parking_space_width
+                (parking_space_num - i - 1) * self.parking_space_width
             ) and no_cross
 
         for i in range(parking_space_num, 2 * parking_space_num):
@@ -112,7 +112,7 @@ class ParkingLot(Block):
         return no_cross
 
     def _add_one_parking_space(
-            self, in_socket: BlockSocket, out_socket: BlockSocket, part_idx: int, radius, dist_to_in, dist_to_out
+        self, in_socket: BlockSocket, out_socket: BlockSocket, part_idx: int, radius, dist_to_in, dist_to_out
     ) -> bool:
         no_cross = True
 
@@ -326,8 +326,9 @@ class ParkingLot(Block):
         start_node = copy.deepcopy(road.start_node)
         end_node = copy.deepcopy(road.end_node)
         assert start_node[-2] == "5" and end_node[
-            -2] == "6", "It is not out-direction of this parking space, start_node:{}, end_node:{}".format(start_node,
-                                                                                                           end_node)
+            -2] == "6", "It is not out-direction of this parking space, start_node:{}, end_node:{}".format(
+                start_node, end_node
+            )
         start_node = start_node[:-2] + "1" + Block.DASH
         end_node = end_node[:-2] + "2" + Block.DASH
         return Road(start_node, end_node)
@@ -340,8 +341,9 @@ class ParkingLot(Block):
         start_node = copy.deepcopy(road.start_node)
         end_node = copy.deepcopy(road.end_node)
         assert start_node[-2] == "1" and end_node[
-            -2] == "2", "It is not in-direction of this parking space, start_node:{}, end_node:{}".format(start_node,
-                                                                                                          end_node)
+            -2] == "2", "It is not in-direction of this parking space, start_node:{}, end_node:{}".format(
+                start_node, end_node
+            )
         start_node = start_node[:-2] + "5" + Block.DASH
         end_node = end_node[:-2] + "6" + Block.DASH
         return Road(start_node, end_node)
@@ -350,8 +352,9 @@ class ParkingLot(Block):
     def is_out_direction_parking_space(road: Road):
         start_node = road.start_node
         end_node = road.end_node
-        assert (start_node[-2] == "1" and end_node[-2] == "2") or (start_node[-2] == "5" and end_node[
-            -2] == "6"), "{} to {} is not parking space".format(start_node, end_node)
+        assert (start_node[-2] == "1"
+                and end_node[-2] == "2") or (start_node[-2] == "5" and end_node[-2]
+                                             == "6"), "{} to {} is not parking space".format(start_node, end_node)
         if start_node[-2] == "5" and end_node[-2] == "6":
             return True
         else:
@@ -361,8 +364,9 @@ class ParkingLot(Block):
     def is_in_direction_parking_space(road: Road):
         start_node = road.start_node
         end_node = road.end_node
-        assert (start_node[-2] == "1" and end_node[-2] == "2") or (start_node[-2] == "5" and end_node[
-            -2] == "6"), "{} to {} is not parking space".format(start_node, end_node)
+        assert (start_node[-2] == "1"
+                and end_node[-2] == "2") or (start_node[-2] == "5" and end_node[-2]
+                                             == "6"), "{} to {} is not parking space".format(start_node, end_node)
         if start_node[-2] == "1" and end_node[-2] == "2":
             return True
         else:
