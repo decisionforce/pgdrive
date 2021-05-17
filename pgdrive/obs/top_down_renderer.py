@@ -5,6 +5,8 @@ import numpy as np
 from pgdrive.constants import Decoration
 from pgdrive.obs.top_down_obs_impl import WorldSurface, VehicleGraphics, LaneGraphics
 from pgdrive.utils.utils import import_pygame
+import matplotlib.pyplot as plt
+from collections import deque
 
 pygame = import_pygame()
 
@@ -80,7 +82,7 @@ class TopDownRenderer:
         # self._runtime.blit(self._background, self._blit_rect)
         self._runtime.blit(self._background, (0, 0))
 
-    def render(self, vehicles, *args, **kwargs):
+    def render(self, vehicles, data=None, *args, **kwargs):
         self.refresh()
         self._draw_vehicles(vehicles)
         self.blit()
@@ -105,7 +107,8 @@ class TopDownRenderer:
 
 
 class PheromoneRenderer(TopDownRenderer):
-    def __init__(self, map, film_size=(2000, 2000), screen_size=(1000, 1000), zoomin=1.3, draw_vehicle_first=False):
+    def __init__(self, map, film_size=(2000, 2000), screen_size=(1000, 1000), zoomin=1.3, draw_vehicle_first=False,
+                 data=None):
         super(PheromoneRenderer, self).__init__(
             map, film_size=film_size, screen_size=screen_size, light_background=True, zoomin=zoomin
         )
@@ -113,8 +116,10 @@ class PheromoneRenderer(TopDownRenderer):
         self._bounding_box = self._map.road_network.get_bounding_box()
         self._draw_vehicle_first = draw_vehicle_first
         self._color_map = None
+        self._data_history = None
+        self._plot_len = 100
 
-    def render(self, vehicles, pheromone_map):
+    def render(self, vehicles, pheromone_map, data=None):
         self.refresh()
 
         # It is also OK to draw pheromone first! But we should wait a while until the vehicles leave the cells to
@@ -125,7 +130,39 @@ class PheromoneRenderer(TopDownRenderer):
         else:
             self._draw_pheromone_map(pheromone_map)
             self._draw_vehicles(vehicles)
+        if data is not None:
+            self._plot_data_curve(data)
         self.blit()
+
+    def _plot_data_curve(self, data):
+        # Add the data to history
+        if self._data_history is None:
+            self._data_history = {}
+            for key, single_data in data.items():
+                self._data_history[key] = deque(np.zeros(self._plot_len))
+                self._data_history[key].append(single_data)
+        else:
+            for key, single_data in data.items():
+                # Keep only last N (_plot_len) items in history for plotting
+                if len(self._data_history[key]) >= self._plot_len:
+                    self._data_history[key].popleft()
+                self._data_history[key].append(single_data)
+
+        plt.rcParams["figure.figsize"] = (5, 2)
+        plt.plot(self._data_history["reward"], 'b-')
+        plt.xticks(color='w')
+        plt.title("Reward")
+
+        # Convert plot into rgb array for pygame
+        canvas = plt.gca().figure.canvas
+        canvas.draw()
+        res = np.fromstring(canvas.tostring_rgb(), dtype=np.uint8)
+        res = res.reshape(canvas.get_width_height()[::-1] + (3,))
+        res = np.rot90(np.flip(res, axis=0), -1)
+
+        res_surface = pygame.surfarray.make_surface(res)
+        plt.close()
+        self._runtime.blit(res_surface, (250, 250))
 
     def _draw_pheromone_map(self, pheromone_map):
         phero = pheromone_map.get_map(*self._bounding_box)
