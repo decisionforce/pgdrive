@@ -257,8 +257,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
         # return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
-        ret = vehicle.on_white_continuous_line or \
-              (not vehicle.on_lane) or vehicle.crash_sidewalk
+        ret = vehicle.out_of_route
         return ret
 
 
@@ -386,11 +385,12 @@ def _vis():
                 },
                 "show_lidar": False,
             },
+            "pg_world_config":{"debug_static_world":True},
             "fast": True,
             "use_render": True,
-            "debug": False,
+            "debug": True,
             "manual_control": True,
-            "num_agents": 7,
+            "num_agents": 1,
             "delay_done": 10,
             "parking_space_num": 4
         }
@@ -407,6 +407,14 @@ def _vis():
             total_r += r_
         ep_s += 1
         # d.update({"total_r": total_r, "episode length": ep_s})
+        if len(env.vehicles) != 0:
+            v = list(env.vehicles.values())[0]
+            dist = v.dist_to_left_side, v.dist_to_right_side
+            ckpt_idx = v.routing_localization._target_checkpoints_index
+        else:
+            dist = (0,0)
+            ckpt_idx = (0,0)
+
         render_text = {
             "total_r": total_r,
             "episode length": ep_s,
@@ -414,8 +422,15 @@ def _vis():
             "cam_y": env.main_camera.camera_y,
             "cam_z": env.main_camera.top_down_camera_height,
             "alive": len(env.vehicles),
+            "dist_right_left": dist,
+            "ckpt_idx":ckpt_idx,
             "parking_space_num": len(env.current_map.parking_space_manager.parking_space_available)
         }
+        if len(env.vehicles) > 0:
+            v = list(env.vehicles.values())[0]
+            print(v.routing_localization.checkpoints)
+            render_text["current_road"]=v.current_road
+
         env.render(text=render_text)
         for kkk, ddd in d.items():
             if ddd and kkk != "__all__":
