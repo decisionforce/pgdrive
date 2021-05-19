@@ -93,7 +93,7 @@ class Block(Element, BlockDefault):
         # each block contains its own road network and a global network
         self._global_network = global_network
         self.block_network = RoadNetwork()
-        self._block_buildings = []
+        self._block_objects = []
 
         # used to spawn npc
         self._respawn_roads = []
@@ -157,6 +157,9 @@ class Block(Element, BlockDefault):
         self.node_path.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()
+        for obj in self._block_objects:
+            obj.destroy(pg_physics_world)
+        self._block_objects = None
 
     def _sample_topology(self) -> bool:
         """
@@ -592,14 +595,14 @@ class Block(Element, BlockDefault):
     def get_socket_list(self):
         return list(self._sockets.values())
 
-    def _add_invisible_static_wall(self,
-                                   position: Tuple,
-                                   heading: float,
-                                   heading_length: float,
-                                   side_width: float,
-                                   height=10,
-                                   name=BodyName.InvisibleWall,
-                                   collision_group=CollisionGroup.InvisibleWall):
+    def _generate_invisible_static_wall(self,
+                                        position: Tuple,
+                                        heading: float,
+                                        heading_length: float,
+                                        side_width: float,
+                                        height=10,
+                                        name=BodyName.InvisibleWall,
+                                        collision_group=CollisionGroup.InvisibleWall):
         """
         Add an invisible physics wall to physics world
         You can add some building models to the same location, add make it be detected by lidar

@@ -4,18 +4,13 @@ from pgdrive.scene_creator.blocks.block import BlockSocket
 from pgdrive.scene_creator.blocks.bottleneck import Block
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane
 from pgdrive.scene_creator.lane.abs_lane import LineType, LineColor
-from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
+from pgdrive.scene_creator.buildings.base_building import BaseBuilding
 from pgdrive.scene_manager.object_manager import ObjectManager
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 from pgdrive.constants import BodyName
 
-
-class TollBuilding(BaseObject):
-    def __init__(self, lane, lane_index, position, heading: float = 0., node_path=None):
-        super(TollBuilding, self).__init__(lane, lane_index, position, heading)
-        assert node_path is not None
-        self.node_path = node_path
+TollBuilding = BaseBuilding
 
 
 class Toll(Block):
@@ -66,13 +61,13 @@ class Toll(Block):
             if idx % 2 == 1:
                 # add toll
                 position = lane.position(lane.length / 2, 0)
-                node_path = self._add_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
-                                                            self.BUILDING_LENGTH,
-                                                            self.lane_width, 3.5, name=BodyName.Toll)
+                node_path = self._generate_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
+                                                                 self.BUILDING_LENGTH,
+                                                                 self.lane_width, 3.5, name=BodyName.Toll)
                 building = TollBuilding(lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0),
                                         node_path)
-                self._block_buildings.append(building)
+                self._block_objects.append(building)
 
     def construct_block_buildings(self, object_manager: ObjectManager):
-        for building in self._block_buildings:
+        for building in self._block_objects:
             object_manager.add_block_buildings(building)

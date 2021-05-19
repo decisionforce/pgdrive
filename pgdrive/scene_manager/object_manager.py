@@ -196,4 +196,4 @@ class ObjectManager(RandomEngine):
 
     @property
     def objects(self):
-        return self._spawned_objects
+        return self._spawned_objects+self._block_objects
