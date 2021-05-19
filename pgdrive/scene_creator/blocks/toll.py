@@ -7,8 +7,9 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 from pgdrive.scene_creator.blocks.bottleneck import Block
 
-from pgdrive.scene_creator.object import TrafficObject
+from pgdrive.scene_creator.object.base_object import BaseObject
 
+class TollBuilding(BaseObject):
 
 class Toll(Block):
     """
@@ -56,6 +57,11 @@ class Toll(Block):
             if idx % 2 == 1:
                 # add toll
                 position = lane.position(lane.length / 2, 0)
-                node_path = self.add_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
-                                                           self.BUILDING_LENGTH,
-                                                           self.lane_width, 3.5, name="Toll")
+                node_path = self._add_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
+                                                            self.BUILDING_LENGTH,
+                                                            self.lane_width, 3.5, name="Toll")
+
+    def add_buildings(self):
+        socket = self.get_socket(index=0)
+        for road in [socket.positive_road, socket.negative_road]:
+            node_path = self._add_building(road)

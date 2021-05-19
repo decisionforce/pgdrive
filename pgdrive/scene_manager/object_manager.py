@@ -136,6 +136,7 @@ class ObjectManager(RandomEngine):
             scene_manager.traffic_manager.random_vehicle_type(), lane, longitude, False
         )
         breakdown_vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
+        breakdown_vehicle.set_break_down()
 
         alert = self.spawn_one_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
         alert.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)

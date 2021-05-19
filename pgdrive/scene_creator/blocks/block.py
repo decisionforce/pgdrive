@@ -591,14 +591,14 @@ class Block(Element, BlockDefault):
     def get_socket_list(self):
         return list(self._sockets.values())
 
-    def add_invisible_static_wall(self,
-                                  position: Tuple,
-                                  heading: float,
-                                  heading_length: float,
-                                  side_width: float,
-                                  height=10,
-                                  name=BodyName.InvisibleWall,
-                                  collision_group=CollisionGroup.InvisibleWall):
+    def _add_invisible_static_wall(self,
+                                   position: Tuple,
+                                   heading: float,
+                                   heading_length: float,
+                                   side_width: float,
+                                   height=10,
+                                   name=BodyName.InvisibleWall,
+                                   collision_group=CollisionGroup.InvisibleWall):
         """
         Add an invisible physics wall to physics world
         You can add some building models to the same location, add make it be detected by lidar
