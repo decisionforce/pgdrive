@@ -7,12 +7,13 @@ from pgdrive.obs import ObservationType
 from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
+from pgdrive.scene_creator.blocks.toll import Toll
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import get_np_random, norm, PGConfig
 
 MATollConfig = dict(
-    map_config=dict(exit_length=60, lane_num=3, toll_num=8),
+    map_config=dict(exit_length=60, lane_num=3, toll_lane_num=8, toll_length=10),
     top_down_camera_initial_x=95,
     top_down_camera_initial_y=15,
     top_down_camera_initial_z=120,
@@ -50,21 +51,29 @@ class MATollMap(PGMap):
         split = Split(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
         split.construct_block(parent_node_path, pg_physics_world,
             {
-                "length": self.config["exit_length"],
-                "lane_num": self.config["toll_num"] - self.config["lane_num"]
+                "length": 2,
+                "lane_num": self.config["toll_lane_num"] - self.config["lane_num"],
+                "bottle_len":50,
             }
         )
         self.blocks.append(split)
+        toll = Toll(2, split.get_socket(index=0), self.road_network, random_seed=1)
+        toll.construct_block(parent_node_path, pg_physics_world, {
+                "length": self.config["toll_length"],
+            })
 
-        # # Build Toll
-        # merge = Merge(2, split.get_socket(index=0), self.road_network, random_seed=1)
-        # merge.construct_from_config(
-        #     dict(
-        #         lane_num=self.config["bottle_lane_num"] - self.config["neck_lane_num"],
-        #         length=self.config["neck_length"]
-        #     ), parent_node_path, pg_physics_world
-        # )
-        # self.blocks.append(merge)
+        self.blocks.append(toll)
+
+        # Build Toll
+        merge = Merge(3, toll.get_socket(index=0), self.road_network, random_seed=1)
+        merge.construct_from_config(
+            dict(
+                lane_num=self.config["toll_lane_num"] - self.config["lane_num"],
+                length=self.config["exit_length"],
+                bottle_len=50,
+            ), parent_node_path, pg_physics_world
+        )
+        self.blocks.append(merge)
 
 
 class MultiAgentTollEnv(MultiAgentPGDrive):
@@ -264,13 +273,16 @@ def _vis():
                     "num_others": 0,
                     "distance": 40
                 },
-                "show_lidar": False,
+                "show_lidar": True,
+                "show_side_detector":True,
+                "show_lane_line_detector":True,
             },
+            "debug":True,
             "fast": True,
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 10,
+            "num_agents": 1,
         }
     )
     o = env.reset()

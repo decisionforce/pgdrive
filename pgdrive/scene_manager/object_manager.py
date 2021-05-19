@@ -3,7 +3,7 @@ from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraigh
 from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
-from pgdrive.scene_creator.object.traffic_object import Object
+from pgdrive.scene_creator.object.traffic_object import TrafficObject
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import LaneIndex
 from pgdrive.utils import RandomEngine
@@ -55,7 +55,7 @@ class ObjectManager(RandomEngine):
         longitude: float,
         lateral: float,
         static: bool = False
-    ) -> Object:
+    ) -> TrafficObject:
         """
         Spawn an object by assigning its type and position on the lane
         :param object_type: object name or the class name of the object
@@ -66,7 +66,7 @@ class ObjectManager(RandomEngine):
         :param static: static object can not be moved by any force
         :return: None
         """
-        for t in Object.type():
+        for t in TrafficObject.type():
             if t.__name__ == object_type or t.NAME == object_type:
                 obj = t.make_on_lane(lane, lane_index, longitude, lateral)
                 obj.set_static(static)

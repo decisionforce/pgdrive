@@ -1,13 +1,13 @@
 import logging
 from collections import OrderedDict
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 import copy
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletGhostNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
     TransparencyAttrib, SamplerState, NodePath
 
-from pgdrive.constants import Decoration, BodyName, CamMask
+from pgdrive.constants import Decoration, BodyName, CamMask, CollisionGroup
 from pgdrive.scene_creator.blocks.constants import BlockDefault
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane, LineType, LaneNode, LineColor
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
@@ -15,7 +15,7 @@ from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils.asset_loader import AssetLoader
-from pgdrive.utils.coordinates_shift import panda_position
+from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import Element
 from pgdrive.utils.math_utils import norm, PGVector
 from pgdrive.world.pg_physics_world import PGPhysicsWorld
@@ -27,6 +27,7 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
+
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -73,6 +74,7 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
+
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -130,12 +132,13 @@ class Block(Element, BlockDefault):
             self.sidewalk = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
 
     def construct_block(
-        self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
+            self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
     ) -> bool:
         """
         Randomly Construct a block, if overlap return False
         """
         self.set_config(self.PARAMETER_SPACE.sample())
+        self.node_path = NodePath(self._block_name)
         if extra_config:
             assert set(extra_config.keys()).issubset(self.PARAMETER_SPACE.parameters), \
                 "Make sure the parameters' name are as same as what defined in pg_space.py"
@@ -302,7 +305,6 @@ class Block(Element, BlockDefault):
         self.lane_vis_node_path.node().collect()
         self.lane_vis_node_path.hide(CamMask.DepthCam | CamMask.ScreenshotCam)
 
-        self.node_path = NodePath(self._block_name)
         self.node_path.hide(CamMask.Shadow)
 
         self.sidewalk_node_path.reparentTo(self.node_path)
@@ -413,14 +415,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -588,3 +590,45 @@ class Block(Element, BlockDefault):
 
     def get_socket_list(self):
         return list(self._sockets.values())
+
+    def add_invisible_static_wall(self,
+                                  position: Tuple,
+                                  heading: float,
+                                  heading_length: float,
+                                  side_width: float,
+                                  height=10,
+                                  name=BodyName.InvisibleWall,
+                                  collision_group=CollisionGroup.InvisibleWall):
+        """
+        Add an invisible physics wall to physics world
+        You can add some building models to the same location, add make it be detected by lidar
+        ----------------------------------
+        |               *                |  --->>>
+        ----------------------------------
+        * position
+        --->>> heading direction
+        ------ longitude length
+        | lateral width
+
+        **CAUTION**: position is the middle point of longitude edge
+        :param position: position in PGDrive
+        :param heading: heading in PGDrive [degree]
+        :param heading_length: rect length in heading direction
+        :param side_width: rect width in side direction
+        :param height: the detect will be executed from this height to 0
+        :param name: name of this invisible wall
+        :param collision_group: control the collision of this static wall and other elements
+        :return node_path
+        """
+        shape = BulletBoxShape(Vec3(heading_length / 2, side_width / 2, height))
+        body_node = BulletRigidBodyNode(name)
+        body_node.setActive(False)
+        body_node.setKinematic(False)
+        body_node.setStatic(True)
+        wall_np = self.node_path.attachNewNode(body_node)
+        body_node.addShape(shape)
+        body_node.setIntoCollideMask(BitMask32.bit(collision_group))
+        self.dynamic_nodes.append(body_node)
+        wall_np.setPos(panda_position(position))
+        wall_np.setH(panda_heading(heading))
+        return wall_np
