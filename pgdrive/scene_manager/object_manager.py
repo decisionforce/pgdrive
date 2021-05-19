@@ -4,6 +4,7 @@ from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.object.traffic_object import TrafficObject
+from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import LaneIndex
 from pgdrive.utils import RandomEngine
@@ -41,20 +42,25 @@ class ObjectManager(RandomEngine):
         self._clear_objects(pg_world)
         self.update_random_seed(map.random_seed)
         self.accident_prob = accident_prob
+        for block in map.blocks:
+            block.construct_block_buildings(self)
 
     def _clear_objects(self, pg_world: PGWorld):
         for obj in self._spawned_objects:
             obj.destroy(pg_world=pg_world)
         self._spawned_objects = []
 
+    def add_block_buildings(self, building: BaseObject):
+        self._spawned_objects.append(building)
+
     def spawn_one_object(
-        self,
-        object_type: str,
-        lane: AbstractLane,
-        lane_index: LaneIndex,
-        longitude: float,
-        lateral: float,
-        static: bool = False
+            self,
+            object_type: str,
+            lane: AbstractLane,
+            lane_index: LaneIndex,
+            longitude: float,
+            lateral: float,
+            static: bool = False
     ) -> TrafficObject:
         """
         Spawn an object by assigning its type and position on the lane
@@ -129,7 +135,7 @@ class ObjectManager(RandomEngine):
                 )
 
     def break_down_scene(
-        self, scene_manager, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex, longitude: float
+            self, scene_manager, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex, longitude: float
     ):
 
         breakdown_vehicle = scene_manager.traffic_manager.spawn_one_vehicle(
@@ -142,14 +148,14 @@ class ObjectManager(RandomEngine):
         alert.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
     def prohibit_scene(
-        self,
-        scene_manager,
-        pg_world: PGWorld,
-        lane: AbstractLane,
-        lane_index: LaneIndex,
-        longitude_position: float,
-        lateral_len: float,
-        on_left=False
+            self,
+            scene_manager,
+            pg_world: PGWorld,
+            lane: AbstractLane,
+            lane_index: LaneIndex,
+            longitude_position: float,
+            lateral_len: float,
+            on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane

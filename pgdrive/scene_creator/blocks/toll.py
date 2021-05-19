@@ -1,15 +1,21 @@
-from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 import numpy as np
-from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane, \
-    create_wave_lanes
-from pgdrive.scene_creator.lane.abs_lane import LineType, LineColor
-from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
-from pgdrive.scene_creator.blocks.bottleneck import Block
 
+from pgdrive.scene_creator.blocks.block import BlockSocket
+from pgdrive.scene_creator.blocks.bottleneck import Block
+from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane
+from pgdrive.scene_creator.lane.abs_lane import LineType, LineColor
 from pgdrive.scene_creator.object.base_object import BaseObject
+from pgdrive.scene_creator.road.road import Road
+from pgdrive.scene_manager.object_manager import ObjectManager
+from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+
 
 class TollBuilding(BaseObject):
+    def __init__(self, lane, lane_index, position, heading: float = 0., node_path=None):
+        super(TollBuilding, self).__init__(lane, lane_index, position, heading)
+        assert node_path is not None
+        self.node_path = node_path
+
 
 class Toll(Block):
     """
@@ -50,7 +56,7 @@ class Toll(Block):
         self.add_sockets(BlockSocket(socket, _socket))
         return no_cross
 
-    def _add_building(self, road):
+    def _add_building(self, road, object_manager: ObjectManager):
         # add house
         lanes = road.get_lanes(self.block_network)
         for idx, lane in enumerate(lanes):
@@ -60,8 +66,11 @@ class Toll(Block):
                 node_path = self._add_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
                                                             self.BUILDING_LENGTH,
                                                             self.lane_width, 3.5, name="Toll")
+                building = TollBuilding(lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0),
+                                        node_path)
+                object_manager.add_block_buildings(building)
 
-    def add_buildings(self):
+    def construct_block_buildings(self, object_manager: ObjectManager):
         socket = self.get_socket(index=0)
         for road in [socket.positive_road, socket.negative_road]:
-            node_path = self._add_building(road)
+            self._add_building(road, object_manager)
