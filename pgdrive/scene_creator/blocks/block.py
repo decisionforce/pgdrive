@@ -137,7 +137,11 @@ class Block(Element, BlockDefault):
         """
         self.set_config(self.PARAMETER_SPACE.sample())
         if extra_config:
-            self.set_config(extra_config)
+            assert set(extra_config.keys()).issubset(self.PARAMETER_SPACE.parameters), \
+                "Make sure the parameters' name are as same as what defined in pg_space.py"
+            raw_config = self.get_config()
+            raw_config.update(extra_config)
+            self.set_config(raw_config)
         success = self._sample_topology()
         self._create_in_world()
         self.attach_to_pg_world(root_render_np, pg_physics_world)
@@ -162,12 +166,7 @@ class Block(Element, BlockDefault):
         return no_cross
 
     def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld):
-        assert set(config.keys()) == self.PARAMETER_SPACE.parameters, \
-            "Make sure the parameters' name are as same as what defined in pg_space.py"
-        self.set_config(config)
-        success = self._sample_topology()
-        self._create_in_world()
-        self.attach_to_pg_world(root_render_np, pg_physics_world)
+        success = self.construct_block(root_render_np, pg_physics_world, config)
         return success
 
     def get_socket(self, index: Union[str, int]) -> BlockSocket:
