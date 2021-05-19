@@ -107,7 +107,7 @@ class MARoundPhero(MARound):
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import PheromoneRenderer
             self._top_down_renderer = PheromoneRenderer(self.current_map, *args, **kwargs)
-        self._top_down_renderer.render(list(self.vehicles.values()), pheromone_map=self.phero_map)
+        self._top_down_renderer.render(list(self.vehicles.values()), pheromone_map=self.phero_map, data=kwargs.get("data"))
 
 
 def _profile():
@@ -175,7 +175,10 @@ def _vis():
              for k in env.vehicles.keys()}
         )
         # o, r, d, info = env.step({k: [np.random.uniform(-0.01, 0.01), 1, np.random.uyni] for k in env.vehicles.keys()})
-        env.render(mode="top_down")
+        env.render(mode="top_down", data={
+            "reward": sum(r.values()),
+            "velocity": 0.2
+        })
         # env.render(mode="top_down")
         # env.render(mode="top_down", film_size=(1000, 1000))
         if d["__all__"]:
