@@ -44,20 +44,19 @@ class MATollMap(PGMap):
         )
         self.blocks.append(last_block)
 
-
         split = Split(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
-        split.construct_block(parent_node_path, pg_physics_world,
-            {
+        split.construct_block(
+            parent_node_path, pg_physics_world, {
                 "length": 2,
                 "lane_num": self.config["toll_lane_num"] - self.config["lane_num"],
-                "bottle_len":50,
+                "bottle_len": 50,
             }
         )
         self.blocks.append(split)
         toll = Toll(2, split.get_socket(index=0), self.road_network, random_seed=1)
         toll.construct_block(parent_node_path, pg_physics_world, {
-                "length": self.config["toll_length"],
-            })
+            "length": self.config["toll_length"],
+        })
 
         self.blocks.append(toll)
 
@@ -74,7 +73,7 @@ class MATollMap(PGMap):
 
 
 class MultiAgentTollEnv(MultiAgentPGDrive):
-    spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3),-Road(Merge.node(3, 0, 0), Merge.node(3, 0, 1))]
+    spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3), -Road(Merge.node(3, 0, 0), Merge.node(3, 0, 1))]
 
     @staticmethod
     def default_config() -> PGConfig:
@@ -275,9 +274,9 @@ def _vis():
                 # "show_side_detector":True,
                 # "show_lane_line_detector":True,
             },
-            "traffic_density":0.,
-            "traffic_mode":"hybrid",
-            "debug":True,
+            "traffic_density": 0.,
+            "traffic_mode": "hybrid",
+            "debug": True,
             "fast": True,
             "use_render": True,
             # "debug": True,

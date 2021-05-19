@@ -57,13 +57,13 @@ class ObjectManager(RandomEngine):
         self._block_objects.append(building)
 
     def spawn_one_object(
-            self,
-            object_type: str,
-            lane: AbstractLane,
-            lane_index: LaneIndex,
-            longitude: float,
-            lateral: float,
-            static: bool = False
+        self,
+        object_type: str,
+        lane: AbstractLane,
+        lane_index: LaneIndex,
+        longitude: float,
+        lateral: float,
+        static: bool = False
     ) -> TrafficObject:
         """
         Spawn an object by assigning its type and position on the lane
@@ -138,7 +138,7 @@ class ObjectManager(RandomEngine):
                 )
 
     def break_down_scene(
-            self, scene_manager, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex, longitude: float
+        self, scene_manager, pg_world: PGWorld, lane: AbstractLane, lane_index: LaneIndex, longitude: float
     ):
 
         breakdown_vehicle = scene_manager.traffic_manager.spawn_one_vehicle(
@@ -151,14 +151,14 @@ class ObjectManager(RandomEngine):
         alert.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
     def prohibit_scene(
-            self,
-            scene_manager,
-            pg_world: PGWorld,
-            lane: AbstractLane,
-            lane_index: LaneIndex,
-            longitude_position: float,
-            lateral_len: float,
-            on_left=False
+        self,
+        scene_manager,
+        pg_world: PGWorld,
+        lane: AbstractLane,
+        lane_index: LaneIndex,
+        longitude_position: float,
+        lateral_len: float,
+        on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane
@@ -196,4 +196,4 @@ class ObjectManager(RandomEngine):
 
     @property
     def objects(self):
-        return self._spawned_objects+self._block_objects
+        return self._spawned_objects + self._block_objects

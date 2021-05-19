@@ -27,7 +27,6 @@ class BlockSocket:
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
     BlockSocket is a part of block used to connect other blocks
     """
-
     def __init__(self, positive_road: Road, negative_road: Road = None):
         self.positive_road = positive_road
         self.negative_road = negative_road if negative_road else None
@@ -74,7 +73,6 @@ class Block(Element, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         super(Block, self).__init__(random_seed)
         # block information
@@ -133,7 +131,7 @@ class Block(Element, BlockDefault):
             self.sidewalk = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
 
     def construct_block(
-            self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
+        self, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld, extra_config: Dict = None
     ) -> bool:
         """
         Randomly Construct a block, if overlap return False
@@ -419,14 +417,14 @@ class Block(Element, BlockDefault):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-            self,
-            lane_start,
-            lane_end,
-            middle,
-            parent_np: NodePath,
-            color: Vec4,
-            line_type: LineType,
-            straight_stripe=False
+        self,
+        lane_start,
+        lane_end,
+        middle,
+        parent_np: NodePath,
+        color: Vec4,
+        line_type: LineType,
+        straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -595,14 +593,16 @@ class Block(Element, BlockDefault):
     def get_socket_list(self):
         return list(self._sockets.values())
 
-    def _generate_invisible_static_wall(self,
-                                        position: Tuple,
-                                        heading: float,
-                                        heading_length: float,
-                                        side_width: float,
-                                        height=10,
-                                        name=BodyName.InvisibleWall,
-                                        collision_group=CollisionGroup.InvisibleWall):
+    def _generate_invisible_static_wall(
+        self,
+        position: Tuple,
+        heading: float,
+        heading_length: float,
+        side_width: float,
+        height=10,
+        name=BodyName.InvisibleWall,
+        collision_group=CollisionGroup.InvisibleWall
+    ):
         """
         Add an invisible physics wall to physics world
         You can add some building models to the same location, add make it be detected by lidar

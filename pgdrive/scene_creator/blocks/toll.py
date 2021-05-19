@@ -37,19 +37,28 @@ class Toll(Block):
         _socket = -socket
 
         # create positive road
-        no_cross = CreateRoadFrom(new_lane, self.positive_lane_num, socket, self.block_network, self._global_network,
-                                  center_line_color=LineColor.GREY,
-                                  center_line_type=LineType.CONTINUOUS,
-                                  inner_lane_line_type=LineType.CONTINUOUS,
-                                  side_lane_line_type=LineType.SIDE)
+        no_cross = CreateRoadFrom(
+            new_lane,
+            self.positive_lane_num,
+            socket,
+            self.block_network,
+            self._global_network,
+            center_line_color=LineColor.GREY,
+            center_line_type=LineType.CONTINUOUS,
+            inner_lane_line_type=LineType.CONTINUOUS,
+            side_lane_line_type=LineType.SIDE
+        )
 
         # create negative road
-        no_cross = CreateAdverseRoad(socket, self.block_network, self._global_network,
-                                     center_line_color=LineColor.GREY,
-                                     center_line_type=LineType.CONTINUOUS,
-                                     inner_lane_line_type=LineType.CONTINUOUS,
-                                     side_lane_line_type=LineType.SIDE
-                                     ) and no_cross
+        no_cross = CreateAdverseRoad(
+            socket,
+            self.block_network,
+            self._global_network,
+            center_line_color=LineColor.GREY,
+            center_line_type=LineType.CONTINUOUS,
+            inner_lane_line_type=LineType.CONTINUOUS,
+            side_lane_line_type=LineType.SIDE
+        ) and no_cross
 
         self.add_sockets(BlockSocket(socket, _socket))
         self._add_building_and_speed_limit(socket)
@@ -64,17 +73,23 @@ class Toll(Block):
             if idx % 2 == 1:
                 # add toll
                 position = lane.position(lane.length / 2, 0)
-                node_path = self._generate_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
-                                                                 self.BUILDING_LENGTH,
-                                                                 self.lane_width, self.BUILDING_HEIGHT/2, name=BodyName.Toll)
+                node_path = self._generate_invisible_static_wall(
+                    position,
+                    np.rad2deg(lane.heading_at(0)),
+                    self.BUILDING_LENGTH,
+                    self.lane_width,
+                    self.BUILDING_HEIGHT / 2,
+                    name=BodyName.Toll
+                )
                 if self.render:
                     building_model = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
                     building_model.setScale(self.BUILDING_LENGTH, self.lane_width, self.BUILDING_HEIGHT)
                     building_model.setColor(0.2, 0.2, 0.2)
                     building_model.reparentTo(node_path)
 
-                building = TollBuilding(lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0),
-                                        node_path)
+                building = TollBuilding(
+                    lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0), node_path
+                )
                 self._block_objects.append(building)
 
     def construct_block_buildings(self, object_manager: ObjectManager):
