@@ -60,6 +60,7 @@ class BodyName:
     Lane = "Lane"
     Traffic_cone = "Traffic Cone"
     Traffic_triangle = "Traffic Triangle"
+    Toll = "Toll"
 
 
 COLOR = {
@@ -72,7 +73,8 @@ COLOR = {
     BodyName.Traffic_triangle: "orange",
     BodyName.Base_vehicle: "red",
     BodyName.Base_vehicle_beneath: "red",
-    BodyName.InvisibleWall: "red"
+    BodyName.InvisibleWall: "red",
+    BodyName.Toll: "red",
 }
 
 

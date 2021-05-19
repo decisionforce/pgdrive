@@ -30,6 +30,7 @@ class ObjectManager(RandomEngine):
 
     def __init__(self):
         self._spawned_objects = []
+        self._block_objects = []
         self.accident_prob = 0.
 
         # init random engine
@@ -46,12 +47,14 @@ class ObjectManager(RandomEngine):
             block.construct_block_buildings(self)
 
     def _clear_objects(self, pg_world: PGWorld):
+        # only destroy self-generated objects
         for obj in self._spawned_objects:
             obj.destroy(pg_world=pg_world)
         self._spawned_objects = []
+        self._block_objects = []
 
     def add_block_buildings(self, building: BaseObject):
-        self._spawned_objects.append(building)
+        self._block_objects.append(building)
 
     def spawn_one_object(
             self,
@@ -189,6 +192,7 @@ class ObjectManager(RandomEngine):
     def destroy(self, pg_world: PGWorld):
         self._clear_objects(pg_world)
         self._spawned_objects = None
+        self._block_objects = None
 
     @property
     def objects(self):

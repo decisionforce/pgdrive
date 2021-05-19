@@ -8,6 +8,7 @@ from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_manager.object_manager import ObjectManager
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.constants import BodyName
 
 
 class TollBuilding(BaseObject):
@@ -54,9 +55,11 @@ class Toll(Block):
                                      ) and no_cross
 
         self.add_sockets(BlockSocket(socket, _socket))
+        self._add_building(socket)
+        self._add_building(_socket)
         return no_cross
 
-    def _add_building(self, road, object_manager: ObjectManager):
+    def _add_building(self, road):
         # add house
         lanes = road.get_lanes(self.block_network)
         for idx, lane in enumerate(lanes):
@@ -65,12 +68,11 @@ class Toll(Block):
                 position = lane.position(lane.length / 2, 0)
                 node_path = self._add_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
                                                             self.BUILDING_LENGTH,
-                                                            self.lane_width, 3.5, name="Toll")
+                                                            self.lane_width, 3.5, name=BodyName.Toll)
                 building = TollBuilding(lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0),
                                         node_path)
-                object_manager.add_block_buildings(building)
+                self._block_buildings.append(building)
 
     def construct_block_buildings(self, object_manager: ObjectManager):
-        socket = self.get_socket(index=0)
-        for road in [socket.positive_road, socket.negative_road]:
-            self._add_building(road, object_manager)
+        for building in self._block_buildings:
+            object_manager.add_block_buildings(building)

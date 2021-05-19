@@ -93,6 +93,7 @@ class Block(Element, BlockDefault):
         # each block contains its own road network and a global network
         self._global_network = global_network
         self.block_network = RoadNetwork()
+        self._block_buildings = []
 
         # used to spawn npc
         self._respawn_roads = []

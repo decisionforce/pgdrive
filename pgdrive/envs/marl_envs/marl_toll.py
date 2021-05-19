@@ -273,6 +273,8 @@ def _vis():
                 "show_side_detector":True,
                 "show_lane_line_detector":True,
             },
+            "traffic_density":0.,
+            "traffic_mode":"hybrid",
             "debug":True,
             "fast": True,
             "use_render": True,
