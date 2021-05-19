@@ -280,7 +280,7 @@ def _vis():
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 10,
+            "num_agents": 1,
         }
     )
     o = env.reset()
@@ -303,6 +303,7 @@ def _vis():
         render_text["tack_v_reward"] = r[track_v]
         render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
         render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
+        render_text["overspeed"] = env.current_track_vehicle.overspeed
         env.render(text=render_text)
         if d["__all__"]:
             print(

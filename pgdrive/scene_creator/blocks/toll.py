@@ -21,6 +21,7 @@ class Toll(Block):
     PARAMETER_SPACE = PGSpace(BlockParameterSpace.BOTTLENECK_PARAMETER)
     ID = "$"
 
+    SPEED_LIMIT = 10
     BUILDING_LENGTH = 5
 
     def _try_plug_into_previous_block(self) -> bool:
@@ -50,14 +51,15 @@ class Toll(Block):
                                      ) and no_cross
 
         self.add_sockets(BlockSocket(socket, _socket))
-        self._add_building(socket)
-        self._add_building(_socket)
+        self._add_building_and_speed_limit(socket)
+        self._add_building_and_speed_limit(_socket)
         return no_cross
 
-    def _add_building(self, road):
+    def _add_building_and_speed_limit(self, road):
         # add house
         lanes = road.get_lanes(self.block_network)
         for idx, lane in enumerate(lanes):
+            lane.set_speed_limit(self.SPEED_LIMIT)
             if idx % 2 == 1:
                 # add toll
                 position = lane.position(lane.length / 2, 0)
