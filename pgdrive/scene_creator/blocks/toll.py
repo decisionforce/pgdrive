@@ -1,5 +1,5 @@
 import numpy as np
-
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.scene_creator.blocks.block import BlockSocket
 from pgdrive.scene_creator.blocks.bottleneck import Block
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane
@@ -23,6 +23,7 @@ class Toll(Block):
 
     SPEED_LIMIT = 10
     BUILDING_LENGTH = 5
+    BUILDING_HEIGHT = 5
 
     def _try_plug_into_previous_block(self) -> bool:
         self.set_part_idx(0)  # only one part in simple block like straight, and curve
@@ -65,7 +66,13 @@ class Toll(Block):
                 position = lane.position(lane.length / 2, 0)
                 node_path = self._generate_invisible_static_wall(position, np.rad2deg(lane.heading_at(0)),
                                                                  self.BUILDING_LENGTH,
-                                                                 self.lane_width, 3.5, name=BodyName.Toll)
+                                                                 self.lane_width, self.BUILDING_HEIGHT/2, name=BodyName.Toll)
+                if self.render:
+                    building_model = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
+                    building_model.setScale(self.BUILDING_LENGTH, self.lane_width, self.BUILDING_HEIGHT)
+                    building_model.setColor(0.2, 0.2, 0.2)
+                    building_model.reparentTo(node_path)
+
                 building = TollBuilding(lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0),
                                         node_path)
                 self._block_objects.append(building)

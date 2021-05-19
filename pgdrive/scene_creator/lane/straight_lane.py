@@ -41,6 +41,7 @@ class StraightLane(AbstractLane):
         self.direction_lateral = np.array([-self.direction[1], self.direction[0]])
 
     def update_properties(self):
+        super(StraightLane, self).__init__()
         self.length = norm((self.end - self.start)[0], (self.end - self.start)[1])
         self.heading = math.atan2(self.end[1] - self.start[1], self.end[0] - self.start[0])
         self.direction = (self.end - self.start) / self.length
@@ -63,6 +64,7 @@ class StraightLane(AbstractLane):
         return float(longitudinal), float(lateral)
 
     def reset_start_end(self, start: Vector, end: Vector):
+        super(StraightLane, self).__init__()
         self.start = start
         self.end = end
         self.update_properties()

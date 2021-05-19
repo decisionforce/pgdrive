@@ -14,6 +14,7 @@ MATollConfig = dict(
     top_down_camera_initial_y=15,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
+    overspeed_penalty=20,
     vehicle_config={
         "show_lidar": False,
         # "show_side_detector": True,
@@ -73,8 +74,7 @@ class MATollMap(PGMap):
 
 
 class MultiAgentTollEnv(MultiAgentPGDrive):
-    # TODO
-    spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3)]
+    spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3),-Road(Merge.node(3, 0, 0), Merge.node(3, 0, 1))]
 
     @staticmethod
     def default_config() -> PGConfig:
@@ -137,6 +137,8 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
             reward = -self.config["crash_vehicle_penalty"]
         elif vehicle.crash_object:
             reward = -self.config["crash_object_penalty"]
+        elif vehicle.overspeed:
+            reward = -self.config["overspeed_penalty"]
         return reward, step_info
 
     def _is_out_of_road(self, vehicle):
@@ -269,7 +271,7 @@ def _vis():
                     "num_others": 0,
                     "distance": 40
                 },
-                # "show_lidar": True,
+                "show_lidar": True,
                 # "show_side_detector":True,
                 # "show_lane_line_detector":True,
             },
@@ -304,6 +306,7 @@ def _vis():
         render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
         render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
         render_text["overspeed"] = env.current_track_vehicle.overspeed
+        render_text["lane"] = env.current_track_vehicle.lane_index
         env.render(text=render_text)
         if d["__all__"]:
             print(
