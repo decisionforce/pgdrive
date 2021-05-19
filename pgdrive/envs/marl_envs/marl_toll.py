@@ -269,9 +269,9 @@ def _vis():
                     "num_others": 0,
                     "distance": 40
                 },
-                "show_lidar": True,
-                "show_side_detector":True,
-                "show_lane_line_detector":True,
+                # "show_lidar": True,
+                # "show_side_detector":True,
+                # "show_lane_line_detector":True,
             },
             "traffic_density":0.,
             "traffic_mode":"hybrid",
@@ -280,7 +280,7 @@ def _vis():
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 1,
+            "num_agents": 10,
         }
     )
     o = env.reset()
