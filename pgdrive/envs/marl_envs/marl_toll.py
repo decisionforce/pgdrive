@@ -1,5 +1,5 @@
-from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.constants import TerminationState
+from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
@@ -28,6 +28,8 @@ MATollConfig = dict(
 
 
 class MATollMap(PGMap):
+    BOTTLE_LENGTH = 35
+
     def _generate(self, pg_world):
         length = self.config["exit_length"]
 
@@ -51,7 +53,7 @@ class MATollMap(PGMap):
             parent_node_path, pg_physics_world, {
                 "length": 2,
                 "lane_num": self.config["toll_lane_num"] - self.config["lane_num"],
-                "bottle_len": 50,
+                "bottle_len": self.BOTTLE_LENGTH,
             }
         )
         self.blocks.append(split)
@@ -68,7 +70,7 @@ class MATollMap(PGMap):
             dict(
                 lane_num=self.config["toll_lane_num"] - self.config["lane_num"],
                 length=self.config["exit_length"],
-                bottle_len=50,
+                bottle_len=self.BOTTLE_LENGTH,
             ), parent_node_path, pg_physics_world
         )
         self.blocks.append(merge)
@@ -311,7 +313,7 @@ def _vis():
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [1.0, .0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [0, 1] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
@@ -324,7 +326,8 @@ def _vis():
             "cam_z": env.main_camera.top_down_camera_height
         }
         track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
-        render_text["tack_v_reward"] = r[track_v]
+        if track_v in r:
+            render_text["tack_v_reward"] = r[track_v]
         render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
         render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
         render_text["overspeed"] = env.current_track_vehicle.overspeed
