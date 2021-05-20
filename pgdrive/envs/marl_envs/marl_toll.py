@@ -1,4 +1,5 @@
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
+from pgdrive.constants import TerminationState
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
@@ -131,7 +132,7 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
             if not vehicle.overspeed:
                 reward += self.config["toll_speed_reward"]
             else:
-                reward = -self.config["overspeed_penalty"]*vehicle.speed/vehicle.max_speed
+                reward = -self.config["overspeed_penalty"] * vehicle.speed / vehicle.max_speed
 
         step_info["step_reward"] = reward
 
@@ -148,10 +149,27 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
     def _is_out_of_road(self, vehicle):
         # A specified function to determine whether this vehicle should be done.
         # return vehicle.on_yellow_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
-        ret = vehicle.on_white_continuous_line or (not vehicle.on_lane) or vehicle.crash_sidewalk
+        ret = vehicle.crash_sidewalk
         if self.config["cross_yellow_line_done"]:
             ret = ret or vehicle.on_yellow_continuous_line
         return ret
+
+    def done_function(self, vehicle_id):
+        done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
+        if done_info[TerminationState.CRASH_VEHICLE] and (not self.config["crash_done"]):
+            assert done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_BUILDING] or \
+                   done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]
+            if not (done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]):
+                # Does not revert done if high-priority termination happens!
+                done = False
+
+        if done_info[TerminationState.OUT_OF_ROAD] and (not self.config["out_of_road_done"]):
+            assert done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_BUILDING] or \
+                   done_info[TerminationState.SUCCESS] or done_info[TerminationState.OUT_OF_ROAD]
+            if not done_info[TerminationState.SUCCESS]:
+                done = False
+
+        return done, done_info
 
 
 def _draw():

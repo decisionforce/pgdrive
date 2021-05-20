@@ -17,6 +17,7 @@ class TerminationState:
     CRASH = "crash"
     CRASH_VEHICLE = "crash_vehicle"
     CRASH_OBJECT = "crash_object"
+    CRASH_BUILDING = "crash_building"
 
 
 HELP_MESSAGE = "Keyboard Shortcuts:\n" \

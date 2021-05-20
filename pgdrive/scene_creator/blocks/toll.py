@@ -1,14 +1,14 @@
 import numpy as np
-from pgdrive.utils.asset_loader import AssetLoader
+
+from pgdrive.constants import BodyName
 from pgdrive.scene_creator.blocks.block import BlockSocket
 from pgdrive.scene_creator.blocks.bottleneck import Block
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane
+from pgdrive.scene_creator.buildings.base_building import BaseBuilding
 from pgdrive.scene_creator.lane.abs_lane import LineType, LineColor
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.scene_creator.buildings.base_building import BaseBuilding
-from pgdrive.scene_manager.object_manager import ObjectManager
+from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
-from pgdrive.constants import BodyName
 
 TollBuilding = BaseBuilding
 
@@ -93,6 +93,6 @@ class Toll(Block):
                 )
                 self._block_objects.append(building)
 
-    def construct_block_buildings(self, object_manager: ObjectManager):
+    def construct_block_buildings(self, object_manager):
         for building in self._block_objects:
             object_manager.add_block_buildings(building)
