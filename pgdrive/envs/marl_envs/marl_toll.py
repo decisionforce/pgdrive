@@ -10,12 +10,12 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import PGConfig, clip
 
 MATollConfig = dict(
-    map_config=dict(exit_length=60, lane_num=3, toll_lane_num=8, toll_length=10),
+    map_config=dict(exit_length=70, lane_num=3, toll_lane_num=8, toll_length=10),
     top_down_camera_initial_x=95,
     top_down_camera_initial_y=15,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
-    overspeed_penalty=40,
+    overspeed_penalty=5.5,
     toll_speed_reward=1,
     vehicle_config={
         "show_lidar": False,
@@ -304,7 +304,7 @@ def _vis():
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 10,
+            "num_agents": 40,
         }
     )
     o = env.reset()
