@@ -94,8 +94,9 @@ class PGDriveEnvV2(PGDriveEnvV1):
     def done_function(self, vehicle_id: str):
         vehicle = self.vehicles[vehicle_id]
         done = False
-        done_info = dict(crash_vehicle=False, crash_object=False, crash_building=False, out_of_road=False,
-                         arrive_dest=False)
+        done_info = dict(
+            crash_vehicle=False, crash_object=False, crash_building=False, out_of_road=False, arrive_dest=False
+        )
         if vehicle.arrive_destination:
             done = True
             logging.info("Episode ended! Reason: arrive_dest.")
@@ -198,7 +199,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     # env = PGDriveEnvV2({'use_render': True, "fast": True, "manual_control": True})
     env = PGDriveEnvV2()
