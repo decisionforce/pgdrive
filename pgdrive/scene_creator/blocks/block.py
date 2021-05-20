@@ -91,7 +91,7 @@ class Block(Element, BlockDefault):
         # each block contains its own road network and a global network
         self._global_network = global_network
         self.block_network = RoadNetwork()
-        self._block_objects = []
+        self._block_objects = None
 
         # used to spawn npc
         self._respawn_roads = []
@@ -138,6 +138,7 @@ class Block(Element, BlockDefault):
         """
         self.set_config(self.PARAMETER_SPACE.sample())
         self.node_path = NodePath(self._block_name)
+        self._block_objects = []
         if extra_config:
             assert set(extra_config.keys()).issubset(self.PARAMETER_SPACE.parameters), \
                 "Make sure the parameters' name are as same as what defined in pg_space.py"
