@@ -21,14 +21,15 @@ class Toll(Block):
     PARAMETER_SPACE = PGSpace(BlockParameterSpace.BOTTLENECK_PARAMETER)
     ID = "$"
 
-    SPEED_LIMIT = 10
-    BUILDING_LENGTH = 5
+    SPEED_LIMIT = 3  # m/s ~= 5 miles per hour https://bestpass.com/feed/61-speeding-through-tolls
+    BUILDING_LENGTH = 10
     BUILDING_HEIGHT = 5
 
     def _try_plug_into_previous_block(self) -> bool:
         self.set_part_idx(0)  # only one part in simple block like straight, and curve
         para = self.get_config()
         length = para[Parameter.length]
+        self.BUILDING_LENGTH = length
         basic_lane = self.positive_basic_lane
         new_lane = ExtendStraightLane(basic_lane, length, [LineType.CONTINUOUS, LineType.SIDE])
         start = self.pre_block_socket.positive_road.end_node
