@@ -24,7 +24,7 @@ MATollConfig = dict(
         "show_lidar": False,
         # "show_side_detector": True,
         # "show_lane_line_detector": True,
-        "side_detector": dict(num_lasers=4, distance=50),  # laser num, distance
+        "side_detector": dict(num_lasers=72, distance=20),  # laser num, distance
         "lane_line_detector": dict(num_lasers=4, distance=20)
     }  # laser num, distance
 )
@@ -311,7 +311,7 @@ def _vis():
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 40,
+            "num_agents": 1,
         }
     )
     o = env.reset()
