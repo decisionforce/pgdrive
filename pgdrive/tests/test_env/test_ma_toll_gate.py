@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 from gym.spaces import Box, Dict
-from pgdrive.envs.marl_envs.marl_toll import MultiAgentTollEnv
+from pgdrive.envs.marl_envs.marl_toll_gate import MultiAgentTollGateEnv
 from pgdrive.utils import distance_greater, norm
 
 
@@ -69,11 +69,11 @@ def _act(env, action):
 
 
 def test_ma_toll_env():
-    for env in [MultiAgentTollEnv({"delay_done": 0, "num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}}),
-                MultiAgentTollEnv({"num_agents": 1, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}}),
-                MultiAgentTollEnv({"num_agents": 4, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 8}}}),
-                MultiAgentTollEnv({"num_agents": 4, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}}),
-                MultiAgentTollEnv({"num_agents": 8, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}})]:
+    for env in [MultiAgentTollGateEnv({"delay_done": 0, "num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}}),
+                MultiAgentTollGateEnv({"num_agents": 1, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}}),
+                MultiAgentTollGateEnv({"num_agents": 4, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 8}}}),
+                MultiAgentTollGateEnv({"num_agents": 4, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}}),
+                MultiAgentTollGateEnv({"num_agents": 8, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}})]:
         try:
             _check_spaces_before_reset(env)
             obs = env.reset()
@@ -91,7 +91,7 @@ def test_ma_toll_env():
 def test_ma_toll_horizon():
     # test horizon
     for _ in range(3):  # This function is really easy to break, repeat multiple times!
-        env = MultiAgentTollEnv(
+        env = MultiAgentTollGateEnv(
             {
                 "horizon": 100,
                 "num_agents": 4,
@@ -146,7 +146,7 @@ def test_ma_toll_horizon():
 
 
 def test_ma_toll_reset():
-    env = MultiAgentTollEnv({"horizon": 50, "num_agents": 4})
+    env = MultiAgentTollGateEnv({"horizon": 50, "num_agents": 4})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -171,7 +171,7 @@ def test_ma_toll_reset():
         env.close()
 
     # Put vehicles to destination and then reset. This might cause error if agent is assigned destination BEFORE reset.
-    env = MultiAgentTollEnv({"horizon": 100, "num_agents": 32, "success_reward": 777})
+    env = MultiAgentTollGateEnv({"horizon": 100, "num_agents": 32, "success_reward": 777})
     try:
         _check_spaces_before_reset(env)
         success_count = 0
@@ -247,8 +247,8 @@ def test_ma_toll_close_spawn():
                 dis = norm(v1.position[0] - v2.position[0], v1.position[1] - v2.position[1])
                 assert distance_greater(v1.position, v2.position, length=2.2)
 
-    MultiAgentTollEnv._DEBUG_RANDOM_SEED = 1
-    env = MultiAgentTollEnv(
+    MultiAgentTollGateEnv._DEBUG_RANDOM_SEED = 1
+    env = MultiAgentTollGateEnv(
         {
             # "use_render": True, "fast": True,
             "horizon": 50,
@@ -271,12 +271,12 @@ def test_ma_toll_close_spawn():
             print('Finish {} resets.'.format(num_r))
     finally:
         env.close()
-        MultiAgentTollEnv._DEBUG_RANDOM_SEED = None
+        MultiAgentTollGateEnv._DEBUG_RANDOM_SEED = None
 
 
 def test_ma_toll_reward_done_alignment():
     # out of road
-    env = MultiAgentTollEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
+    env = MultiAgentTollGateEnv({"horizon": 200, "num_agents": 4, "out_of_road_penalty": 777, "crash_done": False})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -305,7 +305,7 @@ def test_ma_toll_reward_done_alignment():
         env.close()
 
     # crash
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "horizon": 100,
             "num_agents": 2,
@@ -367,7 +367,7 @@ def test_ma_toll_reward_done_alignment():
     # crash with real fixed vehicle
 
     # crash 2
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "map_config": {
                 "exit_length": 110,
@@ -419,7 +419,7 @@ def test_ma_toll_reward_done_alignment():
         env.close()
 
     # success
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "horizon": 100,
             "num_agents": 2,
@@ -459,7 +459,7 @@ def test_ma_toll_reward_sign():
     straight road before coming into toll.
     However, some bugs cause the vehicles receive negative reward by doing this behavior!
     """
-    class TestEnv(MultiAgentTollEnv):
+    class TestEnv(MultiAgentTollGateEnv):
         _respawn_count = 0
 
         def _update_agent_pos_configs(self, config):
@@ -505,7 +505,7 @@ def test_ma_toll_init_space():
                             vehicle_config=dict(lidar=dict(num_others=num_others)),
                             crash_vehicle_penalty=crash_vehicle_penalty
                         )
-                        env = MultiAgentTollEnv(env_config)
+                        env = MultiAgentTollGateEnv(env_config)
 
                         single_space = env.observation_space["agent0"]
                         assert single_space.shape is not None, single_space
@@ -526,7 +526,7 @@ def test_ma_toll_init_space():
 
 
 def test_ma_toll_no_short_episode():
-    env = MultiAgentTollEnv({
+    env = MultiAgentTollGateEnv({
         "horizon": 300,
         "num_agents": 36,
     })
@@ -567,7 +567,7 @@ def test_ma_toll_no_short_episode():
 
 def test_ma_toll_horizon_termination():
     # test horizon
-    env = MultiAgentTollEnv({
+    env = MultiAgentTollGateEnv({
         "horizon": 100,
         "num_agents": 8,
     })
@@ -631,7 +631,7 @@ def test_ma_toll_40_agent_reset_after_respawn():
             assert not v_1.crash_vehicle, "Vehicles overlap after reset()"
             vehicles.remove(v_1)
 
-    env = MultiAgentTollEnv({"horizon": 50, "num_agents": 36})
+    env = MultiAgentTollGateEnv({"horizon": 50, "num_agents": 36})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -665,7 +665,7 @@ def test_ma_no_reset_error():
                 raise ValueError("Vehicles overlap after reset()")
             vehicles.remove(v_1)
 
-    env = MultiAgentTollEnv({"horizon": 300, "num_agents": 36, "delay_done": 0, "use_render": False})
+    env = MultiAgentTollGateEnv({"horizon": 300, "num_agents": 36, "delay_done": 0, "use_render": False})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -683,7 +683,7 @@ def test_ma_no_reset_error():
 
 def test_randomize_spawn_place():
     last_pos = {}
-    env = MultiAgentTollEnv({"num_agents": 4, "use_render": False, "fast": True})
+    env = MultiAgentTollGateEnv({"num_agents": 4, "use_render": False, "fast": True})
     try:
         obs = env.reset()
         for step in range(1000):

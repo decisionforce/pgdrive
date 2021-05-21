@@ -10,10 +10,10 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 
-TollBuilding = BaseBuilding
+TollGateBuilding = BaseBuilding
 
 
-class Toll(Block):
+class TollGate(Block):
     """
     Toll, like Straight, but has speed limit
     """
@@ -80,7 +80,7 @@ class Toll(Block):
                     self.BUILDING_LENGTH,
                     self.lane_width,
                     self.BUILDING_HEIGHT / 2,
-                    name=BodyName.Toll
+                    name=BodyName.TollGate
                 )
                 if self.render:
                     building_model = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
@@ -88,7 +88,7 @@ class Toll(Block):
                     building_model.setColor(0.2, 0.2, 0.2)
                     building_model.reparentTo(node_path)
 
-                building = TollBuilding(
+                building = TollGateBuilding(
                     lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0), node_path
                 )
                 self._block_objects.append(building)

@@ -4,7 +4,7 @@ from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
-from pgdrive.scene_creator.blocks.toll import Toll
+from pgdrive.scene_creator.blocks.tollgate import TollGate
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import PGConfig, clip
@@ -30,7 +30,7 @@ MATollConfig = dict(
 )
 
 
-class MATollMap(PGMap):
+class MATollGateMap(PGMap):
     BOTTLE_LENGTH = 35
 
     def _generate(self, pg_world):
@@ -60,7 +60,7 @@ class MATollMap(PGMap):
             }
         )
         self.blocks.append(split)
-        toll = Toll(2, split.get_socket(index=0), self.road_network, random_seed=1)
+        toll = TollGate(2, split.get_socket(index=0), self.road_network, random_seed=1)
         toll.construct_block(parent_node_path, pg_physics_world, {
             "length": self.config["toll_length"],
         })
@@ -79,7 +79,7 @@ class MATollMap(PGMap):
         self.blocks.append(merge)
 
 
-class MultiAgentTollEnv(MultiAgentPGDrive):
+class MultiAgentTollGateEnv(MultiAgentPGDrive):
     spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3), -Road(Merge.node(3, 0, 0), Merge.node(3, 0, 1))]
 
     @staticmethod
@@ -96,7 +96,7 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
 
         if self.current_map is None:
             self.current_seed = 0
-            new_map = MATollMap(self.pg_world, map_config)
+            new_map = MATollGateMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
 
@@ -132,7 +132,7 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
         reward = 0.0
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
 
-        if vehicle.current_road.block_ID() == Toll.ID:
+        if vehicle.current_road.block_ID() == TollGate.ID:
             if vehicle.overspeed:  # Too fast!
                 reward = -self.config["overspeed_penalty"] * vehicle.speed / vehicle.max_speed
             else:
@@ -180,7 +180,7 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
 
 
 def _draw():
-    env = MultiAgentTollEnv()
+    env = MultiAgentTollGateEnv()
     o = env.reset()
     from pgdrive.utils import draw_top_down_map
     import matplotlib.pyplot as plt
@@ -191,7 +191,7 @@ def _draw():
 
 
 def _expert():
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "vehicle_config": {
                 "lidar": {
@@ -237,7 +237,7 @@ def _expert():
 
 
 def _vis_debug_respawn():
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "horizon": 100000,
             "vehicle_config": {
@@ -291,7 +291,7 @@ def _vis_debug_respawn():
 
 
 def _vis():
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "horizon": 100000,
             "vehicle_config": {
@@ -354,7 +354,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentTollEnv({"num_agents": 8})
+    env = MultiAgentTollGateEnv({"num_agents": 8})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -378,7 +378,7 @@ def _profile():
 def _long_run():
     # Please refer to test_ma_Toll_reward_done_alignment()
     _out_of_road_penalty = 3
-    env = MultiAgentTollEnv(
+    env = MultiAgentTollGateEnv(
         {
             "num_agents": 8,
             "vehicle_config": {

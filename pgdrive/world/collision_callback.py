@@ -28,6 +28,6 @@ def pg_collision_callback(contact):
                     if another_nodes[i].getPythonTag(another_node_name).COST_ONCE:
                         another_nodes[i].getPythonTag(another_node_name).crashed = True
             # crash invisible wall or building
-            elif another_node_name in [BodyName.InvisibleWall, BodyName.Toll]:
+            elif another_node_name in [BodyName.InvisibleWall, BodyName.TollGate]:
                 nodes[i].getPythonTag(BodyName.Base_vehicle).crash_building = True
             logging.debug("{} crash with {}".format(nodes[i].getName(), another_nodes[i].getName()))

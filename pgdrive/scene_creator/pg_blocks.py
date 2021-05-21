@@ -7,7 +7,7 @@ from pgdrive.scene_creator.blocks.std_intersection import StdInterSection
 from pgdrive.scene_creator.blocks.std_t_intersection import StdTInterSection
 from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
-from pgdrive.scene_creator.blocks.toll import Toll
+from pgdrive.scene_creator.blocks.tollgate import TollGate
 
 
 class PGBlock:
@@ -25,7 +25,7 @@ class PGBlock:
         Merge: 0.00,
         Split: 0.00,
         ParkingLot: 0.00,
-        Toll: 0.00
+        TollGate: 0.00
     }
 
     BLOCK_TYPE_DISTRIBUTION_V2 = {
@@ -45,7 +45,7 @@ class PGBlock:
         Merge: 0.00,
         Split: 0.00,
         ParkingLot: 0.00,
-        Toll: 0.00
+        TollGate: 0.00
     }
 
     @classmethod
