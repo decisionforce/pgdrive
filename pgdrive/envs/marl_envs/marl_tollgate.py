@@ -156,16 +156,16 @@ class MATollGateMap(PGMap):
         self.blocks.append(merge)
 
 
-class MultiAgentTollGateEnv(MultiAgentPGDrive):
+class MultiAgentTollgateEnv(MultiAgentPGDrive):
     spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3), -Road(Merge.node(3, 0, 0), Merge.node(3, 0, 1))]
 
     def __init__(self, config):
-        super(MultiAgentTollGateEnv, self).__init__(config)
+        super(MultiAgentTollgateEnv, self).__init__(config)
         self.stay_time_manager = StayTimeManager()
 
     def reset(self, *args, **kwargs):
         self.stay_time_manager.reset()
-        return super(MultiAgentTollGateEnv, self).reset(*args, **kwargs)
+        return super(MultiAgentTollgateEnv, self).reset(*args, **kwargs)
 
     @staticmethod
     def default_config() -> PGConfig:
@@ -275,13 +275,13 @@ class MultiAgentTollGateEnv(MultiAgentPGDrive):
         return o
 
     def step(self, actions):
-        o, r, d, i = super(MultiAgentTollGateEnv, self).step(actions)
+        o, r, d, i = super(MultiAgentTollgateEnv, self).step(actions)
         self.stay_time_manager.record(self.agent_manager.active_agents, self.episode_steps)
         return o, r, d, i
 
 
 def _draw():
-    env = MultiAgentTollGateEnv()
+    env = MultiAgentTollgateEnv()
     o = env.reset()
     from pgdrive.utils import draw_top_down_map
     import matplotlib.pyplot as plt
@@ -292,7 +292,7 @@ def _draw():
 
 
 def _expert():
-    env = MultiAgentTollGateEnv(
+    env = MultiAgentTollgateEnv(
         {
             "vehicle_config": {
                 "lidar": {
@@ -338,7 +338,7 @@ def _expert():
 
 
 def _vis_debug_respawn():
-    env = MultiAgentTollGateEnv(
+    env = MultiAgentTollgateEnv(
         {
             "horizon": 100000,
             "vehicle_config": {
@@ -392,7 +392,7 @@ def _vis_debug_respawn():
 
 
 def _vis():
-    env = MultiAgentTollGateEnv(
+    env = MultiAgentTollgateEnv(
         {
             "horizon": 100000,
             "vehicle_config": {
@@ -456,7 +456,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentTollGateEnv({"num_agents": 8})
+    env = MultiAgentTollgateEnv({"num_agents": 8})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -480,7 +480,7 @@ def _profile():
 def _long_run():
     # Please refer to test_ma_Toll_reward_done_alignment()
     _out_of_road_penalty = 3
-    env = MultiAgentTollGateEnv(
+    env = MultiAgentTollgateEnv(
         {
             "num_agents": 8,
             "vehicle_config": {
