@@ -44,7 +44,7 @@ class TollGate(Block):
             socket,
             self.block_network,
             self._global_network,
-            center_line_color=LineColor.GREY,
+            center_line_color=LineColor.YELLOW,
             center_line_type=LineType.CONTINUOUS,
             inner_lane_line_type=LineType.CONTINUOUS,
             side_lane_line_type=LineType.SIDE
@@ -55,7 +55,7 @@ class TollGate(Block):
             socket,
             self.block_network,
             self._global_network,
-            center_line_color=LineColor.GREY,
+            center_line_color=LineColor.YELLOW,
             center_line_type=LineType.CONTINUOUS,
             inner_lane_line_type=LineType.CONTINUOUS,
             side_lane_line_type=LineType.SIDE
