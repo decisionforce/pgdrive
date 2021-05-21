@@ -69,11 +69,15 @@ def _act(env, action):
 
 
 def test_ma_toll_env():
-    for env in [MultiAgentTollGateEnv({"delay_done": 0, "num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}}),
-                MultiAgentTollGateEnv({"num_agents": 1, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}}),
-                MultiAgentTollGateEnv({"num_agents": 4, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 8}}}),
-                MultiAgentTollGateEnv({"num_agents": 4, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}}),
-                MultiAgentTollGateEnv({"num_agents": 8, "delay_done": 0, "vehicle_config": {"lidar": {"num_others": 0}}})]:
+    for env in [MultiAgentTollGateEnv({"delay_done": 0, "num_agents": 1, "vehicle_config": {"lidar": {"num_others": 8}}}
+                                      ), MultiAgentTollGateEnv({"num_agents": 1, "delay_done": 0,
+                                                                "vehicle_config": {"lidar": {"num_others": 0}}}),
+                MultiAgentTollGateEnv({"num_agents": 4, "delay_done": 0,
+                                       "vehicle_config": {"lidar": {"num_others": 8}}}),
+                MultiAgentTollGateEnv({"num_agents": 4, "delay_done": 0,
+                                       "vehicle_config": {"lidar": {"num_others": 0}}}),
+                MultiAgentTollGateEnv({"num_agents": 8, "delay_done": 0,
+                                       "vehicle_config": {"lidar": {"num_others": 0}}})]:
         try:
             _check_spaces_before_reset(env)
             obs = env.reset()

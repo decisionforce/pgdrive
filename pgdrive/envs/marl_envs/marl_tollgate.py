@@ -46,7 +46,7 @@ class TollGateStateObservation(StateObservation):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):
         ego_state = self.vehicle_state(vehicle)
@@ -71,19 +71,19 @@ class TollGateObservation(LidarStateObservation):
         self.in_toll_time = 0
 
     def observe(self, vehicle):
-        cur_block_is_toll = vehicle.current_road.block_ID()==TollGate.ID
+        cur_block_is_toll = vehicle.current_road.block_ID() == TollGate.ID
         self.in_toll_time += 1 if cur_block_is_toll else 0
         if not cur_block_is_toll:
-            toll_obs = [0.0,0.0]
+            toll_obs = [0.0, 0.0]
         else:
-            toll_obs = [1.0 if cur_block_is_toll else 0.0,
-                        1.0 if self.in_toll_time > vehicle.vehicle_config["min_pass_steps"] else 0.0]
+            toll_obs = [
+                1.0 if cur_block_is_toll else 0.0,
+                1.0 if self.in_toll_time > vehicle.vehicle_config["min_pass_steps"] else 0.0
+            ]
         # print(toll_obs)
         state = self.state_observe(vehicle)
         other_v_info = self.lidar_observe(vehicle)
         return np.concatenate((state, np.asarray(other_v_info), np.asarray(toll_obs)))
-
-
 
 
 MATollConfig = dict(
@@ -96,9 +96,8 @@ MATollConfig = dict(
     # ===== Reward Scheme =====
     speed_reward=0.0,
     overspeed_penalty=5.0,
-
     vehicle_config={
-        "min_pass_steps": 30, # step
+        "min_pass_steps": 30,  # step
         "show_lidar": False,
         # "show_side_detector": True,
         # "show_lane_line_detector": True,
