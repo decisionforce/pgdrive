@@ -22,14 +22,15 @@ MATollConfig = dict(
     # ===== Reward Scheme =====
     speed_reward=0.0,
     overspeed_penalty=5.0,
-    vehicle_config={
-        "min_pass_steps": 30,  # step
-        "show_lidar": False,
+    vehicle_config=dict(
+        min_pass_steps=30,  # step
+        show_lidar=False,
         # "show_side_detector": True,
         # "show_lane_line_detector": True,
-        "side_detector": dict(num_lasers=72, distance=20),  # laser num, distance
-        "lane_line_detector": dict(num_lasers=4, distance=20)
-    }  # laser num, distance
+        side_detector=dict(num_lasers=72, distance=20),  # laser num, distance
+        lane_line_detector=dict(num_lasers=4, distance=20),
+        lidar=dict(num_lasers=72, distance=20),
+    )
 )
 
 
@@ -66,7 +67,7 @@ class TollGateStateObservation(StateObservation):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         ego_state = self.vehicle_state(vehicle)
