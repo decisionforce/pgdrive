@@ -57,19 +57,33 @@ class TollGateObservation(LidarStateObservation):
     def __init__(self, vehicle_config):
         super(LidarStateObservation, self).__init__(vehicle_config)
         self.state_obs = TollGateStateObservation(vehicle_config)
+        self.in_toll_time = 0
 
     @property
     def observation_space(self):
         shape = list(self.state_obs.observation_space.shape)
         if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
             # Number of lidar rays and distance should be positive!
-            shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
+            shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4 + 2
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
+    def reset(self, env, vehicle=None):
+        self.in_toll_time = 0
+
     def observe(self, vehicle):
+        cur_block_is_toll = vehicle.current_road.block_ID()==TollGate.ID
+        self.in_toll_time += 1 if cur_block_is_toll else 0
+        if not cur_block_is_toll:
+            toll_obs = [0.0,0.0]
+        else:
+            toll_obs = [1.0 if cur_block_is_toll else 0.0,
+                        1.0 if self.in_toll_time > vehicle.vehicle_config["min_pass_steps"] else 0.0]
+        # print(toll_obs)
         state = self.state_observe(vehicle)
         other_v_info = self.lidar_observe(vehicle)
-        return np.concatenate((state, np.asarray(other_v_info)))
+        return np.concatenate((state, np.asarray(other_v_info), np.asarray(toll_obs)))
+
+
 
 
 MATollConfig = dict(
@@ -78,13 +92,13 @@ MATollConfig = dict(
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
-    min_pass_time=3,
 
     # ===== Reward Scheme =====
     speed_reward=0.0,
     overspeed_penalty=5.0,
 
     vehicle_config={
+        "min_pass_steps": 30, # step
         "show_lidar": False,
         # "show_side_detector": True,
         # "show_lane_line_detector": True,
@@ -251,8 +265,7 @@ class MultiAgentTollGateEnv(MultiAgentPGDrive):
         if vehicle_id in self.stay_time_manager.entry_time and vehicle_id in self.stay_time_manager.exit_time:
             entry = self.stay_time_manager.entry_time[vehicle_id]
             exit = self.stay_time_manager.exit_time[vehicle_id]
-            if (exit - entry) * self.config["decision_repeat"] * self.config["pg_world_config"][
-                "physics_world_step_size"] < self.config["min_pass_time"]:
+            if (exit - entry) < self.config["vehicle_config"]["min_pass_steps"]:
                 done = True
                 done_info["out_of_road"] = True
 
