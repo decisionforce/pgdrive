@@ -15,8 +15,11 @@ MATollConfig = dict(
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
-    overspeed_penalty=5.5,
-    toll_speed_reward=1,
+
+    # ===== Reward Scheme =====
+    speed_reward=0.0,
+    overspeed_penalty=5.0,
+
     vehicle_config={
         "show_lidar": False,
         # "show_side_detector": True,
@@ -128,13 +131,15 @@ class MultiAgentTollEnv(MultiAgentPGDrive):
 
         reward = 0.0
         reward += self.config["driving_reward"] * (long_now - long_last) * lateral_factor
-        reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
 
         if vehicle.current_road.block_ID() == Toll.ID:
-            if not vehicle.overspeed:
-                reward += self.config["toll_speed_reward"]
-            else:
+            if vehicle.overspeed:  # Too fast!
                 reward = -self.config["overspeed_penalty"] * vehicle.speed / vehicle.max_speed
+            else:
+                # Good! At very low speed
+                pass
+        else:
+            reward += self.config["speed_reward"] * (vehicle.speed / vehicle.max_speed)
 
         step_info["step_reward"] = reward
 
