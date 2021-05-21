@@ -1,9 +1,7 @@
 import gym
 import numpy as np
 from pgdrive.constants import TerminationState
-from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.obs import ObservationType
 from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -66,7 +64,7 @@ class TollGateStateObservation(StateObservation):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         ego_state = self.vehicle_state(vehicle)
@@ -183,9 +181,6 @@ class MultiAgentTollgateEnv(MultiAgentPGDrive):
             new_map = MATollGateMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
-
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
-        return LidarStateObservationMARound(vehicle_config)
 
     def reward_function(self, vehicle_id: str):
         """
@@ -440,6 +435,7 @@ def _vis():
         render_text["block"] = env.current_track_vehicle.current_road.block_ID()
         env.render(text=render_text)
         if d["__all__"]:
+            print(info)
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
                     i, total_r, total_r / env.agent_manager.next_agent_count
