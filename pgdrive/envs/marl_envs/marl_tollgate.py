@@ -8,6 +8,42 @@ from pgdrive.scene_creator.blocks.tollgate import TollGate
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import PGConfig, clip
+import numpy as np
+from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
+import gym
+
+
+class TollGateStateObservation(StateObservation):
+    # no intersection exclude navi info now
+    @property
+    def observation_space(self):
+        # Navi info + Other states
+        shape = self.ego_state_obs_dim + self.get_side_detector_dim()
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
+
+    def observe(self, vehicle):
+        ego_state = self.vehicle_state(vehicle)
+        return ego_state
+
+
+class TollGateObservation(LidarStateObservation):
+    def __init__(self, vehicle_config):
+        super(LidarStateObservation, self).__init__(vehicle_config)
+        self.state_obs = TollGateStateObservation(vehicle_config)
+
+    @property
+    def observation_space(self):
+        shape = list(self.state_obs.observation_space.shape)
+        if self.config["lidar"]["num_lasers"] > 0 and self.config["lidar"]["distance"] > 0:
+            # Number of lidar rays and distance should be positive!
+            shape[0] += self.config["lidar"]["num_lasers"] + self.config["lidar"]["num_others"] * 4
+        return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
+
+    def observe(self, vehicle):
+        state = self.state_observe(vehicle)
+        other_v_info = self.lidar_observe(vehicle)
+        return np.concatenate((state, np.asarray(other_v_info)))
+
 
 MATollConfig = dict(
     map_config=dict(exit_length=70, lane_num=3, toll_lane_num=8, toll_length=10),
@@ -177,6 +213,10 @@ class MultiAgentTollGateEnv(MultiAgentPGDrive):
                 done = False
 
         return done, done_info
+
+    def get_single_observation(self, vehicle_config):
+        o = TollGateObservation(vehicle_config)
+        return o
 
 
 def _draw():

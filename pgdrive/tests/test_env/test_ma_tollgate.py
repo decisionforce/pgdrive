@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 from gym.spaces import Box, Dict
-from pgdrive.envs.marl_envs.marl_toll_gate import MultiAgentTollGateEnv
+from pgdrive.envs.marl_envs.marl_tollgate import MultiAgentTollGateEnv
 from pgdrive.utils import distance_greater, norm
 
 

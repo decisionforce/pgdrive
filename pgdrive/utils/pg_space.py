@@ -282,7 +282,7 @@ class BlockParameterSpace:
         Parameter.lane_num: PGDiscreteSpace(min=1, max=2),  # the lane num increased or descreased now 1-2
         "bottle_len": PGConstantSpace(20)
     }
-    TOLL_GATE_PARAMETER = {
+    TOLLGATE_PARAMETER = {
         Parameter.length: PGConstantSpace(20),  # the length of straigh part
     }
     PARKING_LOT_PARAMETER = {
