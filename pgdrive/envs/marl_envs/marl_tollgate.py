@@ -13,6 +13,33 @@ from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
 import gym
 
 
+class StayTimeManager:
+    def __init__(self):
+        self.entry_time = {}
+        self.exit_time = {}
+        self.last_block = {}
+
+    def reset(self):
+        self.entry_time = {}
+        self.exit_time = {}
+        self.last_block = {}
+
+    def record(self, agents, time_step):
+        for v_id, v in agents.items():
+            cur_block_id = v.current_road.block_ID()
+            if v_id in self.last_block:
+                last_block_id = self.last_block[v_id]
+                self.last_block[v_id] = cur_block_id
+                if last_block_id != cur_block_id:
+                    if cur_block_id == TollGate.ID:
+                        # entry
+                        self.entry_time[v_id] = time_step
+                    elif (cur_block_id == Merge.ID or cur_block_id == Split.ID) and last_block_id == TollGate.ID:
+                        self.exit_time[v_id] = time_step
+            else:
+                self.last_block[v_id] = cur_block_id
+
+
 class TollGateStateObservation(StateObservation):
     # no intersection exclude navi info now
     @property
@@ -51,6 +78,7 @@ MATollConfig = dict(
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
+    min_pass_time=3,
 
     # ===== Reward Scheme =====
     speed_reward=0.0,
@@ -117,6 +145,14 @@ class MATollGateMap(PGMap):
 
 class MultiAgentTollGateEnv(MultiAgentPGDrive):
     spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3), -Road(Merge.node(3, 0, 0), Merge.node(3, 0, 1))]
+
+    def __init__(self, config):
+        super(MultiAgentTollGateEnv, self).__init__(config)
+        self.stay_time_manager = StayTimeManager()
+
+    def reset(self, *args, **kwargs):
+        self.stay_time_manager.reset()
+        return super(MultiAgentTollGateEnv, self).reset(*args, **kwargs)
 
     @staticmethod
     def default_config() -> PGConfig:
@@ -212,11 +248,24 @@ class MultiAgentTollGateEnv(MultiAgentPGDrive):
             if not done_info[TerminationState.SUCCESS]:
                 done = False
 
+        if vehicle_id in self.stay_time_manager.entry_time and vehicle_id in self.stay_time_manager.exit_time:
+            entry = self.stay_time_manager.entry_time[vehicle_id]
+            exit = self.stay_time_manager.exit_time[vehicle_id]
+            if (exit - entry) * self.config["decision_repeat"] * self.config["pg_world_config"][
+                "physics_world_step_size"] < self.config["min_pass_time"]:
+                done = True
+                done_info["out_of_road"] = True
+
         return done, done_info
 
     def get_single_observation(self, vehicle_config):
         o = TollGateObservation(vehicle_config)
         return o
+
+    def step(self, actions):
+        o, r, d, i = super(MultiAgentTollGateEnv, self).step(actions)
+        self.stay_time_manager.record(self.agent_manager.active_agents, self.episode_steps)
+        return o, r, d, i
 
 
 def _draw():
@@ -377,6 +426,7 @@ def _vis():
         render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
         render_text["overspeed"] = env.current_track_vehicle.overspeed
         render_text["lane"] = env.current_track_vehicle.lane_index
+        render_text["block"] = env.current_track_vehicle.current_road.block_ID()
         env.render(text=render_text)
         if d["__all__"]:
             print(
