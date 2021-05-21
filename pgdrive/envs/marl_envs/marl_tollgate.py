@@ -1,16 +1,36 @@
+import gym
+import numpy as np
 from pgdrive.constants import TerminationState
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
+from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.tollgate import TollGate
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import PGConfig, clip
-import numpy as np
-from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
-import gym
+
+MATollConfig = dict(
+    map_config=dict(exit_length=70, lane_num=3, toll_lane_num=8, toll_length=10),
+    top_down_camera_initial_x=125,
+    top_down_camera_initial_y=0,
+    top_down_camera_initial_z=120,
+    cross_yellow_line_done=True,
+
+    # ===== Reward Scheme =====
+    speed_reward=0.0,
+    overspeed_penalty=5.0,
+    vehicle_config={
+        "min_pass_steps": 30,  # step
+        "show_lidar": False,
+        # "show_side_detector": True,
+        # "show_lane_line_detector": True,
+        "side_detector": dict(num_lasers=72, distance=20),  # laser num, distance
+        "lane_line_detector": dict(num_lasers=4, distance=20)
+    }  # laser num, distance
+)
 
 
 class StayTimeManager:
@@ -46,7 +66,7 @@ class TollGateStateObservation(StateObservation):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         ego_state = self.vehicle_state(vehicle)
@@ -84,27 +104,6 @@ class TollGateObservation(LidarStateObservation):
         state = self.state_observe(vehicle)
         other_v_info = self.lidar_observe(vehicle)
         return np.concatenate((state, np.asarray(other_v_info), np.asarray(toll_obs)))
-
-
-MATollConfig = dict(
-    map_config=dict(exit_length=70, lane_num=3, toll_lane_num=8, toll_length=10),
-    top_down_camera_initial_x=125,
-    top_down_camera_initial_y=0,
-    top_down_camera_initial_z=120,
-    cross_yellow_line_done=True,
-
-    # ===== Reward Scheme =====
-    speed_reward=0.0,
-    overspeed_penalty=5.0,
-    vehicle_config={
-        "min_pass_steps": 30,  # step
-        "show_lidar": False,
-        # "show_side_detector": True,
-        # "show_lane_line_detector": True,
-        "side_detector": dict(num_lasers=72, distance=20),  # laser num, distance
-        "lane_line_detector": dict(num_lasers=4, distance=20)
-    }  # laser num, distance
-)
 
 
 class MATollGateMap(PGMap):
