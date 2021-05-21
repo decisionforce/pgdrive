@@ -18,7 +18,6 @@ MATollConfig = dict(
     top_down_camera_initial_y=0,
     top_down_camera_initial_z=120,
     cross_yellow_line_done=True,
-
     # ===== Reward Scheme =====
     speed_reward=0.0,
     overspeed_penalty=5.0,
@@ -67,7 +66,7 @@ class TollGateStateObservation(StateObservation):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):
         ego_state = self.vehicle_state(vehicle)
