@@ -84,10 +84,11 @@ class TollGate(Block):
                     name=BodyName.TollGate
                 )
                 if self.render:
-                    building_model = self.loader.loadModel(AssetLoader.file_path("models", "tollgate", "tollgate.glb"))
-                    # building_model.setScale()
-                    # building_model.setColor(, 0., 0.)
+                    building_model = self.loader.loadModel(AssetLoader.file_path("models", "tollgate", "booth.gltf"))
+                    gate_model = self.loader.loadModel(AssetLoader.file_path("models", "tollgate", "gate.gltf"))
+                    building_model.setH(90)
                     building_model.reparentTo(node_path)
+                    gate_model.reparentTo(node_path)
 
                 building = TollGateBuilding(
                     lane, (road.start_node, road.end_node, idx), position, lane.heading_at(0), node_path
@@ -97,5 +98,6 @@ class TollGate(Block):
     def construct_block_buildings(self, object_manager, pg_world):
         for building in self._block_objects:
             object_manager.add_block_buildings(building, pg_world.pbr_worldNP)
+            # for performance reason
             building.node_path.hide(CamMask.Shadow)
 

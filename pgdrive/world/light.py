@@ -35,7 +35,7 @@ class Light(DynamicElement):
         self.direction_np.reparentTo(self.node_path)
 
         self.ambient_np = NodePath(AmbientLight("Ambient"))
-        # self.ambient_np.node().setColor(LVector4(0.8, 0.8, 0.8, 1))
+        self.ambient_np.node().setColor(LVector4(0.8, 0.8, 0.8, 1))
         self.ambient_np.reparentTo(self.node_path)
 
     def step(self, pos):
