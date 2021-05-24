@@ -7,6 +7,7 @@ from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import norm, RandomEngine
 from pgdrive.world.pg_world import PGWorld
+from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 
@@ -194,18 +195,17 @@ class TrafficManager(RandomEngine):
         :return: States of all vehicles
         """
         states = dict()
+        traffic_states = dict()
         for vehicle in self._traffic_vehicles:
-            states[vehicle.index] = vehicle.get_state()
+            traffic_states[vehicle.index] = vehicle.get_state()
 
         # collect other vehicles
         if self.mode != TrafficMode.Respawn:
             for v_b in self.block_triggered_vehicles:
                 for vehicle in v_b.vehicles:
-                    states[vehicle.index] = vehicle.get_state()
-
-        # FIXME the global state system might be wrong!
-        states["ego"] = {k: v.get_state() for k, v in self._scene_mgr.agent_manager.active_agents.items()}
-        # states["ego"] = self.ego_vehicle.get_state()
+                    traffic_states[vehicle.index] = vehicle.get_state()
+        states[TRAFFIC_VEHICLES] = traffic_states
+        states[TARGET_VEHICLES] = {k: v.get_state() for k, v in self._scene_mgr.agent_manager.active_agents.items()}
         return states
 
     def get_global_init_states(self) -> Dict:

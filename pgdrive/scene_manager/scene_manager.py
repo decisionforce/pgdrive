@@ -84,7 +84,8 @@ class SceneManager:
         #     pg_world.highway_render.set_scene_manager(self)
         if self.record_episode:
             if episode_data is None:
-                self.record_system = PGRecorder(map, self.traffic_manager.get_global_init_states())
+                init_states = self.traffic_manager.get_global_init_states()
+                self.record_system = PGRecorder(map, init_states)
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
@@ -130,14 +131,14 @@ class SceneManager:
         """
 
         if self.replay_system is not None:
-            self.agent_manager.for_each_active_agents(lambda v: self.replay_system.replay_frame(v, self.pg_world))
-            # self.replay_system.replay_frame(self.ego_vehicle, self.pg_world)
+            self.replay_system.replay_frame(self.target_vehicles, self.pg_world)
         else:
             self.traffic_manager.update_state()
 
         if self.record_system is not None:
             # didn't record while replay
-            self.record_system.record_frame(self.traffic_manager.get_global_states())
+            frame_state = self.traffic_manager.get_global_states()
+            self.record_system.record_frame(frame_state)
 
         step_infos = self.update_state_for_all_target_vehicles()
 

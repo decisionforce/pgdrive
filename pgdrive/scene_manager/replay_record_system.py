@@ -5,6 +5,8 @@ from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.world.pg_world import PGWorld
+from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES
+
 
 
 class PGReplayer:
@@ -26,23 +28,23 @@ class PGReplayer:
             car.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
         logging.debug("Recover {} Traffic Vehicles".format(len(self.restore_vehicles)))
 
-    def replay_frame(self, ego_vehicle, pg_world: PGWorld):
+    def replay_frame(self, target_vehicles, pg_world: PGWorld):
         assert self.restore_episode_info is not None, "Not frame data in episode info"
         if len(self.restore_episode_info) == 0:
             return True
         frame = self.restore_episode_info.pop(-1)
         vehicles_to_remove = []
         for index, state in frame.items():
-            if index == "ego":
-                vehicle_to_set = ego_vehicle
-                assert len(state) == 1, "Only support single-agent now!"
-                state = state[DEFAULT_AGENT]
-                vehicle_to_set.set_state(state)
-            else:
-                vehicle_to_set = self.restore_vehicles[index]
-                vehicle_to_set.set_state(state)
-                if state["done"] and not vehicle_to_set.enable_respawn:
-                    vehicles_to_remove.append(vehicle_to_set)
+            if index == TARGET_VEHICLES:
+                for t_v_idx, t_v_s in state.items():
+                    vehicle_to_set = target_vehicles[t_v_idx]
+                    vehicle_to_set.set_state(t_v_s)
+            elif index == TRAFFIC_VEHICLES:
+                for t_v_idx, t_v_s in state.items():
+                    vehicle_to_set = self.restore_vehicles[t_v_idx]
+                    vehicle_to_set.set_state(t_v_s)
+                    if t_v_s["done"] and not vehicle_to_set.enable_respawn:
+                        vehicles_to_remove.append(vehicle_to_set)
         for v in vehicles_to_remove:
             v.destroy(pg_world)
 

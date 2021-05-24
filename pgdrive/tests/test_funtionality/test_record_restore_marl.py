@@ -11,12 +11,12 @@ def test_save_episode(vis=False):
 
     test_dump = False
 
-    env = MultiAgentRoundaboutEnv(dict(use_render=vis, manual_control=vis, record_episode=True))
+    env = MultiAgentRoundaboutEnv(dict(use_render=vis, manual_control=vis, record_episode=True, horizon=300))
     try:
         o = env.reset()
         epi_info = None
         for i in range(1, 100000 if vis else 2000):
-            o, r, d, info = env.step({agent_id:[0,0.1] for agent_id in env.vehicles.keys()})
+            o, r, d, info = env.step({agent_id:[0,1.0] for agent_id in env.vehicles.keys()})
             if vis:
                 env.render()
             if d["__all__"]:
@@ -40,4 +40,4 @@ def test_save_episode(vis=False):
 
 
 if __name__ == "__main__":
-    test_save_episode(vis=True)
+    test_save_episode(vis=False)

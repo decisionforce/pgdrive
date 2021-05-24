@@ -182,3 +182,5 @@ class CollisionGroup:
 
 LaneIndex = Tuple[str, str, int]
 Route = List[LaneIndex]
+TARGET_VEHICLES = "target_vehicles"
+TRAFFIC_VEHICLES = "traffic_vehicles"
