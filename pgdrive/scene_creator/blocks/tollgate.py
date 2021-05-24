@@ -100,4 +100,3 @@ class TollGate(Block):
             object_manager.add_block_buildings(building, pg_world.pbr_worldNP)
             # for performance reason
             building.node_path.hide(CamMask.Shadow)
-
