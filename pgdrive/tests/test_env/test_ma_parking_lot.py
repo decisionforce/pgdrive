@@ -469,7 +469,7 @@ def test_ma_parking_lot_reward_sign():
             self._safe_places = safe_places
             return config
 
-    env = TestEnv({"num_agents": 1, "crash_done": False})
+    env = TestEnv({"num_agents": 1, "crash_done": False, "use_render": False, "fast": True})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -700,11 +700,11 @@ if __name__ == '__main__':
     # test_ma_parking_lot_horizon()
     # test_ma_parking_lot_reset()
     # test_ma_parking_lot_reward_done_alignment()
-    test_ma_parking_lot_close_spawn()
-    # test_ma_parking_lot_reward_sign()
+    # test_ma_parking_lot_close_spawn()
+    test_ma_parking_lot_reward_sign()
     # test_ma_parking_lot_init_space()
     # test_ma_parking_lot_no_short_episode()
     # test_ma_parking_lot_horizon_termination()
-    test_ma_parking_lot_40_agent_reset_after_respawn()
+    # test_ma_parking_lot_40_agent_reset_after_respawn()
     # test_ma_no_reset_error()
     # test_randomize_spawn_place()
