@@ -8,7 +8,6 @@ from pgdrive.world.pg_world import PGWorld
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES
 
 
-
 class PGReplayer:
     def __init__(self, traffic_mgr: TrafficManager, current_map: PGMap, episode_data: dict, pg_world: PGWorld):
         self.restore_episode_info = episode_data["frame"]
