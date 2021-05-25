@@ -573,11 +573,7 @@ def test_ma_bottleneck_no_short_episode():
 
 def test_ma_bottleneck_horizon_termination():
     # test horizon
-    env = MultiAgentBottleneckEnv({
-        "horizon": 100,
-        "num_agents": 8,
-        "crash_done": False
-    })
+    env = MultiAgentBottleneckEnv({"horizon": 100, "num_agents": 8, "crash_done": False})
     try:
         for _ in range(3):  # This function is really easy to break, repeat multiple times!
             _check_spaces_before_reset(env)
@@ -672,7 +668,15 @@ def test_ma_no_reset_error():
                 raise ValueError("Vehicles overlap after reset()")
             vehicles.remove(v_1)
 
-    env = MultiAgentBottleneckEnv({"horizon": 300, "num_agents": 40, "delay_done": 0, "use_render": False, "crash_done": False})
+    env = MultiAgentBottleneckEnv(
+        {
+            "horizon": 300,
+            "num_agents": 40,
+            "delay_done": 0,
+            "use_render": False,
+            "crash_done": False
+        }
+    )
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()

@@ -567,11 +567,7 @@ def test_ma_parking_lot_no_short_episode():
 
 def test_ma_parking_lot_horizon_termination():
     # test horizon
-    env = MultiAgentParkingLotEnv({
-        "horizon": 100,
-        "num_agents": 8,
-        "crash_done": False
-    })
+    env = MultiAgentParkingLotEnv({"horizon": 100, "num_agents": 8, "crash_done": False})
     try:
         for _ in range(3):  # This function is really easy to break, repeat multiple times!
             _check_spaces_before_reset(env)
