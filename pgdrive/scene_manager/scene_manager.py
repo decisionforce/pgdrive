@@ -120,7 +120,7 @@ class SceneManager:
                 self.traffic_manager.step(dt)
                 pg_world.step()
             else:
-                self.replay_system.replay_frame(self.target_vehicles, self.pg_world)
+                self.replay_system.replay_frame(self.target_vehicles, self.pg_world, i==step_num-1)
             # record every step
             if self.record_system is not None:
                 # didn't record while replay

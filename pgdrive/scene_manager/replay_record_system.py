@@ -32,7 +32,7 @@ class PGReplayer:
             car.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
         logging.debug("Recover {} Traffic Vehicles".format(len(self.restore_vehicles)))
 
-    def replay_frame(self, target_vehicles, pg_world: PGWorld):
+    def replay_frame(self, target_vehicles, pg_world: PGWorld, last_step=False):
         assert self.restore_episode_info is not None, "No frame data in episode info"
         if len(self.restore_episode_info) == 0:
             return True
@@ -50,8 +50,9 @@ class PGReplayer:
                     vehicle_to_set.set_state(t_v_s)
                     if t_v_s["done"] and not vehicle_to_set.enable_respawn:
                         vehicles_to_remove.append(vehicle_to_set)
-        for v in vehicles_to_remove:
-            v.destroy(pg_world)
+        if last_step:
+            for v in vehicles_to_remove:
+                v.destroy(pg_world)
 
     def destroy(self, pg_world):
         for vehicle in self.restore_vehicles.values():
