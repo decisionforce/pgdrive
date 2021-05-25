@@ -210,11 +210,15 @@ class TrafficManager(RandomEngine):
         pending_obj = copy.copy(self._scene_mgr.agent_manager._pending_objects)
         dying_obj = copy.copy(self._scene_mgr.agent_manager._dying_objects)
         states[TARGET_VEHICLES] = {k: v.get_state() for k, v in active_obj.items()}
-        states[TARGET_VEHICLES] = merge_dicts(states[TARGET_VEHICLES],
-                                              {k: v.get_state() for k, v in pending_obj.items()}, allow_new_keys=True)
-        states[TARGET_VEHICLES] = merge_dicts(states[TARGET_VEHICLES],
-                                              {k: v_count[0].get_state() for k, v_count in dying_obj.items()},
-                                              allow_new_keys=True)
+        states[TARGET_VEHICLES] = merge_dicts(
+            states[TARGET_VEHICLES], {k: v.get_state()
+                                      for k, v in pending_obj.items()}, allow_new_keys=True
+        )
+        states[TARGET_VEHICLES] = merge_dicts(
+            states[TARGET_VEHICLES], {k: v_count[0].get_state()
+                                      for k, v_count in dying_obj.items()},
+            allow_new_keys=True
+        )
 
         states[OBJECT_TO_AGENT] = copy.deepcopy(self._scene_mgr.agent_manager._object_to_agent)
         states[AGENT_TO_OBJECT] = copy.deepcopy(self._scene_mgr.agent_manager._agent_to_object)
@@ -355,7 +359,7 @@ class TrafficManager(RandomEngine):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

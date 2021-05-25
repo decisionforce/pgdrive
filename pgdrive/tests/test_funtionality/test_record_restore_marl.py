@@ -16,7 +16,7 @@ def test_save_episode(vis=True):
         o = env.reset()
         epi_info = None
         for i in range(1, 100000 if vis else 2000):
-            o, r, d, info = env.step({agent_id:[0,.2] for agent_id in env.vehicles.keys()})
+            o, r, d, info = env.step({agent_id: [0, .2] for agent_id in env.vehicles.keys()})
             if vis:
                 env.render()
             if d["__all__"]:
@@ -30,7 +30,7 @@ def test_save_episode(vis=True):
 
         o = env.reset(epi_info)
         for i in range(1, 100000 if vis else 2000):
-            o, r, d, info = env.step({agent_id:[0,0.1] for agent_id in env.vehicles.keys()})
+            o, r, d, info = env.step({agent_id: [0, 0.1] for agent_id in env.vehicles.keys()})
             if vis:
                 env.render()
             if d["__all__"]:
