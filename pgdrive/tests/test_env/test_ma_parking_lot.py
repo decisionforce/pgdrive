@@ -201,13 +201,13 @@ def test_ma_parking_lot_reset():
                     new_loc = v.routing_localization.final_lane.end
                     long, lat = v.routing_localization.final_lane.local_coordinates(v.position)
                     flag1 = (
-                        v.routing_localization.final_lane.length - 5 < long <
-                        v.routing_localization.final_lane.length + 5
+                            v.routing_localization.final_lane.length - 5 < long <
+                            v.routing_localization.final_lane.length + 5
                     )
                     flag2 = (
-                        v.routing_localization.get_current_lane_width() / 2 >= lat >=
-                        (0.5 - v.routing_localization.get_current_lane_num()) *
-                        v.routing_localization.get_current_lane_width()
+                            v.routing_localization.get_current_lane_width() / 2 >= lat >=
+                            (0.5 - v.routing_localization.get_current_lane_num()) *
+                            v.routing_localization.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -448,46 +448,6 @@ def test_ma_parking_lot_reward_done_alignment():
             assert not i[kkk]["arrive_dest"]
             assert not d[kkk]
             break
-    finally:
-        env.close()
-
-
-def test_ma_parking_lot_reward_sign():
-    """
-    If agent is simply moving forward without any steering, it will at least gain ~100 rewards, since we have a long
-    straight road before coming into parking_lot.
-    However, some bugs cause the vehicles receive negative reward by doing this behavior!
-    """
-    class TestEnv(MultiAgentParkingLotEnv):
-        _respawn_count = 0
-
-        def _update_agent_pos_configs(self, config):
-            config = super(TestEnv, self)._update_agent_pos_configs(config)
-            safe_places = []
-            for c, bid in enumerate(self._spawn_manager.safe_spawn_places.keys()):
-                safe_places.append((bid, self._spawn_manager.safe_spawn_places[bid]))
-            self._safe_places = safe_places
-            return config
-
-    env = TestEnv({"num_agents": 1, "crash_done": False, "use_render": False, "fast": True})
-    try:
-        _check_spaces_before_reset(env)
-        obs = env.reset()
-        _check_spaces_after_reset(env)
-        ep_reward = 0.0
-        for step in range(1000):
-            act = {k: [0, 1] for k in env.vehicles.keys()}
-            o, r, d, i = env.step(act)
-            ep_reward += next(iter(r.values()))
-            if any(d.values()):
-                print("Finish respawn count: {}, reward {}".format(env._respawn_count, ep_reward))
-                env._respawn_count += 1
-                assert ep_reward > 10, ep_reward
-                ep_reward = 0
-            if env._respawn_count >= len(env._safe_places):
-                break
-            if d["__all__"]:
-                break
     finally:
         env.close()
 
