@@ -375,7 +375,8 @@ def test_ma_parking_lot_reward_done_alignment():
             "horizon": 200,
             "num_agents": 11,
             "crash_vehicle_penalty": 1.7777,
-            "parking_space_num": 16
+            "parking_space_num": 16,
+            "crash_done": False,
         }
     )
     try:
@@ -468,7 +469,7 @@ def test_ma_parking_lot_reward_sign():
             self._safe_places = safe_places
             return config
 
-    env = TestEnv({"num_agents": 1})
+    env = TestEnv({"num_agents": 1, "crash_done": False})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
@@ -569,6 +570,7 @@ def test_ma_parking_lot_horizon_termination():
     env = MultiAgentParkingLotEnv({
         "horizon": 100,
         "num_agents": 8,
+        "crash_done": False
     })
     try:
         for _ in range(3):  # This function is really easy to break, repeat multiple times!

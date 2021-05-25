@@ -373,6 +373,7 @@ def test_ma_roundabout_reward_done_alignment():
             "horizon": 200,
             "num_agents": 40,
             "crash_vehicle_penalty": 1.7777,
+            "crash_done": False
         }
     )
     try:
