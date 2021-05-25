@@ -11,7 +11,7 @@ def test_save_episode(vis=True):
 
     test_dump = False
 
-    env = MultiAgentRoundaboutEnv(dict(use_render=vis, manual_control=vis, record_episode=True, horizon=100))
+    env = MultiAgentRoundaboutEnv(dict(use_render=vis, manual_control=vis, record_episode=True, horizon=300))
     try:
         o = env.reset()
         epi_info = None

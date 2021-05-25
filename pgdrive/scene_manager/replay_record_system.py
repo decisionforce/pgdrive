@@ -5,7 +5,7 @@ from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.world.pg_world import PGWorld
-from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES
+from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
 
 
 class PGReplayer:
@@ -15,6 +15,11 @@ class PGReplayer:
         self.restore_vehicles = {}
         self.current_map = current_map
         self._recover_vehicles_from_data(traffic_mgr, episode_data, pg_world)
+        self._init_obj_to_agent = self._record_obj_to_agent()
+
+    def _record_obj_to_agent(self):
+        frame = self.restore_episode_info[-1]
+        return frame[OBJECT_TO_AGENT]
 
     def _recover_vehicles_from_data(self, traffic_mgr: TrafficManager, episode_data: dict, pg_world: PGWorld):
         assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
@@ -28,7 +33,7 @@ class PGReplayer:
         logging.debug("Recover {} Traffic Vehicles".format(len(self.restore_vehicles)))
 
     def replay_frame(self, target_vehicles, pg_world: PGWorld):
-        assert self.restore_episode_info is not None, "Not frame data in episode info"
+        assert self.restore_episode_info is not None, "No frame data in episode info"
         if len(self.restore_episode_info) == 0:
             return True
         frame = self.restore_episode_info.pop(-1)
@@ -36,7 +41,8 @@ class PGReplayer:
         for index, state in frame.items():
             if index == TARGET_VEHICLES:
                 for t_v_idx, t_v_s in state.items():
-                    vehicle_to_set = target_vehicles[t_v_idx]
+                    agent_idx = self._init_obj_to_agent[t_v_idx]
+                    vehicle_to_set = target_vehicles[agent_idx]
                     vehicle_to_set.set_state(t_v_s)
             elif index == TRAFFIC_VEHICLES:
                 for t_v_idx, t_v_s in state.items():

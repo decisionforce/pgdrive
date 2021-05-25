@@ -184,3 +184,5 @@ LaneIndex = Tuple[str, str, int]
 Route = List[LaneIndex]
 TARGET_VEHICLES = "target_vehicles"
 TRAFFIC_VEHICLES = "traffic_vehicles"
+OBJECT_TO_AGENT = "object_to_agent"
+AGENT_TO_OBJECT = "agent_to_object"
