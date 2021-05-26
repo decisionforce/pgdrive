@@ -12,12 +12,14 @@ from pgdrive.constants import TARGET_VEHICLES
 color_white = (255, 255, 255)
 
 
-def draw_top_down_map(map,
-                      resolution: Iterable = (512, 512),
-                      simple_draw=True,
-                      return_surface=False,
-                      film_size=None,
-                      reverse_color=False) -> Optional[Union[np.ndarray, pygame.Surface]]:
+def draw_top_down_map(
+    map,
+    resolution: Iterable = (512, 512),
+    simple_draw=True,
+    return_surface=False,
+    film_size=None,
+    reverse_color=False
+) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
     if reverse_color:
@@ -48,8 +50,9 @@ def draw_top_down_map(map,
     return ret
 
 
-def draw_top_down_trajectory(surface: WorldSurface, episode_data: dict, entry_differ_color=False,
-                             exit_differ_color=False, color_list=None):
+def draw_top_down_trajectory(
+    surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
+):
     if entry_differ_color or exit_differ_color:
         assert color_list is not None
     color_map = {}
@@ -96,7 +99,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2 ** 32 - 1
+            pixels ^= 2**32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -172,7 +175,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)

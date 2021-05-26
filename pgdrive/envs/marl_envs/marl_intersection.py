@@ -327,6 +327,7 @@ def _long_run():
     finally:
         env.close()
 
+
 def show_map_and_traj():
     import matplotlib.pyplot as plt
     from pgdrive.obs.top_down_renderer import draw_top_down_map, draw_top_down_trajectory
@@ -338,7 +339,9 @@ def show_map_and_traj():
     with open("ccppo_inter_0.json", "r") as f:
         traj = json.load(f)
     m = draw_top_down_map(env.current_map, simple_draw=False, return_surface=True, reverse_color=True)
-    m = draw_top_down_trajectory(m,traj,entry_differ_color=True, color_list=[(255,0,0), (0,255,0), (0,0,255), (255,255,0)])
+    m = draw_top_down_trajectory(
+        m, traj, entry_differ_color=True, color_list=[(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+    )
     ret = cv2.resize(pygame.surfarray.pixels_red(m), (512, 512), interpolation=cv2.INTER_LINEAR)
     #
     plt.imshow(ret)
