@@ -327,7 +327,7 @@ def _long_run():
     finally:
         env.close()
 
-def show_map():
+def show_map_and_traj():
     import matplotlib.pyplot as plt
     from pgdrive.obs.top_down_renderer import draw_top_down_map, draw_top_down_trajectory
     import json
@@ -335,10 +335,10 @@ def show_map():
     import pygame
     env = MultiAgentIntersectionEnv()
     env.reset()
-    with open("test_dump_0.json", "r") as f:
+    with open("ma_round_ippo.json", "r") as f:
         traj = json.load(f)
     m = draw_top_down_map(env.current_map, simple_draw=False, return_surface=True)
-    m = draw_top_down_trajectory(m,traj,1)
+    m = draw_top_down_trajectory(m,traj)
     ret = cv2.resize(pygame.surfarray.pixels_red(m), (512, 512), interpolation=cv2.INTER_LINEAR)
     #
     plt.imshow(ret)
@@ -349,8 +349,8 @@ def show_map():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _vis_debug_respawn()
     # _profiwdle()
     # _long_run()
-    show_map()
+    # show_map_and_traj()
