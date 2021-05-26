@@ -335,7 +335,7 @@ def show_map_and_traj():
     import pygame
     env = MultiAgentIntersectionEnv()
     env.reset()
-    with open("ma_round_ippo.json", "r") as f:
+    with open("ccppo_inter_0.json", "r") as f:
         traj = json.load(f)
     m = draw_top_down_map(env.current_map, simple_draw=False, return_surface=True)
     m = draw_top_down_trajectory(m,traj)
@@ -349,8 +349,8 @@ def show_map_and_traj():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
     # _profiwdle()
     # _long_run()
-    # show_map_and_traj()
+    show_map_and_traj()
