@@ -1,12 +1,13 @@
 import json
 
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv
+from pgdrive.envs.marl_envs.marl_intersection import MultiAgentIntersectionEnv
 from pgdrive.scene_creator.map import Map, MapGenerateMethod
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import setup_logger
 
 
-def test_save_episode(vis=False):
+def test_save_episode(vis=True):
     """
     1. Set record_episode=True to record each episode
     2. dump_episode when done[__all__] == True

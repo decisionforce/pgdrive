@@ -7,6 +7,9 @@ from pgdrive.obs.top_down_obs_impl import WorldSurface, VehicleGraphics, LaneGra
 from pgdrive.utils.utils import import_pygame
 
 pygame = import_pygame()
+from pgdrive.constants import TARGET_VEHICLES
+
+color_white = (255, 255, 255)
 
 
 def draw_top_down_map(map,
@@ -41,7 +44,12 @@ def draw_top_down_map(map,
     return ret
 
 
-color_white = (255, 255, 255)
+def draw_top_down_trajectory(surface: WorldSurface, episode_data: dict):
+    for frame in episode_data["frame"]:
+        for k, state in frame[TARGET_VEHICLES].items():
+            start = state["position"]
+            pygame.draw.circle(surface, color_white, surface.pos2pix(start[0], start[1]), 1)
+    return surface
 
 
 class TopDownRenderer:
