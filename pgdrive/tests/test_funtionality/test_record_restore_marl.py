@@ -7,7 +7,7 @@ from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import setup_logger
 
 
-def test_save_episode(vis=True):
+def test_save_episode(vis=False):
     """
     1. Set record_episode=True to record each episode
     2. dump_episode when done[__all__] == True
