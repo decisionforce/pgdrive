@@ -85,6 +85,7 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
             new_map = MABottleneckMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
+            self.current_map.spawn_roads = self.spawn_roads
 
     def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
         return LidarStateObservationMARound(vehicle_config)

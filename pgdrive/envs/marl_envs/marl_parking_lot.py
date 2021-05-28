@@ -182,6 +182,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             new_map = MAParkingLotMap(self.pg_world, map_config)
             self.maps[self.current_seed] = new_map
             self.current_map = self.maps[self.current_seed]
+            self.current_map.spawn_roads = self.spawn_roads
 
     def _update_destination_for(self, vehicle_id):
         vehicle = self.vehicles[vehicle_id]
