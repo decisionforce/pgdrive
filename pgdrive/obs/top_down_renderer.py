@@ -13,12 +13,12 @@ color_white = (255, 255, 255)
 
 
 def draw_top_down_map(
-    map,
-    resolution: Iterable = (512, 512),
-    simple_draw=True,
-    return_surface=False,
-    film_size=None,
-    reverse_color=False
+        map,
+        resolution: Iterable = (512, 512),
+        simple_draw=True,
+        return_surface=False,
+        film_size=None,
+        reverse_color=False
 ) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
@@ -51,7 +51,7 @@ def draw_top_down_map(
 
 
 def draw_top_down_trajectory(
-    surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
+        surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
 ):
     if entry_differ_color or exit_differ_color:
         assert color_list is not None
@@ -63,15 +63,31 @@ def draw_top_down_trajectory(
     else:
         color_type = 2
 
+    if entry_differ_color:
+        # init only once
+        if "spawn_roads" in episode_data:
+            spawn_roads = episode_data["spawn_roads"]
+        else:
+            spawn_roads = set()
+            first_frame = episode_data["frame"][0]
+            for state in first_frame[TARGET_VEHICLES].values():
+                spawn_roads.add((state["spawn_road"][0], state["spawn_road"][1]))
+        keys = [road[0] for road in list(spawn_roads)]
+        keys.sort()
+        color_map = {key: color for key, color in zip(keys, color_list)}
+
     for frame in episode_data["frame"]:
         for k, state, in frame[TARGET_VEHICLES].items():
             if color_type == 0:
                 color = color_white
             elif color_type == 1:
-                key = state["destination"][1] if exit_differ_color else state["spawn_road"][0]
-                if key not in color_map:
-                    color_map[key] = color_list.pop()
-                color = color_map[key]
+                if exit_differ_color:
+                    key = state["destination"][1]
+                    if key not in color_map:
+                        color_map[key] = color_list.pop()
+                    color = color_map[key]
+                else:
+                    color = color_map[state["spawn_road"][0]]
             else:
                 key_1 = state["spawn_road"][0]
                 key_2 = state["destination"][1]
@@ -99,7 +115,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2**32 - 1
+            pixels ^= 2 ** 32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -175,7 +191,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)

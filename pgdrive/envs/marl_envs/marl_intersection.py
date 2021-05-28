@@ -337,7 +337,7 @@ def show_map_and_traj():
     import pygame
     env = MultiAgentIntersectionEnv()
     env.reset()
-    with open("ccppo_inter_0.json", "r") as f:
+    with open("metasvodist_inter_best.json", "r") as f:
         traj = json.load(f)
     m = draw_top_down_map(env.current_map, simple_draw=False, return_surface=True, reverse_color=True)
     m = draw_top_down_trajectory(
