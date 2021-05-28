@@ -1,4 +1,5 @@
 from typing import Optional, Union, Iterable
+from collections import deque, namedtuple
 
 import cv2
 import numpy as np
@@ -10,6 +11,7 @@ pygame = import_pygame()
 from pgdrive.constants import TARGET_VEHICLES
 
 color_white = (255, 255, 255)
+history_vehicle = namedtuple("history_vehicle", "position heading_theta WIDTH LENGTH")
 
 
 def draw_top_down_map(
@@ -103,11 +105,13 @@ def draw_top_down_trajectory(
 
 
 class TopDownRenderer:
-    def __init__(self, map, film_size=None, screen_size=None, light_background=True, zoomin=None):
+    def __init__(self, map, film_size=None, screen_size=None, light_background=True, zoomin=None, num_stack=5):
         film_size = film_size or (1000, 1000)
         self._zoomin = zoomin or 1.0
         self._screen_size = screen_size
         self._map = map
+        self.stack_frames = deque(maxlen=num_stack)
+        self.history_vehicles = deque(maxlen=num_stack)
 
         self._background = draw_top_down_map(map, simple_draw=False, return_surface=True, film_size=film_size)
         self._film_size = self._background.get_size()
@@ -140,7 +144,9 @@ class TopDownRenderer:
 
     def render(self, vehicles, *args, **kwargs):
         self.refresh()
-        self._draw_vehicles(vehicles)
+        self._draw_history_vehicles()
+        this_frame_vehicles = self._draw_vehicles(vehicles)
+        self.history_vehicles.append(this_frame_vehicles)
         self.blit()
 
     def blit(self):
@@ -153,13 +159,34 @@ class TopDownRenderer:
         pygame.display.update()
 
     def _draw_vehicles(self, vehicles):
-        for v in vehicles:
+        frame_vehicles = []
+        for i, v in enumerate(vehicles, 1):
             h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
 
             VehicleGraphics.display(
                 vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
             )
+            frame_vehicles.append(
+                history_vehicle(heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position))
+        return frame_vehicles
+
+    def _draw_history_vehicles(self):
+        if len(self.history_vehicles) == 0:
+            return
+        for i, vehicles in enumerate(self.history_vehicles):
+            c = VehicleGraphics.BLUE
+            i = len(self.history_vehicles) - i
+            for v in vehicles:
+                h = v.heading_theta
+                h = h if abs(h) > 2 * np.pi / 180 else 0
+                alpha_f = i / len(self.history_vehicles)
+                VehicleGraphics.display(
+                    vehicle=v, surface=self._runtime, heading=h,
+                    color=(
+                        c[0] + alpha_f * (255 - c[0]), c[1] + alpha_f * (255 - c[1]),
+                        c[2] + alpha_f * (255 - c[2])), draw_countour=False
+                )
 
 
 class PheromoneRenderer(TopDownRenderer):

@@ -60,8 +60,6 @@ class MultiAgentIntersectionEnv(MultiAgentPGDrive):
         return MultiAgentPGDrive.default_config().update(MAIntersectionConfig, allow_overwrite=True)
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
-        if episode_data is not None:
-            raise ValueError()
         map_config = self.config["map_config"]
         map_config.update({"seed": self.current_seed})
 
@@ -351,10 +349,26 @@ def show_map_and_traj():
     env.close()
 
 
+def pygame_replay():
+    import json
+    env = MultiAgentIntersectionEnv({"use_topdown": True})
+    with open("metasvodist_inter_best.json", "r") as f:
+        traj = json.load(f)
+    o = env.reset(copy.deepcopy(traj))
+    while True:
+        o, r, d, i = env.step(env.action_space.sample())
+        env.pg_world.force_fps.toggle()
+        env.render(mode="top_down", num_stack=20)
+        if len(env.scene_manager.replay_system.restore_episode_info) == 0:
+            env.close()
+            env.reset(copy.deepcopy(traj))
+
+
 if __name__ == "__main__":
     # _draw()
     # _vis()
     # _vis_debug_respawn()
     # _profiwdle()
     # _long_run()
-    show_map_and_traj()
+    # show_map_and_traj()
+    pygame_replay()
