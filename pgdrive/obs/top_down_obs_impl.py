@@ -293,8 +293,9 @@ class LaneGraphics:
                 raise ValueError("I don't know how to draw this line type: {}".format(lane.line_types[side]))
 
     @classmethod
-    def striped_line(cls, lane, surface, stripes_count: int, longitudinal: float, side: int,
-                     color=(255, 255, 255)) -> None:
+    def striped_line(
+        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=(255, 255, 255)
+    ) -> None:
         """
         Draw a striped line on one side of a lane, on a surface.
 
@@ -310,8 +311,9 @@ class LaneGraphics:
         cls.draw_stripes(lane, surface, starts, ends, lats, color=color)
 
     @classmethod
-    def continuous_curve(cls, lane, surface, stripes_count: int, longitudinal: float, side: int,
-                     color=(255, 255, 255)) -> None:
+    def continuous_curve(
+        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=(255, 255, 255)
+    ) -> None:
         """
         Draw a striped line on one side of a lane, on a surface.
 
@@ -327,8 +329,9 @@ class LaneGraphics:
         cls.draw_stripes(lane, surface, starts, ends, lats, color=color)
 
     @classmethod
-    def continuous_line(cls, lane, surface, stripes_count: int, longitudinal: float, side: int,
-                     color=(255, 255, 255)) -> None:
+    def continuous_line(
+        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=(255, 255, 255)
+    ) -> None:
         """
         Draw a continuous line on one side of a lane, on a surface.
 
@@ -344,8 +347,9 @@ class LaneGraphics:
         cls.draw_stripes(lane, surface, starts, ends, lats, color=color)
 
     @classmethod
-    def draw_stripes(cls, lane, surface, starts: List[float], ends: List[float], lats: List[float],
-                     color=(255, 255, 255)) -> None:
+    def draw_stripes(
+        cls, lane, surface, starts: List[float], ends: List[float], lats: List[float], color=(255, 255, 255)
+    ) -> None:
         """
         Draw a set of stripes along a lane.
 
