@@ -16,13 +16,12 @@ history_vehicle = namedtuple("history_vehicle", "position heading_theta WIDTH LE
 
 
 def draw_top_down_map(
-        map,
-        resolution: Iterable = (512, 512),
-        simple_draw=True,
-        return_surface=False,
-        film_size=None,
-        reverse_color=False,
-
+    map,
+    resolution: Iterable = (512, 512),
+    simple_draw=True,
+    return_surface=False,
+    film_size=None,
+    reverse_color=False,
 ) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
@@ -55,7 +54,7 @@ def draw_top_down_map(
 
 
 def draw_top_down_trajectory(
-        surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
+    surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
 ):
     if entry_differ_color or exit_differ_color:
         assert color_list is not None
@@ -107,8 +106,9 @@ def draw_top_down_trajectory(
 
 
 class TopDownRenderer:
-    def __init__(self, map, film_size=None, screen_size=None, light_background=True, zoomin=None, num_stack=5,
-                 history_smooth=0):
+    def __init__(
+        self, map, film_size=None, screen_size=None, light_background=True, zoomin=None, num_stack=5, history_smooth=0
+    ):
         film_size = film_size or (1000, 1000)
         self._zoomin = zoomin or 1.0
         self._screen_size = screen_size
@@ -123,7 +123,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2 ** 32 - 1
+            pixels ^= 2**32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -172,7 +172,8 @@ class TopDownRenderer:
                 vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
             )
             frame_vehicles.append(
-                history_vehicle(heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position))
+                history_vehicle(heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position)
+            )
         return frame_vehicles
 
     @staticmethod
@@ -180,8 +181,14 @@ class TopDownRenderer:
         frame_vehicles = []
         for i, v in enumerate(vehicles, 1):
             frame_vehicles.append(
-                history_vehicle(heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position,
-                                color=v.top_down_color))
+                history_vehicle(
+                    heading_theta=v.heading_theta,
+                    WIDTH=v.WIDTH,
+                    LENGTH=v.LENGTH,
+                    position=v.position,
+                    color=v.top_down_color
+                )
+            )
         return frame_vehicles
 
     def _draw_history_vehicles(self):
@@ -198,10 +205,11 @@ class TopDownRenderer:
                 x = abs(int(i))
                 alpha_f = x / len(self.history_vehicles)
                 VehicleGraphics.display(
-                    vehicle=v, surface=self._runtime, heading=h,
-                    color=(
-                        c[0] + alpha_f * (255 - c[0]), c[1] + alpha_f * (255 - c[1]),
-                        c[2] + alpha_f * (255 - c[2])), draw_countour=False
+                    vehicle=v,
+                    surface=self._runtime,
+                    heading=h,
+                    color=(c[0] + alpha_f * (255 - c[0]), c[1] + alpha_f * (255 - c[1]), c[2] + alpha_f * (255 - c[2])),
+                    draw_countour=False
                 )
 
         i = int(len(self.history_vehicles) / 2)
@@ -212,10 +220,12 @@ class TopDownRenderer:
             x = abs(int(i))
             alpha_f = x / len(self.history_vehicles)
             VehicleGraphics.display(
-                vehicle=v, surface=self._runtime, heading=h,
-                color=(
-                    c[0] + alpha_f * (255 - c[0]), c[1] + alpha_f * (255 - c[1]),
-                    c[2] + alpha_f * (255 - c[2])), draw_countour=True, contour_width=2
+                vehicle=v,
+                surface=self._runtime,
+                heading=h,
+                color=(c[0] + alpha_f * (255 - c[0]), c[1] + alpha_f * (255 - c[1]), c[2] + alpha_f * (255 - c[2])),
+                draw_countour=True,
+                contour_width=2
             )
 
 
@@ -248,7 +258,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)

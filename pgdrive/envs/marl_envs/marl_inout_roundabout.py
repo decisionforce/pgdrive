@@ -337,9 +337,10 @@ def _long_run():
                 "lidar": {
                     "num_others": 8
                 },
-
             },
-            "pg_world_config": {"pstats": True},
+            "pg_world_config": {
+                "pstats": True
+            },
             **dict(
                 out_of_road_penalty=_out_of_road_penalty,
                 crash_vehicle_penalty=1.333,

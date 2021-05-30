@@ -140,7 +140,7 @@ class BaseVehicle(DynamicElement):
         color = sns.color_palette("colorblind")
         idx = get_np_random().randint(len(color))
         rand_c = color[idx]
-        self.top_down_color = (rand_c[0]*255, rand_c[1]*255, rand_c[2]*255)
+        self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config

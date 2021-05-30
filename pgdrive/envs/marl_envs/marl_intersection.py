@@ -362,7 +362,7 @@ def pygame_replay():
         env.pg_world.force_fps.toggle()
         env.render(mode="top_down", num_stack=50, film_size=(4000, 4000), history_smooth=0)
         pygame.image.save(env._top_down_renderer._runtime, "inter_{}.png".format(frame_count))
-        frame_count+=1
+        frame_count += 1
         if len(env.scene_manager.replay_system.restore_episode_info) == 0:
             env.close()
 
