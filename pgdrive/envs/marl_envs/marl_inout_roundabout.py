@@ -1,4 +1,5 @@
 import gym
+from pgdrive.envs.multi_agent_pgdrive import pygame_replay
 import numpy as np
 
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
@@ -331,12 +332,14 @@ def _long_run():
     _out_of_road_penalty = 3
     env = MultiAgentRoundaboutEnv(
         {
-            "num_agents": 32,
+            "num_agents": 40,
             "vehicle_config": {
                 "lidar": {
                     "num_others": 8
-                }
+                },
+
             },
+            "pg_world_config": {"pstats": True},
             **dict(
                 out_of_road_penalty=_out_of_road_penalty,
                 crash_vehicle_penalty=1.333,
@@ -384,7 +387,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
     # _profiwdle()
-    # _long_run()
+    _long_run()
+    # pygame_replay("round", MultiAgentRoundaboutEnv)

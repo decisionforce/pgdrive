@@ -1,4 +1,4 @@
-from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+from pgdrive.envs.multi_agent_pgdrive import pygame_replay
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
@@ -385,7 +385,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
     # _profile()
     # _long_run()
+    pygame_replay("bottle")

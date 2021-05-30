@@ -2,7 +2,7 @@ import gym
 import numpy as np
 
 from pgdrive.constants import TerminationState
-from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
+from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive, pygame_replay
 from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -532,7 +532,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
     # _profile()
     # _long_run()
+    pygame_replay("tollgate", MultiAgentTollgateEnv)

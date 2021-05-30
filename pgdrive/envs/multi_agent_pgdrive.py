@@ -146,8 +146,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -362,6 +362,27 @@ def _vis():
             print("Reset")
             env.reset()
     env.close()
+
+
+def pygame_replay(name, env_class, save=True,other_ckpt=None):
+    import copy
+    import json
+    import pygame
+    env = env_class({"use_topdown": True})
+    ckpt = "metasvodist_{}_best.json".format(name) if other_ckpt is None else other_ckpt
+    with open(ckpt, "r") as f:
+        traj = json.load(f)
+    o = env.reset(copy.deepcopy(traj))
+    frame_count = 0
+    while True:
+        o, r, d, i = env.step(env.action_space.sample())
+        env.pg_world.force_fps.toggle()
+        env.render(mode="top_down", num_stack=50, film_size=(4000, 4000), history_smooth=0)
+        if save:
+            pygame.image.save(env._top_down_renderer._runtime, "{}_{}.png".format(name, frame_count))
+        frame_count += 1
+        if len(env.scene_manager.replay_system.restore_episode_info) == 0:
+            env.close()
 
 
 if __name__ == '__main__':

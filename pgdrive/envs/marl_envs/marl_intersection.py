@@ -351,17 +351,20 @@ def show_map_and_traj():
 
 def pygame_replay():
     import json
+    import pygame
     env = MultiAgentIntersectionEnv({"use_topdown": True})
     with open("metasvodist_inter_best.json", "r") as f:
         traj = json.load(f)
     o = env.reset(copy.deepcopy(traj))
+    frame_count = 0
     while True:
         o, r, d, i = env.step(env.action_space.sample())
         env.pg_world.force_fps.toggle()
-        env.render(mode="top_down", num_stack=20)
+        env.render(mode="top_down", num_stack=50, film_size=(4000, 4000), history_smooth=0)
+        pygame.image.save(env._top_down_renderer._runtime, "inter_{}.png".format(frame_count))
+        frame_count+=1
         if len(env.scene_manager.replay_system.restore_episode_info) == 0:
             env.close()
-            env.reset(copy.deepcopy(traj))
 
 
 if __name__ == "__main__":
