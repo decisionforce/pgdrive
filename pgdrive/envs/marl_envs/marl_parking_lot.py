@@ -464,7 +464,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentParkingLotEnv({"num_agents": 3})
+    env = MultiAgentParkingLotEnv({"num_agents": 10})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -543,7 +543,7 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
-    # _profile()
+    _profile()
     # _long_run()
