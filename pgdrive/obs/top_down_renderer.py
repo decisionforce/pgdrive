@@ -92,7 +92,11 @@ def draw_top_down_trajectory(
                         color_map[key] = color_list.pop()
                     color = color_map[key]
                 else:
-                    color = color_map[state["spawn_road"][0]]
+                    k = state["spawn_road"][0]
+                    if k not in color_map:
+                        color = list(color_map.values())[3]
+                    else:
+                        color = color_map[k]
             else:
                 key_1 = state["spawn_road"][0]
                 key_2 = state["destination"][1]
