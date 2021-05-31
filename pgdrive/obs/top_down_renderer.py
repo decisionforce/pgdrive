@@ -115,8 +115,15 @@ def draw_top_down_trajectory(
 
 class TopDownRenderer:
     def __init__(
-        self, map, film_size=None, screen_size=None, light_background=True, zoomin=None, color=(255, 255, 255),
-            num_stack=5, history_smooth=0
+        self,
+        map,
+        film_size=None,
+        screen_size=None,
+        light_background=True,
+        zoomin=None,
+        color=(255, 255, 255),
+        num_stack=5,
+        history_smooth=0
     ):
         film_size = film_size or (1000, 1000)
         self._zoomin = zoomin or 1.0
