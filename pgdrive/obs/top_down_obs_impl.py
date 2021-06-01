@@ -107,6 +107,7 @@ class WorldSurface(pygame.Surface):
     INITIAL_CENTERING = [0.5, 0.5]
     SCALING_FACTOR = 1.3
     MOVING_FACTOR = 0.1
+    LANE_LINE_COLOR = (35, 35, 35)
 
     def __init__(self, size: Tuple[int, int], flags: object, surf: pygame.SurfaceType) -> None:
         surf.fill(pygame.Color("Black"))
@@ -207,7 +208,9 @@ class VehicleGraphics:
     font = None
 
     @classmethod
-    def display(cls, vehicle, surface, color, heading, label: bool = False, draw_countour=False) -> None:
+    def display(
+        cls, vehicle, surface, color, heading, label: bool = False, draw_countour=False, contour_width=1
+    ) -> None:
         """
         Display a vehicle on a pygame surface.
 
@@ -227,7 +230,7 @@ class VehicleGraphics:
         box_rotate = [p.rotate(angle) + position for p in box]
         pygame.draw.polygon(surface, color=color, points=box_rotate)
         if draw_countour:
-            pygame.draw.polygon(surface, cls.BLACK, box_rotate, width=1)  # , 1)
+            pygame.draw.polygon(surface, cls.BLACK, box_rotate, width=contour_width)  # , 1)
 
         # Label
         if label:
@@ -261,7 +264,7 @@ class LaneGraphics:
     LANE_LINE_WIDTH: float = 1
 
     @classmethod
-    def display(cls, lane, surface, two_side=True, color=(255, 255, 255)) -> None:
+    def display(cls, lane, surface, two_side=True, color=None) -> None:
         """
         Display a lane on a surface.
 
@@ -294,7 +297,7 @@ class LaneGraphics:
 
     @classmethod
     def striped_line(
-        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=(255, 255, 255)
+        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=None
     ) -> None:
         """
         Draw a striped line on one side of a lane, on a surface.
@@ -312,7 +315,7 @@ class LaneGraphics:
 
     @classmethod
     def continuous_curve(
-        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=(255, 255, 255)
+        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=None
     ) -> None:
         """
         Draw a striped line on one side of a lane, on a surface.
@@ -330,7 +333,7 @@ class LaneGraphics:
 
     @classmethod
     def continuous_line(
-        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=(255, 255, 255)
+        cls, lane, surface, stripes_count: int, longitudinal: float, side: int, color=None
     ) -> None:
         """
         Draw a continuous line on one side of a lane, on a surface.
@@ -348,7 +351,7 @@ class LaneGraphics:
 
     @classmethod
     def draw_stripes(
-        cls, lane, surface, starts: List[float], ends: List[float], lats: List[float], color=(255, 255, 255)
+        cls, lane, surface, starts: List[float], ends: List[float], lats: List[float], color=None
     ) -> None:
         """
         Draw a set of stripes along a lane.
@@ -359,6 +362,8 @@ class LaneGraphics:
         :param ends: a list of ending longitudinal positions for each stripe [m]
         :param lats: a list of lateral positions for each stripe [m]
         """
+        if color is None:
+            color = surface.LANE_LINE_COLOR
         starts = np.clip(starts, 0, lane.length)
         ends = np.clip(ends, 0, lane.length)
         for k, _ in enumerate(starts):
