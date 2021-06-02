@@ -743,6 +743,7 @@ class BaseVehicle(DynamicElement):
     def set_state(self, state: dict):
         self.set_heading(state["heading"])
         self.set_position(state["position"])
+        self.out_of_route = state["done"]
 
     def _update_overtake_stat(self):
         if self.vehicle_config["overtake_stat"]:
