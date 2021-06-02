@@ -16,13 +16,13 @@ history_vehicle = namedtuple("history_vehicle", "position heading_theta WIDTH LE
 
 
 def draw_top_down_map(
-        map,
-        resolution: Iterable = (512, 512),
-        simple_draw=True,
-        return_surface=False,
-        film_size=None,
-        reverse_color=False,
-        color=color_white
+    map,
+    resolution: Iterable = (512, 512),
+    simple_draw=True,
+    return_surface=False,
+    film_size=None,
+    reverse_color=False,
+    color=color_white
 ) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
@@ -55,7 +55,7 @@ def draw_top_down_map(
 
 
 def draw_top_down_trajectory(
-        surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
+    surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
 ):
     if entry_differ_color or exit_differ_color:
         assert color_list is not None
@@ -114,15 +114,15 @@ def draw_top_down_trajectory(
 
 class TopDownRenderer:
     def __init__(
-            self,
-            map,
-            film_size=None,
-            screen_size=None,
-            light_background=True,
-            zoomin=None,
-            num_stack=5,
-            history_smooth=0,
-            color=(255, 255, 255)
+        self,
+        map,
+        film_size=None,
+        screen_size=None,
+        light_background=True,
+        zoomin=None,
+        num_stack=5,
+        history_smooth=0,
+        color=(255, 255, 255)
     ):
         film_size = film_size or (1000, 1000)
         self._zoomin = zoomin or 1.0
@@ -140,7 +140,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2 ** 32 - 1
+            pixels ^= 2**32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -191,7 +191,10 @@ class TopDownRenderer:
             )
             frame_vehicles.append(
                 history_vehicle(
-                    heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position,
+                    heading_theta=v.heading_theta,
+                    WIDTH=v.WIDTH,
+                    LENGTH=v.LENGTH,
+                    position=v.position,
                     done=v.general_done
                 )
             )
@@ -253,7 +256,8 @@ class TopDownRenderer:
         for v in self.history_vehicles[i]:
             if v.done:
                 pygame.draw.circle(
-                    self._runtime, (255, 0, 0), self._runtime.pos2pix(v.position[0], v.position[1]), self._runtime.pix(v.WIDTH)
+                    self._runtime, (255, 0, 0), self._runtime.pos2pix(v.position[0], v.position[1]),
+                    self._runtime.pix(v.WIDTH)
                 )
 
 
@@ -286,7 +290,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)
