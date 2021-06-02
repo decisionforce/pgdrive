@@ -204,8 +204,8 @@ def _vis():
                 },
                 "show_lidar": False,
             },
-            "fast": True,
-            "use_render": True,
+            # "fast": True,
+            # "use_render": True,
             "debug": True,
             "manual_control": True,
             "num_agents": 48,
@@ -216,23 +216,24 @@ def _vis():
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        actions = {k: [1.0, 1.0] for k in env.vehicles.keys()}
+        actions = {k: [0, 1.0] for k in env.vehicles.keys()}
         if len(env.vehicles) == 1:
-            actions = {k: [-1.0, 1.0] for k in env.vehicles.keys()}
+            actions = {k: [-0, 1.0] for k in env.vehicles.keys()}
         o, r, d, info = env.step(actions)
         for r_ in r.values():
             total_r += r_
         ep_s += 1
         # d.update({"total_r": total_r, "episode length": ep_s})
-        render_text = {
-            "total_r": total_r,
-            "episode length": ep_s,
-            "cam_x": env.main_camera.camera_x,
-            "cam_y": env.main_camera.camera_y,
-            "cam_z": env.main_camera.top_down_camera_height,
-            "alive": len(env.vehicles)
-        }
-        env.render(text=render_text)
+        # render_text = {
+        #     "total_r": total_r,
+        #     "episode length": ep_s,
+        #     "cam_x": env.main_camera.camera_x,
+        #     "cam_y": env.main_camera.camera_y,
+        #     "cam_z": env.main_camera.top_down_camera_height,
+        #     "alive": len(env.vehicles)
+        # }
+        # env.render(text=render_text)
+        env.render(mode="top_down")
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
@@ -369,9 +370,9 @@ def pygame_replay():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _vis_debug_respawn()
     # _profiwdle()
     # _long_run()
     # show_map_and_traj()
-    pygame_replay()
+    # pygame_replay()
