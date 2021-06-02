@@ -195,7 +195,7 @@ class TopDownRenderer:
                     WIDTH=v.WIDTH,
                     LENGTH=v.LENGTH,
                     position=v.position,
-                    done=v.general_done
+                    done=v.replay_done
                 )
             )
         return frame_vehicles
@@ -211,7 +211,7 @@ class TopDownRenderer:
                     LENGTH=v.LENGTH,
                     position=v.position,
                     color=v.top_down_color,
-                    done=v.general_done
+                    done=v.replay_done
                 )
             )
         return frame_vehicles
