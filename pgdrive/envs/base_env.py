@@ -64,6 +64,7 @@ BASE_DEFAULT_CONFIG = dict(
         window_size=(1200, 900),  # width, height
         physics_world_step_size=2e-2,
         show_fps=True,
+        global_light=False,
 
         # show message when render is called
         onscreen_message=True,
