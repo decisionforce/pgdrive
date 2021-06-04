@@ -23,7 +23,7 @@ class Light(DynamicElement):
         if self.global_light:
             self.direction_np.node().setShadowCaster(True, 16384, 16384)
             self.direction_np.setPos(0, 0, 50)
-            self.direction_np.lookAt(100, 100, 0)
+            self.direction_np.lookAt(100, -30, 0)
         else:
             self.direction_np.node().setShadowCaster(True, 128, 128)
 
