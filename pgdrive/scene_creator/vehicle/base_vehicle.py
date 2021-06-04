@@ -742,7 +742,7 @@ class BaseVehicle(DynamicElement):
 
     def set_state(self, state: dict):
         self.set_heading(state["heading"])
-        self.set_position(state["position"])
+        self.set_position(state["position"], height=0.28)
 
     def _update_overtake_stat(self):
         if self.vehicle_config["overtake_stat"]:
