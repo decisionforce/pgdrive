@@ -515,6 +515,12 @@ class PGDriveEnv(BasePGDriveEnv):
         self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
     def chase_another_v(self) -> (str, BaseVehicle):
+        done = False
+        if self.config["prefer_track_agent"] is not None:
+            if self.config["prefer_track_agent"] in self.vehicles.keys():
+                new_v = self.vehicles[self.config["prefer_track_agent"]]
+                self.current_track_vehicle = new_v
+                done = True
         if self.main_camera is None:
             return
         self.main_camera.reset()
@@ -525,11 +531,9 @@ class PGDriveEnv(BasePGDriveEnv):
             if len(vehicles) == 0:
                 return
             self.current_track_vehicle.remove_display_region()
-            new_v = get_np_random().choice(vehicles)
-            if self.config["prefer_track_agent"] is not None:
-                if self.config["prefer_track_agent"] in self.vehicles.keys():
-                    new_v = self.vehicles[self.config["prefer_track_agent"]]
-            self.current_track_vehicle = new_v
+            if not done:
+                new_v = get_np_random().choice(vehicles)
+                self.current_track_vehicle = new_v
         self.current_track_vehicle.add_to_display()
         self.main_camera.track(self.current_track_vehicle, self.pg_world)
         return

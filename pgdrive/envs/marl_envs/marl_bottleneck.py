@@ -266,14 +266,14 @@ def _vis():
             # "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 20,
+            "num_agents": 1,
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [0.0, 1.0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [-0.01, 1.0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
@@ -291,7 +291,7 @@ def _vis():
         # render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
         # env.render(text=render_text)
 
-        env.render(mode="top_down", road_color=(35, 35, 35), show_agent_name=True)
+        env.render(mode="top_down", road_color=(35, 35, 35), show_agent_name=True, film_size=(2000, 2000), screen_size=(1000, 1000))
 
         if d["__all__"]:
             print(

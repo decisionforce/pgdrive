@@ -270,26 +270,30 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 40,
+            "num_agents": 4,
+            # "pg_world_config": {"global_light": True}
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [1.0, 1.0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [0, 1.0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
         # d.update({"total_r": total_r, "episode length": ep_s})
-        render_text = {
-            "total_r": total_r,
-            "episode length": ep_s,
-            "cam_x": env.main_camera.camera_x,
-            "cam_y": env.main_camera.camera_y,
-            "cam_z": env.main_camera.top_down_camera_height
-        }
-        env.render(text=render_text)
+        # render_text = {
+        #     "total_r": total_r,
+        #     "episode length": ep_s,
+        #     "cam_x": env.main_camera.camera_x,
+        #     "cam_y": env.main_camera.camera_y,
+        #     "cam_z": env.main_camera.top_down_camera_height
+        # }
+        # env.render(text=render_text)
+
+        # env.render(mode="top_down", road_color=(35, 35, 35), show_agent_name=True, film_size=(2000, 2000), screen_size=(2000, 2000))
+
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
