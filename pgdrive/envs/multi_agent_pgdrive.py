@@ -364,11 +364,12 @@ def _vis():
     env.close()
 
 
-def pygame_replay(name, env_class, save=False, other_traj=None, film_size=(1000, 1000)):
+def pygame_replay(name, env_class, save=False, other_traj=None, film_size=(1000, 1000), extra_config={}):
     import copy
     import json
     import pygame
-    env = env_class({"use_topdown": True})
+    extra_config["use_render"] = True
+    env = env_class(extra_config)
     ckpt = "metasvodist_{}_best.json".format(name) if other_traj is None else other_traj
     with open(ckpt, "r") as f:
         traj = json.load(f)
@@ -385,11 +386,12 @@ def pygame_replay(name, env_class, save=False, other_traj=None, film_size=(1000,
             env.close()
 
 
-def panda_replay(name, env_class, save=False, other_traj=None):
+def panda_replay(name, env_class, save=False, other_traj=None, extra_config={}):
     import copy
     import json
     import pygame
-    env = env_class({"use_render": True})
+    extra_config.update({"use_render": True})
+    env = env_class(extra_config)
     ckpt = "metasvodist_{}_best.json".format(name) if other_traj is None else other_traj
     with open(ckpt, "r") as f:
         traj = json.load(f)
