@@ -172,7 +172,8 @@ class TopDownRenderer:
                 vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
             )
             frame_vehicles.append(
-                history_vehicle(heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position)
+                history_vehicle(heading_theta=v.heading_theta, WIDTH=v.WIDTH, LENGTH=v.LENGTH, position=v.position,
+                                color=v.top_down_color)
             )
         return frame_vehicles
 
