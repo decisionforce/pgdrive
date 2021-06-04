@@ -1,5 +1,5 @@
 import gym
-from pgdrive.envs.multi_agent_pgdrive import pygame_replay
+from pgdrive.envs.multi_agent_pgdrive import pygame_replay, panda_replay
 import numpy as np
 
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
@@ -391,5 +391,7 @@ if __name__ == "__main__":
     # _vis()
     # _vis_debug_respawn()
     # _profiwdle()
-    _long_run()
+    # _long_run()
     # pygame_replay("round", MultiAgentRoundaboutEnv)
+    panda_replay("parking", MultiAgentRoundaboutEnv, False, other_traj="metasvodist_round.json",
+                 extra_config=dict(debug=True,pg_world_config=dict(global_light=True)))
