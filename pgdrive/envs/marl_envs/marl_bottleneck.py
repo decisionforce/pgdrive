@@ -262,8 +262,8 @@ def _vis():
                 },
                 "show_lidar": False,
             },
-            "fast": True,
-            "use_render": True,
+            # "fast": True,
+            # "use_render": True,
             # "debug": True,
             "manual_control": True,
             "num_agents": 20,
@@ -273,23 +273,26 @@ def _vis():
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [1.0, .0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [0.0, 1.0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
         # d.update({"total_r": total_r, "episode length": ep_s})
-        render_text = {
-            "total_r": total_r,
-            "episode length": ep_s,
-            "cam_x": env.main_camera.camera_x,
-            "cam_y": env.main_camera.camera_y,
-            "cam_z": env.main_camera.top_down_camera_height
-        }
-        track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
-        render_text["tack_v_reward"] = r[track_v]
-        render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
-        render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
-        env.render(text=render_text)
+        # render_text = {
+        #     "total_r": total_r,
+        #     "episode length": ep_s,
+        #     "cam_x": env.main_camera.camera_x,
+        #     "cam_y": env.main_camera.camera_y,
+        #     "cam_z": env.main_camera.top_down_camera_height
+        # }
+        # track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
+        # render_text["tack_v_reward"] = r[track_v]
+        # render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
+        # render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
+        # env.render(text=render_text)
+
+        env.render(mode="top_down", road_color=(35, 35, 35), show_agent_name=True)
+
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
@@ -385,8 +388,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _vis_debug_respawn()
     # _profile()
     # _long_run()
-    pygame_replay("bottle")
+    # pygame_replay("bottle")

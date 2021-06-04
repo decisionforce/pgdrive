@@ -4,15 +4,14 @@ from typing import Optional, Union, Iterable
 import cv2
 import numpy as np
 
-from pgdrive.constants import Decoration
+from pgdrive.constants import Decoration, TARGET_VEHICLES
 from pgdrive.obs.top_down_obs_impl import WorldSurface, VehicleGraphics, LaneGraphics
 from pgdrive.utils.utils import import_pygame
 
 pygame = import_pygame()
-from pgdrive.constants import TARGET_VEHICLES
 
 color_white = (255, 255, 255)
-history_vehicle = namedtuple("history_vehicle", "position heading_theta WIDTH LENGTH color done")
+history_vehicle = namedtuple("history_vehicle", "name position heading_theta WIDTH LENGTH color done")
 
 
 def draw_top_down_map(
@@ -22,7 +21,7 @@ def draw_top_down_map(
     return_surface=False,
     film_size=None,
     reverse_color=False,
-    color=color_white
+    road_color=color_white
 ) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
@@ -115,6 +114,7 @@ def draw_top_down_trajectory(
 class TopDownRenderer:
     def __init__(
         self,
+        env,
         map,
         film_size=None,
         screen_size=None,
@@ -122,9 +122,16 @@ class TopDownRenderer:
         zoomin=None,
         num_stack=5,
         history_smooth=0,
-        color=(255, 255, 255)
+        road_color=(255, 255, 255),
+        show_agent_name=False
     ):
+        self.show_agent_name = show_agent_name
+        if show_agent_name:
+            pygame.init()
+            self.pygame_font = pygame.font.SysFont(None, 15)
+
         film_size = film_size or (1000, 1000)
+        self._env = env
         self._zoomin = zoomin or 1.0
         self._screen_size = screen_size
         self._map = map
@@ -133,7 +140,7 @@ class TopDownRenderer:
         self.history_smooth = history_smooth
 
         self._background = draw_top_down_map(
-            map, simple_draw=False, return_surface=True, film_size=film_size, color=color
+            map, simple_draw=False, return_surface=True, film_size=film_size, road_color=road_color
         )
         self._film_size = self._background.get_size()
 
@@ -191,6 +198,7 @@ class TopDownRenderer:
             )
             frame_vehicles.append(
                 history_vehicle(
+                    name=self._env.agent_manager.object_to_agent(v.name),
                     heading_theta=v.heading_theta,
                     WIDTH=v.WIDTH,
                     LENGTH=v.LENGTH,
@@ -200,12 +208,12 @@ class TopDownRenderer:
             )
         return frame_vehicles
 
-    @staticmethod
-    def _append_frame_vehicles(vehicles):
+    def _append_frame_vehicles(self, vehicles):
         frame_vehicles = []
         for i, v in enumerate(vehicles, 1):
             frame_vehicles.append(
                 history_vehicle(
+                    name=self._env.agent_manager.object_to_agent(v.name),
                     heading_theta=v.heading_theta,
                     WIDTH=v.WIDTH,
                     LENGTH=v.LENGTH,
@@ -259,6 +267,11 @@ class TopDownRenderer:
                     self._runtime, (255, 0, 0), self._runtime.pos2pix(v.position[0], v.position[1]),
                     self._runtime.pix(v.WIDTH)
                 )
+
+        if self.show_agent_name:
+            for v in self.history_vehicles[i]:
+                img = self.pygame_font.render(v.name, True, pygame.color.Color("black"))
+                self._runtime.blit(img, self._runtime.pos2pix(v.position[0] - 3, v.position[1] - 2.5))
 
 
 class PheromoneRenderer(TopDownRenderer):

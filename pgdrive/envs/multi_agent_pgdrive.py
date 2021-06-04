@@ -291,7 +291,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def _render_topdown(self, *args, **kwargs):
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import TopDownRenderer
-            self._top_down_renderer = TopDownRenderer(self.current_map, *args, **kwargs)
+            self._top_down_renderer = TopDownRenderer(self, self.current_map, *args, **kwargs)
         return self._top_down_renderer.render(list(self.vehicles.values()))
 
     def close_and_reset_num_agents(self, num_agents):
