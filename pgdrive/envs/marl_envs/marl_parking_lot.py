@@ -2,7 +2,7 @@ import copy
 import logging
 
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
-from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive, pygame_replay
+from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive, pygame_replay, panda_replay
 from pgdrive.obs import ObservationType
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
@@ -546,4 +546,5 @@ if __name__ == "__main__":
     # _vis_debug_respawn()
     _profile()
     # _long_run()
-    pygame_replay("parking", MultiAgentParkingLotEnv, True, other_ckpt="metasvodist_parking_3.json")
+    # pygame_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json")
+    panda_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json", extra_config={"prefer_track_agent":"agent0"})

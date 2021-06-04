@@ -42,6 +42,7 @@ BASE_DEFAULT_CONFIG = dict(
     use_chase_camera=True,
     use_chase_camera_follow_lane=False,  # If true, then vision would be more stable.
     camera_height=1.8,
+    prefer_track_agent=None,
 
     # ===== Vehicle =====
     vehicle_config=dict(
