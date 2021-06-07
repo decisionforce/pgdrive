@@ -358,5 +358,12 @@ if __name__ == "__main__":
     # _long_run()
     # show_map_and_traj()
     # pygame_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json")
-    panda_replay("parking", MultiAgentIntersectionEnv, False, other_traj="metasvodist_inter.json",
-                 extra_config={"pg_world_config": {"global_light": True}})
+    panda_replay(
+        "parking",
+        MultiAgentIntersectionEnv,
+        False,
+        other_traj="metasvodist_inter.json",
+        extra_config={"pg_world_config": {
+            "global_light": True
+        }}
+    )

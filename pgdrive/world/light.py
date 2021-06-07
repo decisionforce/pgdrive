@@ -9,7 +9,6 @@ class Light(DynamicElement):
     """
     It is dynamic element since it will follow the camera
     """
-
     def __init__(self, config: PGConfig):
         super(Light, self).__init__()
         self.global_light = config["global_light"]

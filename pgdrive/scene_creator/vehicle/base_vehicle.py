@@ -551,9 +551,13 @@ class BaseVehicle(DynamicElement):
             self.MODEL.instanceTo(self.chassis_np)
             if self.vehicle_config["random_color"]:
                 material = Material()
-                material.setBaseColor((self.panda_color[0] * self.MATERIAL_COLOR_COEFF,
-                                       self.panda_color[1] * self.MATERIAL_COLOR_COEFF,
-                                       self.panda_color[2] * self.MATERIAL_COLOR_COEFF, 0.2))
+                material.setBaseColor(
+                    (
+                        self.panda_color[0] * self.MATERIAL_COLOR_COEFF,
+                        self.panda_color[1] * self.MATERIAL_COLOR_COEFF,
+                        self.panda_color[2] * self.MATERIAL_COLOR_COEFF, 0.2
+                    )
+                )
                 material.setMetallic(self.MATERIAL_METAL_COEFF)
                 material.setSpecular(self.MATERIAL_SPECULAR_COLOR)
                 material.setRefractiveIndex(1.5)

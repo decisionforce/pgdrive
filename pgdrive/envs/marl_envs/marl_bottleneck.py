@@ -291,7 +291,13 @@ def _vis():
         # render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
         # env.render(text=render_text)
 
-        env.render(mode="top_down", road_color=(35, 35, 35), show_agent_name=True, film_size=(2000, 2000), screen_size=(1000, 1000))
+        env.render(
+            mode="top_down",
+            road_color=(35, 35, 35),
+            show_agent_name=True,
+            film_size=(2000, 2000),
+            screen_size=(1000, 1000)
+        )
 
         if d["__all__"]:
             print(

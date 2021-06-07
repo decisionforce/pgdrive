@@ -14,13 +14,13 @@ history_vehicle = namedtuple("history_vehicle", "name position heading_theta WID
 
 
 def draw_top_down_map(
-        map,
-        resolution: Iterable = (512, 512),
-        simple_draw=True,
-        return_surface=False,
-        film_size=None,
-        reverse_color=False,
-        road_color=color_white
+    map,
+    resolution: Iterable = (512, 512),
+    simple_draw=True,
+    return_surface=False,
+    film_size=None,
+    reverse_color=False,
+    road_color=color_white
 ) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
@@ -53,7 +53,7 @@ def draw_top_down_map(
 
 
 def draw_top_down_trajectory(
-        surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
+    surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
 ):
     if entry_differ_color or exit_differ_color:
         assert color_list is not None
@@ -112,18 +112,18 @@ def draw_top_down_trajectory(
 
 class TopDownRenderer:
     def __init__(
-            self,
-            env,
-            map,
-            film_size=None,
-            screen_size=None,
-            light_background=True,
-            zoomin=None,
-            num_stack=15,
-            history_smooth=0,
-            road_color=(255, 255, 255),
-            show_agent_name=False,
-            track=False
+        self,
+        env,
+        map,
+        film_size=None,
+        screen_size=None,
+        light_background=True,
+        zoomin=None,
+        num_stack=15,
+        history_smooth=0,
+        road_color=(255, 255, 255),
+        show_agent_name=False,
+        track=False
     ):
         self.follow_agent = track
         self.show_agent_name = show_agent_name
@@ -148,7 +148,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2 ** 32 - 1
+            pixels ^= 2**32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -295,12 +295,7 @@ class TopDownRenderer:
             field = self.canvas.get_width()
             position = self._runtime.pos2pix(*v.position)
             off = (position[0] - field / 2, position[1] - field / 2)
-            self.canvas.blit(
-                canvas, (0, 0), (
-                    off[0], off[1],
-                    field, field
-                )
-            )
+            self.canvas.blit(canvas, (0, 0), (off[0], off[1], field, field))
         else:
             self.canvas.blit(self._runtime, (0, 0))
             off = (0, 0)
@@ -326,12 +321,10 @@ class TopDownRenderer:
                 self.pygame_font = pygame.font.SysFont("Arial.ttf", 30)
             for v in self.history_vehicles[i]:
                 position = self._runtime.pos2pix(*v.position)
-                new_position = (
-                    position[0] - off[0],
-                    position[1] - off[1]
-                )
+                new_position = (position[0] - off[0], position[1] - off[1])
                 img = self.pygame_font.render(
-                    v.name, True,
+                    v.name,
+                    True,
                     (0, 0, 0, 128),
                     # (0, 255, 0, 230)
                     # None
@@ -341,7 +334,7 @@ class TopDownRenderer:
                 # img.set_alpha(None)
                 self.canvas.blit(
                     img,
-                    (new_position[0] - img.get_width() / 2 , new_position[1] - img.get_height() / 2),
+                    (new_position[0] - img.get_width() / 2, new_position[1] - img.get_height() / 2),
                     # special_flags=pygame.BLEND_RGBA_MULT
                 )
 
@@ -375,7 +368,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)

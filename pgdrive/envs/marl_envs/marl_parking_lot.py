@@ -36,7 +36,6 @@ class ParkingSpaceManager:
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
-
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
@@ -388,7 +387,7 @@ def _vis():
             },
             "pg_world_config": {
                 "debug_static_world": True,
-                "global_light":True
+                "global_light": True
             },
             "fast": True,
             "use_render": True,
@@ -549,5 +548,12 @@ if __name__ == "__main__":
     # _profile()
     # _long_run()
     # pygame_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json")
-    panda_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json",
-                 extra_config={"pg_world_config": {"global_light": True}})
+    panda_replay(
+        "parking",
+        MultiAgentParkingLotEnv,
+        False,
+        other_traj="metasvodist_parking_best.json",
+        extra_config={"pg_world_config": {
+            "global_light": True
+        }}
+    )

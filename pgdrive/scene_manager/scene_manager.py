@@ -20,12 +20,12 @@ class SceneManager:
     STOP_REPLAY = False
 
     def __init__(
-            self,
-            pg_world: PGWorld,
-            traffic_config: Union[Dict, "PGConfig"],
-            record_episode: bool,
-            cull_scene: bool,
-            agent_manager: "AgentManager",
+        self,
+        pg_world: PGWorld,
+        traffic_config: Union[Dict, "PGConfig"],
+        record_episode: bool,
+        cull_scene: bool,
+        agent_manager: "AgentManager",
     ):
         """
         :param traffic_mode: respawn/trigger mode

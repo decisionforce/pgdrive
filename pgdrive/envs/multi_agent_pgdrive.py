@@ -29,7 +29,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     horizon=1000,
 
     # ===== Vehicle Setting =====
-    vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0),random_color=True),
+    vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0), random_color=True),
     target_vehicle_configs=dict(),
 
     # ===== New Reward Setting =====
