@@ -29,7 +29,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     horizon=1000,
 
     # ===== Vehicle Setting =====
-    vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0)),
+    vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0),random_color=True),
     target_vehicle_configs=dict(),
 
     # ===== New Reward Setting =====
@@ -396,6 +396,7 @@ def panda_replay(name, env_class, save=False, other_traj=None, extra_config={}):
     with open(ckpt, "r") as f:
         traj = json.load(f)
     o = env.reset(copy.deepcopy(traj))
+    env.main_camera.set_follow_lane(True)
     frame_count = 0
     while True:
         o, r, d, i = env.step(env.action_space.sample())

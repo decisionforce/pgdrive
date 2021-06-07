@@ -549,17 +549,18 @@ class BaseVehicle(DynamicElement):
                 self.MODEL.setH(para[Parameter.vehicle_vis_h])
                 self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
             self.MODEL.instanceTo(self.chassis_np)
-            material = Material()
-            material.setBaseColor((self.panda_color[0] * self.MATERIAL_COLOR_COEFF,
-                                   self.panda_color[1] * self.MATERIAL_COLOR_COEFF,
-                                   self.panda_color[2] * self.MATERIAL_COLOR_COEFF, 0.2))
-            material.setMetallic(self.MATERIAL_METAL_COEFF)
-            material.setSpecular(self.MATERIAL_SPECULAR_COLOR)
-            material.setRefractiveIndex(1.5)
-            material.setRoughness(self.MATERIAL_ROUGHNESS)
-            material.setShininess(self.MATERIAL_SHININESS)
-            material.setTwoside(False)
-            self.chassis_np.setMaterial(material, True)
+            if self.vehicle_config["random_color"]:
+                material = Material()
+                material.setBaseColor((self.panda_color[0] * self.MATERIAL_COLOR_COEFF,
+                                       self.panda_color[1] * self.MATERIAL_COLOR_COEFF,
+                                       self.panda_color[2] * self.MATERIAL_COLOR_COEFF, 0.2))
+                material.setMetallic(self.MATERIAL_METAL_COEFF)
+                material.setSpecular(self.MATERIAL_SPECULAR_COLOR)
+                material.setRefractiveIndex(1.5)
+                material.setRoughness(self.MATERIAL_ROUGHNESS)
+                material.setShininess(self.MATERIAL_SHININESS)
+                material.setTwoside(False)
+                self.chassis_np.setMaterial(material, True)
 
     def _create_wheel(self):
         para = self.get_config()
