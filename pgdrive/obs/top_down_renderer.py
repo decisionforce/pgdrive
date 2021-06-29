@@ -252,6 +252,7 @@ class TopDownRenderer:
                 contour_width=2
             )
 
+
 class PheromoneRenderer(TopDownRenderer):
     def __init__(self, map, film_size=(2000, 2000), screen_size=(1000, 1000), zoomin=1.3, draw_vehicle_first=False):
         super(PheromoneRenderer, self).__init__(
