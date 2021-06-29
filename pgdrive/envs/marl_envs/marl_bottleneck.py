@@ -1,4 +1,5 @@
 from pgdrive.envs.multi_agent_pgdrive import pygame_replay
+from pgdrive.utils.math_utils import clip
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs import ObservationType
@@ -262,43 +263,34 @@ def _vis():
                 },
                 "show_lidar": False,
             },
-            # "fast": True,
-            # "use_render": True,
+            "fast": True,
+            "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 1,
+            "num_agents": 20,
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [-0.01, 1.0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [1.0, .0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
         # d.update({"total_r": total_r, "episode length": ep_s})
-        # render_text = {
-        #     "total_r": total_r,
-        #     "episode length": ep_s,
-        #     "cam_x": env.main_camera.camera_x,
-        #     "cam_y": env.main_camera.camera_y,
-        #     "cam_z": env.main_camera.top_down_camera_height
-        # }
-        # track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
-        # render_text["tack_v_reward"] = r[track_v]
-        # render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
-        # render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
-        # env.render(text=render_text)
-
-        env.render(
-            mode="top_down",
-            road_color=(35, 35, 35),
-            show_agent_name=True,
-            film_size=(2000, 2000),
-            screen_size=(1000, 1000)
-        )
-
+        render_text = {
+            "total_r": total_r,
+            "episode length": ep_s,
+            "cam_x": env.main_camera.camera_x,
+            "cam_y": env.main_camera.camera_y,
+            "cam_z": env.main_camera.top_down_camera_height
+        }
+        track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
+        render_text["tack_v_reward"] = r[track_v]
+        render_text["dist_to_right"] = env.current_track_vehicle.dist_to_right_side
+        render_text["dist_to_left"] = env.current_track_vehicle.dist_to_left_side
+        env.render(text=render_text)
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(

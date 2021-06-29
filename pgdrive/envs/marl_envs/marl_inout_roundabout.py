@@ -270,30 +270,26 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 4,
-            # "pg_world_config": {"global_light": True}
+            "num_agents": 40,
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [0, 1.0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [1.0, 1.0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
         # d.update({"total_r": total_r, "episode length": ep_s})
-        # render_text = {
-        #     "total_r": total_r,
-        #     "episode length": ep_s,
-        #     "cam_x": env.main_camera.camera_x,
-        #     "cam_y": env.main_camera.camera_y,
-        #     "cam_z": env.main_camera.top_down_camera_height
-        # }
-        # env.render(text=render_text)
-
-        # env.render(mode="top_down", road_color=(35, 35, 35), show_agent_name=True, film_size=(2000, 2000), screen_size=(2000, 2000))
-
+        render_text = {
+            "total_r": total_r,
+            "episode length": ep_s,
+            "cam_x": env.main_camera.camera_x,
+            "cam_y": env.main_camera.camera_y,
+            "cam_z": env.main_camera.top_down_camera_height
+        }
+        env.render(text=render_text)
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
@@ -310,7 +306,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentRoundaboutEnv({"num_agents": 40})
+    env = MultiAgentRoundaboutEnv({"num_agents": 16})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -336,11 +332,14 @@ def _long_run():
     _out_of_road_penalty = 3
     env = MultiAgentRoundaboutEnv(
         {
-            "num_agents": 32,
+            "num_agents": 40,
             "vehicle_config": {
                 "lidar": {
                     "num_others": 8
-                }
+                },
+            },
+            "pg_world_config": {
+                "pstats": True
             },
             **dict(
                 out_of_road_penalty=_out_of_road_penalty,
@@ -389,7 +388,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
     # _profiwdle()
-    # _long_run()
+    _long_run()
+    # pygame_replay("round", MultiAgentRoundaboutEnv)

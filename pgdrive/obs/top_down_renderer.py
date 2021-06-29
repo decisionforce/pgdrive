@@ -207,28 +207,27 @@ class TopDownRenderer:
             name = agent_manager.object_to_agent(v.name)
             frame_vehicles.append(
                 history_vehicle(
-                    name=self._env.agent_manager.object_to_agent(v.name),
-                    heading_theta=v.heading_theta,
-                    WIDTH=v.WIDTH,
-                    LENGTH=v.LENGTH,
-                    position=v.position,
-                    done=v.replay_done,
-                    color=v.top_down_color
-                )
-            )
-
-    def _append_frame_vehicles(self, vehicles):
-        frame_vehicles = []
-        for i, v in enumerate(vehicles, 1):
-            frame_vehicles.append(
-                history_vehicle(
-                    name=self._env.agent_manager.object_to_agent(v.name),
+                    name=name,
                     heading_theta=v.heading_theta,
                     WIDTH=v.WIDTH,
                     LENGTH=v.LENGTH,
                     position=v.position,
                     color=v.top_down_color,
-                    done=v.replay_done
+                    done=False
+                )
+            )
+
+        for (v, _) in agent_manager._dying_objects.values():
+            name = agent_manager.object_to_agent(v.name)
+            frame_vehicles.append(
+                history_vehicle(
+                    name=name,
+                    heading_theta=v.heading_theta,
+                    WIDTH=v.WIDTH,
+                    LENGTH=v.LENGTH,
+                    position=v.position,
+                    color=v.top_down_color,
+                    done=True
                 )
             )
         return frame_vehicles
