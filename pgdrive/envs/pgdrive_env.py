@@ -189,7 +189,8 @@ class PGDriveEnv(BasePGDriveEnv):
 
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
-            self.main_camera = ChaseCamera(self.pg_world.cam, self.config["camera_height"], self.config["camera_dist"], self.pg_world)
+            self.main_camera = ChaseCamera(self.pg_world.cam, self.config["camera_height"], self.config["camera_dist"],
+                                           self.pg_world)
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.track(self.current_track_vehicle, self.pg_world)
             self.pg_world.accept("b", self.bird_view_camera)
@@ -625,6 +626,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
