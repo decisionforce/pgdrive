@@ -202,7 +202,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             ret[self.config["prefer_track_agent"]]["am_i_the_special_one"] = True
         return ret
 
-
     def _get_observations(self):
         return {
             name: self.get_single_observation(self._get_single_vehicle_config(new_config))

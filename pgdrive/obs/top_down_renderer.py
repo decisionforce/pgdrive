@@ -203,7 +203,6 @@ class TopDownRenderer:
         # for i, v in enumerate(vehicles, 1):
         #     name = self._env.agent_manager.object_to_agent(v.name)
 
-
         for v in agent_manager._active_objects.values():
             name = agent_manager.object_to_agent(v.name)
             frame_vehicles.append(
@@ -278,7 +277,9 @@ class TopDownRenderer:
 
         for v in self._deads:
             pygame.draw.circle(
-                self._runtime, (255, 0, 0), self._runtime.pos2pix(v.position[0], v.position[1]),
+                self._runtime,
+                (255, 0, 0),
+                self._runtime.pos2pix(v.position[0], v.position[1]),
                 # self._runtime.pix(v.WIDTH)
                 5
             )
@@ -286,12 +287,13 @@ class TopDownRenderer:
         for v in self.history_vehicles[i]:
             if v.done:
                 pygame.draw.circle(
-                    self._runtime, (255, 0, 0), self._runtime.pos2pix(v.position[0], v.position[1]),
+                    self._runtime,
+                    (255, 0, 0),
+                    self._runtime.pos2pix(v.position[0], v.position[1]),
                     # self._runtime.pix(v.WIDTH)
                     5
                 )
                 self._deads.append(v)
-
 
         # Tracking Vehicle
         # heading = 30

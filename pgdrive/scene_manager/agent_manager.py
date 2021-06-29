@@ -61,10 +61,8 @@ class AgentManager:
 
     def _get_vehicles(self, config_dict):
         ret = {
-            key: BaseVehicle(
-                self._pg_world, v_config,
-                am_i_the_special_one=v_config.get("am_i_the_special_one", False)
-            )
+            key:
+            BaseVehicle(self._pg_world, v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))
             for key, v_config in config_dict.items()
         }
         return ret

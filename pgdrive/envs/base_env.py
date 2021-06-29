@@ -56,7 +56,6 @@ BASE_DEFAULT_CONFIG = dict(
         random_navi_mark_color=False,
         show_dest_mark=False,
         show_line_to_dest=False,
-
         am_i_the_special_one=False
     ),
 
