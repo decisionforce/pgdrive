@@ -126,7 +126,7 @@ class TopDownRenderer:
         light_background=True,
         zoomin=None,
         road_color=(35, 35, 35),
-        num_stack=5,
+        num_stack=15,
         history_smooth=0
     ):
         film_size = film_size or (1000, 1000)
@@ -235,7 +235,8 @@ class TopDownRenderer:
                     draw_countour=False
                 )
 
-        i = int(len(self.history_vehicles) / 2)
+        # i = int(len(self.history_vehicles) / 2)
+        i = -1
         for v in self.history_vehicles[i]:
             h = v.heading_theta
             c = v.color
