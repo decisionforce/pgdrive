@@ -125,7 +125,7 @@ class TopDownRenderer:
         screen_size=None,
         light_background=True,
         zoomin=None,
-        color=(255, 255, 255),
+        road_color=(35, 35, 35),
         num_stack=5,
         history_smooth=0
     ):
@@ -138,7 +138,7 @@ class TopDownRenderer:
         self.history_smooth = history_smooth
 
         self._background = draw_top_down_map(
-            map, simple_draw=False, return_surface=True, film_size=film_size, color=color
+            map, simple_draw=False, return_surface=True, film_size=film_size, color=road_color
         )
         self._film_size = self._background.get_size()
 
