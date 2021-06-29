@@ -216,7 +216,7 @@ def _vis():
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        actions = {k: [0, 1.0] for k in env.vehicles.keys()}
+        actions = {k: [0.0, 1.0] for k in env.vehicles.keys()}
         if len(env.vehicles) == 1:
             actions = {k: [-0, 1.0] for k in env.vehicles.keys()}
         o, r, d, info = env.step(actions)
@@ -352,18 +352,19 @@ def show_map_and_traj():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _vis_debug_respawn()
     # _profiwdle()
     # _long_run()
     # show_map_and_traj()
     # pygame_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json")
-    panda_replay(
-        "parking",
-        MultiAgentIntersectionEnv,
-        False,
-        other_traj="metasvodist_inter.json",
-        extra_config={"pg_world_config": {
-            "global_light": True
-        }}
-    )
+    # panda_replay(
+    #     "parking",
+    #     MultiAgentIntersectionEnv,
+    #     False,
+    #     other_traj="metasvodist_inter.json",
+    #     extra_config={"pg_world_config": {
+    #         "global_light": True
+    #     }}
+    # )
+    # pygame_replay()

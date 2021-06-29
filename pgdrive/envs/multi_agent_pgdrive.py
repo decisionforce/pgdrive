@@ -194,10 +194,13 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             self.chase_another_v()
 
     def _get_target_vehicle_config(self):
-        return {
+        ret = {
             name: self._get_single_vehicle_config(new_config)
             for name, new_config in self.config["target_vehicle_configs"].items()
         }
+        if "prefer_track_agent" in self.config and self.config["prefer_track_agent"]:
+            ret[self.config["prefer_track_agent"]]["am_i_the_special_one"] = True
+        return ret
 
     def _get_observations(self):
         return {
@@ -289,10 +292,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return ret
 
     def _render_topdown(self, *args, **kwargs):
+        # dones = kwargs.pop("dones")
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import TopDownRenderer
             self._top_down_renderer = TopDownRenderer(self, self.current_map, *args, **kwargs)
-        return self._top_down_renderer.render(list(self.vehicles.values()))
+        return self._top_down_renderer.render(list(self.vehicles.values()), self.agent_manager)
 
     def close_and_reset_num_agents(self, num_agents):
         config = copy.deepcopy(self._raw_input_config)
@@ -374,6 +378,7 @@ def pygame_replay(name, env_class, save=False, other_traj=None, film_size=(1000,
     with open(ckpt, "r") as f:
         traj = json.load(f)
     o = env.reset(copy.deepcopy(traj))
+    env.main_camera.set_follow_lane(True)
     frame_count = 0
     while True:
         o, r, d, i = env.step(env.action_space.sample())

@@ -545,7 +545,7 @@ if __name__ == "__main__":
     # _draw()
     _vis()
     # _vis_debug_respawn()
-    # _profile()
+    _profile()
     # _long_run()
     # pygame_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json")
     panda_replay(

@@ -176,9 +176,9 @@ class TopDownRenderer:
         self._runtime.blit(self._background, (0, 0))
         self.canvas.fill((255, 255, 255))
 
-    def render(self, vehicles, *args, **kwargs):
+    def render(self, vehicles, agent_manager, *args, **kwargs):
         self.refresh()
-        this_frame_vehicles = self._append_frame_vehicles(vehicles)
+        this_frame_vehicles = self._append_frame_vehicles(vehicles, agent_manager)
         self.history_vehicles.append(this_frame_vehicles)
         self._draw_history_vehicles()
         self.blit()
@@ -198,15 +198,13 @@ class TopDownRenderer:
 
         pygame.display.update()
 
-    def _draw_vehicles(self, vehicles):
+    def _append_frame_vehicles(self, vehicles, agent_manager):
         frame_vehicles = []
-        for i, v in enumerate(vehicles, 1):
-            h = v.heading_theta
-            h = h if abs(h) > 2 * np.pi / 180 else 0
+        # for i, v in enumerate(vehicles, 1):
+        #     name = self._env.agent_manager.object_to_agent(v.name)
 
-            VehicleGraphics.display(
-                vehicle=v, surface=self._runtime, heading=h, color=VehicleGraphics.BLUE, draw_countour=True
-            )
+        for v in agent_manager._active_objects.values():
+            name = agent_manager.object_to_agent(v.name)
             frame_vehicles.append(
                 history_vehicle(
                     name=self._env.agent_manager.object_to_agent(v.name),
@@ -218,7 +216,6 @@ class TopDownRenderer:
                     color=v.top_down_color
                 )
             )
-        return frame_vehicles
 
     def _append_frame_vehicles(self, vehicles):
         frame_vehicles = []
@@ -276,12 +273,28 @@ class TopDownRenderer:
                 contour_width=2
             )
 
+        if not hasattr(self, "_deads"):
+            self._deads = []
+
+        for v in self._deads:
+            pygame.draw.circle(
+                self._runtime,
+                (255, 0, 0),
+                self._runtime.pos2pix(v.position[0], v.position[1]),
+                # self._runtime.pix(v.WIDTH)
+                5
+            )
+
         for v in self.history_vehicles[i]:
             if v.done:
                 pygame.draw.circle(
-                    self._runtime, (255, 0, 0), self._runtime.pos2pix(v.position[0], v.position[1]),
-                    self._runtime.pix(v.WIDTH)
+                    self._runtime,
+                    (255, 0, 0),
+                    self._runtime.pos2pix(v.position[0], v.position[1]),
+                    # self._runtime.pix(v.WIDTH)
+                    5
                 )
+                self._deads.append(v)
 
         # Tracking Vehicle
         # heading = 30

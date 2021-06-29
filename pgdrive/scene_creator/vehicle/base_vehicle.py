@@ -69,6 +69,7 @@ class BaseVehicle(DynamicElement):
         physics_config: dict = None,
         random_seed: int = 0,
         name: str = None,
+        am_i_the_special_one=False
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -156,6 +157,8 @@ class BaseVehicle(DynamicElement):
         color = sns.color_palette("colorblind")
         idx = get_np_random().randint(len(color))
         rand_c = color[idx]
+        if am_i_the_special_one:
+            rand_c = color[2]  # A pretty green
         self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
 
     def _add_modules_for_vehicle(self, use_render: bool):
@@ -889,4 +892,8 @@ class BaseVehicle(DynamicElement):
 
     @property
     def replay_done(self):
-        return self._replay_done if hasattr(self, "_replay_done") else False
+        return self._replay_done if hasattr(self, "_replay_done") else (
+            self.crash_building or self.crash_vehicle or
+            # self.on_white_continuous_line or
+            self.on_yellow_continuous_line
+        )
