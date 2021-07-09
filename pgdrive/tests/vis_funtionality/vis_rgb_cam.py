@@ -8,7 +8,7 @@ class TestEnv(PGDriveEnv):
                 "environment_num": 1,
                 "traffic_density": 0.1,
                 "start_seed": 4,
-                "image_source": "rgb_cam",
+                # "image_source": "rgb_cam",
                 "manual_control": True,
                 "use_render": True,
                 "use_image": True,
@@ -24,7 +24,7 @@ class TestEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = TestEnv()
     env.reset()
-    env.pg_world.accept("m", env.vehicle.image_sensors[env.config["image_source"]].save_image)
+    env.pg_world.accept("m", env.vehicle.image_sensors[env.vehicle.vehicle_config["image_source"]].save_image)
 
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
