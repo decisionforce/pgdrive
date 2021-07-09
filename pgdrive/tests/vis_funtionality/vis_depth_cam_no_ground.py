@@ -13,7 +13,7 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "use_image": True,
                 "rgb_clip": True,
-                "vehicle_config": dict(depth_cam=(200, 88, False),image_source="depth_cam"),
+                "vehicle_config": dict(depth_cam=(200, 88, False), image_source="depth_cam"),
                 "pg_world_config": {
                     "headless_image": False,
                 },
