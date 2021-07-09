@@ -12,9 +12,6 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "use_image": True,  # it is a switch telling pgdrive to use rgb as observation
                 "rgb_clip": True,  # clip rgb to range(0,1) instead of (0, 255)
-                "pg_world_config": {
-                    "headless_image": False
-                }
             }
         )
 
