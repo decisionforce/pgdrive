@@ -5,6 +5,8 @@ def initialize_pgdrive_engine(config, agent_manager):
     cls = PGDriveEngine
     if cls.singleton is None:
         cls.singleton = cls(config, agent_manager)
+    else:
+        raise PermissionError("There should be only one PGDriveEngine instance in one process")
 
 
 def get_pgdrive_engine():

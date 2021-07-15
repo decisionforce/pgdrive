@@ -67,7 +67,7 @@ if __name__ == "__main__":
                 "out_of_route": env.vehicle.out_of_route
             }
         )
-        # if d:
-        #     print("Reset")
-        #     env.reset()
+        if d:
+            print("Reset")
+            env.reset()
     env.close()

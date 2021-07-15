@@ -14,7 +14,8 @@ from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
 
 from pgdrive.utils import PGConfig, merge_dicts
-from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine
+from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
+    pgdrive_engine_initialized
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -178,7 +179,9 @@ class BasePGDriveEnv(gym.Env):
         Only init once in runtime, variable here exists till the close_env is called
         :return: None
         """
-        # It is the true init() func to create the main vehicle and its module
+        # It is the true init() func to create the main vehicle and its module, to avoid incompatible with ray
+        if pgdrive_engine_initialized():
+            return
         initialize_pgdrive_engine(self.config, self.agent_manager)
         self.pgdrive_engine = get_pgdrive_engine()
 
