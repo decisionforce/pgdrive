@@ -1,5 +1,5 @@
 import time
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+
 from pgdrive.constants import RENDER_MODE_ONSCREEN
 
 
@@ -7,8 +7,8 @@ class ForceFPS:
     UNLIMITED = "UnlimitedFPS"
     FORCED = "ForceFPS"
 
-    def __init__(self, start=False):
-        self.engine = get_pgdrive_engine()
+    def __init__(self, engine, start=False):
+        self.engine = engine
         fps = 1 / self.engine.world_config["physics_world_step_size"]
         self.init_fps = fps
         if start:

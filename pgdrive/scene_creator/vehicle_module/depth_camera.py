@@ -1,8 +1,6 @@
 from panda3d.core import Vec3, NodePath, Shader, RenderState, ShaderAttrib, BitMask32, GeoMipTerrain
-from pgdrive.utils.engine_utils import get_pgdrive_engine
 
 from pgdrive.constants import CamMask
-from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.engine.world.image_buffer import ImageBuffer
 
@@ -43,6 +41,7 @@ class DepthCamera(ImageBuffer):
             vert_path = AssetLoader.file_path("shaders", "depth_cam_gles.vert.glsl")
             frag_path = AssetLoader.file_path("shaders", "depth_cam_gles.frag.glsl")
         else:
+            from pgdrive.utils import is_mac
             if is_mac():
                 vert_path = AssetLoader.file_path("shaders", "depth_cam_mac.vert.glsl")
                 frag_path = AssetLoader.file_path("shaders", "depth_cam_mac.frag.glsl")
@@ -74,5 +73,4 @@ class DepthCamera(ImageBuffer):
 
     def destroy(self):
         super(DepthCamera, self).destroy()
-        engine = get_pgdrive_engine()
-        engine.taskMgr.remove(self.TASK_NAME)
+        self.pgdrive_engine.taskMgr.remove(self.TASK_NAME)

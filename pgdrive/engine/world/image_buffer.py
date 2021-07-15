@@ -1,10 +1,9 @@
 import logging
-from pgdrive.utils.engine_utils import get_pgdrive_engine
 from typing import Union, List
 
 import numpy as np
 from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
-from pgdrive.constants import RENDER_MODE_ONSCREEN
+from pgdrive.constants import RENDER_MODE_ONSCREEN, BKG_COLOR
 
 
 class ImageBuffer:
@@ -12,7 +11,7 @@ class ImageBuffer:
     CAM_MASK = None
     BUFFER_W = 84  # left to right
     BUFFER_H = 84  # bottom to top
-    BKG_COLOR = Vec3(179 / 255, 211 / 255, 216 / 255)
+    BKG_COLOR = BKG_COLOR
     display_bottom = 0.8
     display_top = 1
     display_region = None
@@ -27,6 +26,7 @@ class ImageBuffer:
         parent_node: NodePath,
         frame_buffer_property=None,
     ):
+        from pgdrive.utils.engine_utils import get_pgdrive_engine
         self.pgdrive_engine = get_pgdrive_engine()
         try:
             assert self.pgdrive_engine.win is not None, "{} cannot be made without use_render or use_image".format(

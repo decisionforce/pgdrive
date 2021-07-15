@@ -1,5 +1,5 @@
 import math
-from pgdrive.engine.pgdrive_engine import PGDriveEngine
+from pgdrive.engine.world.pg_world import PGWorld
 from typing import List, TYPE_CHECKING, Tuple, Union
 from panda3d.bullet import BulletBoxShape
 from panda3d.core import TransformState
@@ -129,14 +129,14 @@ def get_all_lanes(roadnet: "RoadNetwork"):
 
 def ray_localization(heading: np.ndarray,
                      position: np.ndarray,
-                     pgdrive_engine: PGDriveEngine,
+                     pgdrive_engine: PGWorld,
                      return_all_result=False) -> Union[List[Tuple], Tuple]:
     """
     Get the index of the lane closest to a physx_world position.
     Only used when smoething is on lane ! Otherwise fall back to use get_closest_lane()
     :param heading: heading to help filter lanes
     :param position: a physx_world position [m].
-    :param pgdrive_engine: PGDriveEngine class
+    :param pgdrive_engine: PGWorld class
     :param return_all_result: return a list instead of the lane with min L1 distance
     :return: list(closest lane) or closest lane.
     """
@@ -171,7 +171,7 @@ def ray_localization(heading: np.ndarray,
 
 
 def rect_region_detection(
-        pgdrive_engine: PGDriveEngine,
+        pgdrive_engine: PGWorld,
         position: Tuple,
         heading: float,
         heading_direction_length: float,
@@ -191,7 +191,7 @@ def rect_region_detection(
 
      **CAUTION**: position is the middle point of longitude edge
 
-    :param pgdrive_engine: PGDriveEngine class
+    :param pgdrive_engine: PGWorld class
     :param position: position in PGDrive
     :param heading: heading in PGDrive [degree]
     :param heading_direction_length: rect length in heading direction

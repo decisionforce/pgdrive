@@ -1,5 +1,5 @@
 import logging
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+
 from typing import Dict
 
 from panda3d.bullet import BulletWorld
@@ -113,6 +113,7 @@ class Element:
         """
         Fully delete this element and release the memory
         """
+        from pgdrive.utils.engine_utils import get_pgdrive_engine
         engine = get_pgdrive_engine()
         self.detach_from_pg_world(engine.physics_world)
         self.node_path.removeNode()

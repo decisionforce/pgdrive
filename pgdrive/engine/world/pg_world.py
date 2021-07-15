@@ -7,17 +7,18 @@ from direct.gui.OnscreenImage import OnscreenImage
 from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode
 from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallbackObject
-from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask
-from pgdrive.utils import is_mac, setup_logger
+from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask, \
+    BKG_COLOR
+
 from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.engine.world.collision_callback import pg_collision_callback
 from pgdrive.engine.world.force_fps import ForceFPS
-from pgdrive.engine.world.image_buffer import ImageBuffer
 from pgdrive.engine.world.light import Light
 from pgdrive.engine.world.onscreen_message import PGOnScreenMessage
 from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
 from pgdrive.engine.world.sky_box import SkyBox
 from pgdrive.engine.world.terrain import Terrain
+from pgdrive.utils import is_mac, setup_logger
 
 
 def _suppress_warning():
@@ -218,7 +219,7 @@ class PGWorld(ShowBase.ShowBase):
             # set main cam
             self.cam.node().setCameraMask(CamMask.MainCam)
             self.cam.node().getDisplayRegion(0).setClearColorActive(True)
-            self.cam.node().getDisplayRegion(0).setClearColor(ImageBuffer.BKG_COLOR)
+            self.cam.node().getDisplayRegion(0).setClearColor(BKG_COLOR)
             lens = self.cam.node().getLens()
             lens.setFov(70)
             lens.setAspectRatio(1.2)

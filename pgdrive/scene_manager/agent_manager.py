@@ -4,7 +4,6 @@ from typing import Dict
 
 from gym.spaces import Box, Dict
 
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 
 
 class AgentManager:
@@ -60,6 +59,7 @@ class AgentManager:
         self._object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
 
     def _get_vehicles(self, config_dict):
+        from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
         ret = {
             key:
                 BaseVehicle(self._pg_world, v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))

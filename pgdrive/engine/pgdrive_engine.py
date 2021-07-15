@@ -1,17 +1,11 @@
 import logging
+from typing import List
 from typing import Optional, Dict, AnyStr, Union
 
-from typing import List
-
-from pgdrive.utils.math_utils import norm
 import numpy as np
 
-from pgdrive.scene_manager.agent_manager import AgentManager
-from pgdrive.scene_manager.object_manager import ObjectManager
-from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
-from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.utils import PGConfig
 from pgdrive.engine.world.pg_world import PGWorld
+from pgdrive.utils.math_utils import norm
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +39,7 @@ class PGDriveEngine(PGWorld):
             agent_manager: "AgentManager",
     ):
         # FIXME
+
         record_episode = pgdrive_config["record_episode"],
         cull_scene = pgdrive_config["cull_scene"],
         # scene manager control all movements in pg_world
@@ -61,9 +56,10 @@ class PGDriveEngine(PGWorld):
         self.map = None
 
         # for recovering, they can not exist together
+        # TODO new record/replay
         self.record_episode = record_episode
-        self.replay_system: Optional[PGReplayer] = None
-        self.record_system: Optional[PGRecorder] = None
+        self.replay_system = None
+        self.record_system = None
         self.accept("s", self._stop_replay)
 
         # cull scene
@@ -72,9 +68,11 @@ class PGDriveEngine(PGWorld):
 
     @staticmethod
     def _get_traffic_manager(traffic_config):
+        from pgdrive.scene_manager.traffic_manager import TrafficManager
         return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
     def _get_object_manager(self, object_config=None):
+        from pgdrive.scene_manager.object_manager import ObjectManager
         return ObjectManager()
 
     def reset(self, map, traffic_density: float, accident_prob: float, episode_data=None):
@@ -100,7 +98,7 @@ class PGDriveEngine(PGWorld):
             self.traffic_manager.generate(map=self.map, traffic_density=traffic_density)
             self.IN_REPLAY = False
         else:
-            self.replay_system = PGReplayer(self.traffic_manager, map, episode_data,)
+            self.replay_system = None
             logging.warning("You are replaying episodes! Delete detector mask!")
             self.detector_mask = None
             self.IN_REPLAY = True
@@ -110,7 +108,7 @@ class PGDriveEngine(PGWorld):
         if self.record_episode:
             if episode_data is None:
                 init_states = self.traffic_manager.get_global_init_states()
-                self.record_system = PGRecorder(map, init_states)
+                self.record_system = None
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
