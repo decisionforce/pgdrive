@@ -40,7 +40,7 @@ class PGDriveEngine(PGWorld):
     ):
         self.pgdrive_config = pgdrive_config
         super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
-        self.task_manager = self.task_manager  # use the inner TaskMgr of Panda3D as PGDrive task manager
+        self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         traffic_config = {"traffic_mode": pgdrive_config["traffic_mode"],
                           "random_traffic": pgdrive_config["random_traffic"]}
         self.traffic_manager = self._get_traffic_manager(traffic_config)

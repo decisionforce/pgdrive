@@ -94,7 +94,7 @@ class BaseVehicle(DynamicElement):
         self.max_speed = self.vehicle_config["max_speed"]
         self.max_steering = self.vehicle_config["max_steering"]
 
-        self.engine = get_pgdrive_engine()
+        self.pgdrive_engine = get_pgdrive_engine()
         self.node_path = NodePath("vehicle")
 
         # color
@@ -106,7 +106,7 @@ class BaseVehicle(DynamicElement):
 
         # create
         self.spawn_place = (0, 0)
-        self._add_chassis(self.engine.physics_world)
+        self._add_chassis(self.pgdrive_engine.physics_world)
         self.wheels = self._create_wheel()
 
         # modules
@@ -117,7 +117,7 @@ class BaseVehicle(DynamicElement):
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-        self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
+        self.vehicle_panel = VehiclePanel(self.pgdrive_engine) if (self.pgdrive_engine.mode == RENDER_MODE_ONSCREEN) else None
 
         # state info
         self.throttle_brake = 0.0
@@ -129,10 +129,10 @@ class BaseVehicle(DynamicElement):
         self.dist_to_right_side = None
 
         # collision info render
-        self.collision_info_np = self._init_collision_info_render(self.engine)
+        self.collision_info_np = self._init_collision_info_render(self.pgdrive_engine)
         self.collision_banners = {}  # to save time
         self.current_banner = None
-        self.attach_to_pg_world(self.engine.pbr_render, self.engine.physics_world)
+        self.attach_to_pg_world(self.pgdrive_engine.pbr_render, self.pgdrive_engine.physics_world)
 
         # step info
         self.out_of_route = None
@@ -165,13 +165,13 @@ class BaseVehicle(DynamicElement):
 
         if self.vehicle_config["side_detector"]["num_lasers"] > 0:
             self.side_detector = SideDetector(
-                self.engine.render, self.vehicle_config["side_detector"]["num_lasers"],
+                self.pgdrive_engine.render, self.vehicle_config["side_detector"]["num_lasers"],
                 self.vehicle_config["side_detector"]["distance"], self.vehicle_config["show_side_detector"]
             )
 
         if self.vehicle_config["lane_line_detector"]["num_lasers"] > 0:
             self.lane_line_detector = LaneLineDetector(
-                self.engine.render, self.vehicle_config["lane_line_detector"]["num_lasers"],
+                self.pgdrive_engine.render, self.vehicle_config["lane_line_detector"]["num_lasers"],
                 self.vehicle_config["lane_line_detector"]["distance"], self.vehicle_config["show_lane_line_detector"]
             )
 
@@ -190,10 +190,10 @@ class BaseVehicle(DynamicElement):
 
             if use_render:
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.engine)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np)
                 self.add_image_sensor("rgb_cam", rgb_cam)
 
-                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.engine)
+                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np)
                 self.add_image_sensor("mini_map", mini_map)
             return
 
@@ -201,14 +201,14 @@ class BaseVehicle(DynamicElement):
             # 3 types image observation
             if vehicle_config["image_source"] == "rgb_cam":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.engine)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np)
                 self.add_image_sensor("rgb_cam", rgb_cam)
             elif vehicle_config["image_source"] == "mini_map":
-                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.engine)
+                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np)
                 self.add_image_sensor("mini_map", mini_map)
             elif vehicle_config["image_source"] == "depth_cam":
                 cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(*cam_config, self.chassis_np, self.engine)
+                depth_cam = DepthCamera(*cam_config, self.chassis_np, self.pgdrive_engine)
                 self.add_image_sensor("depth_cam", depth_cam)
             else:
                 raise ValueError("No module named {}".format(vehicle_config["image_source"]))
@@ -217,10 +217,10 @@ class BaseVehicle(DynamicElement):
         if use_render:
             if vehicle_config["image_source"] == "mini_map":
                 rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np, self.engine)
+                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np)
                 self.add_image_sensor("rgb_cam", rgb_cam)
             else:
-                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np, self.engine)
+                mini_map = MiniMap(vehicle_config["mini_map"], self.chassis_np)
                 self.add_image_sensor("mini_map", mini_map)
 
     def _init_step_info(self):
@@ -265,17 +265,17 @@ class BaseVehicle(DynamicElement):
             self.lidar.perceive(
                 self.position,
                 self.heading_theta,
-                self.engine.physics_world.dynamic_world,
+                self.pgdrive_engine.physics_world.dynamic_world,
                 extra_filter_node={self.chassis_np.node()},
                 detector_mask=detector_mask
             )
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_detector is not None:
-            self.side_detector.perceive(self.position, self.heading_theta, self.engine.physics_world.static_world)
+            self.side_detector.perceive(self.position, self.heading_theta, self.pgdrive_engine.physics_world.static_world)
         if self.lane_line_detector is not None:
             self.lane_line_detector.perceive(
-                self.position, self.heading_theta, self.engine.physics_world.static_world
+                self.position, self.heading_theta, self.pgdrive_engine.physics_world.static_world
             )
         self._state_check()
         self.update_dist_to_left_right()
@@ -411,7 +411,7 @@ class BaseVehicle(DynamicElement):
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
         lateral_to_left = lateral_to_reference + self.routing_localization.get_current_lane_width() / 2
         lateral_to_right = self.routing_localization.get_current_lateral_range(
-            self.position, self.engine
+            self.position, self.pgdrive_engine
         ) - lateral_to_left
         return lateral_to_left, lateral_to_right
 
@@ -611,12 +611,12 @@ class BaseVehicle(DynamicElement):
     def add_lidar(self, num_lasers=240, distance=50, show_lidar_point=False):
         assert num_lasers > 0
         assert distance > 0
-        self.lidar = Lidar(self.engine.render, num_lasers, distance, show_lidar_point)
+        self.lidar = Lidar(self.pgdrive_engine.render, num_lasers, distance, show_lidar_point)
 
     def add_routing_localization(self, show_navi_mark: bool = False):
         config = self.vehicle_config
         self.routing_localization = RoutingLocalizationModule(
-            self.engine,
+            self.pgdrive_engine,
             show_navi_mark=show_navi_mark,
             random_navi_mark_color=config["random_navi_mark_color"],
             show_dest_mark=config["show_dest_mark"],
@@ -630,7 +630,7 @@ class BaseVehicle(DynamicElement):
         :return: None
         """
         possible_lanes = ray_localization(
-            np.array(self.heading.tolist()), np.array(self.spawn_place), self.engine, return_all_result=True
+            np.array(self.heading.tolist()), np.array(self.spawn_place), self.pgdrive_engine, return_all_result=True
         )
         possible_lane_indexes = [lane_index for lane, lane_index, dist in possible_lanes]
         try:
@@ -648,8 +648,8 @@ class BaseVehicle(DynamicElement):
         """
         Check States and filter to update info
         """
-        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis_beneath_np.node(), True)
-        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis_beneath_np.node(), True)
+        result_1 = self.pgdrive_engine.physics_world.static_world.contactTest(self.chassis_beneath_np.node(), True)
+        result_2 = self.pgdrive_engine.physics_world.dynamic_world.contactTest(self.chassis_beneath_np.node(), True)
         contacts = set()
         for contact in result_1.getContacts() + result_2.getContacts():
             node0 = contact.getNode0()
@@ -683,7 +683,7 @@ class BaseVehicle(DynamicElement):
         contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
         text = contacts[0] if len(contacts) != 0 else None
         if text is None:
-            text = "Normal" if time.time() - self.engine._episode_start_time > 10 else "Press H to see help message"
+            text = "Normal" if time.time() - self.pgdrive_engine._episode_start_time > 10 else "Press H to see help message"
             self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
         else:
             if text == BodyName.Base_vehicle_beneath:
@@ -707,12 +707,12 @@ class BaseVehicle(DynamicElement):
             text_node = new_banner.node()
             text_node.setCardColor(color)
             text_node.setText(text)
-            text_node.setCardActual(-5 * self.engine.w_scale, 5.1 * self.engine.w_scale, -0.3, 1)
+            text_node.setCardActual(-5 * self.pgdrive_engine.w_scale, 5.1 * self.pgdrive_engine.w_scale, -0.3, 1)
             text_node.setCardDecal(True)
             text_node.setTextColor(1, 1, 1, 1)
             text_node.setAlign(TextNode.A_center)
             new_banner.setScale(0.05)
-            new_banner.setPos(-0.75 * self.engine.w_scale, 0, -0.8 * self.engine.h_scale)
+            new_banner.setPos(-0.75 * self.pgdrive_engine.w_scale, 0, -0.8 * self.pgdrive_engine.h_scale)
             new_banner.reparentTo(self.collision_info_np)
             self.current_banner = new_banner
 
@@ -721,7 +721,7 @@ class BaseVehicle(DynamicElement):
         if self.chassis_np.node() in self.dynamic_nodes:
             self.dynamic_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy()
-        self.engine.physics_world.dynamic_world.clearContactAddedCallback()
+        self.pgdrive_engine.physics_world.dynamic_world.clearContactAddedCallback()
         self.routing_localization.destroy()
         self.routing_localization = None
 
@@ -739,11 +739,11 @@ class BaseVehicle(DynamicElement):
             self.lidar = None
         if len(self.image_sensors) != 0:
             for sensor in self.image_sensors.values():
-                sensor.destroy(self.engine)
+                sensor.destroy(self.pgdrive_engine)
         self.image_sensors = None
         if self.vehicle_panel is not None:
-            self.vehicle_panel.destroy(self.engine)
-        self.engine = None
+            self.vehicle_panel.destroy(self.pgdrive_engine)
+        self.pgdrive_engine = None
 
     def set_position(self, position, height=0.4):
         """
@@ -804,27 +804,27 @@ class BaseVehicle(DynamicElement):
 
     def remove_display_region(self):
         if self.render:
-            self.vehicle_panel.remove_display_region(self.engine)
+            self.vehicle_panel.remove_display_region(self.pgdrive_engine)
             self.vehicle_panel.buffer.set_active(False)
             self.collision_info_np.detachNode()
             self.routing_localization._arrow_node_path.detachNode()
         for sensor in self.image_sensors.values():
-            sensor.remove_display_region(self.engine)
+            sensor.remove_display_region(self.pgdrive_engine)
             sensor.buffer.set_active(False)
 
     def add_to_display(self):
         if self.render:
-            self.vehicle_panel.add_to_display(self.engine, self.vehicle_panel.default_region)
+            self.vehicle_panel.add_to_display(self.pgdrive_engine, self.vehicle_panel.default_region)
             self.vehicle_panel.buffer.set_active(True)
-            self.collision_info_np.reparentTo(self.engine.aspect2d)
-            self.routing_localization._arrow_node_path.reparentTo(self.engine.aspect2d)
+            self.collision_info_np.reparentTo(self.pgdrive_engine.aspect2d)
+            self.routing_localization._arrow_node_path.reparentTo(self.pgdrive_engine.aspect2d)
         for sensor in self.image_sensors.values():
-            sensor.add_to_display(self.engine, sensor.default_region)
+            sensor.add_to_display(self.pgdrive_engine, sensor.default_region)
             sensor.buffer.set_active(True)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
-        self.engine = None
+        self.pgdrive_engine = None
         self.lidar = None
         self.mini_map = None
         self.rgb_cam = None

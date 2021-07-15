@@ -427,8 +427,8 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def dump_all_maps(self):
         assert not pgdrive_engine_initialized(), "We assume you generate map files in independent tasks (not in training). " \
-                                      "So you should run the generating script without calling reset of the " \
-                                      "environment."
+                                                 "So you should run the generating script without calling reset of the " \
+                                                 "environment."
 
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         assert pgdrive_engine_initialized()
@@ -599,6 +599,11 @@ class PGDriveEnv(BasePGDriveEnv):
         else:
             o = LidarStateObservation(vehicle_config)
         return o
+
+    def setup_engine(self):
+        super(PGDriveEnv, self).setup_engine()
+        # Press t can let expert take over. But this function is still experimental.
+        self.pgdrive_engine.accept("t", self.toggle_expert_takeover)
 
 
 def _auto_termination(vehicle, should_done):

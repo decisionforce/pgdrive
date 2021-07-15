@@ -434,6 +434,8 @@ class TrafficManager(RandomEngine):
 
     @property
     def vehicles(self):
+        #TODO ManagerBase
+        self.pgdrive_engine = get_pgdrive_engine()
         return list(self.pgdrive_engine.agent_manager.active_objects.values()) + \
                [v.vehicle_node.kinematic_model for v in self._spawned_vehicles]
 

@@ -69,10 +69,9 @@ class VehiclePanel(ImageBuffer):
             self.BUFFER_H,
             Vec3(-0.9, -1.01, 0.78),
             self.BKG_COLOR,
-            pg_world=pg_world,
             parent_node=self.aspect2d_np
         )
-        self.add_to_display(pg_world, self.default_region)
+        self.add_to_display(self.default_region)
 
     def renew_2d_car_para_visualization(self, vehicle):
         steering, throttle_brake, speed = vehicle.steering, vehicle.throttle_brake, vehicle.speed

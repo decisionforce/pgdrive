@@ -182,6 +182,9 @@ class BasePGDriveEnv(gym.Env):
         initialize_pgdrive_engine(self.config, self.agent_manager)
         self.pgdrive_engine = get_pgdrive_engine()
 
+        # engine setup
+        self.setup_engine()
+
         # init vehicle
         self.agent_manager.init(config_dict=self._get_target_vehicle_config())
 
@@ -420,7 +423,5 @@ class BasePGDriveEnv(gym.Env):
     def setup_engine(self):
         self.pgdrive_engine.accept("r", self.reset)
         self.pgdrive_engine.accept("escape", sys.exit)
-        # Press t can let expert take over. But this function is still experimental.
-        self.pgdrive_engine.accept("t", self.toggle_expert_takeover)
         # capture all figs
         self.pgdrive_engine.accept("p", self.capture)
