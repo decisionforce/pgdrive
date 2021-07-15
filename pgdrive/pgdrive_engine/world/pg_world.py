@@ -10,14 +10,14 @@ from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallb
 from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask
 from pgdrive.utils import is_mac, setup_logger
 from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
-from pgdrive.world.collision_callback import pg_collision_callback
-from pgdrive.world.force_fps import ForceFPS
-from pgdrive.world.image_buffer import ImageBuffer
-from pgdrive.world.light import Light
-from pgdrive.world.onscreen_message import PGOnScreenMessage
-from pgdrive.world.pg_physics_world import PGPhysicsWorld
-from pgdrive.world.sky_box import SkyBox
-from pgdrive.world.terrain import Terrain
+from pgdrive.pgdrive_engine.world.collision_callback import pg_collision_callback
+from pgdrive.pgdrive_engine.world.force_fps import ForceFPS
+from pgdrive.pgdrive_engine.world.image_buffer import ImageBuffer
+from pgdrive.pgdrive_engine.world.light import Light
+from pgdrive.pgdrive_engine.world.onscreen_message import PGOnScreenMessage
+from pgdrive.pgdrive_engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.pgdrive_engine.world.sky_box import SkyBox
+from pgdrive.pgdrive_engine.world.terrain import Terrain
 
 
 def _suppress_warning():
@@ -196,7 +196,7 @@ class PGWorld(ShowBase.ShowBase):
         # init other world elements
         if self.mode != RENDER_MODE_NONE:
 
-            from pgdrive.world.our_pbr import OurPipeline
+            from pgdrive.pgdrive_engine.world.our_pbr import OurPipeline
             self.pbrpipe = OurPipeline(
                 render_node=None,
                 window=None,

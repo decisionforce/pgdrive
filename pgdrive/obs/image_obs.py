@@ -3,7 +3,7 @@ import numpy as np
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.world.image_buffer import ImageBuffer
+from pgdrive.pgdrive_engine.world.image_buffer import ImageBuffer
 
 
 class ImageStateObservation(ObservationType):

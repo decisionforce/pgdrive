@@ -7,7 +7,7 @@ from direct.controls.InputState import InputState
 from panda3d.core import Vec3, Camera, Point3, BitMask32
 from pgdrive.constants import CollisionGroup
 from pgdrive.utils.coordinates_shift import panda_heading
-from pgdrive.world.pg_world import PGWorld
+from pgdrive.pgdrive_engine.world.pg_world import PGWorld
 
 
 class ChaseCamera:

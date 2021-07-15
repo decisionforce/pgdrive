@@ -2,10 +2,9 @@ import copy
 from pgdrive.scene_creator.road.road import Road
 import logging
 
-from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.world.pg_world import PGWorld
+from pgdrive.pgdrive_engine.world.pg_world import PGWorld
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
 
 

@@ -5,7 +5,7 @@ from panda3d.bullet import BulletPlaneShape, BulletRigidBodyNode, BulletDebugNod
 from panda3d.core import Vec3, BitMask32, NodePath, LineSegs
 from pgdrive.scene_creator.algorithm.BIG import NextStep
 from pgdrive.scene_creator.map import Map
-from pgdrive.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.pgdrive_engine.world.pg_physics_world import PGPhysicsWorld
 
 
 class TestBlock(ShowBase.ShowBase):

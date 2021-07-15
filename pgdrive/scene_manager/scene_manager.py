@@ -9,7 +9,7 @@ from pgdrive.scene_manager.object_manager import ObjectManager
 from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import PGConfig
-from pgdrive.world.pg_world import PGWorld
+from pgdrive.pgdrive_engine.world.pg_world import PGWorld
 
 logger = logging.getLogger(__name__)
 

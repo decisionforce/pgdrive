@@ -1,11 +1,10 @@
 import math
 from typing import List, TYPE_CHECKING, Tuple, Union
-from panda3d.bullet import BulletBoxShape, BulletGhostNode
+from panda3d.bullet import BulletBoxShape
 from panda3d.core import TransformState
 from panda3d.core import Vec3, BitMask32
 
-from pgdrive.constants import CollisionGroup
-from pgdrive.utils.coordinates_shift import panda_position, panda_heading
+from pgdrive.utils.coordinates_shift import panda_heading
 import numpy as np
 
 from pgdrive.constants import Decoration, BodyName
@@ -13,7 +12,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.math_utils import get_points_bounding_box
-from pgdrive.world.pg_world import PGWorld
+from pgdrive.pgdrive_engine.world.pg_world import PGWorld
 
 if TYPE_CHECKING:
     from pgdrive.scene_creator.blocks.block import BlockSocket

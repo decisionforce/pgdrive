@@ -18,7 +18,7 @@ from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import Element
 from pgdrive.utils.math_utils import norm, PGVector
-from pgdrive.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.pgdrive_engine.world.pg_physics_world import PGPhysicsWorld
 
 
 class BlockSocket:

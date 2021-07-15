@@ -1,4 +1,5 @@
 import os.path as osp
+from pgdrive.pgdrive_engine import PGDriveEngine, initialize_pgdrive_engine
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
@@ -12,7 +13,7 @@ from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import PGConfig, merge_dicts
-from pgdrive.world.pg_world import PGWorld
+
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -135,7 +136,7 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pg_world: Optional[PGWorld] = None
+        self.pg_world = None
         self.scene_manager: Optional[SceneManager] = None
         self.main_camera = None
         self.controller = None
@@ -172,9 +173,6 @@ class BasePGDriveEnv(gym.Env):
             for v_id in self.observations.keys()
         }
 
-    def _setup_pg_world(self) -> "PGWorld":
-        pg_world = PGWorld(self.config["pg_world_config"])
-        return pg_world
 
     def _get_scene_manager(self) -> "SceneManager":
         traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
@@ -193,14 +191,13 @@ class BasePGDriveEnv(gym.Env):
         :return: None
         """
         # It is the true init() func to create the main vehicle and its module
-        if self.pg_world is not None:
-            return
+        initialize_pgdrive_engine(self.config, self.agent_manager)
 
         # init world
-        self.pg_world = self._setup_pg_world()
+        self.pg_world = PGDriveEngine
 
         # init traffic manager
-        self.scene_manager = self._get_scene_manager()
+        self.scene_manager = PGDriveEngine
 
         # init vehicle
         self.agent_manager.init(pg_world=self.pg_world, config_dict=self._get_target_vehicle_config())

@@ -1,5 +1,4 @@
 import copy
-import logging
 from math import floor
 
 import numpy as np
@@ -12,7 +11,7 @@ from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.utils import PGConfig, get_np_random
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.scene_utils import rect_region_detection
-from pgdrive.world.pg_world import PGWorld
+from pgdrive.pgdrive_engine.world.pg_world import PGWorld
 
 
 class SpawnManager:
