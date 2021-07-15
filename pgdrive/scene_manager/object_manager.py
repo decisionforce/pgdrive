@@ -60,13 +60,13 @@ class ObjectManager(RandomEngine):
         building.node_path.reparentTo(render_node)
 
     def spawn_one_object(
-            self,
-            object_type: str,
-            lane: AbstractLane,
-            lane_index: LaneIndex,
-            longitude: float,
-            lateral: float,
-            static: bool = False
+        self,
+        object_type: str,
+        lane: AbstractLane,
+        lane_index: LaneIndex,
+        longitude: float,
+        lateral: float,
+        static: bool = False
     ) -> TrafficObject:
         """
         Spawn an object by assigning its type and position on the lane
@@ -129,18 +129,12 @@ class ObjectManager(RandomEngine):
 
             lane = engine.map.road_network.get_lane(accident_road.lane_index(accident_lane_idx))
             if self.np_random.rand() > 0.5 or _debug:
-                self.prohibit_scene(lane, accident_road.lane_index(accident_lane_idx), longitude, lateral_len,
-                                    on_left
-                                    )
+                self.prohibit_scene(lane, accident_road.lane_index(accident_lane_idx), longitude, lateral_len, on_left)
             else:
                 accident_lane_idx = self.np_random.randint(engine.map.config[engine.map.LANE_NUM])
-                self.break_down_scene(
-                    lane, accident_road.lane_index(accident_lane_idx), longitude
-                )
+                self.break_down_scene(lane, accident_road.lane_index(accident_lane_idx), longitude)
 
-    def break_down_scene(
-            self, lane: AbstractLane, lane_index: LaneIndex, longitude: float
-    ):
+    def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):
         engine = get_pgdrive_engine()
         breakdown_vehicle = engine.traffic_manager.spawn_one_vehicle(
             engine.traffic_manager.random_vehicle_type(), lane, longitude, False
@@ -152,12 +146,7 @@ class ObjectManager(RandomEngine):
         alert.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
 
     def prohibit_scene(
-            self,
-            lane: AbstractLane,
-            lane_index: LaneIndex,
-            longitude_position: float,
-            lateral_len: float,
-            on_left=False
+        self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float, on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane

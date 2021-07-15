@@ -189,8 +189,8 @@ class SpawnManager:
             spawn_point_position = bp["spawn_point_position"]
             lane_heading = bp["spawn_point_heading"]
             result = rect_region_detection(
-                engine, spawn_point_position, lane_heading, self.RESPAWN_REGION_LONGITUDE,
-                self.RESPAWN_REGION_LATERAL, CollisionGroup.EgoVehicle
+                engine, spawn_point_position, lane_heading, self.RESPAWN_REGION_LONGITUDE, self.RESPAWN_REGION_LATERAL,
+                CollisionGroup.EgoVehicle
             )
             if (engine.world_config["debug"] or engine.world_config["debug_physics_world"]) \
                     and bp.get("need_debug", True):

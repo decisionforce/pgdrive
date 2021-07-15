@@ -25,11 +25,7 @@ class DepthCamera(ImageBuffer):
         self.BUFFER_W = length
         self.BUFFER_H = width
         super(DepthCamera, self).__init__(
-            self.BUFFER_W,
-            self.BUFFER_H,
-            Vec3(0.0, 0.8, 1.5),
-            self.BKG_COLOR,
-            parent_node=chassis_np
+            self.BUFFER_W, self.BUFFER_H, Vec3(0.0, 0.8, 1.5), self.BKG_COLOR, parent_node=chassis_np
         )
         self.add_to_display(self.default_region)
         self.cam.lookAt(0, 2.4, 1.3)
@@ -64,7 +60,9 @@ class DepthCamera(ImageBuffer):
             self.ground_model.hide(BitMask32.allOn())
             self.ground_model.show(CamMask.DepthCam)
             self.ground.Generate()
-            self.pgdrive_engine.task_manager.add(self.renew_pos_of_ground_mode, self.TASK_NAME, extraArgs=[chassis_np], appendTask=True)
+            self.pgdrive_engine.task_manager.add(
+                self.renew_pos_of_ground_mode, self.TASK_NAME, extraArgs=[chassis_np], appendTask=True
+            )
 
     def renew_pos_of_ground_mode(self, chassis_np: Vec3, task):
         self.ground_model.setPos(-128, 0, self.GROUND)

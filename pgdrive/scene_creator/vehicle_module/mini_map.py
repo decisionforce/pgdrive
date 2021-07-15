@@ -14,11 +14,7 @@ class MiniMap(ImageBuffer):
         self.BUFFER_H = para[1]
         height = para[2]
         super(MiniMap, self).__init__(
-            self.BUFFER_W,
-            self.BUFFER_H,
-            Vec3(0, 20, height),
-            self.BKG_COLOR,
-            parent_node=chassis_np
+            self.BUFFER_W, self.BUFFER_H, Vec3(0, 20, height), self.BKG_COLOR, parent_node=chassis_np
         )
         self.cam.lookAt(Vec3(0, 20, 0))
         self.lens.setAspectRatio(2.0)

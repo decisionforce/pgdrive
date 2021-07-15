@@ -15,11 +15,7 @@ class RGBCamera(ImageBuffer):
         self.BUFFER_W = length
         self.BUFFER_H = width
         super(RGBCamera, self).__init__(
-            self.BUFFER_W,
-            self.BUFFER_H,
-            Vec3(0.0, 0.8, 1.5),
-            self.BKG_COLOR,
-            parent_node=chassis_np
+            self.BUFFER_W, self.BUFFER_H, Vec3(0.0, 0.8, 1.5), self.BKG_COLOR, parent_node=chassis_np
         )
         self.add_to_display(self.default_region)
         self.cam.lookAt(0, 2.4, 1.3)

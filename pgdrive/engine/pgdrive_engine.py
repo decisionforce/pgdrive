@@ -34,15 +34,17 @@ class PGDriveEngine(PGWorld):
     LOD_OBJECT_PHYSICS_DIST = 50
 
     def __init__(
-            self,
-            pgdrive_config: Union[Dict, "PGConfig"],
-            agent_manager: "AgentManager",
+        self,
+        pgdrive_config: Union[Dict, "PGConfig"],
+        agent_manager: "AgentManager",
     ):
         self.pgdrive_config = pgdrive_config
         super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
-        traffic_config = {"traffic_mode": pgdrive_config["traffic_mode"],
-                          "random_traffic": pgdrive_config["random_traffic"]}
+        traffic_config = {
+            "traffic_mode": pgdrive_config["traffic_mode"],
+            "random_traffic": pgdrive_config["random_traffic"]
+        }
         self.traffic_manager = self._get_traffic_manager(traffic_config)
         self.object_manager = self._get_object_manager()
         self.agent_manager = agent_manager  # Only a reference
@@ -172,12 +174,10 @@ class PGDriveEngine(PGWorld):
                 # TODO add objects to replay system and add new cull method
 
                 self.cull_distant_traffic_vehicles(
-                    self.traffic_manager.traffic_vehicles, poses,
-                    self.world_config["max_distance"]
+                    self.traffic_manager.traffic_vehicles, poses, self.world_config["max_distance"]
                 )
                 self.cull_distant_objects(
-                    self.object_manager._spawned_objects, poses,
-                    self.world_config["max_distance"]
+                    self.object_manager._spawned_objects, poses, self.world_config["max_distance"]
                 )
 
         return step_infos
@@ -258,25 +258,18 @@ class PGDriveEngine(PGWorld):
             else:
                 if block.node_path.hasParent():
                     block.node_path.detachNode()
-            if not self.all_out_of_bounding_box(block.bounding_box, poses,
-                                                max_distance or self.LOD_MAP_PHYSICS_DIST):
+            if not self.all_out_of_bounding_box(block.bounding_box, poses, max_distance or self.LOD_MAP_PHYSICS_DIST):
                 block.dynamic_nodes.attach_to_physics_world(self.physics_world.dynamic_world)
             else:
                 block.dynamic_nodes.detach_from_physics_world(self.physics_world.dynamic_world)
 
     def cull_distant_traffic_vehicles(self, vehicles: list, poses: List[tuple], max_distance=None):
-        self._cull_elements(
-            vehicles, poses, self.LOD_VEHICLE_VIS_DIST, max_distance or self.LOD_VEHICLE_PHYSICS_DIST
-        )
+        self._cull_elements(vehicles, poses, self.LOD_VEHICLE_VIS_DIST, max_distance or self.LOD_VEHICLE_PHYSICS_DIST)
 
     def cull_distant_objects(self, objects: list, poses: List[tuple], max_distance=None):
-        self._cull_elements(
-            objects, poses, self.LOD_OBJECT_VIS_DIST, max_distance or self.LOD_OBJECT_PHYSICS_DIST
-        )
+        self._cull_elements(objects, poses, self.LOD_OBJECT_VIS_DIST, max_distance or self.LOD_OBJECT_PHYSICS_DIST)
 
-    def _cull_elements(self,
-                       elements: list, poses: List[tuple], vis_distance: float, physics_distance: float
-                       ):
+    def _cull_elements(self, elements: list, poses: List[tuple], vis_distance: float, physics_distance: float):
         for obj in elements:
             v_p = obj.position
             if not self.all_distance_greater_than(vis_distance, poses, v_p):

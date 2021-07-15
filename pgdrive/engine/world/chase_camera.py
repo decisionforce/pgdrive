@@ -126,7 +126,9 @@ class ChaseCamera:
             self.engine.task_manager.remove(self.CHASE_TASK_NAME)
         if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             self.engine.task_manager.remove(self.TOP_DOWN_TASK_NAME)
-        self.engine.task_manager.add(self.renew_camera_place, self.CHASE_TASK_NAME, extraArgs=[vehicle], appendTask=True)
+        self.engine.task_manager.add(
+            self.renew_camera_place, self.CHASE_TASK_NAME, extraArgs=[vehicle], appendTask=True
+        )
         self.camera_queue = queue.Queue(self.queue_length)
         for i in range(self.queue_length - 1):
             self.camera_queue.put(Vec3(pos[0], -pos[1], 0))
@@ -170,7 +172,9 @@ class ChaseCamera:
             # adjust hpr
             current_pos = self.camera.getPos()
             self.camera.lookAt(current_pos[0], current_pos[1], 0)
-            self.engine.task_manager.add(self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
+            self.engine.task_manager.add(
+                self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True
+            )
 
     def manual_control_camera(self, task):
         self.top_down_camera_height = self._update_height(self.top_down_camera_height)
@@ -216,8 +220,9 @@ class ChaseCamera:
             # Transform to global coordinates
             pFrom = self.engine.render.getRelativePoint(self.camera, pFrom)
             pTo = self.engine.render.getRelativePoint(self.camera, pTo)
-            ret = self.engine.physics_world.dynamic_world.rayTestClosest(pFrom, pTo,
-                                                                         BitMask32.bit(CollisionGroup.Terrain))
+            ret = self.engine.physics_world.dynamic_world.rayTestClosest(
+                pFrom, pTo, BitMask32.bit(CollisionGroup.Terrain)
+            )
             self.camera_x = ret.getHitPos()[0]
             self.camera_y = ret.getHitPos()[1]
 

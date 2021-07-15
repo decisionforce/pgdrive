@@ -5,7 +5,6 @@ from typing import Dict
 from gym.spaces import Box, Dict
 
 
-
 class AgentManager:
     """
     This class maintain the relationship between active agents in the environment with the underlying instance
@@ -61,8 +60,7 @@ class AgentManager:
     def _get_vehicles(self, config_dict):
         from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
         ret = {
-            key:
-                BaseVehicle(v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))
+            key: BaseVehicle(v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))
             for key, v_config in config_dict.items()
         }
         return ret

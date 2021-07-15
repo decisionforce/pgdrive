@@ -117,7 +117,8 @@ class BaseVehicle(DynamicElement):
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-        self.vehicle_panel = VehiclePanel(self.pgdrive_engine) if (self.pgdrive_engine.mode == RENDER_MODE_ONSCREEN) else None
+        self.vehicle_panel = VehiclePanel(self.pgdrive_engine
+                                          ) if (self.pgdrive_engine.mode == RENDER_MODE_ONSCREEN) else None
 
         # state info
         self.throttle_brake = 0.0
@@ -272,7 +273,9 @@ class BaseVehicle(DynamicElement):
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_detector is not None:
-            self.side_detector.perceive(self.position, self.heading_theta, self.pgdrive_engine.physics_world.static_world)
+            self.side_detector.perceive(
+                self.position, self.heading_theta, self.pgdrive_engine.physics_world.static_world
+            )
         if self.lane_line_detector is not None:
             self.lane_line_detector.perceive(
                 self.position, self.heading_theta, self.pgdrive_engine.physics_world.static_world
@@ -683,7 +686,8 @@ class BaseVehicle(DynamicElement):
         contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
         text = contacts[0] if len(contacts) != 0 else None
         if text is None:
-            text = "Normal" if time.time() - self.pgdrive_engine._episode_start_time > 10 else "Press H to see help message"
+            text = "Normal" if time.time(
+            ) - self.pgdrive_engine._episode_start_time > 10 else "Press H to see help message"
             self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
         else:
             if text == BodyName.Base_vehicle_beneath:
