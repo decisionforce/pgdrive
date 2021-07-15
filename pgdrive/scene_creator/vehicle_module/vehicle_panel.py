@@ -99,8 +99,8 @@ class VehiclePanel(ImageBuffer):
         speed_value = speed / self.MAX_SPEED
         self.para_vis_np["Speed"].setScale(speed_value, 1, 1)
 
-    def destroy(self, pg_world=None):
-        super(VehiclePanel, self).destroy(pg_world)
+    def destroy(self):
+        super(VehiclePanel, self).destroy()
         for para in self.para_vis_np.values():
             para.removeNode()
         self.aspect2d_np.removeNode()

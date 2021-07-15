@@ -82,7 +82,7 @@ class PGDriveEngine(PGWorld):
 
         if episode_data is None:
             self.object_manager.generate(self, self)
-            self.traffic_manager.generate(pg_world=self, map=self.map, traffic_density=traffic_density)
+            self.traffic_manager.generate(map=self.map, traffic_density=traffic_density)
             self.IN_REPLAY = False
         else:
             self.replay_system = PGReplayer(self.traffic_manager, map, episode_data, self)
@@ -206,7 +206,7 @@ class PGDriveEngine(PGWorld):
         assert self.record_system is not None
         return self.record_system.dump_episode()
 
-    def destroy(self, pg_world: PGWorld = None):
+    def destroy(self):
         pg_world = self if pg_world is None else pg_world
         self.traffic_manager.destroy(pg_world)
         self.traffic_manager = None

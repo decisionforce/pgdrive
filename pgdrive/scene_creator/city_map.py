@@ -27,8 +27,8 @@ class CityBIG(BIG):
     MAX_TRIAL = 2
 
     def __init__(
-        self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-        pg_physics_world: PGPhysicsWorld, random_seed: int, block_type_version: str
+            self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
+            pg_physics_world: PGPhysicsWorld, random_seed: int, block_type_version: str
     ):
         super(CityBIG, self).__init__(
             lane_num, lane_width, global_network, render_node_path, pg_physics_world, random_seed, block_type_version
@@ -126,8 +126,8 @@ class CityBIG(BIG):
 
 
 class CityMap(Map):
-    def _generate(self, pg_world):
-        parent_node_path, pg_physics_world = pg_world.worldNP, pg_world.physics_world
+    def _generate(self):
+        parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
         big_map = CityBIG(
             self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
             pg_physics_world, self.random_seed, self.config["block_type_version"]

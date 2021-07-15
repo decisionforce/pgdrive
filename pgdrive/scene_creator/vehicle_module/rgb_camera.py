@@ -2,7 +2,6 @@ from panda3d.core import Vec3, NodePath
 
 from pgdrive.constants import CamMask
 from pgdrive.engine.world.image_buffer import ImageBuffer
-from pgdrive.engine.world.pg_world import PGWorld
 
 
 class RGBCamera(ImageBuffer):
@@ -12,7 +11,7 @@ class RGBCamera(ImageBuffer):
     CAM_MASK = CamMask.RgbCam
     default_region = [1 / 3, 2 / 3, ImageBuffer.display_bottom, ImageBuffer.display_top]
 
-    def __init__(self, length: int, width: int, chassis_np: NodePath, pg_world: PGWorld):
+    def __init__(self, length: int, width: int, chassis_np: NodePath):
         self.BUFFER_W = length
         self.BUFFER_H = width
         super(RGBCamera, self).__init__(
@@ -20,10 +19,9 @@ class RGBCamera(ImageBuffer):
             self.BUFFER_H,
             Vec3(0.0, 0.8, 1.5),
             self.BKG_COLOR,
-            pg_world=pg_world,
             parent_node=chassis_np
         )
-        self.add_to_display(pg_world, self.default_region)
+        self.add_to_display(self.default_region)
         self.cam.lookAt(0, 2.4, 1.3)
         self.lens.setFov(60)
         self.lens.setAspectRatio(2.0)

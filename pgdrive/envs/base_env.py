@@ -1,4 +1,5 @@
 import os.path as osp
+import sys
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
@@ -10,10 +11,9 @@ from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_type import ObservationType
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
-from pgdrive.scene_manager.scene_manager import SceneManager
+
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine
-from pgdrive.engine.world.pg_world import PGWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -136,8 +136,7 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pg_world: Optional[PGWorld] = None
-        self.scene_manager: Optional[SceneManager] = None
+        self.pgdrive_engine = get_pgdrive_engine()
         self.main_camera = None
         self.controller = None
         self.restored_maps = dict()
@@ -181,14 +180,8 @@ class BasePGDriveEnv(gym.Env):
         # It is the true init() func to create the main vehicle and its module
         initialize_pgdrive_engine(self.config, self.agent_manager)
 
-        # init world
-        self.pg_world = get_pgdrive_engine()
-
-        # init traffic manager
-        self.scene_manager = get_pgdrive_engine()
-
         # init vehicle
-        self.agent_manager.init(pg_world=self.pg_world, config_dict=self._get_target_vehicle_config())
+        self.agent_manager.init(config_dict=self._get_target_vehicle_config())
 
         # other optional initialization
         self._after_lazy_init()
@@ -214,14 +207,14 @@ class BasePGDriveEnv(gym.Env):
 
     def _step_simulator(self, actions, action_infos):
         # Note that we use shallow update for info dict in this function! This will accelerate system.
-        scene_manager_infos = self.scene_manager.prepare_step(actions)
+        scene_manager_infos = self.pgdrive_engine.prepare_step(actions)
         action_infos = merge_dicts(action_infos, scene_manager_infos, allow_new_keys=True, without_copy=True)
 
         # step all entities
-        self.scene_manager.step(self.config["decision_repeat"])
+        self.pgdrive_engine.step(self.config["decision_repeat"])
 
         # update states, if restore from episode data, position and heading will be force set in update_state() function
-        scene_manager_step_infos = self.scene_manager.update_state()
+        scene_manager_step_infos = self.pgdrive_engine.update_state()
         action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
         return action_infos
 
@@ -250,10 +243,10 @@ class BasePGDriveEnv(gym.Env):
         :param text:text to show
         :return: when mode is 'rgb', image array is returned
         """
-        assert self.config["use_render"] or self.pg_world.mode != RENDER_MODE_NONE, (
+        assert self.config["use_render"] or self.pgdrive_engine.mode != RENDER_MODE_NONE, (
             "render is off now, can not render"
         )
-        self.pg_world.render_frame(text)
+        self.pgdrive_engine.render_frame(text)
         if mode != "human" and self.config["use_image"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting
             return self.vehicle.observations.img_obs.get_image()
@@ -283,7 +276,7 @@ class BasePGDriveEnv(gym.Env):
         :return: None
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
-        self.pg_world.clear_world()
+        self.pgdrive_engine.clear_world()
         self._update_map(episode_data, force_seed)
         self.agent_manager.reset()
 
@@ -295,7 +288,7 @@ class BasePGDriveEnv(gym.Env):
         self.episode_lengths = defaultdict(int)
 
         # generate new traffic according to the map
-        self.scene_manager.reset(
+        self.pgdrive_engine.reset(
             self.current_map, self.config["traffic_density"], self.config["accident_prob"], episode_data=episode_data
         )
 
@@ -314,27 +307,15 @@ class BasePGDriveEnv(gym.Env):
         raise NotImplementedError()
 
     def close(self):
-        if self.pg_world is not None:
+        if self.pgdrive_engine is not None:
             if self.main_camera is not None:
-                self.main_camera.destroy(self.pg_world)
+                self.main_camera.destroy()
                 del self.main_camera
                 self.main_camera = None
-            self.pg_world.clear_world()
-
-            if self.scene_manager is not None:
-                self.scene_manager.destroy(self.pg_world)
-                del self.scene_manager
-                self.scene_manager = None
-
-            if self.vehicles:
-                self.for_each_vehicle(lambda v: v.destroy(self.pg_world))
+            self.pgdrive_engine.destroy()
 
             del self.controller
             self.controller = None
-
-            self.pg_world.close_world()
-            del self.pg_world
-            self.pg_world = None
 
         del self.maps
         self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
@@ -356,7 +337,7 @@ class BasePGDriveEnv(gym.Env):
 
     def capture(self):
         img = PNMImage()
-        self.pg_world.win.getScreenshot(img)
+        self.pgdrive_engine.win.getScreenshot(img)
         img.write("main.jpg")
 
         for name, sensor in self.vehicle.image_sensors.items():
@@ -433,3 +414,11 @@ class BasePGDriveEnv(gym.Env):
         if not self.is_multi_agent:
             raise ValueError("Pending agents is not available in single-agent env")
         return self.agent_manager.pending_objects
+
+    def setup_engine(self):
+        self.pgdrive_engine.accept("r", self.reset)
+        self.pgdrive_engine.accept("escape", sys.exit)
+        # Press t can let expert take over. But this function is still experimental.
+        self.pgdrive_engine.accept("t", self.toggle_expert_takeover)
+        # capture all figs
+        self.pgdrive_engine.accept("p", self.capture)

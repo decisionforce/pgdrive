@@ -1,4 +1,5 @@
 import logging
+from pgdrive.utils.engine_utils import get_pgdrive_engine
 from typing import Dict
 
 from panda3d.bullet import BulletWorld
@@ -108,11 +109,12 @@ class Element:
         self.dynamic_nodes.detach_from_physics_world(pg_physics_world.dynamic_world)
         self.static_nodes.detach_from_physics_world(pg_physics_world.static_world)
 
-    def destroy(self, pg_world):
+    def destroy(self):
         """
         Fully delete this element and release the memory
         """
-        self.detach_from_pg_world(pg_world.physics_world)
+        engine = get_pgdrive_engine()
+        self.detach_from_pg_world(engine.physics_world)
         self.node_path.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()

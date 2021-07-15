@@ -638,7 +638,7 @@ class Block(Element, BlockDefault):
         wall_np.setH(panda_heading(heading))
         return wall_np
 
-    def construct_block_buildings(self, object_manager, pg_world):
+    def construct_block_buildings(self, object_manager):
         """
         Buildings will be added to object_manager as static object automatically
         """

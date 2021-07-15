@@ -9,3 +9,7 @@ def initialize_pgdrive_engine(config, agent_manager):
 
 def get_pgdrive_engine():
     return PGDriveEngine.singleton
+
+
+def pgdrive_engine_initialized():
+    return False if PGDriveEngine.singleton is None else True

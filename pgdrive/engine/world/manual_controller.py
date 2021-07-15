@@ -14,7 +14,7 @@ class Controller:
 class KeyboardController(Controller):
     INCREMENT = 2e-1
 
-    def __init__(self, pg_world: PGWorld = None):
+    def __init__(self):
         # Input
         # self.pygame_control = True if pg_world.highway_render is not None else False
         self.pygame_control = False
