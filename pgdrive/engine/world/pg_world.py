@@ -179,7 +179,7 @@ class PGWorld(ShowBase.ShowBase):
 
         # some render attribute
         self.pbrpipe = None
-        self.light = None
+        self.world_light = None
 
         # physics world
         self.physics_world = PGPhysicsWorld(self.world_config["debug_static_world"])
@@ -227,10 +227,10 @@ class PGWorld(ShowBase.ShowBase):
             self.sky_box = SkyBox()
             self.sky_box.attach_to_pg_world(self.render, self.physics_world)
 
-            self.light = Light(self.world_config)
-            self.light.attach_to_pg_world(self.render, self.physics_world)
-            self.render.setLight(self.light.direction_np)
-            self.render.setLight(self.light.ambient_np)
+            self.world_light = Light(self.world_config)
+            self.world_light.attach_to_pg_world(self.render, self.physics_world)
+            self.render.setLight(self.world_light.direction_np)
+            self.render.setLight(self.world_light.ambient_np)
 
             self.render.setShaderAuto()
             self.render.setAntialias(AntialiasAttrib.MAuto)

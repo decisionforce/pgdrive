@@ -132,7 +132,7 @@ class BaseVehicle(DynamicElement):
         self.collision_info_np = self._init_collision_info_render(self.engine)
         self.collision_banners = {}  # to save time
         self.current_banner = None
-        self.attach_to_engine(self.engine.pbr_render, self.engine.physics_world)
+        self.attach_to_pg_world(self.engine.pbr_render, self.engine.physics_world)
 
         # step info
         self.out_of_route = None

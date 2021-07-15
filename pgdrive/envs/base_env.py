@@ -1,4 +1,5 @@
 import os.path as osp
+from pgdrive.engine.pgdrive_engine import PGDriveEngine
 import sys
 import time
 from collections import defaultdict
@@ -136,7 +137,7 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pgdrive_engine = get_pgdrive_engine()
+        self.pgdrive_engine = Optional[PGDriveEngine]
         self.main_camera = None
         self.controller = None
         self.restored_maps = dict()
@@ -179,6 +180,7 @@ class BasePGDriveEnv(gym.Env):
         """
         # It is the true init() func to create the main vehicle and its module
         initialize_pgdrive_engine(self.config, self.agent_manager)
+        self.pgdrive_engine = get_pgdrive_engine()
 
         # init vehicle
         self.agent_manager.init(config_dict=self._get_target_vehicle_config())

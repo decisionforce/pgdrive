@@ -38,14 +38,9 @@ class PGDriveEngine(PGWorld):
             pgdrive_config: Union[Dict, "PGConfig"],
             agent_manager: "AgentManager",
     ):
-        # FIXME
-
-        record_episode = pgdrive_config["record_episode"],
-        cull_scene = pgdrive_config["cull_scene"],
-        # scene manager control all movements in pg_world
         self.pgdrive_config = pgdrive_config
-
         super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
+        self.task_manager = self.task_manager  # use the inner TaskMgr of Panda3D as PGDrive task manager
         traffic_config = {"traffic_mode": pgdrive_config["traffic_mode"],
                           "random_traffic": pgdrive_config["random_traffic"]}
         self.traffic_manager = self._get_traffic_manager(traffic_config)
@@ -57,13 +52,13 @@ class PGDriveEngine(PGWorld):
 
         # for recovering, they can not exist together
         # TODO new record/replay
-        self.record_episode = record_episode
+        self.record_episode = False
         self.replay_system = None
         self.record_system = None
         self.accept("s", self._stop_replay)
 
         # cull scene
-        self.cull_scene = cull_scene
+        self.cull_scene = pgdrive_config["cull_scene"]
         self.detector_mask = None
 
     @staticmethod
@@ -153,9 +148,9 @@ class PGDriveEngine(PGWorld):
 
             if pg_world.force_fps.real_time_simulation and i < step_num - 1:
                 # insert frame to render in min step_size
-                pg_world.taskMgr.step()
+                pg_world.task_manager.step()
         #  panda3d render and garbage collecting loop
-        pg_world.taskMgr.step()
+        pg_world.task_manager.step()
 
     def update_state(self) -> Dict:
         """

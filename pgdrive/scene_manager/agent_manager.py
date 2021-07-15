@@ -62,7 +62,7 @@ class AgentManager:
         from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
         ret = {
             key:
-                BaseVehicle(self._pg_world, v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))
+                BaseVehicle(v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))
             for key, v_config in config_dict.items()
         }
         return ret

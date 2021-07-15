@@ -33,6 +33,7 @@ class TrafficManager(RandomEngine):
         :param traffic_mode: Respawn mode or Trigger mode
         :param random_traffic: the distribution of vehicles will be different in different episdoes
         """
+        self.pgdrive_engine = get_pgdrive_engine()
         self.map = None
 
         self._traffic_vehicles = None
@@ -93,7 +94,7 @@ class TrafficManager(RandomEngine):
         :return: None
         """
         # trigger vehicles
-        engine = get_pgdrive_engine()
+        engine = self.pgdrive_engine
         if self.mode != TrafficMode.Respawn:
             for v in engine.agent_manager.active_objects.values():
                 ego_lane_idx = v.lane_index[:-1]
@@ -433,7 +434,7 @@ class TrafficManager(RandomEngine):
 
     @property
     def vehicles(self):
-        return list(self._scene_mgr.agent_manager.active_objects.values()) + \
+        return list(self.pgdrive_engine.agent_manager.active_objects.values()) + \
                [v.vehicle_node.kinematic_model for v in self._spawned_vehicles]
 
     @property

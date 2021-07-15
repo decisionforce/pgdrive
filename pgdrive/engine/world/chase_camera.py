@@ -31,7 +31,7 @@ class ChaseCamera:
         self.camera_queue = None
         self.camera_dist = camera_dist
         self.direction_running_mean = deque(maxlen=20)
-        self.light = self.engine.light  # light position is updated with the chase camera when control vehicle
+        self.world_light = self.engine.world_light  # light chases the chase camera, when not using global light
         self.inputs = InputState()
 
         # height control
@@ -83,8 +83,8 @@ class ChaseCamera:
                 180 - 90
             )
 
-        if self.light is not None:
-            self.light.step(current_pos)
+        if self.world_light is not None:
+            self.world_light.step(current_pos)
         return task.cont
 
     @staticmethod
@@ -122,11 +122,11 @@ class ChaseCamera:
         if pos is None:
             pos = vehicle.position
 
-        if self.engine.taskMgr.hasTaskNamed(self.CHASE_TASK_NAME):
-            self.engine.taskMgr.remove(self.CHASE_TASK_NAME)
-        if self.engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
-            self.engine.taskMgr.remove(self.TOP_DOWN_TASK_NAME)
-        self.engine.taskMgr.add(self.renew_camera_place, self.CHASE_TASK_NAME, extraArgs=[vehicle], appendTask=True)
+        if self.engine.task_manager.hasTaskNamed(self.CHASE_TASK_NAME):
+            self.engine.task_manager.remove(self.CHASE_TASK_NAME)
+        if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
+            self.engine.task_manager.remove(self.TOP_DOWN_TASK_NAME)
+        self.engine.task_manager.add(self.renew_camera_place, self.CHASE_TASK_NAME, extraArgs=[vehicle], appendTask=True)
         self.camera_queue = queue.Queue(self.queue_length)
         for i in range(self.queue_length - 1):
             self.camera_queue.put(Vec3(pos[0], -pos[1], 0))
@@ -157,20 +157,20 @@ class ChaseCamera:
 
     def destroy(self):
         engine = get_pgdrive_engine()
-        if engine.taskMgr.hasTaskNamed(self.CHASE_TASK_NAME):
-            engine.taskMgr.remove(self.CHASE_TASK_NAME)
-        if engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
-            engine.taskMgr.remove(self.TOP_DOWN_TASK_NAME)
+        if engine.task_manager.hasTaskNamed(self.CHASE_TASK_NAME):
+            engine.task_manager.remove(self.CHASE_TASK_NAME)
+        if engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
+            engine.task_manager.remove(self.TOP_DOWN_TASK_NAME)
 
     def stop_track(self, current_chase_vehicle):
-        if self.engine.taskMgr.hasTaskNamed(self.CHASE_TASK_NAME):
-            self.engine.taskMgr.remove(self.CHASE_TASK_NAME)
+        if self.engine.task_manager.hasTaskNamed(self.CHASE_TASK_NAME):
+            self.engine.task_manager.remove(self.CHASE_TASK_NAME)
         current_chase_vehicle.remove_display_region()
-        if not self.engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
+        if not self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             # adjust hpr
             current_pos = self.camera.getPos()
             self.camera.lookAt(current_pos[0], current_pos[1], 0)
-            self.engine.taskMgr.add(self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
+            self.engine.task_manager.add(self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
 
     def manual_control_camera(self, task):
         self.top_down_camera_height = self._update_height(self.top_down_camera_height)
@@ -194,19 +194,19 @@ class ChaseCamera:
         return height
 
     def _wheel_down_height(self):
-        if self.engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
+        if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             self.top_down_camera_height += self.WHEEL_SCROLL_SPEED
         else:
             self.chase_camera_height += self.WHEEL_SCROLL_SPEED
 
     def _wheel_up_height(self):
-        if self.engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
+        if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             self.top_down_camera_height -= self.WHEEL_SCROLL_SPEED
         else:
             self.chase_camera_height -= self.WHEEL_SCROLL_SPEED
 
     def _move_to_pointer(self):
-        if self.engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
+        if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             # Get to and from pos in camera coordinates
             pMouse = self.engine.mouseWatcherNode.getMouse()
             pFrom = Point3()
@@ -222,4 +222,4 @@ class ChaseCamera:
             self.camera_y = ret.getHitPos()[1]
 
     def is_bird_view_camera(self):
-        return True if self.engine.taskMgr.hasTaskNamed(self.TOP_DOWN_TASK_NAME) else False
+        return True if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME) else False

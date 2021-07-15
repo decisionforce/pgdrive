@@ -24,17 +24,17 @@ class ForceFPS:
 
     def tick(self):
         # print("Force fps, now: ", self.last)
-        sim_interval = self.engine.taskMgr.globalClock.getDt()
+        sim_interval = self.engine.task_manager.globalClock.getDt()
         if self.interval and sim_interval < self.interval:
             time.sleep(self.interval - sim_interval)
 
     def toggle(self):
         if self.state == self.UNLIMITED:
-            self.engine.taskMgr.add(self.force_fps_task, "force_fps")
+            self.engine.task_manager.add(self.force_fps_task, "force_fps")
             self.state = self.FORCED
             self.fps = self.init_fps
         elif self.state == self.FORCED:
-            self.engine.taskMgr.remove("force_fps")
+            self.engine.task_manager.remove("force_fps")
             self.state = self.UNLIMITED
             self.fps = None
 
