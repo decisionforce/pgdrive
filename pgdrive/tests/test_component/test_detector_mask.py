@@ -141,9 +141,9 @@ def test_detector_mask_in_lidar():
         for _ in range(3000):
             o, r, d, i = env.step([0, 1])
 
-            mask_ratio = env.scene_manager.detector_mask.get_mask_ratio()
+            mask_ratio = env.pgdrive_engine.detector_mask.get_mask_ratio()
             print("Mask ratio: ", mask_ratio)
-            print("We have: {} vehicles!".format(env.scene_manager.traffic_manager.get_vehicle_num()))
+            print("We have: {} vehicles!".format(env.pgdrive_engine.traffic_manager.get_vehicle_num()))
 
             v = env.vehicle
             v.lidar.perceive(
@@ -158,7 +158,7 @@ def test_detector_mask_in_lidar():
             position_dict = {}
             heading_dict = {}
             is_target_vehicle_dict = {}
-            for v in env.scene_manager.traffic_manager.vehicles:
+            for v in env.pgdrive_engine.traffic_manager.vehicles:
                 position_dict[v.name] = v.position
                 heading_dict[v.name] = v.heading_theta
                 is_target_vehicle_dict[v.name] = True if isinstance(v, BaseVehicle) else False
@@ -337,7 +337,7 @@ def test_cutils_lidar():
                     v.heading_theta,
                     v.pg_world.physics_world.dynamic_world,
                     extra_filter_node={v.chassis_np.node()},
-                    detector_mask=env.scene_manager.detector_mask.get_mask(v.name)
+                    detector_mask=env.pgdrive_engine.detector_mask.get_mask(v.name)
                 )
                 new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
                 np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
