@@ -149,7 +149,7 @@ def test_detector_mask_in_lidar():
             v.lidar.perceive(
                 v.position,
                 v.heading_theta,
-                v.pg_world.physics_world.dynamic_world,
+                v.pgdrive_engine.physics_world.dynamic_world,
                 extra_filter_node={v.chassis_np.node()},
                 detector_mask=None
             )
@@ -186,7 +186,7 @@ def test_detector_mask_in_lidar():
             v.lidar.perceive(
                 v.position,
                 v.heading_theta,
-                v.pg_world.physics_world.dynamic_world,
+                v.pgdrive_engine.physics_world.dynamic_world,
                 extra_filter_node={v.chassis_np.node()},
                 detector_mask=mask
             )
@@ -309,13 +309,13 @@ def test_cutils_lidar():
                 new_cloud_points = v.lidar.perceive(
                     v.position,
                     v.heading_theta,
-                    v.pg_world.physics_world.dynamic_world,
+                    v.pgdrive_engine.physics_world.dynamic_world,
                     extra_filter_node={v.chassis_np.node()},
                     detector_mask=None
                 )
                 new_cloud_points = np.array(copy.deepcopy(new_cloud_points))
                 old_cloud_points = _old_perceive(
-                    v.lidar, v.position, v.heading_theta, v.pg_world.physics_world.dynamic_world, {v.chassis_np.node()},
+                    v.lidar, v.position, v.heading_theta, v.pgdrive_engine.physics_world.dynamic_world, {v.chassis_np.node()},
                     None
                 )
                 np.testing.assert_almost_equal(new_cloud_points, old_cloud_points)
@@ -324,7 +324,7 @@ def test_cutils_lidar():
                     v.lidar,
                     v.position,
                     v.heading_theta,
-                    v.pg_world.physics_world.dynamic_world,
+                    v.pgdrive_engine.physics_world.dynamic_world,
                     extra_filter_node={v.chassis_np.node()},
                     detector_mask=None
                 )
@@ -335,7 +335,7 @@ def test_cutils_lidar():
                 v.lidar.perceive(
                     v.position,
                     v.heading_theta,
-                    v.pg_world.physics_world.dynamic_world,
+                    v.pgdrive_engine.physics_world.dynamic_world,
                     extra_filter_node={v.chassis_np.node()},
                     detector_mask=env.pgdrive_engine.detector_mask.get_mask(v.name)
                 )

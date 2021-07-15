@@ -110,7 +110,7 @@ class TollGateObservation(LidarStateObservation):
 class MATollGateMap(PGMap):
     BOTTLE_LENGTH = 35
 
-    def _generate(self, pg_world):
+    def _generate(self):
         length = self.config["exit_length"]
 
         parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world

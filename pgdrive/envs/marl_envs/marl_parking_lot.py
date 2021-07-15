@@ -197,7 +197,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         Exclude destination parking space
         """
         safe_places_dict = self._spawn_manager.get_available_respawn_places(
-            self.pg_world, self.current_map, randomize=randomize_position
+            self.current_map, randomize=randomize_position
         )
         # ===== filter spawn places =====
         filter_ret = {}
