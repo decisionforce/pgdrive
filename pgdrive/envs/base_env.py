@@ -138,7 +138,7 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pgdrive_engine:Optional[PGDriveEngine]=None
+        self.pgdrive_engine: Optional[PGDriveEngine] = None
         self.main_camera = None
         self.controller = None
         self.restored_maps = dict()

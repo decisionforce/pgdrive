@@ -253,7 +253,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
         safe_places_dict = self._spawn_manager.get_available_respawn_places(
-           self.current_map, randomize=randomize_position
+            self.current_map, randomize=randomize_position
         )
         if len(safe_places_dict) == 0 or not self.agent_manager.allow_respawn:
             # No more run, just wait!
