@@ -554,7 +554,7 @@ def test_ma_bottleneck_no_short_episode():
             o, r, d, i = _act(env, act)
             for kkk, iii in i.items():
                 if d[kkk]:
-                    assert iii["episode_length"] > 1
+                    assert iii["episode_length"] >= 1
                     d_count += 1
             if d["__all__"]:
                 o = env.reset()
