@@ -8,7 +8,8 @@ from pgdrive.utils.engine_utils import pgdrive_engine_initialized
 import numpy as np
 from pgdrive.constants import DEFAULT_AGENT, TerminationState
 from pgdrive.envs.base_env import BasePGDriveEnv
-from pgdrive.obs import LidarStateObservation, ImageStateObservation
+from pgdrive.obs.image_obs import ImageStateObservation
+from pgdrive.obs.state_obs import LidarStateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import Map, MapGenerateMethod, parse_map_config, PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -297,7 +298,7 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH
-                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
@@ -340,7 +341,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -618,6 +619,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

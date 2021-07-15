@@ -9,12 +9,12 @@ import gym
 import numpy as np
 from panda3d.core import PNMImage
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
-from pgdrive.obs.observation_type import ObservationType
+from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
 
 from pgdrive.utils import PGConfig, merge_dicts
-from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine
+from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -161,7 +161,7 @@ class BasePGDriveEnv(gym.Env):
         """Add more special process to merged config"""
         return config
 
-    def _get_observations(self) -> Dict[str, "ObservationType"]:
+    def _get_observations(self) -> Dict[str, "ObservationBase"]:
         raise NotImplementedError()
 
     def _get_observation_space(self):
@@ -258,7 +258,7 @@ class BasePGDriveEnv(gym.Env):
 
         if mode == "rgb_array" and self.config["use_render"]:
             if not hasattr(self, "_temporary_img_obs"):
-                from pgdrive.obs.observation_type import ImageObservation
+                from pgdrive.obs.observation_base import ImageObservation
                 image_source = "rgb_cam"
                 assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
                 self.temporary_img_obs = ImageObservation(
@@ -317,7 +317,7 @@ class BasePGDriveEnv(gym.Env):
                 self.main_camera.destroy()
                 del self.main_camera
                 self.main_camera = None
-            self.pgdrive_engine.destroy()
+            close_pgdrive_engine()
 
             del self.controller
             self.controller = None
@@ -360,7 +360,7 @@ class BasePGDriveEnv(gym.Env):
         ego_v = self.vehicles[DEFAULT_AGENT]
         return ego_v
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
         raise NotImplementedError()
 
     def _wrap_as_single_agent(self, data):

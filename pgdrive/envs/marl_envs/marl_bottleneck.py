@@ -2,7 +2,7 @@ from pgdrive.envs.multi_agent_pgdrive import pygame_replay
 from pgdrive.utils.math_utils import clip
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.obs import ObservationType
+from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map import PGMap
@@ -86,7 +86,7 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
             self.current_map = self.maps[self.current_seed]
             self.current_map.spawn_roads = self.spawn_roads
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
 
     def reward_function(self, vehicle_id: str):

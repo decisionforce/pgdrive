@@ -57,7 +57,8 @@ class TrafficManager(RandomEngine):
         :param traffic_density: Traffic density defined by: number of vehicles per meter
         :return: List of Traffic vehicles
         """
-
+        #TODO ManagerBase
+        self.pgdrive_engine = get_pgdrive_engine()
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.update_random_seed(map.random_seed if not self.random_traffic else None)
 
@@ -144,10 +145,9 @@ class TrafficManager(RandomEngine):
                 self.spawn_one_vehicle(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
 
     def _clear_traffic(self):
-        engine = get_pgdrive_engine()
         if self._spawned_vehicles is not None:
             for v in self._spawned_vehicles:
-                v.destroy(engine)
+                v.destroy()
         self._spawned_vehicles = []
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
@@ -199,9 +199,9 @@ class TrafficManager(RandomEngine):
                 for vehicle in v_b.vehicles:
                     traffic_states[vehicle.index] = vehicle.get_state()
         states[TRAFFIC_VEHICLES] = traffic_states
-        active_obj = copy.copy(self._scene_mgr.agent_manager._active_objects)
-        pending_obj = copy.copy(self._scene_mgr.agent_manager._pending_objects)
-        dying_obj = copy.copy(self._scene_mgr.agent_manager._dying_objects)
+        active_obj = copy.copy(self.pgdrive_engine.agent_manager._active_objects)
+        pending_obj = copy.copy(self.pgdrive_engine.agent_manager._pending_objects)
+        dying_obj = copy.copy(self.pgdrive_engine.agent_manager._dying_objects)
         states[TARGET_VEHICLES] = {k: v.get_state() for k, v in active_obj.items()}
         states[TARGET_VEHICLES] = merge_dicts(
             states[TARGET_VEHICLES], {k: v.get_state()
@@ -213,8 +213,8 @@ class TrafficManager(RandomEngine):
             allow_new_keys=True
         )
 
-        states[OBJECT_TO_AGENT] = copy.deepcopy(self._scene_mgr.agent_manager._object_to_agent)
-        states[AGENT_TO_OBJECT] = copy.deepcopy(self._scene_mgr.agent_manager._agent_to_object)
+        states[OBJECT_TO_AGENT] = copy.deepcopy(self.pgdrive_engine.agent_manager._object_to_agent)
+        states[AGENT_TO_OBJECT] = copy.deepcopy(self.pgdrive_engine.agent_manager._agent_to_object)
         return states
 
     def get_global_init_states(self) -> Dict:
@@ -378,7 +378,7 @@ class TrafficManager(RandomEngine):
         s = self.map.road_network.get_lane(lane_index).local_coordinates(vehicle.position)[0]
         s_front = s_rear = None
         v_front = v_rear = None
-        for v in self.vehicles + self._scene_mgr.object_manager.objects:
+        for v in self.vehicles + self.pgdrive_engine.object_manager.objects:
             if norm(v.position[0] - vehicle.position[0], v.position[1] - vehicle.position[1]) > 100:
                 # coarse filter
                 continue
@@ -434,8 +434,6 @@ class TrafficManager(RandomEngine):
 
     @property
     def vehicles(self):
-        #TODO ManagerBase
-        self.pgdrive_engine = get_pgdrive_engine()
         return list(self.pgdrive_engine.agent_manager.active_objects.values()) + \
                [v.vehicle_node.kinematic_model for v in self._spawned_vehicles]
 

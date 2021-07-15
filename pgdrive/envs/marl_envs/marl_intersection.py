@@ -2,7 +2,7 @@ import copy
 from pgdrive.envs.multi_agent_pgdrive import pygame_replay, panda_replay
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.obs import ObservationType
+from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.intersection import InterSection
 from pgdrive.scene_creator.map import PGMap
@@ -77,7 +77,7 @@ class MultiAgentIntersectionEnv(MultiAgentPGDrive):
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
 
 

@@ -213,7 +213,11 @@ class PGDriveEngine(PGWorld):
         assert self.record_system is not None
         return self.record_system.dump_episode()
 
-    def destroy(self):
+    def close(self):
+        """
+        Note:
+        Instead of calling this func directly, close Engine by using engine_utils.close_pgdrive_engine
+        """
         self.traffic_manager.destroy()
         self.traffic_manager = None
 
@@ -228,11 +232,7 @@ class PGDriveEngine(PGWorld):
             self.replay_system.destroy()
             self.replay_system = None
         self.clear_world()
-        self.clear_world()
-
-    def __repr__(self):
-        info = "traffic:" + self.traffic_manager.__repr__()
-        return info
+        self.close_world()
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))

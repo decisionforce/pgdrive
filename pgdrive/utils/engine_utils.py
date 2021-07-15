@@ -13,3 +13,9 @@ def get_pgdrive_engine():
 
 def pgdrive_engine_initialized():
     return False if PGDriveEngine.singleton is None else True
+
+
+def close_pgdrive_engine():
+    if PGDriveEngine.singleton is not None:
+        PGDriveEngine.singleton.close()
+        PGDriveEngine.singleton = None

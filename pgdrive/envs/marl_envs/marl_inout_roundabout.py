@@ -3,7 +3,7 @@ from pgdrive.envs.multi_agent_pgdrive import pygame_replay
 import numpy as np
 
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.obs import ObservationType
+from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
@@ -56,7 +56,7 @@ class MARoundaboutMap(PGMap):
         self.blocks.append(last_block)
 
 
-class LidarStateObservationMARound(ObservationType):
+class LidarStateObservationMARound(ObservationBase):
     def __init__(self, vehicle_config):
         self.state_obs = StateObservation(vehicle_config)
         super(LidarStateObservationMARound, self).__init__(vehicle_config)
@@ -139,7 +139,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
 
 

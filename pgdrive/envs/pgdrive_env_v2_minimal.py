@@ -3,8 +3,8 @@ import math
 import gym
 import numpy as np
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.obs import LidarStateObservation
-from pgdrive.obs.observation_type import ObservationType
+from pgdrive.obs.state_obs import LidarStateObservation
+from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils import PGConfig
 from pgdrive.utils.math_utils import norm, clip
 
@@ -187,7 +187,7 @@ class PGDriveEnvV2Minimal(PGDriveEnvV2):
         config["vehicle_config"]["lane_line_detector"]["distance"] = 0
         return config
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
         return MinimalObservation(vehicle_config, self)
 
     def _post_process_config(self, config):
