@@ -8,7 +8,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import norm, RandomEngine, merge_dicts
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.pg_world import PGWorld
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 

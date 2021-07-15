@@ -6,7 +6,7 @@ from panda3d.core import NodePath
 from pgdrive.utils import PGConfig, random_string
 from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace
-from pgdrive.pgdrive_engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
 
 
 class PhysicsNodeList(list):

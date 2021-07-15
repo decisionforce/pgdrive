@@ -12,7 +12,7 @@ from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.math_utils import get_points_bounding_box
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.pg_world import PGWorld
 
 if TYPE_CHECKING:
     from pgdrive.scene_creator.blocks.block import BlockSocket

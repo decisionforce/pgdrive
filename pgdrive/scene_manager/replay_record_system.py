@@ -4,7 +4,7 @@ import logging
 
 from pgdrive.scene_creator.map import PGMap
 from pgdrive.scene_manager.traffic_manager import TrafficManager
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.pg_world import PGWorld
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
 
 

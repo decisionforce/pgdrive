@@ -3,8 +3,8 @@ from panda3d.core import Vec3, NodePath, Shader, RenderState, ShaderAttrib, BitM
 from pgdrive.constants import CamMask
 from pgdrive.utils import is_mac
 from pgdrive.utils.asset_loader import AssetLoader
-from pgdrive.pgdrive_engine.world.image_buffer import ImageBuffer
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.image_buffer import ImageBuffer
+from pgdrive.engine.world.pg_world import PGWorld
 
 
 class DepthCamera(ImageBuffer):

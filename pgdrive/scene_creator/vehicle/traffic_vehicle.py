@@ -14,7 +14,7 @@ from pgdrive.utils.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.scene_utils import ray_localization
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.pg_world import PGWorld
 
 
 class TrafficVehicleNode(BulletRigidBodyNode):

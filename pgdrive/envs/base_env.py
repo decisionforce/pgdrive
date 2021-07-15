@@ -1,5 +1,4 @@
 import os.path as osp
-from pgdrive.pgdrive_engine import PGDriveEngine, initialize_pgdrive_engine
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
@@ -13,7 +12,8 @@ from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_manager.agent_manager import AgentManager
 from pgdrive.scene_manager.scene_manager import SceneManager
 from pgdrive.utils import PGConfig, merge_dicts
-
+from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine
+from pgdrive.engine.world.pg_world import PGWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -136,7 +136,7 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pg_world = None
+        self.pg_world: Optional[PGWorld] = None
         self.scene_manager: Optional[SceneManager] = None
         self.main_camera = None
         self.controller = None
@@ -173,18 +173,6 @@ class BasePGDriveEnv(gym.Env):
             for v_id in self.observations.keys()
         }
 
-
-    def _get_scene_manager(self) -> "SceneManager":
-        traffic_config = {"traffic_mode": self.config["traffic_mode"], "random_traffic": self.config["random_traffic"]}
-        manager = SceneManager(
-            pg_world=self.pg_world,
-            traffic_config=traffic_config,
-            record_episode=self.config["record_episode"],
-            cull_scene=self.config["cull_scene"],
-            agent_manager=self.agent_manager
-        )
-        return manager
-
     def lazy_init(self):
         """
         Only init once in runtime, variable here exists till the close_env is called
@@ -194,10 +182,10 @@ class BasePGDriveEnv(gym.Env):
         initialize_pgdrive_engine(self.config, self.agent_manager)
 
         # init world
-        self.pg_world = PGDriveEngine
+        self.pg_world = get_pgdrive_engine()
 
         # init traffic manager
-        self.scene_manager = PGDriveEngine
+        self.scene_manager = get_pgdrive_engine()
 
         # init vehicle
         self.agent_manager.init(pg_world=self.pg_world, config_dict=self._get_target_vehicle_config())

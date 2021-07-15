@@ -15,9 +15,9 @@ from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos
-from pgdrive.pgdrive_engine.world.chase_camera import ChaseCamera
-from pgdrive.pgdrive_engine.world.manual_controller import KeyboardController, JoystickController
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.chase_camera import ChaseCamera
+from pgdrive.engine.world.manual_controller import KeyboardController, JoystickController
+from pgdrive.engine.world.pg_world import PGWorld
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 

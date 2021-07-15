@@ -11,8 +11,8 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.pg_blocks import PGBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils import PGConfig, import_pygame
-from pgdrive.pgdrive_engine.world.pg_physics_world import PGPhysicsWorld
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.world.pg_world import PGWorld
 
 pygame = import_pygame()
 

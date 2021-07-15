@@ -30,9 +30,9 @@ from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
-from pgdrive.pgdrive_engine.world.image_buffer import ImageBuffer
-from pgdrive.pgdrive_engine.world.pg_physics_world import PGPhysicsWorld
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.image_buffer import ImageBuffer
+from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.world.pg_world import PGWorld
 
 
 class BaseVehicle(DynamicElement):

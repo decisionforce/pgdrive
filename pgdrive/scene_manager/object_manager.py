@@ -8,7 +8,7 @@ from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import LaneIndex
 from pgdrive.utils import RandomEngine
-from pgdrive.pgdrive_engine.world.pg_world import PGWorld
+from pgdrive.engine.world.pg_world import PGWorld
 
 
 class ObjectManager(RandomEngine):

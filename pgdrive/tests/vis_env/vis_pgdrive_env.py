@@ -27,8 +27,8 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "debug": True,
-                "fast": False,
+                "debug": False,
+                "fast": True,
                 "map_config": {
                     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                     Map.GENERATE_CONFIG: "SXO",
