@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from pgdrive.scene_creator.city_map import CityMap
+from pgdrive.scene_creator.map.city_map import CityMap
 from pgdrive.utils import draw_top_down_map
 from pgdrive.engine.world.pg_world import PGWorld
 

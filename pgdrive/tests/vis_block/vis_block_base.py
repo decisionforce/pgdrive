@@ -4,7 +4,7 @@ from direct.showbase import ShowBase
 from panda3d.bullet import BulletPlaneShape, BulletRigidBodyNode, BulletDebugNode
 from panda3d.core import Vec3, BitMask32, NodePath, LineSegs
 from pgdrive.scene_creator.algorithm.BIG import NextStep
-from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.map.map import Map
 from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
 
 

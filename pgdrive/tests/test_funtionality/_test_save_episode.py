@@ -1,7 +1,7 @@
 import json
 
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.map import Map, MapGenerateMethod
+from pgdrive.scene_creator.map.map import Map, MapGenerateMethod
 from pgdrive.scene_manager.traffic_manager import TrafficMode
 from pgdrive.utils import setup_logger
 

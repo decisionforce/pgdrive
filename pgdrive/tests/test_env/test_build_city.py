@@ -1,6 +1,6 @@
 from pgdrive import PGDriveEnv
 import pygame
-from pgdrive.scene_creator.city_map import CityMap
+from pgdrive.scene_creator.map.city_map import CityMap
 from pgdrive.utils.engine_utils import initialize_pgdrive_engine, close_pgdrive_engine
 from pgdrive.obs.top_down_renderer import draw_top_down_map
 

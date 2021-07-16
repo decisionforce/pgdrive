@@ -5,7 +5,7 @@ from typing import Tuple, Dict
 
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
-from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.map.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import norm, RandomEngine, merge_dicts
 from pgdrive.utils.engine_utils import get_pgdrive_engine

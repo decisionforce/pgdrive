@@ -1,5 +1,4 @@
 import gym
-from pgdrive.envs.multi_agent_pgdrive import pygame_replay
 import numpy as np
 
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
@@ -7,7 +6,7 @@ from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.obs.state_obs import StateObservation
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.blocks.roundabout import Roundabout
-from pgdrive.scene_creator.map import PGMap
+from pgdrive.scene_creator.map.pg_map import PGMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import get_np_random, norm, PGConfig
 

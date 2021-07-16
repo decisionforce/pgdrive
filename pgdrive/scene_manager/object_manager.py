@@ -3,7 +3,7 @@ from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraight
 from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
-from pgdrive.scene_creator.map import Map
+from pgdrive.scene_creator.map.map import Map
 from pgdrive.scene_creator.object.traffic_object import TrafficObject
 from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
