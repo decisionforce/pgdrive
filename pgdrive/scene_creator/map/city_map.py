@@ -28,11 +28,10 @@ class CityBIG(BIG):
 
     def __init__(
         self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-        pg_physics_world: PGPhysicsWorld, random_seed: int, block_type_version: str
+        pg_physics_world: PGPhysicsWorld, block_type_version: str
     ):
         super(CityBIG, self).__init__(
-            lane_num, lane_width, global_network, render_node_path, pg_physics_world, random_seed, block_type_version
-        )
+            lane_num, lane_width, global_network, render_node_path, pg_physics_world, block_type_version)
 
     def generate(self, generate_method: BigGenerateMethod, parameter: Union[str, int]):
         """
@@ -50,20 +49,7 @@ class CityBIG(BIG):
                 break
         return self._global_network
 
-    def big_helper_func(self):
-        if len(self.blocks) >= self.block_num and self.next_step == NextStep.forward:
-            return True
-        if self.next_step == NextStep.forward:
-            self._forward()
-        elif self.next_step == NextStep.destruct_current:
-            self._destruct_current()
-        elif self.next_step == NextStep.search_sibling:
-            self._search_sibling()
-        elif self.next_step == NextStep.back:
-            self._go_back()
-        return False
-
-    def sample_block(self, block_seed: int) -> Block:
+    def sample_block(self) -> Block:
         """
         Sample a random block type
         """
@@ -81,48 +67,10 @@ class CityBIG(BIG):
         for b in self.blocks:
             socket_available += b.get_socket_list()
         socket_available = set(socket_available).difference(socket_used)
-        socket = self.np_random.choice(list(socket_available))
+        socket = self.np_random.choice(sorted(list(socket_available),key=lambda x:x.index))
 
-        block = block_type(len(self.blocks), socket, self._global_network, block_seed)
+        block = block_type(len(self.blocks), socket, self._global_network)
         return block
-
-    def destruct(self, block):
-        block.destruct_block(self._physics_world)
-
-    def construct(self, block) -> bool:
-        return block.construct_block(self._render_node_path, self._physics_world)
-
-    def _forward(self):
-        logging.debug("forward")
-        block = self.sample_block(self.np_random.randint(0, 1000))
-        self.blocks.append(block)
-        success = self.construct(block)
-        self.next_step = NextStep.forward if success else NextStep.destruct_current
-
-    def _go_back(self):
-        logging.debug("back")
-        self.blocks.pop()
-        last_block = self.blocks[-1]
-        self.destruct(last_block)
-        self.next_step = NextStep.search_sibling
-
-    def _search_sibling(self):
-        logging.debug("sibling")
-        block = self.blocks[-1]
-        if block.number_of_sample_trial < self.MAX_TRIAL:
-            success = self.construct(block)
-            self.next_step = NextStep.forward if success else NextStep.destruct_current
-        else:
-            self.next_step = NextStep.back
-
-    def _destruct_current(self):
-        logging.debug("destruct")
-        block = self.blocks[-1]
-        self.destruct(block)
-        self.next_step = NextStep.search_sibling if block.number_of_sample_trial < self.MAX_TRIAL else NextStep.back
-
-    def __del__(self):
-        logging.debug("Destroy Big")
 
 
 class CityMap(Map):
@@ -130,7 +78,7 @@ class CityMap(Map):
         parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
         big_map = CityBIG(
             self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
-            pg_physics_world, self.random_seed, self.config["block_type_version"]
+            pg_physics_world,  self.config["block_type_version"]
         )
         big_map.generate(self.config[self.GENERATE_TYPE], self.config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks
