@@ -4,7 +4,7 @@ import sys
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
-
+from pgdrive.scene_managers.map_manager import MapManager
 import gym
 import numpy as np
 from panda3d.core import PNMImage
@@ -424,7 +424,13 @@ class BasePGDriveEnv(gym.Env):
         return self.agent_manager.pending_objects
 
     def setup_engine(self):
+        """
+        engine setting after launching
+        """
         self.pgdrive_engine.accept("r", self.reset)
         self.pgdrive_engine.accept("escape", sys.exit)
-        # capture all figs
         self.pgdrive_engine.accept("p", self.capture)
+
+        self.pgdrive_engine.register_manager("map_manager", MapManager())
+        print(self.pgdrive_engine.get_manager("map_manager").random_seed)
+

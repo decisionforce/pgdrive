@@ -1,4 +1,3 @@
-from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
 from typing import Callable, Optional
 from pgdrive.utils.random import RandomEngine
 
@@ -9,6 +8,7 @@ class BaseManager(RandomEngine):
     """
 
     def __init__(self):
+        from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
         super(BaseManager, self).__init__()
         assert pgdrive_engine_initialized(), "You should not create manager before the initialization of PGDriveEngine"
         self.pgdrive_engine = get_pgdrive_engine()

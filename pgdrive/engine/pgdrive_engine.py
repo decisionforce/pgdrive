@@ -1,4 +1,5 @@
 import logging
+from pgdrive.scene_managers.base_manager import BaseManager
 from typing import Dict, AnyStr, Union
 from pgdrive.engine.pgdrive_scene_cull import PGDriveSceneCull
 import numpy as np
@@ -26,6 +27,8 @@ class PGDriveEngine(PGWorld):
         self.pgdrive_config = pgdrive_config
         super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
+        self._managers=dict()
+
         traffic_config = {
             "traffic_mode": pgdrive_config["traffic_mode"],
             "random_traffic": pgdrive_config["random_traffic"]
@@ -53,7 +56,8 @@ class PGDriveEngine(PGWorld):
         from pgdrive.scene_managers.traffic_manager import TrafficManager
         return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
-    def _get_object_manager(self, object_config=None):
+    @staticmethod
+    def _get_object_manager(object_config=None):
         from pgdrive.scene_managers.object_manager import TrafficSignManager
         return TrafficSignManager()
 
@@ -231,3 +235,19 @@ class PGDriveEngine(PGWorld):
         if not self.IN_REPLAY:
             return
         self.STOP_REPLAY = not self.STOP_REPLAY
+
+    def register_manager(self, manger_name: str, manager: BaseManager):
+        """
+        Register a manager in PGDriveEngine, then all objects can communicate with this class
+        :param manger_name: name that don't exist in self._managers and don't same as any class attribute
+        :param manager: subclass of BaseManager
+        :return: None
+        """
+        assert manger_name not in self._managers, "Manager already exists in PGDriveEngine"
+        assert not hasattr(self, manger_name), "Manager name can not be same as the attribute in PGDriveEngine"
+        self._managers[manger_name] = manager
+
+    def get_manager(self, name:str):
+        assert name in self._managers, "{} Manager doesn't exist in PGDriveEngine"
+        return self._managers[name]
+
