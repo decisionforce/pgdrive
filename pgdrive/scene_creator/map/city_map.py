@@ -30,8 +30,8 @@ class CityBIG(BIG):
         self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
         pg_physics_world: PGPhysicsWorld, block_type_version: str
     ):
-        super(CityBIG, self).__init__(
-            lane_num, lane_width, global_network, render_node_path, pg_physics_world, block_type_version)
+        super(CityBIG, self
+              ).__init__(lane_num, lane_width, global_network, render_node_path, pg_physics_world, block_type_version)
 
     def generate(self, generate_method: BigGenerateMethod, parameter: Union[str, int]):
         """
@@ -67,7 +67,7 @@ class CityBIG(BIG):
         for b in self.blocks:
             socket_available += b.get_socket_list()
         socket_available = set(socket_available).difference(socket_used)
-        socket = self.np_random.choice(sorted(list(socket_available),key=lambda x:x.index))
+        socket = self.np_random.choice(sorted(list(socket_available), key=lambda x: x.index))
 
         block = block_type(len(self.blocks), socket, self._global_network)
         return block
@@ -78,7 +78,7 @@ class CityMap(Map):
         parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
         big_map = CityBIG(
             self._config[self.LANE_NUM], self._config[self.LANE_WIDTH], self.road_network, parent_node_path,
-            pg_physics_world,  self._config["block_type_version"]
+            pg_physics_world, self._config["block_type_version"]
         )
         big_map.generate(self._config[self.GENERATE_TYPE], self._config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks

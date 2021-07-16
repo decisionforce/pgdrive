@@ -433,4 +433,3 @@ class BasePGDriveEnv(gym.Env):
 
         self.pgdrive_engine.register_manager("map_manager", MapManager())
         print(self.pgdrive_engine.get_manager("map_manager").random_seed)
-

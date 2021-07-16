@@ -49,7 +49,6 @@ class PGMap(Map):
         for block_index, b in enumerate(blocks_config[1:], 1):
             block_type = PGBlock.get_block(b.pop(self.BLOCK_ID), self._config["block_type_version"])
             pre_block_socket_index = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
-            last_block = block_type(
-                block_index, last_block.get_socket(pre_block_socket_index), self.road_network)
+            last_block = block_type(block_index, last_block.get_socket(pre_block_socket_index), self.road_network)
             last_block.construct_from_config(b, parent_node_path, pg_physics_world)
             self.blocks.append(last_block)

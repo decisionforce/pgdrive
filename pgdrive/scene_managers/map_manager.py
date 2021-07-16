@@ -5,7 +5,6 @@ class MapManager(BaseManager):
     """
     MapManager contains a list of maps
     """
-
     def __init__(self):
         super(MapManager, self).__init__()
 

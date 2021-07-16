@@ -38,17 +38,20 @@ class PGDriveSceneCull:
 
     @classmethod
     def cull_distant_traffic_vehicles(cls, pgdrive_engine, vehicles: list, poses: List[tuple], max_distance=None):
-        cls._cull_elements(pgdrive_engine, vehicles, poses, cls.LOD_VEHICLE_VIS_DIST,
-                           max_distance or cls.LOD_VEHICLE_PHYSICS_DIST)
+        cls._cull_elements(
+            pgdrive_engine, vehicles, poses, cls.LOD_VEHICLE_VIS_DIST, max_distance or cls.LOD_VEHICLE_PHYSICS_DIST
+        )
 
     @classmethod
     def cull_distant_objects(cls, pgdrive_engine, objects: list, poses: List[tuple], max_distance=None):
-        cls._cull_elements(pgdrive_engine, objects, poses, cls.LOD_OBJECT_VIS_DIST,
-                           max_distance or cls.LOD_OBJECT_PHYSICS_DIST)
+        cls._cull_elements(
+            pgdrive_engine, objects, poses, cls.LOD_OBJECT_VIS_DIST, max_distance or cls.LOD_OBJECT_PHYSICS_DIST
+        )
 
     @classmethod
-    def _cull_elements(cls, pgdrive_engine, elements: list, poses: List[tuple], vis_distance: float,
-                       physics_distance: float):
+    def _cull_elements(
+        cls, pgdrive_engine, elements: list, poses: List[tuple], vis_distance: float, physics_distance: float
+    ):
         for obj in elements:
             v_p = obj.position
             if not cls.all_distance_greater_than(vis_distance, poses, v_p):

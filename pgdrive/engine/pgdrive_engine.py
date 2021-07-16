@@ -20,14 +20,14 @@ class PGDriveEngine(PGWorld):
     STOP_REPLAY = False
 
     def __init__(
-            self,
-            pgdrive_config: Union[Dict, "PGConfig"],
-            agent_manager: "AgentManager",
+        self,
+        pgdrive_config: Union[Dict, "PGConfig"],
+        agent_manager: "AgentManager",
     ):
         self.pgdrive_config = pgdrive_config
         super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
-        self._managers=dict()
+        self._managers = dict()
 
         traffic_config = {
             "traffic_mode": pgdrive_config["traffic_mode"],
@@ -157,15 +157,16 @@ class PGDriveEngine(PGWorld):
         # cull distant blocks
         poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene:
-            PGDriveSceneCull.cull_distant_blocks(self, self.current_map.blocks, poses,
-                                                 self.world_config["max_distance"])
+            PGDriveSceneCull.cull_distant_blocks(
+                self, self.current_map.blocks, poses, self.world_config["max_distance"]
+            )
 
-            PGDriveSceneCull.cull_distant_traffic_vehicles(self,
-                                                           self.traffic_manager.traffic_vehicles, poses,
-                                                           self.world_config["max_distance"])
-            PGDriveSceneCull.cull_distant_objects(self,
-                                                  self.object_manager._spawned_objects, poses,
-                                                  self.world_config["max_distance"])
+            PGDriveSceneCull.cull_distant_traffic_vehicles(
+                self, self.traffic_manager.traffic_vehicles, poses, self.world_config["max_distance"]
+            )
+            PGDriveSceneCull.cull_distant_objects(
+                self, self.object_manager._spawned_objects, poses, self.world_config["max_distance"]
+            )
 
         return step_infos
 
@@ -247,7 +248,6 @@ class PGDriveEngine(PGWorld):
         assert not hasattr(self, manger_name), "Manager name can not be same as the attribute in PGDriveEngine"
         self._managers[manger_name] = manager
 
-    def get_manager(self, name:str):
+    def get_manager(self, name: str):
         assert name in self._managers, "{} Manager doesn't exist in PGDriveEngine"
         return self._managers[name]
-

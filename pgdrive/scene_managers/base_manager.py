@@ -6,7 +6,6 @@ class BaseManager(RandomEngine):
     """
     Managers should be created and registered after launching PGDriveEngine
     """
-
     def __init__(self):
         from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
         super(BaseManager, self).__init__()
