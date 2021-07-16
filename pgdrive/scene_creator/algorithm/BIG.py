@@ -1,7 +1,7 @@
 import logging
 from typing import Union
 
-from numpy.random import RandomState
+from pgdrive.utils.random import RandomEngine
 from panda3d.core import NodePath
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -23,7 +23,7 @@ class BigGenerateMethod:
     SINGLE_BLOCK = "single_block"
 
 
-class BIG:
+class BIG(RandomEngine):
     MAX_TRIAL = 2
 
     def __init__(
@@ -33,14 +33,11 @@ class BIG:
         global_network: RoadNetwork,
         render_node_path: NodePath,
         pg_physics_world: PGPhysicsWorld,
-        random_seed: int,
         block_type_version: str,
         exit_length=50
     ):
         self._block_sequence = None
-        self._random_seed = random_seed
         # Don't change this right now, since we need to make maps identical to old one
-        self.np_random = RandomState(random_seed)
         self._lane_num = lane_num
         self._lane_width = lane_width
         self.block_num = None
@@ -55,7 +52,6 @@ class BIG:
             self._lane_num,
             self._render_node_path,
             self._physics_world,
-            self._random_seed,
             length=self._exit_length
         )
         self.blocks.append(first_block)
@@ -92,7 +88,7 @@ class BIG:
             self._go_back()
         return False
 
-    def sample_block(self, block_seed: int) -> Block:
+    def sample_block(self) -> Block:
         """
         Sample a random block type
         """
@@ -105,7 +101,7 @@ class BIG:
             block_type = PGBlock.get_block(type_id, self.block_type_version)
 
         socket = self.np_random.choice(self.blocks[-1].get_socket_indices())
-        block = block_type(len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network, block_seed)
+        block = block_type(len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network)
         return block
 
     def destruct(self, block):
@@ -116,7 +112,7 @@ class BIG:
 
     def _forward(self):
         logging.debug("forward")
-        block = self.sample_block(self.np_random.randint(0, 1000))
+        block = self.sample_block()
         self.blocks.append(block)
         success = self.construct(block)
         self.next_step = NextStep.forward if success else NextStep.destruct_current

@@ -35,9 +35,6 @@ class Ramp(Block):
     CONNECT_PART_LEN = 20
     RAMP_LEN = 15
 
-    def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
-        super(Ramp, self).__init__(block_index, pre_block_socket, global_network, random_seed)
-
 
 class InRampOnStraight(Ramp):
     ID = "r"

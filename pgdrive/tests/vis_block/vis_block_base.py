@@ -23,8 +23,8 @@ class TestBlock(ShowBase.ShowBase):
         self.debugNP = None
         self.groundNP = None
         self.setup()
-        self.task_manager.add(self.update, 'updateWorld')
-        self.task_manager.add(self.analyze, "analyze geom node")
+        self.taskMgr.add(self.update, 'updateWorld')
+        self.taskMgr.add(self.analyze, "analyze geom node")
         self.add_block_func = None  # function pointer
         self.last_block = None
         self.block_index = 1

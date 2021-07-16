@@ -50,7 +50,7 @@ class Object(RandomEngine):
 
     PARAMETER_SPACE = PGSpace({})
 
-    def __init__(self, random_seed=None, name=None):
+    def __init__(self, name=None):
         """
         Config is a static conception, which specified the parameters of one element.
         There parameters doesn't change, such as length of straight road, max speed of one vehicle, etc.
@@ -65,9 +65,6 @@ class Object(RandomEngine):
         assert isinstance(
             self.PARAMETER_SPACE, PGSpace
         ), "Using PGSpace to define parameter spaces of " + self.class_name
-
-        # randomize
-        self.update_random_seed(random_seed)
 
         # initialize and specify the value in config
         self._config = PGConfig({k: None for k in self.PARAMETER_SPACE.parameters})
@@ -109,8 +106,9 @@ class Object(RandomEngine):
 
     def sample_parameters(self):
         """
-        Fix the random parameters in PARAMETER_SPACE
+        Fix a value of the random parameters in PARAMETER_SPACE
         """
+        self.PARAMETER_SPACE.seed(self.np_random.randint(low=0, high=int(1e6)))
         ret = self.PARAMETER_SPACE.sample()
         self.set_config(ret)
 
@@ -165,11 +163,6 @@ class Object(RandomEngine):
         self.node_path.detachNode()
         self.dynamic_nodes.detach_from_physics_world(pg_physics_world.dynamic_world)
         self.static_nodes.detach_from_physics_world(pg_physics_world.static_world)
-
-    def update_random_seed(self, random_seed: Union[int, None]):
-        super(Object, self).update_random_seed(random_seed)
-        if self.PARAMETER_SPACE is not None:
-            self.PARAMETER_SPACE.seed(self.random_seed)
 
     def destroy(self):
         """

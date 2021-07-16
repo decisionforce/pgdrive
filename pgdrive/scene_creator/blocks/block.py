@@ -73,8 +73,9 @@ class Block(Object, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-    def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
-        super(Block, self).__init__(random_seed)
+    def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork):
+        self._block_name = str(block_index) + self.ID
+        super(Block, self).__init__(self._block_name)
         # block information
         assert self.ID is not None, "Each Block must has its unique ID When define Block"
         assert len(self.ID) == 1, "Block ID must be a character "
@@ -84,7 +85,6 @@ class Block(Object, BlockDefault):
             assert isinstance(self, FirstBlock), "only first block can use block index 0"
         elif block_index < 0:
             logging.debug("It is recommended that block index should > 1")
-        self._block_name = str(block_index) + self.ID
         self.block_index = block_index
         self.number_of_sample_trial = 0
 

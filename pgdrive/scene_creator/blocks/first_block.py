@@ -30,11 +30,10 @@ class FirstBlock(Block):
         lane_num: int,
         render_root_np: NodePath,
         pg_physics_world: PGPhysicsWorld,
-        random_seed,
         length: float = 50
     ):
         place_holder = BlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))
-        super(FirstBlock, self).__init__(0, place_holder, global_network, random_seed)
+        super(FirstBlock, self).__init__(0, place_holder, global_network)
         assert length > self.ENTRANCE_LENGTH
         basic_lane = StraightLane(
             [0, lane_width * (lane_num - 1)], [self.ENTRANCE_LENGTH, lane_width * (lane_num - 1)],
