@@ -10,7 +10,7 @@ class BaseBuilding(BaseObject):
 
     def destroy(self):
         engine = get_pgdrive_engine()
-        self.detach_from_pg_world(engine.pg_physics_world)
+        self.detach_from_world(engine.pg_physics_world)
         self.node_path.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()

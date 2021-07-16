@@ -184,7 +184,7 @@ class AgentManager:
         obj_name = next(iter(self._pending_objects.keys()))
         self._check()
         vehicle = self._pending_objects.pop(obj_name)
-        vehicle.prepare_step([0, -1])
+        vehicle.before_step([0, -1])
         self.observations[obj_name].reset(vehicle)
         new_agent_id = self.next_agent_id()
         dead_vehicle_id = self._object_to_agent[obj_name]
@@ -225,7 +225,7 @@ class AgentManager:
         else:
             self._allow_respawn = flag
 
-    def prepare_step(self):
+    def before_step(self):
         self._agents_finished_this_frame = dict()
         finished = set()
         for v_name in self._dying_objects.keys():

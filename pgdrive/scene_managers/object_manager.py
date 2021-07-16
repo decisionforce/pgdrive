@@ -139,11 +139,11 @@ class TrafficSignManager(RandomEngine):
         breakdown_vehicle = engine.traffic_manager.spawn_one_vehicle(
             engine.traffic_manager.random_vehicle_type(), lane, longitude, False
         )
-        breakdown_vehicle.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
+        breakdown_vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         breakdown_vehicle.set_break_down()
 
         alert = self.spawn_one_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
-        alert.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
+        alert.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def prohibit_scene(
         self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float, on_left=False
@@ -173,7 +173,7 @@ class TrafficSignManager(RandomEngine):
         for p in pos:
             p_ = (p[0] + longitude_position, left * p[1])
             cone = self.spawn_one_object("Traffic Cone", lane, lane_index, *p_)
-            cone.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
+            cone.attach_to_world(engine.pbr_worldNP, engine.physics_world)
             # TODO refactor traffic and traffic system to make it compatible
 
     def destroy(self):

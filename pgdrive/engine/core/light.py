@@ -1,10 +1,10 @@
 from panda3d.core import LVector4, NodePath, DirectionalLight, AmbientLight
 
 from pgdrive.constants import CamMask
-from pgdrive.utils.element import DynamicElement
+from pgdrive.utils.object import Object
 
 
-class Light(DynamicElement):
+class Light(Object):
     """
     It is dynamic element since it will follow the camera
     """

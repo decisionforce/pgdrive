@@ -94,7 +94,7 @@ class PGDriveEngine(PGWorld):
             else:
                 logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
-    def prepare_step(self, target_actions: Dict[AnyStr, np.array]):
+    def before_step(self, target_actions: Dict[AnyStr, np.array]):
         """
         Entities make decision here, and prepare for step
         All entities can access this global manager to query or interact with others
@@ -106,8 +106,8 @@ class PGDriveEngine(PGWorld):
             # not in replay mode
             for k in self.agent_manager.active_agents.keys():
                 a = target_actions[k]
-                step_infos[k] = self.agent_manager.get_agent(k).prepare_step(a)
-            self.traffic_manager.prepare_step()
+                step_infos[k] = self.agent_manager.get_agent(k).before_step(a)
+            self.traffic_manager.before_step()
         return step_infos
 
     def step(self, step_num: int = 1) -> None:
@@ -139,14 +139,14 @@ class PGDriveEngine(PGWorld):
         #  panda3d render and garbage collecting loop
         pg_world.task_manager.step()
 
-    def update_state(self) -> Dict:
+    def after_step(self) -> Dict:
         """
         Update states after finishing movement
         :return: if this episode is done
         """
 
         if self.replay_system is None:
-            self.traffic_manager.update_state()
+            self.traffic_manager.after_step()
 
         step_infos = self.update_state_for_all_target_vehicles()
 
@@ -183,7 +183,7 @@ class PGDriveEngine(PGWorld):
                 is_target_vehicle_dict=is_target_vehicle_dict
             )
         step_infos = self.agent_manager.for_each_active_agents(
-            lambda v: v.update_state(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None)
+            lambda v: v.after_step(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None)
         )
         return step_infos
 

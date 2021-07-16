@@ -90,7 +90,7 @@ class TrafficManager(RandomEngine):
             raise ValueError("No such mode named {}".format(self.mode))
         logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_vehicles)))
 
-    def prepare_step(self):
+    def before_step(self):
         """
         All traffic vehicles make driving decision here
         :return: None
@@ -106,7 +106,7 @@ class TrafficManager(RandomEngine):
                     block_vehicles = self.block_triggered_vehicles.pop()
                     self._traffic_vehicles += block_vehicles.vehicles
         for v in self._traffic_vehicles:
-            v.prepare_step()
+            v.before_step()
 
     def step(self, dt: float):
         """
@@ -118,7 +118,7 @@ class TrafficManager(RandomEngine):
         for v in self._traffic_vehicles:
             v.step(dt)
 
-    def update_state(self):
+    def after_step(self):
         """
         Update all traffic vehicles' states,
         """
@@ -131,7 +131,7 @@ class TrafficManager(RandomEngine):
                 else:
                     v.reset()
             else:
-                v.update_state()
+                v.after_step()
 
         # remove vehicles out of road
         for v in vehicles_to_remove:
@@ -286,7 +286,7 @@ class TrafficManager(RandomEngine):
         for lane in respawn_lanes:
             self._traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
         for vehicle in self._traffic_vehicles:
-            vehicle.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
+            vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def _create_vehicles_once(self, map: Map, traffic_density: float) -> None:
         """
@@ -316,7 +316,7 @@ class TrafficManager(RandomEngine):
                 for l in lanes:
                     vehicles_on_block += self._create_vehicles_on_lane(traffic_density, l, False)
             for vehicle in vehicles_on_block:
-                vehicle.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
+                vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
             block_vehicles = BlockVehicles(trigger_road=trigger_road, vehicles=vehicles_on_block)
             self.block_triggered_vehicles.append(block_vehicles)
             vehicle_num += len(vehicles_on_block)

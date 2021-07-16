@@ -192,7 +192,7 @@ class PGWorld(ShowBase.ShowBase):
 
         # init terrain
         self.terrain = Terrain()
-        self.terrain.attach_to_pg_world(self.render, self.physics_world)
+        self.terrain.attach_to_world(self.render, self.physics_world)
 
         # init other world elements
         if self.mode != RENDER_MODE_NONE:
@@ -225,10 +225,10 @@ class PGWorld(ShowBase.ShowBase):
             lens.setAspectRatio(1.2)
 
             self.sky_box = SkyBox()
-            self.sky_box.attach_to_pg_world(self.render, self.physics_world)
+            self.sky_box.attach_to_world(self.render, self.physics_world)
 
             self.world_light = Light(self.world_config)
-            self.world_light.attach_to_pg_world(self.render, self.physics_world)
+            self.world_light.attach_to_world(self.render, self.physics_world)
             self.render.setLight(self.world_light.direction_np)
             self.render.setLight(self.world_light.ambient_np)
 

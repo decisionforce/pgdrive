@@ -16,7 +16,7 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.element import Element
+from pgdrive.utils.object import Object
 from pgdrive.utils.math_utils import norm, PGVector
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
@@ -58,7 +58,7 @@ class BlockSocket:
         return True if self.positive_road == other.positive_road and self.negative_road == other.negative_road else False
 
 
-class Block(Element, BlockDefault):
+class Block(Object, BlockDefault):
     """
     Abstract class of Block,
     BlockSocket: a part of previous block connecting this block
@@ -136,7 +136,7 @@ class Block(Element, BlockDefault):
         """
         Randomly Construct a block, if overlap return False
         """
-        self.set_config(self.PARAMETER_SPACE.sample())
+        self.sample_parameters()
         self.node_path = NodePath(self._block_name)
         self._block_objects = []
         if extra_config:
@@ -147,12 +147,12 @@ class Block(Element, BlockDefault):
             self.set_config(raw_config)
         success = self._sample_topology()
         self._create_in_world()
-        self.attach_to_pg_world(root_render_np, pg_physics_world)
+        self.attach_to_world(root_render_np, pg_physics_world)
         return success
 
     def destruct_block(self, pg_physics_world: PGPhysicsWorld):
         self._clear_topology()
-        self.detach_from_pg_world(pg_physics_world)
+        self.detach_from_world(pg_physics_world)
         self.node_path.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()

@@ -60,5 +60,5 @@ class FirstBlock(Block):
         socket.set_index(self._block_name, 0)
 
         self.add_sockets(socket)
-        self.attach_to_pg_world(render_root_np, pg_physics_world)
+        self.attach_to_world(render_root_np, pg_physics_world)
         self._respawn_roads = [other_v_spawn_road]

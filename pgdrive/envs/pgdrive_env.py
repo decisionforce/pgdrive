@@ -200,7 +200,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
-        self.agent_manager.prepare_step()
+        self.agent_manager.before_step()
         if self.config["manual_control"] and self.config["use_render"] \
                 and self.current_track_vehicle in self.agent_manager.get_vehicle_list() and not self.main_camera.is_bird_view_camera():
             action = self.controller.process_input()

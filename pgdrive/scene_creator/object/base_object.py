@@ -2,12 +2,12 @@ from typing import Sequence, Tuple
 
 import numpy as np
 
-from pgdrive.utils.element import Element
+from pgdrive.utils.object import Object
 
 LaneIndex = Tuple[str, str, int]
 
 
-class BaseObject(Element):
+class BaseObject(Object):
     def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0.):
         """
         :param lane: the lane to spawn object

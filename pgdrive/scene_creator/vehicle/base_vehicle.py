@@ -27,7 +27,7 @@ from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.utils import get_np_random, PGConfig, safe_clip_for_small_array, PGVector
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
-from pgdrive.utils.element import DynamicElement
+from pgdrive.utils.object import Object
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
@@ -35,7 +35,7 @@ from pgdrive.engine.core.image_buffer import ImageBuffer
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
 
-class BaseVehicle(DynamicElement):
+class BaseVehicle(Object):
     MODEL = None
     """
     Vehicle chassis and its wheels index
@@ -85,8 +85,6 @@ class BaseVehicle(DynamicElement):
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.vehicle_config["extra_action_dim"])
 
         super(BaseVehicle, self).__init__(random_seed, name=name)
-        # config info
-        self.set_config(self.PARAMETER_SPACE.sample())
         if physics_config is not None:
             self.set_config(physics_config)
         self.increment_steering = self.vehicle_config["increment_steering"]
@@ -133,7 +131,7 @@ class BaseVehicle(DynamicElement):
         self.collision_info_np = self._init_collision_info_render(self.pgdrive_engine)
         self.collision_banners = {}  # to save time
         self.current_banner = None
-        self.attach_to_pg_world(self.pgdrive_engine.pbr_render, self.pgdrive_engine.physics_world)
+        self.attach_to_world(self.pgdrive_engine.pbr_render, self.pgdrive_engine.physics_world)
 
         # step info
         self.out_of_route = None
@@ -241,7 +239,7 @@ class BaseVehicle(DynamicElement):
         action = safe_clip_for_small_array(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         return action, {'raw_action': (action[0], action[1])}
 
-    def prepare_step(self, action):
+    def before_step(self, action):
         """
         Save info and make decision before action
         """
@@ -260,7 +258,7 @@ class BaseVehicle(DynamicElement):
             self.vehicle_panel.renew_2d_car_para_visualization(self)
         return step_info
 
-    def update_state(self, engine=None, detector_mask="WRONG"):
+    def after_step(self, engine=None, detector_mask="WRONG"):
         # lidar
         if self.lidar is not None:
             self.lidar.perceive(

@@ -52,11 +52,11 @@ def test_base_vehicle():
                 v_pos = v.position
                 np.testing.assert_almost_equal(v_pos, pos)
 
-                v.update_state(detector_mask=None)
+                v.after_step(detector_mask=None)
         v.reset(map, pos=np.array([10, 0]))
         for a_x in [-1, 0, 0.5, 1]:
             for a_y in [-1, 0, 0.5, 1]:
-                v.prepare_step([a_x, a_y])
+                v.before_step([a_x, a_y])
                 v.set_act([a_x, a_y])
                 _assert_vehicle(v)
                 v.set_incremental_action([a_x, a_y])

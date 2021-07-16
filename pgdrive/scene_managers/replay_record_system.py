@@ -29,7 +29,7 @@ class PGReplayer:
             car_type = getattr(v_types, config["type"])
             car = car_type.create_traffic_vehicle_from_config(traffic_mgr, config)
             self.restore_vehicles[name] = car
-            car.attach_to_pg_world(engine.pbr_worldNP, engine.physics_world)
+            car.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         logging.debug("Recover {} Traffic Vehicles".format(len(self.restore_vehicles)))
 
     def replay_frame(self, target_vehicles, last_step=False):
@@ -46,7 +46,7 @@ class PGReplayer:
                     vehicle_to_set.set_state(t_v_s)
                     if vehicle_to_set.routing_localization.final_road != Road(*t_v_s["destination"]):
                         vehicle_to_set.routing_localization.set_route(t_v_s["spawn_road"][0], t_v_s["destination"][-1])
-                    vehicle_to_set.update_state(detector_mask=None)
+                    vehicle_to_set.after_step(detector_mask=None)
             elif index == TRAFFIC_VEHICLES:
                 for t_v_idx, t_v_s in state.items():
                     vehicle_to_set = self.restore_vehicles[t_v_idx]
