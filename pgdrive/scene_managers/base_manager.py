@@ -12,7 +12,7 @@ class BaseManager(RandomEngine):
         super(BaseManager, self).__init__()
         assert pgdrive_engine_initialized(), "You should not create manager before the initialization of PGDriveEngine"
         self.pgdrive_engine = get_pgdrive_engine()
-        self._spawned_objects = []
+        self._spawned_objects = dict()
 
     def spawn_object(self, object_class, **kwargs):
         """
@@ -22,7 +22,7 @@ class BaseManager(RandomEngine):
         :return: object spawned
         """
         obj = object_class(**kwargs)
-        self._spawned_objects.append(obj)
+        self._spawned_objects[obj.id] = obj
 
     def get_objects(self, filter_func: Optional[Callable] = None):
         """
@@ -34,10 +34,10 @@ class BaseManager(RandomEngine):
         if filter_func is None:
             return self._spawned_objects
         else:
-            res = []
-            for obj in self._spawned_objects:
+            res = dict()
+            for id, obj in self._spawned_objects.items():
                 if filter_func(obj):
-                    res.append(obj)
+                    res[id] = obj
             return res
 
     def clear_objects(self, filter_func: Optional[Callable] = None):
@@ -46,22 +46,23 @@ class BaseManager(RandomEngine):
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
         """
         if filter_func is None:
-            for obj in self._spawned_objects:
+            for id, obj in self._spawned_objects.items():
                 obj.destroy()
-            self._spawned_objects = []
+                self._spawned_objects.pop(id)
+            self._spawned_objects = dict()
         else:
             exclude = []
-            for obj in self._spawned_objects:
+            for id, obj in self._spawned_objects:
                 if filter_func(obj):
                     obj.destroy()
-                exclude.append(obj)
-            for obj in exclude:
-                self._spawned_objects.remove(obj)
+                exclude.append(id)
+            for id in exclude:
+                self._spawned_objects.pop(id)
 
     def destroy(self):
         """
         Destroy manager
         """
         self.clear_objects()
-        self._spawned_objects = []
+        self._spawned_objects = None
         self.pgdrive_engine = None

@@ -321,7 +321,7 @@ class RoutingLocalizationModule:
             return self.get_current_lane_width() * self.get_current_lane_num()
 
     def get_current_lane_width(self) -> float:
-        return self.map.config[self.map.LANE_WIDTH]
+        return self.map._config[self.map.LANE_WIDTH]
 
     def get_current_lane_num(self) -> float:
         return len(self.current_ref_lanes)

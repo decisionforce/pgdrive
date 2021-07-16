@@ -77,14 +77,9 @@ class BaseVehicle(Object):
         :param random_seed: int
         """
         self.vehicle_config = PGConfig(vehicle_config)
-
-        # self.vehicle_config = self.get_vehicle_config(vehicle_config) \
-        #     if vehicle_config is not None else self._default_vehicle_config()
-
-        # observation, action
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.vehicle_config["extra_action_dim"])
 
-        super(BaseVehicle, self).__init__(random_seed, name=name)
+        super(BaseVehicle, self).__init__(name)
         if physics_config is not None:
             self.set_config(physics_config)
         self.increment_steering = self.vehicle_config["increment_steering"]

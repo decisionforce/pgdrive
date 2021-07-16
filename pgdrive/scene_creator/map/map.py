@@ -2,7 +2,7 @@ import copy
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.scene_creator.road.road import Road
 import logging
-
+from pgdrive.utils.object import Object
 import numpy as np
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.blocks.block import Block
@@ -42,7 +42,7 @@ class MapGenerateMethod:
     PG_MAP_FILE = "pg_map_file"
 
 
-class Map:
+class Map(Object):
     """
     Base class for Map generation!
     """
@@ -66,9 +66,10 @@ class Map:
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        self.config = PGConfig(map_config)
-        self.film_size = (self.config["draw_map_resolution"], self.config["draw_map_resolution"])
-        self.random_seed = self.config[self.SEED]
+        super(Map, self).__init__()
+        self.set_config(map_config)
+        self.film_size = (self._config["draw_map_resolution"], self._config["draw_map_resolution"])
+        self.random_seed = self._config[self.SEED]
         self.road_network = RoadNetwork()
 
         # A flatten representation of blocks, might cause chaos in city-level generation.
@@ -96,10 +97,6 @@ class Map:
         for block in self.blocks:
             block.detach_from_world(self.pgdrive_engine.physics_world)
 
-    def destroy(self):
-        for block in self.blocks:
-            block.destroy()
-
     def save_map(self):
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
         map_config = []
@@ -118,21 +115,24 @@ class Map:
         """
         Load the map from a dict. Note that we don't provide a restore function in the base class.
         """
-        self.config[self.SEED] = map_config[self.SEED]
+        self._config[self.SEED] = map_config[self.SEED]
         blocks_config = map_config[self.BLOCK_SEQUENCE]
         for b_id, b in enumerate(blocks_config):
             blocks_config[b_id] = {k: np.array(v) if isinstance(v, list) else v for k, v in b.items()}
 
         # update the property
-        self.random_seed = self.config[self.SEED]
+        self.random_seed = self._config[self.SEED]
         return blocks_config
 
     @property
     def num_blocks(self):
         return len(self.blocks)
 
+    def destroy(self):
+        for block in self.blocks:
+            block.destroy()
+        super(Map, self).destroy()
+
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"
         logging.debug("Scene {} is destroyed".format(describe))
-
-

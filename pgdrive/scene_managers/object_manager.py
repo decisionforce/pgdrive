@@ -41,7 +41,6 @@ class TrafficSignManager(RandomEngine):
         Clear all objects in th scene
         """
         self._clear_objects()
-        self.set_global_random_seed(map.random_seed)
         self.accident_prob = accident_prob
         for block in map.blocks:
             block.construct_block_buildings(self)

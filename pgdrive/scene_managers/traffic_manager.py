@@ -61,7 +61,6 @@ class TrafficManager(RandomEngine):
         #TODO ManagerBase
         self.pgdrive_engine = get_pgdrive_engine()
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-        self.set_global_random_seed(map.random_seed if not self.random_traffic else None)
 
         # self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
         # update global info
@@ -166,7 +165,6 @@ class TrafficManager(RandomEngine):
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-        self.set_global_random_seed(map.random_seed if not self.random_traffic else None)
 
         # update global info
         self.map = map

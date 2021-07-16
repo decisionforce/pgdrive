@@ -133,11 +133,20 @@ class BasePGDriveEnv(gym.Env):
             init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
         )
 
+        # map setting
+        self.start_seed = self.config["start_seed"]
+        self.env_num = self.config["environment_num"]
+
         # lazy initialization, create the main vehicle in the lazy_init() func
         self.pgdrive_engine: Optional[PGDriveEngine] = None
         self.main_camera = None
         self.controller = None
+        self.restored_maps = dict()
         self.episode_steps = 0
+
+        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
+        self.current_seed = self.start_seed
+        self.current_map = None
 
         self.dones = None
         self.episode_rewards = defaultdict(float)
@@ -212,7 +221,7 @@ class BasePGDriveEnv(gym.Env):
         # step all entities
         self.pgdrive_engine.step(self.config["decision_repeat"])
 
-        # update states, if restore from episode data, position and heading will be force set in after_step() function
+        # update states, if restore from episode data, position and heading will be force set in update_state() function
         scene_manager_step_infos = self.pgdrive_engine.after_step()
         action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
         return action_infos
@@ -316,6 +325,12 @@ class BasePGDriveEnv(gym.Env):
             del self.controller
             self.controller = None
 
+        del self.maps
+        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
+        del self.current_map
+        self.current_map = None
+        del self.restored_maps
+        self.restored_maps = dict()
         self.agent_manager.destroy()
         # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
 

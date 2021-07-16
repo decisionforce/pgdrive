@@ -77,8 +77,8 @@ class CityMap(Map):
     def _generate(self):
         parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
         big_map = CityBIG(
-            self.config[self.LANE_NUM], self.config[self.LANE_WIDTH], self.road_network, parent_node_path,
-            pg_physics_world,  self.config["block_type_version"]
+            self._config[self.LANE_NUM], self._config[self.LANE_WIDTH], self.road_network, parent_node_path,
+            pg_physics_world,  self._config["block_type_version"]
         )
-        big_map.generate(self.config[self.GENERATE_TYPE], self.config[self.GENERATE_CONFIG])
+        big_map.generate(self._config[self.GENERATE_TYPE], self._config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks
