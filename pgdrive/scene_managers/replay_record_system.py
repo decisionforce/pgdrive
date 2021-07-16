@@ -3,7 +3,7 @@ from pgdrive.scene_creator.road.road import Road
 import logging
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.scene_creator.map.pg_map import PGMap
-from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
 
 

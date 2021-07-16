@@ -9,7 +9,7 @@ from pgdrive.constants import BodyName, CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
-from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading

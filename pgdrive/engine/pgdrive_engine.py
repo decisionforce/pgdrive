@@ -50,12 +50,12 @@ class PGDriveEngine(PGWorld):
 
     @staticmethod
     def _get_traffic_manager(traffic_config):
-        from pgdrive.scene_manager.traffic_manager import TrafficManager
+        from pgdrive.scene_managers.traffic_manager import TrafficManager
         return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
     def _get_object_manager(self, object_config=None):
-        from pgdrive.scene_manager.object_manager import ObjectManager
-        return ObjectManager()
+        from pgdrive.scene_managers.object_manager import TrafficSignManager
+        return TrafficSignManager()
 
     def reset(self, map, traffic_density: float, accident_prob: float, episode_data=None):
         """

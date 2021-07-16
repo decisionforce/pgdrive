@@ -9,6 +9,7 @@ from pgdrive.scene_creator.map.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import norm, RandomEngine, merge_dicts
 from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.scene_managers.object_manager import TrafficSignManager
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 

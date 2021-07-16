@@ -11,7 +11,7 @@ from panda3d.core import PNMImage
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.scene_manager.agent_manager import AgentManager
+from pgdrive.scene_managers.agent_manager import AgentManager
 
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
@@ -133,20 +133,11 @@ class BasePGDriveEnv(gym.Env):
             init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
         )
 
-        # map setting
-        self.start_seed = self.config["start_seed"]
-        self.env_num = self.config["environment_num"]
-
         # lazy initialization, create the main vehicle in the lazy_init() func
         self.pgdrive_engine: Optional[PGDriveEngine] = None
         self.main_camera = None
         self.controller = None
-        self.restored_maps = dict()
         self.episode_steps = 0
-
-        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
-        self.current_seed = self.start_seed
-        self.current_map = None
 
         self.dones = None
         self.episode_rewards = defaultdict(float)
@@ -325,12 +316,6 @@ class BasePGDriveEnv(gym.Env):
             del self.controller
             self.controller = None
 
-        del self.maps
-        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
-        del self.current_map
-        self.current_map = None
-        del self.restored_maps
-        self.restored_maps = dict()
         self.agent_manager.destroy()
         # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
 

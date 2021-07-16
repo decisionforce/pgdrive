@@ -14,10 +14,11 @@ class RandomEngine:
     def __init__(self):
         self.random_seed = None
         self.np_random = None
+        self.update_random_seed(None)
 
     def update_random_seed(self, random_seed: Union[int, None]):
         """
-        Update the random seed and random engine of traffic
+        Update the random seed and random engine
         :param random_seed: int, random seed
         :return: None
         """

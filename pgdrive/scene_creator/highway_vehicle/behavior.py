@@ -6,9 +6,9 @@ import pgdrive.utils.math_utils as utils
 from pgdrive.constants import Route, LaneIndex
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
-from pgdrive.scene_creator.object.traffic_object import TrafficObject
+from pgdrive.scene_creator.object.traffic_object import TrafficSign
 from pgdrive.scene_creator.object.base_object import BaseObject
-from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils.math_utils import clip
 
 

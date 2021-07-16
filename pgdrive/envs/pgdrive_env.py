@@ -14,7 +14,7 @@ from pgdrive.scene_creator.map.map import Map, MapGenerateMethod, parse_map_conf
 from pgdrive.scene_creator.map.pg_map import PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
-from pgdrive.scene_manager.traffic_manager import TrafficMode
+from pgdrive.scene_managers.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, recursive_equal, get_np_random, concat_step_infos
 from pgdrive.engine.core.chase_camera import ChaseCamera
 from pgdrive.engine.core.manual_controller import KeyboardController, JoystickController

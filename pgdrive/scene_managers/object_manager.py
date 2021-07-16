@@ -4,14 +4,14 @@ from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraigh
 from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map.map import Map
-from pgdrive.scene_creator.object.traffic_object import TrafficObject
+from pgdrive.scene_creator.object.traffic_object import TrafficSign
 from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import LaneIndex
 from pgdrive.utils import RandomEngine
 
 
-class ObjectManager(RandomEngine):
+class TrafficSignManager(RandomEngine):
     """
     This class is used to manager all static object, such as traffic cones, warning tripod.
     """
@@ -34,7 +34,7 @@ class ObjectManager(RandomEngine):
         self.accident_prob = 0.
 
         # init random engine
-        super(ObjectManager, self).__init__()
+        super(TrafficSignManager, self).__init__()
 
     def reset(self, map: Map, accident_prob: float = 0):
         """
@@ -67,7 +67,7 @@ class ObjectManager(RandomEngine):
         longitude: float,
         lateral: float,
         static: bool = False
-    ) -> TrafficObject:
+    ) -> TrafficSign:
         """
         Spawn an object by assigning its type and position on the lane
         :param object_type: object name or the class name of the object
@@ -78,7 +78,7 @@ class ObjectManager(RandomEngine):
         :param static: static object can not be moved by any force
         :return: None
         """
-        for t in TrafficObject.type():
+        for t in TrafficSign.type():
             if t.__name__ == object_type or t.NAME == object_type:
                 obj = t.make_on_lane(lane, lane_index, longitude, lateral)
                 obj.set_static(static)

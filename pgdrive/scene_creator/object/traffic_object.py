@@ -11,7 +11,7 @@ from pgdrive.scene_creator.object.base_object import BaseObject
 LaneIndex = Tuple[str, str, int]
 
 
-class ObjectNode(BulletRigidBodyNode):
+class TrafficSignNode(BulletRigidBodyNode):
     """
     Collision Properties should place here, info here can used for collision callback
     """
@@ -23,7 +23,7 @@ class ObjectNode(BulletRigidBodyNode):
         self.crashed = False
 
 
-class TrafficObject(BaseObject):
+class TrafficSign(BaseObject):
     """
     Common interface for objects that appear on the road, beside vehicles.
     """
@@ -40,7 +40,7 @@ class TrafficObject(BaseObject):
         :param heading: the angle from positive direction of horizontal axis
         """
         assert self.NAME is not None, "Assign a name for this class for finding it easily"
-        super(TrafficObject, self).__init__(lane, lane_index, position, heading)
+        super(TrafficSign, self).__init__(lane, lane_index, position, heading)
         self.position = position
         self.speed = 0
         self.heading = heading / np.pi * 180
@@ -70,14 +70,14 @@ class TrafficObject(BaseObject):
         return cls.__subclasses__()
 
 
-class TrafficCone(TrafficObject):
+class TrafficCone(TrafficSign):
     """Placed near the construction section to indicate that traffic is prohibited"""
 
     NAME = BodyName.Traffic_cone
 
     def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0.):
         super(TrafficCone, self).__init__(lane, lane_index, position, heading)
-        self.body_node = ObjectNode(self.NAME)
+        self.body_node = TrafficSignNode(self.NAME)
         self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
         self.node_path: NodePath = NodePath(self.body_node)
         self.node_path.setPos(panda_position(self.position, self.HEIGHT / 2))
@@ -90,7 +90,7 @@ class TrafficCone(TrafficObject):
             model.reparentTo(self.node_path)
 
 
-class TrafficTriangle(TrafficObject):
+class TrafficTriangle(TrafficSign):
     """Placed behind the vehicle when it breaks down"""
 
     NAME = BodyName.Traffic_triangle
@@ -98,7 +98,7 @@ class TrafficTriangle(TrafficObject):
 
     def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0.):
         super(TrafficTriangle, self).__init__(lane, lane_index, position, heading)
-        self.body_node = ObjectNode(self.NAME)
+        self.body_node = TrafficSignNode(self.NAME)
         self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
         self.node_path: NodePath = NodePath(self.body_node)
         self.node_path.setPos(panda_position(self.position, self.HEIGHT / 2))

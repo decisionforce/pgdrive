@@ -6,7 +6,7 @@ import numpy as np
 import pgdrive.utils.math_utils as utils
 from pgdrive.constants import LaneIndex, Route
 from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
-from pgdrive.scene_manager.traffic_manager import TrafficManager
+from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils.math_utils import clip
 
 

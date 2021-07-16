@@ -9,7 +9,7 @@ from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
 from pgdrive.scene_creator.blocks.t_intersection import TInterSection
 from pgdrive.scene_creator.map.pg_map import PGMap
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.scene_manager.spawn_manager import SpawnManager
+from pgdrive.scene_managers.spawn_manager import SpawnManager
 from pgdrive.utils import get_np_random, PGConfig
 
 MAParkingLotConfig = dict(
