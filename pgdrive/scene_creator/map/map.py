@@ -1,4 +1,5 @@
 import copy
+from pgdrive.utils.random import set_global_random_seed
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.scene_creator.road.road import Road
 import logging
@@ -19,7 +20,7 @@ def parse_map_config(easy_map_config, new_map_config, default_config):
 
     # Return the user specified config if overwritten
     if not default_config["map_config"].is_identical(new_map_config):
-        new_map_config = default_config.copy(unchangeable=False).update(new_map_config)
+        new_map_config = default_config["map_config"].copy(unchangeable=False).update(new_map_config)
         assert default_config["map"] == easy_map_config
         return new_map_config
 
@@ -88,12 +89,12 @@ class Map(Object):
         """Key function! Please overwrite it!"""
         raise NotImplementedError("Please use child class like PGMap to replace Map!")
 
-    def load_to_pg_world(self):
+    def load_to_world(self):
         parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
         for block in self.blocks:
             block.attach_to_world(parent_node_path, pg_physics_world)
 
-    def unload_from_pg_world(self):
+    def unload_from_world(self):
         for block in self.blocks:
             block.detach_from_world(self.pgdrive_engine.physics_world)
 

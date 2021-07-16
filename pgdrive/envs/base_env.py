@@ -1,21 +1,24 @@
 import os.path as osp
-from pgdrive.engine.pgdrive_engine import PGDriveEngine
 import sys
 import time
 from collections import defaultdict
 from typing import Union, Dict, AnyStr, Optional, Tuple
-from pgdrive.scene_managers.map_manager import MapManager
+
 import gym
 import numpy as np
 from panda3d.core import PNMImage
+
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
+from pgdrive.engine.pgdrive_engine import PGDriveEngine
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_managers.agent_manager import AgentManager
-
+from pgdrive.scene_managers.map_manager import MapManager
 from pgdrive.utils import PGConfig, merge_dicts
+from pgdrive.utils import get_np_random
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
-    pgdrive_engine_initialized
+    pgdrive_engine_initialized, set_global_config, get_global_config
+from pgdrive.utils.random import set_global_random_seed
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -113,7 +116,8 @@ class BasePGDriveEnv(gym.Env):
     def __init__(self, config: dict = None):
         self.default_config_copy = PGConfig(self.default_config(), unchangeable=True)
         merged_config = self._process_extra_config(config)
-        self.config = self._post_process_config(merged_config)
+        global_config = self._post_process_config(merged_config)
+        set_global_config(global_config)
 
         self.num_agents = self.config["num_agents"]
         self.is_multi_agent = self.config["is_multi_agent"]
@@ -141,12 +145,8 @@ class BasePGDriveEnv(gym.Env):
         self.pgdrive_engine: Optional[PGDriveEngine] = None
         self.main_camera = None
         self.controller = None
-        self.restored_maps = dict()
         self.episode_steps = 0
-
-        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
-        self.current_seed = self.start_seed
-        self.current_map = None
+        self.current_seed = None
 
         self.dones = None
         self.episode_rewards = defaultdict(float)
@@ -285,7 +285,8 @@ class BasePGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pgdrive_engine.clear_world()
-        self._update_map(episode_data, force_seed)
+        self.set_global_seed(force_seed)
+        self._update_map(episode_data)
         self.agent_manager.reset()
 
         self._reset_agents()
@@ -305,7 +306,7 @@ class BasePGDriveEnv(gym.Env):
 
         return self._get_reset_return()
 
-    def _update_map(self, episode_data: Union[None, dict] = None, force_seed: Union[None, int] = None):
+    def _update_map(self, episode_data: Union[None, dict] = None):
         raise NotImplementedError()
 
     def _reset_agents(self):
@@ -325,12 +326,6 @@ class BasePGDriveEnv(gym.Env):
             del self.controller
             self.controller = None
 
-        del self.maps
-        self.maps = {_seed: None for _seed in range(self.start_seed, self.start_seed + self.env_num)}
-        del self.current_map
-        self.current_map = None
-        del self.restored_maps
-        self.restored_maps = dict()
         self.agent_manager.destroy()
         # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
 
@@ -339,9 +334,6 @@ class BasePGDriveEnv(gym.Env):
         self.close()
         time.sleep(2)  # Sleep two seconds
         raise KeyboardInterrupt("'Esc' is pressed. PGDrive exits now.")
-
-    def set_current_seed(self, seed):
-        self.current_seed = seed
 
     def capture(self):
         img = PNMImage()
@@ -425,11 +417,35 @@ class BasePGDriveEnv(gym.Env):
 
     def setup_engine(self):
         """
-        engine setting after launching
+        Engine setting after launching
         """
         self.pgdrive_engine.accept("r", self.reset)
         self.pgdrive_engine.accept("escape", sys.exit)
         self.pgdrive_engine.accept("p", self.capture)
 
+        # Add managers to PGDriveEngine
         self.pgdrive_engine.register_manager("map_manager", MapManager())
-        print(self.pgdrive_engine.get_manager("map_manager").random_seed)
+
+    @property
+    def current_map(self):
+        return self.pgdrive_engine.map_manager.current_map
+
+    @property
+    def config(self):
+        """
+        The meta config data is protected in PGDriveEngine
+        """
+        return get_global_config()
+
+    def set_global_seed(self, force_seed):
+        # create map
+        if force_seed is not None:
+            current_seed = force_seed
+        elif self._pending_force_seed is not None:
+            current_seed = self._pending_force_seed
+            self._pending_force_seed = None
+        else:
+            current_seed = get_np_random(self._DEBUG_RANDOM_SEED
+                                         ).randint(self.start_seed, self.start_seed + self.env_num)
+        set_global_random_seed(self.current_seed)
+        self.current_seed=current_seed

@@ -59,7 +59,7 @@ class Object(RandomEngine):
 
         # ID for object
         self.name = random_string() if name is None else name
-        self.object_id = self.name
+        self.id = self.name  # name = id
 
         # Parameter check
         assert isinstance(

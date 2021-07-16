@@ -22,6 +22,7 @@ class BaseManager(RandomEngine):
         """
         obj = object_class(**kwargs)
         self._spawned_objects[obj.id] = obj
+        return obj
 
     def get_objects(self, filter_func: Optional[Callable] = None):
         """

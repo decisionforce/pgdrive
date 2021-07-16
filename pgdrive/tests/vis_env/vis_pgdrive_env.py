@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         """
         super(TestEnv, self).__init__(
             {
-                "environment_num": 1,
+                "environment_num": 10,
                 "traffic_density": 0.2,
                 "traffic_mode": "respawn",
                 "start_seed": 5,
@@ -29,12 +29,12 @@ class TestEnv(PGDriveEnv):
                 "rgb_clip": True,
                 "debug": False,
                 "fast": False,
-                "map_config": {
-                    Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                    Map.GENERATE_CONFIG: "SXO",
-                    Map.LANE_WIDTH: 3.5,
-                    Map.LANE_NUM: 3,
-                },
+                # "map_config": {
+                #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                #     Map.GENERATE_CONFIG: "SXO",
+                #     Map.LANE_WIDTH: 3.5,
+                #     Map.LANE_NUM: 3,
+                # },
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
@@ -64,7 +64,8 @@ if __name__ == "__main__":
                 "lane_index": env.vehicle.lane_index,
                 "dist_to_left": env.vehicle.dist_to_left_side,
                 "dist_to_right": env.vehicle.dist_to_right_side,
-                "out_of_route": env.vehicle.out_of_route
+                "out_of_route": env.vehicle.out_of_route,
+                "current_seed":env.current_seed
             }
         )
         # if d:

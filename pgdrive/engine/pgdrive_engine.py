@@ -15,23 +15,24 @@ class PGDriveEngine(PGWorld):
     driving task and the game engine modified from Panda3D Engine.
     """
     singleton = None
+    global_config = None
 
     IN_REPLAY = False
     STOP_REPLAY = False
 
     def __init__(
-        self,
-        pgdrive_config: Union[Dict, "PGConfig"],
-        agent_manager: "AgentManager",
+            self,
+            global_config: Union[Dict, "PGConfig"],
+            agent_manager: "AgentManager",
     ):
-        self.pgdrive_config = pgdrive_config
-        super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
+        self.global_config = global_config
+        super(PGDriveEngine, self).__init__(global_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         self._managers = dict()
 
         traffic_config = {
-            "traffic_mode": pgdrive_config["traffic_mode"],
-            "random_traffic": pgdrive_config["random_traffic"]
+            "traffic_mode": global_config["traffic_mode"],
+            "random_traffic": global_config["random_traffic"]
         }
         self.traffic_manager = self._get_traffic_manager(traffic_config)
         self.object_manager = self._get_object_manager()
@@ -48,7 +49,7 @@ class PGDriveEngine(PGWorld):
         self.accept("s", self._stop_replay)
 
         # cull scene
-        self.cull_scene = pgdrive_config["cull_scene"]
+        self.cull_scene = global_config["cull_scene"]
         self.detector_mask = None
 
     @staticmethod
@@ -211,14 +212,12 @@ class PGDriveEngine(PGWorld):
 
         self.object_manager.destroy()
         self.object_manager = None
-
         self.current_map = None
-        if self.record_system is not None:
-            self.record_system.destroy()
-            self.record_system = None
-        if self.replay_system is not None:
-            self.replay_system.destroy()
-            self.replay_system = None
+
+        for name, manager in self._managers.items():
+            setattr(self, name, None)
+            manager.destroy()
+
         self.clear_world()
         self.close_world()
 
@@ -239,15 +238,11 @@ class PGDriveEngine(PGWorld):
 
     def register_manager(self, manger_name: str, manager: BaseManager):
         """
-        Register a manager in PGDriveEngine, then all objects can communicate with this class
-        :param manger_name: name that don't exist in self._managers and don't same as any class attribute
+        Add a manager to PGDriveEngine, then all objects can communicate with this class
+        :param manger_name: name shouldn't exist in self._managers and not be same as any class attribute
         :param manager: subclass of BaseManager
-        :return: None
         """
         assert manger_name not in self._managers, "Manager already exists in PGDriveEngine"
         assert not hasattr(self, manger_name), "Manager name can not be same as the attribute in PGDriveEngine"
         self._managers[manger_name] = manager
-
-    def get_manager(self, name: str):
-        assert name in self._managers, "{} Manager doesn't exist in PGDriveEngine"
-        return self._managers[name]
+        setattr(self, manger_name, manager)
