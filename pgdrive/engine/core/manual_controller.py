@@ -1,7 +1,7 @@
 from direct.controls.InputState import InputState
 
 from pgdrive.utils import import_pygame
-from pgdrive.engine.world.pg_world import PGWorld
+from pgdrive.engine.core.pg_world import PGWorld
 
 pygame = import_pygame()
 

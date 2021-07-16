@@ -14,11 +14,11 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import Element
 from pgdrive.utils.math_utils import norm, PGVector
-from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
 
 class BlockSocket:

@@ -1,11 +1,8 @@
 import logging
-from typing import List
-from typing import Optional, Dict, AnyStr, Union
-
+from typing import Dict, AnyStr, Union
+from pgdrive.engine.pgdrive_scene_cull import PGDriveSceneCull
 import numpy as np
-
-from pgdrive.engine.world.pg_world import PGWorld
-from pgdrive.utils.math_utils import norm
+from pgdrive.engine.core.pg_world import PGWorld
 
 logger = logging.getLogger(__name__)
 
@@ -21,22 +18,10 @@ class PGDriveEngine(PGWorld):
     IN_REPLAY = False
     STOP_REPLAY = False
 
-    # Used to cull distant rendering object to improve rendering efficiency
-
-    # Visualization cull
-    LOD_MAP_VIS_DIST = 300  # highly related to the render efficiency !
-    LOD_VEHICLE_VIS_DIST = 500
-    LOD_OBJECT_VIS_DIST = 500
-
-    # Physics world cull, which can save the time used to do collision detection
-    LOD_MAP_PHYSICS_DIST = 50
-    LOD_VEHICLE_PHYSICS_DIST = 50
-    LOD_OBJECT_PHYSICS_DIST = 50
-
     def __init__(
-        self,
-        pgdrive_config: Union[Dict, "PGConfig"],
-        agent_manager: "AgentManager",
+            self,
+            pgdrive_config: Union[Dict, "PGConfig"],
+            agent_manager: "AgentManager",
     ):
         self.pgdrive_config = pgdrive_config
         super(PGDriveEngine, self).__init__(pgdrive_config["pg_world_config"])
@@ -50,7 +35,7 @@ class PGDriveEngine(PGWorld):
         self.agent_manager = agent_manager  # Only a reference
 
         # common variable
-        self.map = None
+        self.current_map = None
 
         # for recovering, they can not exist together
         # TODO new record/replay
@@ -76,7 +61,7 @@ class PGDriveEngine(PGWorld):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
-        self.map = map
+        self.current_map = map
 
         self.traffic_manager.reset(map, traffic_density)
         self.object_manager.reset(map, accident_prob)
@@ -92,7 +77,7 @@ class PGDriveEngine(PGWorld):
 
         if episode_data is None:
             self.object_manager.generate()
-            self.traffic_manager.generate(map=self.map, traffic_density=traffic_density)
+            self.traffic_manager.generate(map=self.current_map, traffic_density=traffic_density)
             self.IN_REPLAY = False
         else:
             self.replay_system = None
@@ -168,17 +153,15 @@ class PGDriveEngine(PGWorld):
         # cull distant blocks
         poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene:
-            self.cull_distant_blocks(self.map.blocks, poses, self.world_config["max_distance"])
+            PGDriveSceneCull.cull_distant_blocks(self, self.current_map.blocks, poses,
+                                                 self.world_config["max_distance"])
 
-            if self.replay_system is None:
-                # TODO add objects to replay system and add new cull method
-
-                self.cull_distant_traffic_vehicles(
-                    self.traffic_manager.traffic_vehicles, poses, self.world_config["max_distance"]
-                )
-                self.cull_distant_objects(
-                    self.object_manager._spawned_objects, poses, self.world_config["max_distance"]
-                )
+            PGDriveSceneCull.cull_distant_traffic_vehicles(self,
+                                                           self.traffic_manager.traffic_vehicles, poses,
+                                                           self.world_config["max_distance"])
+            PGDriveSceneCull.cull_distant_objects(self,
+                                                  self.object_manager._spawned_objects, poses,
+                                                  self.world_config["max_distance"])
 
         return step_infos
 
@@ -224,7 +207,7 @@ class PGDriveEngine(PGWorld):
         self.object_manager.destroy()
         self.object_manager = None
 
-        self.map = None
+        self.current_map = None
         if self.record_system is not None:
             self.record_system.destroy()
             self.record_system = None
@@ -248,54 +231,3 @@ class PGDriveEngine(PGWorld):
         if not self.IN_REPLAY:
             return
         self.STOP_REPLAY = not self.STOP_REPLAY
-
-    def cull_distant_blocks(self, blocks: list, poses: List[tuple], max_distance=None):
-        # A distance based LOD rendering like GTA
-        for block in blocks:
-            if not self.all_out_of_bounding_box(block.bounding_box, poses, self.LOD_MAP_VIS_DIST):
-                if not block.node_path.hasParent():
-                    block.node_path.reparentTo(self.worldNP)
-            else:
-                if block.node_path.hasParent():
-                    block.node_path.detachNode()
-            if not self.all_out_of_bounding_box(block.bounding_box, poses, max_distance or self.LOD_MAP_PHYSICS_DIST):
-                block.dynamic_nodes.attach_to_physics_world(self.physics_world.dynamic_world)
-            else:
-                block.dynamic_nodes.detach_from_physics_world(self.physics_world.dynamic_world)
-
-    def cull_distant_traffic_vehicles(self, vehicles: list, poses: List[tuple], max_distance=None):
-        self._cull_elements(vehicles, poses, self.LOD_VEHICLE_VIS_DIST, max_distance or self.LOD_VEHICLE_PHYSICS_DIST)
-
-    def cull_distant_objects(self, objects: list, poses: List[tuple], max_distance=None):
-        self._cull_elements(objects, poses, self.LOD_OBJECT_VIS_DIST, max_distance or self.LOD_OBJECT_PHYSICS_DIST)
-
-    def _cull_elements(self, elements: list, poses: List[tuple], vis_distance: float, physics_distance: float):
-        for obj in elements:
-            v_p = obj.position
-            if not self.all_distance_greater_than(vis_distance, poses, v_p):
-                if not obj.node_path.hasParent():
-                    obj.node_path.reparentTo(self.pbr_worldNP)
-            else:
-                if obj.node_path.hasParent():
-                    obj.node_path.detachNode()
-
-            if not self.all_distance_greater_than(physics_distance, poses, v_p):
-                obj.dynamic_nodes.attach_to_physics_world(self.physics_world.dynamic_world)
-            else:
-                obj.dynamic_nodes.detach_from_physics_world(self.physics_world.dynamic_world)
-
-    @staticmethod
-    def all_distance_greater_than(distance, poses, target_pos):
-        v_p = target_pos
-        for pos in poses:
-            if norm(v_p[0] - pos[0], v_p[1] - v_p[1]) < distance:
-                return False
-        return True
-
-    @staticmethod
-    def all_out_of_bounding_box(bounding_box, poses, margin_distance):
-        for pos in poses:
-            if bounding_box[0] - margin_distance < pos[0] < bounding_box[1] + margin_distance and \
-                    bounding_box[2] - margin_distance < pos[1] < bounding_box[3] + margin_distance:
-                return False
-        return True

@@ -10,7 +10,7 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.map.map import Map
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import clip, norm, get_np_random
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.coordinates_shift import panda_position

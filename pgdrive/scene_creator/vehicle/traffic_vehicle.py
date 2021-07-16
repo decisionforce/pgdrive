@@ -11,7 +11,7 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.element import DynamicElement
 from pgdrive.utils.scene_utils import ray_localization

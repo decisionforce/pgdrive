@@ -4,10 +4,9 @@ import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletCylinderShape
 from panda3d.core import NodePath
 from pgdrive.constants import BodyName
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.scene_creator.object.base_object import BaseObject
-from pgdrive.utils import get_np_random, random_string, distance_greater, norm
 
 LaneIndex = Tuple[str, str, int]
 

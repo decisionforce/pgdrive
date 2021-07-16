@@ -2,7 +2,7 @@ from typing import List
 
 from panda3d.core import NodePath
 
-from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod, BIG
 from pgdrive.scene_creator.algorithm.blocks_prob_dist import PGBlock
 from pgdrive.scene_creator.blocks import FirstBlock

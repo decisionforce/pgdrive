@@ -48,13 +48,18 @@ class AssetLoader:
         return AssetLoader.windows_style2unix_style(path) if sys.platform.startswith("win") else str(path)
 
     @classmethod
-    def initialized(cls):
-        return cls.asset_path is not None
+    def load_model(cls, file_path):
+        """
+        A quick load method
+        :param file_path: path in string, usually use the return value of AssetLoader.file_path()
+        :return: model node path
+        """
+        assert cls.loader is not None
+        return cls.loader.loadModel(file_path)
 
     @classmethod
-    def destroy(self):
-        self.loader = None
-        self.asset_path = None
+    def initialized(cls):
+        return cls.asset_path is not None
 
 
 def initialize_asset_loader(pg_world):
@@ -68,3 +73,9 @@ def initialize_asset_loader(pg_world):
         )
         return
     AssetLoader.init_loader(pg_world)
+
+
+def close_asset_loader():
+    cls = AssetLoader
+    cls.loader = None
+    cls.asset_path = None

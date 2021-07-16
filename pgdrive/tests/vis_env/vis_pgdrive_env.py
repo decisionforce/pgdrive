@@ -28,7 +28,7 @@ class TestEnv(PGDriveEnv):
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "debug": False,
-                "fast": True,
+                "fast": False,
                 "map_config": {
                     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                     Map.GENERATE_CONFIG: "SXO",
@@ -67,7 +67,7 @@ if __name__ == "__main__":
                 "out_of_route": env.vehicle.out_of_route
             }
         )
-        if d:
-            print("Reset")
-            env.reset()
+        # if d:
+        #     print("Reset")
+        #     env.reset()
     env.close()

@@ -8,7 +8,7 @@ from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, C
 from pgdrive.scene_creator.buildings.base_building import BaseBuilding
 from pgdrive.scene_creator.lane.abs_lane import LineType, LineColor
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils.asset_loader import AssetLoader
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 
 TollGateBuilding = BaseBuilding

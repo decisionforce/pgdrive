@@ -10,14 +10,14 @@ from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallb
 from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask, \
     BKG_COLOR
 
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
-from pgdrive.engine.world.collision_callback import pg_collision_callback
-from pgdrive.engine.world.force_fps import ForceFPS
-from pgdrive.engine.world.light import Light
-from pgdrive.engine.world.onscreen_message import PGOnScreenMessage
-from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
-from pgdrive.engine.world.sky_box import SkyBox
-from pgdrive.engine.world.terrain import Terrain
+from pgdrive.engine.asset_loader import AssetLoader, initialize_asset_loader, close_asset_loader
+from pgdrive.engine.core.collision_callback import pg_collision_callback
+from pgdrive.engine.core.force_fps import ForceFPS
+from pgdrive.engine.core.light import Light
+from pgdrive.engine.core.onscreen_message import PGOnScreenMessage
+from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.sky_box import SkyBox
+from pgdrive.engine.core.terrain import Terrain
 from pgdrive.utils import is_mac, setup_logger
 
 
@@ -197,7 +197,7 @@ class PGWorld(ShowBase.ShowBase):
         # init other world elements
         if self.mode != RENDER_MODE_NONE:
 
-            from pgdrive.engine.world.our_pbr import OurPipeline
+            from pgdrive.engine.core.our_pbr import OurPipeline
             self.pbrpipe = OurPipeline(
                 render_node=None,
                 window=None,
@@ -330,12 +330,9 @@ class PGWorld(ShowBase.ShowBase):
                 self.taskMgr.mgr.getNumTaskChains(), self.taskMgr.getAllTasks()
             )
         )
-        # while self.taskMgr.getAllTasks():
-        #     time.sleep(0.1)
         self.physics_world.destroy()
         self.destroy()
-
-        AssetLoader.destroy()
+        close_asset_loader()
 
         import sys
         if sys.version_info >= (3, 0):

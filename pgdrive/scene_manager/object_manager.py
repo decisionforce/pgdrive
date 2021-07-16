@@ -95,7 +95,7 @@ class ObjectManager(RandomEngine):
         accident_prob = self.accident_prob
         if abs(accident_prob - 0.0) < 1e-2:
             return
-        for block in engine.map.blocks:
+        for block in engine.current_map.blocks:
             if type(block) not in [Straight, Curve, InRampOnStraight, OutRampOnStraight]:
                 # blocks with exists do not generate accident scene
                 continue
@@ -115,7 +115,7 @@ class ObjectManager(RandomEngine):
             if _debug:
                 on_left = True
 
-            lane = accident_road.get_lanes(engine.map.road_network)[accident_lane_idx]
+            lane = accident_road.get_lanes(engine.current_map.road_network)[accident_lane_idx]
             longitude = lane.length - self.ACCIDENT_AREA_LEN
 
             if lane.length < self.ACCIDENT_LANE_MIN_LEN:
@@ -125,13 +125,13 @@ class ObjectManager(RandomEngine):
             block.PROHIBIT_TRAFFIC_GENERATION = True
 
             # TODO(pzh) This might not worked in MARL envs when the route is also has changeable lanes.
-            lateral_len = engine.map.config[engine.map.LANE_WIDTH]
+            lateral_len = engine.current_map.config[engine.current_map.LANE_WIDTH]
 
-            lane = engine.map.road_network.get_lane(accident_road.lane_index(accident_lane_idx))
+            lane = engine.current_map.road_network.get_lane(accident_road.lane_index(accident_lane_idx))
             if self.np_random.rand() > 0.5 or _debug:
                 self.prohibit_scene(lane, accident_road.lane_index(accident_lane_idx), longitude, lateral_len, on_left)
             else:
-                accident_lane_idx = self.np_random.randint(engine.map.config[engine.map.LANE_NUM])
+                accident_lane_idx = self.np_random.randint(engine.current_map.config[engine.current_map.LANE_NUM])
                 self.break_down_scene(lane, accident_road.lane_index(accident_lane_idx), longitude)
 
     def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):

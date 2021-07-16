@@ -1,7 +1,7 @@
 from pgdrive.scene_creator.algorithm.BIG import BIG
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.tests.vis_block.vis_block_base import TestBlock
-from pgdrive.utils.asset_loader import initialize_asset_loader
+from pgdrive.engine.asset_loader import initialize_asset_loader
 
 
 def vis_big(debug: bool = False, block_type_version="v1", random_seed=None):

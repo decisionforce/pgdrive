@@ -1,4 +1,3 @@
-from pgdrive.utils.asset_loader import AssetLoader, initialize_asset_loader
 from pgdrive.utils.coordinates_shift import panda_heading, panda_position, pgdrive_heading, pgdrive_position
 from pgdrive.utils.cutils import import_cutils
 from pgdrive.utils.draw_top_down_map import draw_top_down_map

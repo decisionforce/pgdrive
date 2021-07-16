@@ -8,7 +8,7 @@ from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.map.map import Map
 from pgdrive.scene_creator.algorithm.blocks_prob_dist import PGBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
-from pgdrive.engine.world.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
 
 class NextStep:
