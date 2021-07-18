@@ -38,12 +38,13 @@ class TrafficSignManager(BaseManager):
         # init random engine
         super(TrafficSignManager, self).__init__()
 
-    def reset(self, map: Map, accident_prob: float = 0):
+    def before_reset(self):
         """
         Clear all objects in th scene
         """
         self.clear_objects()
-        self.accident_prob = accident_prob
+        self.accident_prob = self.pgdrive_engine.global_config["accident_prob"]
+        map = self.pgdrive_engine.map_manager.current_map
         for block in map.blocks:
             block.construct_block_buildings(self)
 
@@ -51,7 +52,7 @@ class TrafficSignManager(BaseManager):
         super(TrafficSignManager, self).clear_objects()
         for block_object in self._block_objects.values():
             block_object.node_path.detachNode()
-        self._block_objects= {}
+        self._block_objects = {}
 
     def add_block_buildings(self, building: StaticObject, render_node):
         self._block_objects[building.id] = building
@@ -75,7 +76,7 @@ class TrafficSignManager(BaseManager):
             raise ValueError("No object named {}, so it can not be spawned".format(object_class))
         return super(TrafficSignManager, self).spawn_object(cls, *args, **kwargs)
 
-    def generate(self):
+    def reset(self):
         """
         Generate an accident scene or construction scene on block
         :return: None

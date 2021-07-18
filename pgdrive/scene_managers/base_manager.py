@@ -6,6 +6,7 @@ class BaseManager(RandomEngine):
     """
     Managers should be created and registered after launching PGDriveEngine
     """
+
     def __init__(self):
         from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
         super(BaseManager, self).__init__()
@@ -49,6 +50,41 @@ class BaseManager(RandomEngine):
             exclude.append(id)
         for id in exclude:
             self._spawned_objects.pop(id)
+
+    def before_step(self):
+        """
+        Usually used to set actions for all elements with their policies
+        """
+        pass
+
+    def step(self):
+        """
+        TODO Remove in the future?
+        """
+
+    def after_step(self):
+        """
+        Update state for this manager after system advancing dt
+        """
+
+    def before_reset(self):
+        """
+        Update episode level config to this manager and clean element or detach element
+        """
+        pass
+
+    def reset(self):
+        """
+        Generate objects according to some pre-defined rules
+        """
+        pass
+
+    def after_reset(self):
+        """
+        Usually used to record information after all managers called reset(),
+        Since reset() of managers may influence each other
+        """
+        pass
 
     def destroy(self):
         """

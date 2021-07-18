@@ -1,5 +1,5 @@
-import logging
 import copy
+import logging
 from collections import namedtuple, deque
 from typing import Tuple, Dict
 
@@ -7,9 +7,9 @@ from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map.map import Map
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.utils import norm, RandomEngine, merge_dicts
+from pgdrive.scene_managers.base_manager import BaseManager
+from pgdrive.utils import norm, merge_dicts
 from pgdrive.utils.engine_utils import get_pgdrive_engine
-from pgdrive.scene_managers.object_manager import TrafficSignManager
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 
@@ -25,17 +25,15 @@ class TrafficMode:
     Hybrid = "hybrid"
 
 
-class TrafficManager(RandomEngine):
+class TrafficManager(BaseManager):
     VEHICLE_GAP = 10  # m
 
-    def __init__(self, traffic_mode: TrafficMode, random_traffic: bool):
+    def __init__(self):
         """
         Control the whole traffic flow
-        :param traffic_mode: Respawn mode or Trigger mode
-        :param random_traffic: the distribution of vehicles will be different in different episdoes
         """
-        self.pgdrive_engine = get_pgdrive_engine()
-        self.map = None
+        super(TrafficManager, self).__init__()
+        self.current_map = None
 
         self._traffic_vehicles = None
         self.block_triggered_vehicles = None
@@ -43,29 +41,18 @@ class TrafficManager(RandomEngine):
         self.is_target_vehicle_dict = {}
 
         # traffic property
-        self.mode = traffic_mode
-        self.random_traffic = random_traffic
-        self.density = 0
+        self.mode = self.pgdrive_engine.global_config["traffic_mode"]
+        self.random_traffic = self.pgdrive_engine.global_config["random_traffic"]
+        self.density = self.pgdrive_engine.global_config["traffic_density"]
         self.respawn_lanes = None
 
-        # control randomness of traffic
-        super(TrafficManager, self).__init__()
-
-    def generate(self, map: Map, traffic_density: float):
+    def reset(self):
         """
         Generate traffic on map, according to the mode and density
-        :param map: The map class containing block list and road network
-        :param traffic_density: Traffic density defined by: number of vehicles per meter
         :return: List of Traffic vehicles
         """
-        #TODO ManagerBase
-        self.pgdrive_engine = get_pgdrive_engine()
+        map = self.current_map
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-
-        # self.controllable_vehicles = controllable_vehicles if len(controllable_vehicles) > 1 else None
-        # update global info
-        self.map = map
-        self.density = traffic_density
 
         # update vehicle list
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
@@ -107,12 +94,13 @@ class TrafficManager(RandomEngine):
         for v in self._traffic_vehicles:
             v.before_step()
 
-    def step(self, dt: float):
+    def step(self):
         """
         Move all traffic vehicles
         :param dt: Decision keeping time
         :return: None
         """
+        dt=self.pgdrive_engine.world_config["physics_world_step_size"]
         dt /= 3.6  # 1m/s = 3.6km/h
         for v in self._traffic_vehicles:
             v.step(dt)
@@ -151,27 +139,19 @@ class TrafficManager(RandomEngine):
         self._spawned_vehicles = []
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
-    def reset(self, map: Map, traffic_density: float) -> None:
+    def before_reset(self) -> None:
         """
         Clear the scene and then reset the scene to empty
-        :param map: Map class containing road_network
-        :param traffic_density: the density of traffic in this episode
         :return: None
         """
+        # update global info
+        self.current_map = self.pgdrive_engine.map_manager.current_map
+        self.density = self.pgdrive_engine.global_config["traffic_density"]
         self._clear_traffic()
 
         self.is_target_vehicle_dict.clear()
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
-
-        logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-
-        # update global info
-        self.map = map
-        self.density = traffic_density
-
-        # update vehicle list
-        # self.vehicles.append(*controllable_vehicles)  # it is used to perform IDM and bicycle model based motion
 
     def get_vehicle_num(self):
         """
@@ -352,7 +332,7 @@ class TrafficManager(RandomEngine):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -373,8 +353,8 @@ class TrafficManager(RandomEngine):
         lane_index = lane_index or vehicle.lane_index
         if not lane_index:
             return None, None
-        lane = self.map.road_network.get_lane(lane_index)
-        s = self.map.road_network.get_lane(lane_index).local_coordinates(vehicle.position)[0]
+        lane = self.current_map.road_network.get_lane(lane_index)
+        s = self.current_map.road_network.get_lane(lane_index).local_coordinates(vehicle.position)[0]
         s_front = s_rear = None
         v_front = v_rear = None
         for v in self.vehicles + self.pgdrive_engine.object_manager.objects:
@@ -405,7 +385,7 @@ class TrafficManager(RandomEngine):
         """
         self._clear_traffic()
         # current map
-        self.map = None
+        self.current_map = None
 
         # traffic vehicle list
         self._traffic_vehicles = None

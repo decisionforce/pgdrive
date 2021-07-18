@@ -22,18 +22,12 @@ class PGDriveEngine(PGWorld):
 
     def __init__(
             self,
-            engine_core_config: Union[Dict, "PGConfig"],
-            agent_manager: "AgentManager",
+            agent_manager,
     ):
-        super(PGDriveEngine, self).__init__(engine_core_config)
+        super(PGDriveEngine, self).__init__(self.global_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         self._managers = dict()
 
-        traffic_config = {
-            "traffic_mode": "respawn",
-            "random_traffic": False
-        }
-        self.traffic_manager = self._get_traffic_manager(traffic_config)
         self.agent_manager = agent_manager  # Only a reference
 
         # common variable
@@ -47,22 +41,17 @@ class PGDriveEngine(PGWorld):
         self.accept("s", self._stop_replay)
 
         # cull scene
-        self.cull_scene = engine_core_config["cull_scene"]
+        self.cull_scene = self.global_config["cull_scene"]
         self.detector_mask = None
 
-    @staticmethod
-    def _get_traffic_manager(traffic_config):
-        from pgdrive.scene_managers.traffic_manager import TrafficManager
-        return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
-
-    def reset(self, map, traffic_density: float, accident_prob: float, episode_data=None):
+    def reset(self, episode_data=None):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
-        self.current_map = map
+        self.current_map = self.map_manager.current_map
 
-        self.traffic_manager.reset(map, traffic_density)
-        self.object_manager.reset(map, accident_prob)
+        for manager in self._managers.values():
+            manager.before_reset()
         if self.detector_mask is not None:
             self.detector_mask.clear()
 
@@ -74,8 +63,10 @@ class PGDriveEngine(PGWorld):
             self.record_system = None
 
         if episode_data is None:
-            self.object_manager.generate()
-            self.traffic_manager.generate(map=self.current_map, traffic_density=traffic_density)
+            for manager in self._managers.values():
+                manager.reset()
+            for manager in self._managers.values():
+                manager.after_reset()
             self.IN_REPLAY = False
         else:
             self.replay_system = None
@@ -83,14 +74,15 @@ class PGDriveEngine(PGWorld):
             self.detector_mask = None
             self.IN_REPLAY = True
 
+        # TODO recorder
         # if pg_world.highway_render is not None:
         #     pg_world.highway_render.set_scene_manager(self)
-        if self.record_episode:
-            if episode_data is None:
-                init_states = self.traffic_manager.get_global_init_states()
-                self.record_system = None
-            else:
-                logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
+        # if self.record_episode:
+        #     if episode_data is None:
+        #         init_states = self.traffic_manager.get_global_init_states()
+        #         self.record_system = None
+        #     else:
+        #         logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
 
     def before_step(self, target_actions: Dict[AnyStr, np.array]):
         """
@@ -105,7 +97,8 @@ class PGDriveEngine(PGWorld):
             for k in self.agent_manager.active_agents.keys():
                 a = target_actions[k]
                 step_infos[k] = self.agent_manager.get_agent(k).before_step(a)
-            self.traffic_manager.before_step()
+            for manager in self._managers.values():
+                manager.before_step()
         return step_infos
 
     def step(self, step_num: int = 1) -> None:
@@ -115,21 +108,21 @@ class PGDriveEngine(PGWorld):
         :param step_num: Decision of all entities will repeat *step_num* times
         """
         pg_world = self
-        dt = pg_world.world_config["physics_world_step_size"]
         for i in range(step_num):
             # simulate or replay
             if self.replay_system is None:
                 # not in replay mode
-                self.traffic_manager.step(dt)
+                for manager in self._managers.values():
+                    manager.step()
                 pg_world.step_physics_world()
             else:
                 if not self.STOP_REPLAY:
                     self.replay_system.replay_frame(self.target_vehicles, i == step_num - 1)
-            # record every step
-            if self.record_system is not None:
-                # didn't record while replay
-                frame_state = self.traffic_manager.get_global_states()
-                self.record_system.record_frame(frame_state)
+            # # record every step
+            # if self.record_system is not None:
+            #     # didn't record while replay
+            #     frame_state = self.traffic_manager.get_global_states()
+            #     self.record_system.record_frame(frame_state)
 
             if pg_world.force_fps.real_time_simulation and i < step_num - 1:
                 # insert frame to render in min step_size
@@ -144,13 +137,15 @@ class PGDriveEngine(PGWorld):
         """
 
         if self.replay_system is None:
-            self.traffic_manager.after_step()
+            for manager in self._managers.values():
+                manager.after_step()
 
         step_infos = self.update_state_for_all_target_vehicles()
 
         # cull distant blocks
         poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene:
+            # TODO use a for loop
             PGDriveSceneCull.cull_distant_blocks(
                 self, self.current_map.blocks, poses, self.world_config["max_distance"]
             )
@@ -200,8 +195,6 @@ class PGDriveEngine(PGWorld):
         Note:
         Instead of calling this func directly, close Engine by using engine_utils.close_pgdrive_engine
         """
-        self.traffic_manager.destroy()
-        self.traffic_manager = None
 
         self.current_map = None
 

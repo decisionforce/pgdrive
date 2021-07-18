@@ -3,14 +3,15 @@ import matplotlib.pyplot as plt
 from pgdrive import PGDriveEnv
 from pgdrive.scene_creator.map.city_map import CityMap
 from pgdrive.utils import draw_top_down_map
-from pgdrive.utils.engine_utils import initialize_pgdrive_engine, close_pgdrive_engine
+from pgdrive.utils.engine_utils import initialize_pgdrive_engine, close_pgdrive_engine, set_global_config
 from pgdrive.utils.random import set_global_random_seed
 
 
 def _t(num_blocks):
     default_config = PGDriveEnv.default_config()
     default_config["pg_world_config"].update({"use_render": False, "use_image": False, "debug": False})
-    initialize_pgdrive_engine(default_config, None)
+    set_global_config(default_config)
+    initialize_pgdrive_engine(None)
     set_global_random_seed(0)
     try:
         map_config = default_config["map_config"]

@@ -1,5 +1,7 @@
 import os.path as osp
 from pgdrive.scene_managers.object_manager import TrafficSignManager
+from pgdrive.scene_managers.traffic_manager import TrafficManager
+
 import sys
 import time
 from collections import defaultdict
@@ -182,7 +184,7 @@ class BasePGDriveEnv(gym.Env):
         # It is the true init() func to create the main vehicle and its module, to avoid incompatible with ray
         if pgdrive_engine_initialized():
             return
-        initialize_pgdrive_engine(self.config["pg_world_config"], self.agent_manager)
+        initialize_pgdrive_engine(self.agent_manager)
         self.pgdrive_engine = get_pgdrive_engine()
 
         # engine setup
@@ -297,9 +299,7 @@ class BasePGDriveEnv(gym.Env):
         self.episode_lengths = defaultdict(int)
 
         # generate new traffic according to the map
-        self.pgdrive_engine.reset(
-            self.current_map, self.config["traffic_density"], self.config["accident_prob"], episode_data=episode_data
-        )
+        self.pgdrive_engine.reset()
 
         if self.main_camera is not None:
             self.main_camera.reset()
@@ -425,6 +425,7 @@ class BasePGDriveEnv(gym.Env):
         self.pgdrive_engine.accept("p", self.capture)
 
         # Add managers to PGDriveEngine
+        self.pgdrive_engine.register_manager("traffic_manager", TrafficManager())
         self.pgdrive_engine.register_manager("map_manager", MapManager())
         self.pgdrive_engine.register_manager("object_manager", TrafficSignManager())
 
