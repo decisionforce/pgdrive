@@ -108,7 +108,8 @@ class Object(RandomEngine):
         """
         Fix a value of the random parameters in PARAMETER_SPACE
         """
-        self.PARAMETER_SPACE.seed(self.np_random.randint(low=0, high=int(1e6)))
+        random_seed = self.np_random.randint(low=0, high=int(1e6))
+        self.PARAMETER_SPACE.seed(random_seed)
         ret = self.PARAMETER_SPACE.sample()
         self.set_config(ret)
 
@@ -190,3 +191,7 @@ class Object(RandomEngine):
 
     def __str__(self):
         return "{}, ID:{}".format(self.class_name, self.name)
+
+    @property
+    def config(self):
+        return self.get_config(True)

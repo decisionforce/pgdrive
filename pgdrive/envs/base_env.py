@@ -182,7 +182,7 @@ class BasePGDriveEnv(gym.Env):
         # It is the true init() func to create the main vehicle and its module, to avoid incompatible with ray
         if pgdrive_engine_initialized():
             return
-        initialize_pgdrive_engine(self.config, self.agent_manager)
+        initialize_pgdrive_engine(self.config["pg_world_config"], self.agent_manager)
         self.pgdrive_engine = get_pgdrive_engine()
 
         # engine setup
@@ -362,7 +362,7 @@ class BasePGDriveEnv(gym.Env):
         return data[next(iter(self.vehicles.keys()))]
 
     def seed(self, seed=None):
-        if seed:
+        if seed is not None:
             set_global_random_seed(seed)
             self.current_seed = seed
 
@@ -447,3 +447,7 @@ class BasePGDriveEnv(gym.Env):
             current_seed = get_np_random(self._DEBUG_RANDOM_SEED
                                          ).randint(self.start_seed, self.start_seed + self.env_num)
         self.seed(current_seed)
+
+    @property
+    def maps(self):
+        return self.pgdrive_engine.map_manager.pg_maps

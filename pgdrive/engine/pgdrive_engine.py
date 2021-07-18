@@ -22,17 +22,16 @@ class PGDriveEngine(PGWorld):
 
     def __init__(
             self,
-            global_config: Union[Dict, "PGConfig"],
+            engine_core_config: Union[Dict, "PGConfig"],
             agent_manager: "AgentManager",
     ):
-        self.global_config = global_config
-        super(PGDriveEngine, self).__init__(global_config["pg_world_config"])
+        super(PGDriveEngine, self).__init__(engine_core_config)
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         self._managers = dict()
 
         traffic_config = {
-            "traffic_mode": global_config["traffic_mode"],
-            "random_traffic": global_config["random_traffic"]
+            "traffic_mode": "respawn",
+            "random_traffic": False
         }
         self.traffic_manager = self._get_traffic_manager(traffic_config)
         self.agent_manager = agent_manager  # Only a reference
@@ -48,7 +47,7 @@ class PGDriveEngine(PGWorld):
         self.accept("s", self._stop_replay)
 
         # cull scene
-        self.cull_scene = global_config["cull_scene"]
+        self.cull_scene = engine_core_config["cull_scene"]
         self.detector_mask = None
 
     @staticmethod
@@ -204,8 +203,6 @@ class PGDriveEngine(PGWorld):
         self.traffic_manager.destroy()
         self.traffic_manager = None
 
-        self.object_manager.destroy()
-        self.object_manager = None
         self.current_map = None
 
         for name, manager in self._managers.items():

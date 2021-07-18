@@ -111,8 +111,9 @@ class RandomEngine:
     @property
     def np_random(self):
         if self._instance_seed != RandomEngine.global_random_seed:
+            # sync
             self._instance_seed = RandomEngine.global_random_seed
-        self._np_random = get_np_random(self._instance_seed)
+            self._np_random = get_np_random(self._instance_seed)
         return self._np_random
 
     @property

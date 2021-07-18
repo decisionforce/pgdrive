@@ -167,7 +167,7 @@ class TrafficSignManager(BaseManager):
             # TODO refactor traffic and traffic system to make it compatible
 
     def destroy(self):
-        self._block_objects = None
+        self._block_objects = {}
         super(TrafficSignManager, self).destroy()
 
     @property

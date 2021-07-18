@@ -146,7 +146,8 @@ class PGDriveEnv(BasePGDriveEnv):
                 "use_image": config["use_image"],
                 "debug": config["debug"],
                 "decision_repeat": config["decision_repeat"],
-                "fast_launch_window": config["fast"]
+                "fast_launch_window": config["fast"],
+                "cull_scene":config["cull_scene"]
             }
         )
         config["vehicle_config"].update(

@@ -22,14 +22,15 @@ def test_original_lidar(render=False):
                 "side_detector": dict(num_lasers=2, distance=50),
                 "lane_line_detector": dict(num_lasers=2, distance=50),
             },
-            "_disable_detector_mask": True
+            "_disable_detector_mask": True,
+            "map":"XXX"
         }
     )
     try:
         env.reset()
         v_config = env.config["vehicle_config"]
-        v_config["spawn_longitude"] = 80
-        v_config["spawn_lateral"] = 5
+        v_config["spawn_longitude"] = 0
+        v_config["spawn_lateral"] = 7.5
         another_v = BaseVehicle(v_config)
         another_v.reset(env.current_map)
         objs = env.vehicle.side_detector.get_detected_objects() + env.vehicle.lane_line_detector.get_detected_objects()
@@ -42,7 +43,7 @@ def test_original_lidar(render=False):
         detect_base_vehicle = False
         for i in range(1, 100000):
             o, r, d, info = env.step([0, 1])
-            if len(env.vehicle.lidar.get_surrounding_vehicles()) > 4:
+            if len(env.vehicle.lidar.get_surrounding_vehicles()) > 2:
                 detect_traffic_vehicle = True
             for hit in env.vehicle.lidar.get_detected_objects():
                 v = hit.getNode()
@@ -70,21 +71,20 @@ def test_lidar_with_mask(render=False):
                 "side_detector": dict(num_lasers=2, distance=50),
                 "lane_line_detector": dict(num_lasers=2, distance=50),
             },
-            "_disable_detector_mask": False
+            "_disable_detector_mask": False,
+            "map":"XXX"
         }
     )
     try:
         env.reset()
-        vehicle = env.vehicle
         v_config = env.config["vehicle_config"]
-        v_config["spawn_longitude"] = 80
-        v_config["spawn_lateral"] = 5
+        v_config["spawn_longitude"] = 0
+        v_config["spawn_lateral"] = 7.5
         another_v = BaseVehicle(v_config)
         another_v.reset(env.current_map)
         # for test
         env.agent_manager._pending_objects[another_v.name] = another_v
-
-        objs = vehicle.side_detector.get_detected_objects() + vehicle.lane_line_detector.get_detected_objects()
+        objs = env.vehicle.side_detector.get_detected_objects() + env.vehicle.lane_line_detector.get_detected_objects()
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
@@ -94,9 +94,9 @@ def test_lidar_with_mask(render=False):
         detect_base_vehicle = False
         for i in range(1, 100000):
             o, r, d, info = env.step([0, 1])
-            if len(vehicle.lidar.get_surrounding_vehicles()) > 4:
+            if len(env.vehicle.lidar.get_surrounding_vehicles()) > 2:
                 detect_traffic_vehicle = True
-            for hit in vehicle.lidar.get_detected_objects():
+            for hit in env.vehicle.lidar.get_detected_objects():
                 v = hit.getNode()
                 if v.hasPythonTag(BodyName.Base_vehicle):
                     detect_base_vehicle = True

@@ -2,10 +2,10 @@ from pgdrive.engine.pgdrive_engine import PGDriveEngine
 import copy
 
 
-def initialize_pgdrive_engine(config, agent_manager):
+def initialize_pgdrive_engine(engine_core_config, agent_manager):
     cls = PGDriveEngine
     if cls.singleton is None:
-        cls.singleton = cls(config, agent_manager)
+        cls.singleton = cls(engine_core_config, agent_manager)
     else:
         raise PermissionError("There should be only one PGDriveEngine instance in one process")
 
@@ -19,15 +19,16 @@ def pgdrive_engine_initialized():
 
 
 def close_pgdrive_engine():
-    PGDriveEngine.global_config = None
     if PGDriveEngine.singleton is not None:
         PGDriveEngine.singleton.close()
         PGDriveEngine.singleton = None
 
+
 def set_global_config(config):
-    if PGDriveEngine.global_config is not None:
-        raise PermissionError("Global config should only be set for once")
-    PGDriveEngine.global_config=config
+    if PGDriveEngine.global_config is None:
+        PGDriveEngine.global_config = config
+    else:
+        PGDriveEngine.global_config.update(config)
 
 
 def get_global_config():

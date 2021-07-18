@@ -8,6 +8,7 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_managers.spawn_manager import SpawnManager
 from pgdrive.utils import setup_logger, get_np_random, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
+from pgdrive.utils.engine_utils import set_global_config
 
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
@@ -156,7 +157,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         return o, r, d, i
 
     def reset(self, *args, **kwargs):
-        self.config = self._update_agent_pos_configs(self.config)
+        set_global_config(self._update_agent_pos_configs(self.config))
         ret = super(MultiAgentPGDrive, self).reset(*args, **kwargs)
         assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
         return ret
