@@ -14,7 +14,7 @@ def test_random_traffic():
         for i in range(20):
             obs = env.reset()
             assert env.pgdrive_engine.traffic_manager.random_traffic
-            assert env.pgdrive_engine.traffic_manager.random_seed is None
+            assert env.pgdrive_engine.traffic_manager.global_random_seed is None
             new_pos = [v.position for v in env.pgdrive_engine.traffic_manager.vehicles]
             if last_pos is not None and len(new_pos) == len(last_pos):
                 assert sum(

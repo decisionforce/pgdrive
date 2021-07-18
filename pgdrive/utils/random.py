@@ -102,18 +102,22 @@ class RandomEngine:
     """
     Global Random Engine
     """
-    random_seed = None
+    global_random_seed = None
 
     def __init__(self):
-        self._instance_seed = RandomEngine.random_seed
+        self._instance_seed = RandomEngine.global_random_seed
         self._np_random = get_np_random(self._instance_seed)
 
     @property
     def np_random(self):
-        if self._instance_seed != RandomEngine.random_seed:
-            self._instance_seed = RandomEngine.random_seed
+        if self._instance_seed != RandomEngine.global_random_seed:
+            self._instance_seed = RandomEngine.global_random_seed
         self._np_random = get_np_random(self._instance_seed)
         return self._np_random
+
+    @property
+    def random_seed(self):
+        return self._instance_seed
 
 
 def set_global_random_seed(random_seed: Optional[int]):
@@ -123,5 +127,4 @@ def set_global_random_seed(random_seed: Optional[int]):
     :param random_seed: int, random seed
     """
     cls = RandomEngine
-    cls.random_seed = random_seed
-    cls.np_random = get_np_random(cls.random_seed)
+    cls.global_random_seed = random_seed

@@ -23,7 +23,7 @@ class MapManager(BaseManager):
 
     def spawn_object(self, object_class, **kwargs):
         map = super(MapManager, self).spawn_object(object_class,**kwargs)
-        self.pg_maps[map.random_seed] = map
+        self.pg_maps[map.global_random_seed] = map
         return map
 
     def load_all_maps_from_json(self, path):
