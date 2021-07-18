@@ -416,10 +416,6 @@ class TrafficManager(RandomEngine):
         self.random_traffic = None
         self.density = None
 
-        # control randomness of traffic
-        self.random_seed = None
-        self.np_random = None
-
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 

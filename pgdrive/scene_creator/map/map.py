@@ -70,7 +70,6 @@ class Map(Object):
         super(Map, self).__init__()
         self.set_config(map_config)
         self.film_size = (self._config["draw_map_resolution"], self._config["draw_map_resolution"])
-        self.random_seed = self._config[self.SEED]
         self.road_network = RoadNetwork()
 
         # A flatten representation of blocks, might cause chaos in city-level generation.
@@ -125,7 +124,6 @@ class Map(Object):
             blocks_config[b_id] = {k: np.array(v) if isinstance(v, list) else v for k, v in b.items()}
 
         # update the property
-        self.random_seed = self._config[self.SEED]
         return blocks_config
 
     @property
