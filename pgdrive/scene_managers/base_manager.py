@@ -31,33 +31,24 @@ class BaseManager(RandomEngine):
         :param filter_func: a filter function, only return objects satisfying this condition
         :return: return all objects or objects satisfying the filter_func
         """
-        if filter_func is None:
-            return self._spawned_objects
-        else:
-            res = dict()
-            for id, obj in self._spawned_objects.items():
-                if filter_func(obj):
-                    res[id] = obj
-            return res
+        res = dict()
+        for id, obj in self._spawned_objects.items():
+            if filter_func is None or filter_func(obj):
+                res[id] = obj
+        return res
 
     def clear_objects(self, filter_func: Optional[Callable] = None):
         """
         Destroy all self-generated objects or objects satisfying the filter condition
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
         """
-        if filter_func is None:
-            for id, obj in self._spawned_objects.items():
+        exclude = []
+        for id, obj in self._spawned_objects.items():
+            if filter_func is None or filter_func(obj):
                 obj.destroy()
-                self._spawned_objects.pop(id)
-            self._spawned_objects = dict()
-        else:
-            exclude = []
-            for id, obj in self._spawned_objects:
-                if filter_func(obj):
-                    obj.destroy()
-                exclude.append(id)
-            for id in exclude:
-                self._spawned_objects.pop(id)
+            exclude.append(id)
+        for id in exclude:
+            self._spawned_objects.pop(id)
 
     def destroy(self):
         """

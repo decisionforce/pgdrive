@@ -10,10 +10,10 @@ class TestEnv(PGDriveEnv):
         """
         super(TestEnv, self).__init__(
             {
-                "environment_num": 10,
+                "environment_num": 7,
                 "traffic_density": 0.2,
                 "traffic_mode": "respawn",
-                "start_seed": 5,
+                "start_seed": 2,
                 "pg_world_config": {
                     "onscreen_message": True,
                     # "debug_physics_world": True,

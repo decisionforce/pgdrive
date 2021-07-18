@@ -160,7 +160,8 @@ class Object(RandomEngine):
         """
         It is not fully remove, if this element is useless in the future, call Func delete()
         """
-        self.node_path.detachNode()
+        if self.node_path is not None:
+            self.node_path.detachNode()
         self.dynamic_nodes.detach_from_physics_world(pg_physics_world.dynamic_world)
         self.static_nodes.detach_from_physics_world(pg_physics_world.static_world)
 
@@ -171,7 +172,8 @@ class Object(RandomEngine):
         from pgdrive.utils.engine_utils import get_pgdrive_engine
         engine = get_pgdrive_engine()
         self.detach_from_world(engine.physics_world)
-        self.node_path.removeNode()
+        if self.node_path is not None:
+            self.node_path.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()
         self._config.clear()

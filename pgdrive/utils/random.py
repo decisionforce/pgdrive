@@ -65,7 +65,7 @@ def create_seed(a=None, max_bytes=8):
         a += hashlib.sha512(a).digest()
         a = _bigint_from_bytes(a[:max_bytes])
     elif isinstance(a, int):
-        a = a % 2**(8 * max_bytes)
+        a = a % 2 ** (8 * max_bytes)
     else:
         raise logging.error('Invalid type for seed: {} ({})'.format(type(a), a))
 
@@ -80,7 +80,7 @@ def _bigint_from_bytes(bytes):
     unpacked = struct.unpack("{}I".format(int_count), bytes)
     accum = 0
     for i, val in enumerate(unpacked):
-        accum += 2**(sizeof_int * 8 * i) * val
+        accum += 2 ** (sizeof_int * 8 * i) * val
     return accum
 
 
@@ -93,7 +93,7 @@ def _int_list_from_bigint(bigint):
 
     ints = []
     while bigint > 0:
-        bigint, mod = divmod(bigint, 2**32)
+        bigint, mod = divmod(bigint, 2 ** 32)
         ints.append(mod)
     return ints
 
@@ -103,14 +103,24 @@ class RandomEngine:
     Global Random Engine
     """
     random_seed = None
-    np_random = get_np_random(None)
+
+    def __init__(self):
+        self._instance_seed = RandomEngine.random_seed
+        self._np_random = get_np_random(self._instance_seed)
+
+    @property
+    def np_random(self):
+        if self._instance_seed != RandomEngine.random_seed:
+            self._instance_seed = RandomEngine.random_seed
+        self._np_random = get_np_random(self._instance_seed)
+        return self._np_random
 
 
 def set_global_random_seed(random_seed: Optional[int]):
     """
     Update the random seed and random engine
+    All subclasses of RandomEngine will hold the same random engine, after calling this function
     :param random_seed: int, random seed
-    :return: None
     """
     cls = RandomEngine
     cls.random_seed = random_seed

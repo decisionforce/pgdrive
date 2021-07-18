@@ -152,7 +152,6 @@ class BasePGDriveEnv(gym.Env):
         self.episode_rewards = defaultdict(float)
         # In MARL envs with respawn mechanism, varying episode lengths might happen.
         self.episode_lengths = defaultdict(int)
-        self._pending_force_seed = None
 
     def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
         """Check, update, sync and overwrite some config."""
@@ -285,7 +284,7 @@ class BasePGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self.pgdrive_engine.clear_world()
-        self.set_global_seed(force_seed)
+        self._reset_global_seed(force_seed)
         self._update_map(episode_data)
         self.agent_manager.reset()
 
@@ -363,7 +362,8 @@ class BasePGDriveEnv(gym.Env):
 
     def seed(self, seed=None):
         if seed:
-            self._pending_force_seed = seed
+            set_global_random_seed(seed)
+            self.current_seed = seed
 
     @property
     def observations(self):
@@ -437,15 +437,11 @@ class BasePGDriveEnv(gym.Env):
         """
         return get_global_config()
 
-    def set_global_seed(self, force_seed):
+    def _reset_global_seed(self, force_seed):
         # create map
         if force_seed is not None:
             current_seed = force_seed
-        elif self._pending_force_seed is not None:
-            current_seed = self._pending_force_seed
-            self._pending_force_seed = None
         else:
             current_seed = get_np_random(self._DEBUG_RANDOM_SEED
                                          ).randint(self.start_seed, self.start_seed + self.env_num)
-        set_global_random_seed(self.current_seed)
-        self.current_seed=current_seed
+        self.seed(current_seed)

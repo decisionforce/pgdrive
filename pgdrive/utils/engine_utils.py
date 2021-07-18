@@ -19,10 +19,10 @@ def pgdrive_engine_initialized():
 
 
 def close_pgdrive_engine():
+    PGDriveEngine.global_config = None
     if PGDriveEngine.singleton is not None:
         PGDriveEngine.singleton.close()
         PGDriveEngine.singleton = None
-
 
 def set_global_config(config):
     if PGDriveEngine.global_config is not None:

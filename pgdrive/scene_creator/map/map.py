@@ -99,6 +99,9 @@ class Map(Object):
             block.detach_from_world(self.pgdrive_engine.physics_world)
 
     def save_map(self):
+        """
+        Save the generated map to map file
+        """
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
         map_config = []
         for b in self.blocks:
