@@ -15,7 +15,7 @@ from pgdrive.scene_creator.map.pg_map import PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 from pgdrive.scene_managers.traffic_manager import TrafficMode
-from pgdrive.utils import clip, PGConfig,  get_np_random, concat_step_infos
+from pgdrive.utils import clip, PGConfig, get_np_random, concat_step_infos
 from pgdrive.engine.core.chase_camera import ChaseCamera
 from pgdrive.engine.core.manual_controller import KeyboardController, JoystickController
 
@@ -298,7 +298,7 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH
-                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
@@ -341,7 +341,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -407,15 +407,16 @@ class PGDriveEnv(BasePGDriveEnv):
             else:
                 map_config = self.config["map_config"]
                 map_config.update({"seed": self.current_seed})
-            map_manager.current_map=map_manager.spawn_object(PGMap, map_config=map_config)
+            map_manager.current_map = map_manager.spawn_object(PGMap, map_config=map_config)
         else:
             map_manager.current_map = map_manager.pg_maps[self.current_seed]
         self.current_map.load_to_world()
 
     def dump_all_maps(self):
-        assert not pgdrive_engine_initialized(), "We assume you generate map files in independent tasks (not in training). " \
-                                                 "So you should run the generating script without calling reset of the " \
-                                                 "environment."
+        assert not pgdrive_engine_initialized(), \
+            "We assume you generate map files in independent tasks (not in training). " \
+            "So you should run the generating script without calling reset of the " \
+            "environment."
 
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         assert pgdrive_engine_initialized()
@@ -559,6 +560,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

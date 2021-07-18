@@ -1,4 +1,5 @@
 import os.path as osp
+from pgdrive.scene_managers.object_manager import TrafficSignManager
 import sys
 import time
 from collections import defaultdict
@@ -425,6 +426,7 @@ class BasePGDriveEnv(gym.Env):
 
         # Add managers to PGDriveEngine
         self.pgdrive_engine.register_manager("map_manager", MapManager())
+        self.pgdrive_engine.register_manager("object_manager", TrafficSignManager())
 
     @property
     def current_map(self):

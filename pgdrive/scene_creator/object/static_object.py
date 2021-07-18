@@ -7,7 +7,7 @@ from pgdrive.utils.object import Object
 LaneIndex = Tuple[str, str, int]
 
 
-class BaseObject(Object):
+class StaticObject(Object):
     def __init__(self, lane, lane_index: LaneIndex, position: Sequence[float], heading: float = 0.):
         """
         :param lane: the lane to spawn object
@@ -15,10 +15,11 @@ class BaseObject(Object):
         :param position: cartesian position of object in the surface
         :param heading: the angle from positive direction of horizontal axis
         """
-        super(BaseObject, self).__init__()
+        super(StaticObject, self).__init__()
         self.position = position
         self.speed = 0
         self.heading = heading / np.pi * 180
         self.lane_index = lane_index
         self.lane = lane
         self.body_node = None
+        self.heading_theta = 0

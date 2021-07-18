@@ -35,7 +35,6 @@ class PGDriveEngine(PGWorld):
             "random_traffic": global_config["random_traffic"]
         }
         self.traffic_manager = self._get_traffic_manager(traffic_config)
-        self.object_manager = self._get_object_manager()
         self.agent_manager = agent_manager  # Only a reference
 
         # common variable
@@ -56,11 +55,6 @@ class PGDriveEngine(PGWorld):
     def _get_traffic_manager(traffic_config):
         from pgdrive.scene_managers.traffic_manager import TrafficManager
         return TrafficManager(traffic_config["traffic_mode"], traffic_config["random_traffic"])
-
-    @staticmethod
-    def _get_object_manager(object_config=None):
-        from pgdrive.scene_managers.object_manager import TrafficSignManager
-        return TrafficSignManager()
 
     def reset(self, map, traffic_density: float, accident_prob: float, episode_data=None):
         """
@@ -166,7 +160,7 @@ class PGDriveEngine(PGWorld):
                 self, self.traffic_manager.traffic_vehicles, poses, self.world_config["max_distance"]
             )
             PGDriveSceneCull.cull_distant_objects(
-                self, self.object_manager._spawned_objects, poses, self.world_config["max_distance"]
+                self, self.object_manager.objects, poses, self.world_config["max_distance"]
             )
 
         return step_infos

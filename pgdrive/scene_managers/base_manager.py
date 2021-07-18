@@ -13,14 +13,14 @@ class BaseManager(RandomEngine):
         self.pgdrive_engine = get_pgdrive_engine()
         self._spawned_objects = dict()
 
-    def spawn_object(self, object_class, **kwargs):
+    def spawn_object(self, object_class, *args, **kwargs):
         """
         Call this func to spawn one object
         :param object_class: object class
         :param kwargs: class init parameters
         :return: object spawned
         """
-        obj = object_class(**kwargs)
+        obj = object_class(*args, **kwargs)
         self._spawned_objects[obj.id] = obj
         return obj
 

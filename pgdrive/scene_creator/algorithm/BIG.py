@@ -36,6 +36,7 @@ class BIG(RandomEngine):
         block_type_version: str,
         exit_length=50
     ):
+        super(BIG, self).__init__()
         self._block_sequence = None
         # Don't change this right now, since we need to make maps identical to old one
         self._lane_num = lane_num

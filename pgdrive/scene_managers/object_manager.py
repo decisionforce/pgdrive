@@ -1,17 +1,19 @@
+from typing import Union, Callable, Optional
+
 from pgdrive.scene_creator.blocks.curve import Curve
-from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.scene_creator.blocks.ramp import InRampOnStraight, OutRampOnStraight
 from pgdrive.scene_creator.blocks.straight import Straight
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map.map import Map
+from pgdrive.scene_creator.object.static_object import StaticObject
 from pgdrive.scene_creator.object.traffic_object import TrafficSign
-from pgdrive.scene_creator.object.base_object import BaseObject
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import LaneIndex
-from pgdrive.utils import RandomEngine
+from pgdrive.scene_managers.base_manager import BaseManager
+from pgdrive.utils.engine_utils import get_pgdrive_engine
 
 
-class TrafficSignManager(RandomEngine):
+class TrafficSignManager(BaseManager):
     """
     This class is used to manager all static object, such as traffic cones, warning tripod.
     """
@@ -28,9 +30,9 @@ class TrafficSignManager(RandomEngine):
     CONE_LATERAL = 1
     PROHIBIT_SCENE_PROB = 0.5  # the reset is the probability of break_down_scene
 
-    def __init__(self):
-        self._spawned_objects = []
-        self._block_objects = []
+    def __init__(self, config=None):
+        super(TrafficSignManager, self).__init__()
+        self._block_objects = {}
         self.accident_prob = 0.
 
         # init random engine
@@ -40,50 +42,38 @@ class TrafficSignManager(RandomEngine):
         """
         Clear all objects in th scene
         """
-        self._clear_objects()
+        self.clear_objects()
         self.accident_prob = accident_prob
         for block in map.blocks:
             block.construct_block_buildings(self)
 
-    def _clear_objects(self):
-        # only destroy self-generated objects
-        for obj in self._spawned_objects:
-            obj.destroy()
-        self._spawned_objects = []
-        for obj in self._block_objects:
-            obj.node_path.detachNode()
-        self._block_objects = []
+    def clear_objects(self, filter_func: Optional[Callable] = None):
+        super(TrafficSignManager, self).clear_objects()
+        for block_object in self._block_objects.values():
+            block_object.node_path.detachNode()
+        self._block_objects= {}
 
-    def add_block_buildings(self, building: BaseObject, render_node):
-        self._block_objects.append(building)
+    def add_block_buildings(self, building: StaticObject, render_node):
+        self._block_objects[building.id] = building
         building.node_path.reparentTo(render_node)
 
-    def spawn_one_object(
-        self,
-        object_type: str,
-        lane: AbstractLane,
-        lane_index: LaneIndex,
-        longitude: float,
-        lateral: float,
-        static: bool = False
-    ) -> TrafficSign:
+    def spawn_object(
+            self,
+            object_class: Union[TrafficSign, str],
+            *args,
+            **kwargs,
+    ):
         """
         Spawn an object by assigning its type and position on the lane
-        :param object_type: object name or the class name of the object
-        :param lane: object will be spawned on this lane
-        :param lane_index:the lane index of the spawn point
-        :param longitude: longitude position on this lane
-        :param lateral: lateral position on  this lane
-        :param static: static object can not be moved by any force
-        :return: None
+        :param object_class: object name or the class name of the object
         """
+        cls = None
         for t in TrafficSign.type():
-            if t.__name__ == object_type or t.NAME == object_type:
-                obj = t.make_on_lane(lane, lane_index, longitude, lateral)
-                obj.set_static(static)
-                self._spawned_objects.append(obj)
-                return obj
-        raise ValueError("No object named {}, so it can not be spawned".format(object_type))
+            if t.__name__ == object_class or t.NAME == object_class:
+                cls = t
+        if cls is None:
+            raise ValueError("No object named {}, so it can not be spawned".format(object_class))
+        return super(TrafficSignManager, self).spawn_object(cls, *args, **kwargs)
 
     def generate(self):
         """
@@ -141,11 +131,12 @@ class TrafficSignManager(RandomEngine):
         breakdown_vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         breakdown_vehicle.set_break_down()
 
-        alert = self.spawn_one_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
+        alert = self.spawn_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
         alert.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def prohibit_scene(
-        self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float, on_left=False
+            self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float,
+            on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane
@@ -171,15 +162,14 @@ class TrafficSignManager(RandomEngine):
         left = 1 if on_left else -1
         for p in pos:
             p_ = (p[0] + longitude_position, left * p[1])
-            cone = self.spawn_one_object("Traffic Cone", lane, lane_index, *p_)
+            cone = self.spawn_object("Traffic Cone", lane, lane_index, *p_)
             cone.attach_to_world(engine.pbr_worldNP, engine.physics_world)
             # TODO refactor traffic and traffic system to make it compatible
 
     def destroy(self):
-        self._clear_objects()
-        self._spawned_objects = None
         self._block_objects = None
+        super(TrafficSignManager, self).destroy()
 
     @property
     def objects(self):
-        return self._spawned_objects + self._block_objects
+        return list(self._spawned_objects.values()) + list(self._block_objects)
