@@ -37,7 +37,6 @@ class TrafficManager(BaseManager):
 
         self._traffic_vehicles = None
         self.block_triggered_vehicles = None
-        self._spawned_vehicles = []  # auto-destroy
         self.is_target_vehicle_dict = {}
 
         # traffic property
@@ -74,7 +73,7 @@ class TrafficManager(BaseManager):
             self._create_vehicles_once(map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
-        logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_vehicles)))
+        logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_objects)))
 
     def before_step(self):
         """
@@ -124,19 +123,16 @@ class TrafficManager(BaseManager):
         for v in vehicles_to_remove:
             self._traffic_vehicles.remove(v)
             v.destroy()
-            self._spawned_vehicles.remove(v)
+            self._spawned_objects.pop(v.id)
 
             if self.mode == TrafficMode.Hybrid:
                 # create a new one
                 lane = self.np_random.choice(self.respawn_lanes)
                 vehicle_type = self.random_vehicle_type()
-                self.spawn_one_vehicle(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
+                self.spawn_object(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
 
-    def _clear_traffic(self):
-        if self._spawned_vehicles is not None:
-            for v in self._spawned_vehicles:
-                v.destroy()
-        self._spawned_vehicles = []
+    def clear_objects(self, filter_func=None):
+        super(TrafficManager, self).clear_objects()
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
     def before_reset(self) -> None:
@@ -147,7 +143,7 @@ class TrafficManager(BaseManager):
         # update global info
         self.current_map = self.pgdrive_engine.map_manager.current_map
         self.density = self.pgdrive_engine.global_config["traffic_density"]
-        self._clear_traffic()
+        self.clear_objects()
 
         self.is_target_vehicle_dict.clear()
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
@@ -220,7 +216,8 @@ class TrafficManager(BaseManager):
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def spawn_one_vehicle(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool):
+    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool,
+                     *args, **kwargs):
         """
         Create one vehicle on lane and a specific place
         :param vehicle_type: PGTrafficVehicle type (s,m,l,xl)
@@ -230,9 +227,9 @@ class TrafficManager(BaseManager):
         :return: PGTrafficVehicle
         """
         random_v = vehicle_type.create_random_traffic_vehicle(
-            len(self._spawned_vehicles), self, lane, long, seed=self.random_seed, enable_respawn=enable_respawn
+            len(self._spawned_objects), self, lane, long, seed=self.random_seed, enable_respawn=enable_respawn
         )
-        self._spawned_vehicles.append(random_v)
+        self._spawned_objects[random_v.id]=random_v
         self._traffic_vehicles.append(random_v)
         return random_v
 
@@ -255,7 +252,7 @@ class TrafficManager(BaseManager):
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = self.random_vehicle_type()
-            self.spawn_one_vehicle(vehicle_type, lane, long, is_respawn_lane)
+            self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
         return _traffic_vehicles
 
     def _create_respawn_vehicles(self, map: Map, traffic_density: float):
@@ -383,7 +380,7 @@ class TrafficManager(BaseManager):
         Destory func, release resource
         :return: None
         """
-        self._clear_traffic()
+        self.clear_objects()
         # current map
         self.current_map = None
 
@@ -410,7 +407,7 @@ class TrafficManager(BaseManager):
     @property
     def vehicles(self):
         return list(self.pgdrive_engine.agent_manager.active_objects.values()) + \
-               [v.vehicle_node.kinematic_model for v in self._spawned_vehicles]
+               [v.vehicle_node.kinematic_model for v in self._spawned_objects.values()]
 
     @property
     def traffic_vehicles(self):

@@ -126,9 +126,8 @@ class TrafficSignManager(BaseManager):
 
     def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):
         engine = get_pgdrive_engine()
-        breakdown_vehicle = engine.traffic_manager.spawn_one_vehicle(
-            engine.traffic_manager.random_vehicle_type(), lane, longitude, False
-        )
+        breakdown_vehicle = engine.traffic_manager.spawn_object(engine.traffic_manager.random_vehicle_type(), lane,
+                                                                longitude, False)
         breakdown_vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         breakdown_vehicle.set_break_down()
 
