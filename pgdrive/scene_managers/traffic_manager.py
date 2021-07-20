@@ -52,7 +52,7 @@ class TrafficManager(BaseManager):
         """
         map = self.current_map
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-
+    
         # update vehicle list
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
         for v in self.vehicles:
@@ -412,3 +412,7 @@ class TrafficManager(BaseManager):
     @property
     def traffic_vehicles(self):
         return list(self._traffic_vehicles)
+    
+    def seed(self, random_seed):
+        if not self.random_traffic:
+            super(TrafficManager, self).seed(random_seed)

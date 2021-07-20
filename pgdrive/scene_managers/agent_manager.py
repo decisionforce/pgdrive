@@ -333,7 +333,8 @@ class AgentManager(BaseManager):
 
     def destroy(self):
         # when new agent joins in the game, we only change this two maps.
-        super(AgentManager, self).destroy()
+        if self.INITIALIZED:
+            super(AgentManager, self).destroy()
         self._agent_to_object = {}
         self._object_to_agent = {}
 

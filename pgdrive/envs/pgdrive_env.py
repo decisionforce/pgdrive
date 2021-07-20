@@ -17,6 +17,7 @@ from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
 from pgdrive.scene_managers.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, get_np_random, concat_step_infos
 from pgdrive.engine.core.chase_camera import ChaseCamera
+from pgdrive.utils.engine_utils import set_global_random_seed
 from pgdrive.engine.core.manual_controller import KeyboardController, JoystickController
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
@@ -424,9 +425,9 @@ class PGDriveEnv(BasePGDriveEnv):
         self.pgdrive_engine.clear_world()
 
         for seed in range(self.start_seed, self.start_seed + self.env_num):
-            print(seed)
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
+            set_global_random_seed(seed)
             new_map = self.pgdrive_engine.map_manager.spawn_object(PGMap, map_config=map_config)
             new_map.unload_from_world()
             logging.info("Finish generating map with seed: {}".format(seed))

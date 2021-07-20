@@ -32,7 +32,7 @@ class TrafficSign(StaticObject):
     HEIGHT = 1.2
     MASS = 1
 
-    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float):
+    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, random_seed):
         """
        :param lane: the lane to spawn object
         :param lane_index: the lane_index of the spawn point
@@ -42,7 +42,7 @@ class TrafficSign(StaticObject):
         position = lane.position(longitude, lateral)
         heading = lane.heading_at(longitude)
         assert self.NAME is not None, "Assign a name for this class for finding it easily"
-        super(TrafficSign, self).__init__(lane, lane_index, position, heading)
+        super(TrafficSign, self).__init__(lane, lane_index, position, heading, random_seed)
         self.position = position
         self.speed = 0
         self.heading = heading / np.pi * 180
@@ -64,8 +64,9 @@ class TrafficCone(TrafficSign):
 
     NAME = BodyName.Traffic_cone
 
-    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False):
-        super(TrafficCone, self).__init__(lane, lane_index, longitude, lateral)
+    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False,
+                 random_seed=None):
+        super(TrafficCone, self).__init__(lane, lane_index, longitude, lateral, random_seed)
         self.body_node = TrafficSignNode(self.NAME)
         self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
         self.node_path: NodePath = NodePath(self.body_node)
@@ -86,8 +87,9 @@ class TrafficTriangle(TrafficSign):
     NAME = BodyName.Traffic_triangle
     RADIUS = 0.5
 
-    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False):
-        super(TrafficTriangle, self).__init__(lane, lane_index, longitude, lateral)
+    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False,
+                 random_seed=None):
+        super(TrafficTriangle, self).__init__(lane, lane_index, longitude, lateral, random_seed)
         self.body_node = TrafficSignNode(self.NAME)
         self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
         self.node_path: NodePath = NodePath(self.body_node)

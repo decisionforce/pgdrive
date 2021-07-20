@@ -23,7 +23,7 @@ def test_gen_map_read():
         env.lazy_init()
         env.pgdrive_engine.clear_world()
         print("Start loading.")
-        env.load_all_maps(restored_data)
+        env.pgdrive_engine.map_manager.load_all_maps(restored_data)
 
         while any([v is None for v in env.maps.values()]):
             env.reset()

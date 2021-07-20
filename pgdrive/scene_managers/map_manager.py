@@ -63,7 +63,7 @@ class MapManager(BaseManager):
         assert set(self.pgdrive_engine.global_config["map_config"].keys()) == set(maps_collection_config.keys())
         for k in self.pgdrive_engine.global_config["map_config"]:
             assert maps_collection_config[k] == self.pgdrive_engine.global_config["map_config"][k]
-
+        self.restored_pg_map_configs={}
         # for seed, map_dict in data["map_data"].items():
         for seed, config in data["map_data"].items():
             map_config = {}

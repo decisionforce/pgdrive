@@ -736,10 +736,10 @@ class BaseVehicle(Object):
             self.lidar = None
         if len(self.image_sensors) != 0:
             for sensor in self.image_sensors.values():
-                sensor.destroy(self.pgdrive_engine)
+                sensor.destroy()
         self.image_sensors = None
         if self.vehicle_panel is not None:
-            self.vehicle_panel.destroy(self.pgdrive_engine)
+            self.vehicle_panel.destroy()
         self.pgdrive_engine = None
 
     def set_position(self, position, height=0.4):
