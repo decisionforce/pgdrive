@@ -137,7 +137,6 @@ class Block(Object, BlockDefault):
         Randomly Construct a block, if overlap return False
         """
         self.sample_parameters()
-        print(self._block_name)
         self.node_path = NodePath(self._block_name)
         self._block_objects = []
         if extra_config:

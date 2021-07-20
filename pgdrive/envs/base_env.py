@@ -20,8 +20,7 @@ from pgdrive.scene_managers.map_manager import MapManager
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.utils import get_np_random
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
-    pgdrive_engine_initialized, set_global_config, get_global_config
-from pgdrive.utils.random import set_global_random_seed
+    pgdrive_engine_initialized, set_global_config, get_global_config, set_global_random_seed
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -325,8 +324,6 @@ class BasePGDriveEnv(gym.Env):
 
             del self.controller
             self.controller = None
-
-        self.agent_manager.destroy()
         # self.agent_manager=None don't set to None ! since sometimes we need close() then reset()
 
     def force_close(self):

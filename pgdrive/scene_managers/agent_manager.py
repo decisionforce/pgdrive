@@ -18,6 +18,9 @@ class AgentManager(BaseManager):
     HELL_POSITION = (-999, -999, -999)  # a place to store pending vehicles
 
     def __init__(self, init_observations, never_allow_respawn, debug=False, delay_done=0, infinite_agents=False):
+        """
+        The real init is happened in self.init(), in which super().__init__() will be called
+        """
         # when new agent joins in the game, we only change this two maps.
         self._agent_to_object = {}
         self._object_to_agent = {}
@@ -57,13 +60,13 @@ class AgentManager(BaseManager):
         self._agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
         self._object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
 
-    def _get_vehicles(self, config_dict:dict):
+    def _get_vehicles(self, config_dict: dict):
         from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
         ret = {
-            key: BaseVehicle(v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False),
-                             random_seed=self.randint())
-            for key, v_config in config_dict.items()
-        }
+            key: super(AgentManager, self).spawn_object(BaseVehicle, v_config,
+                                                        am_i_the_special_one=v_config.get("am_i_the_special_one",
+                                                                                          False))
+            for key, v_config in config_dict.items()}
         return ret
 
     def init_space(self, init_observation_space, init_action_space):
@@ -330,6 +333,7 @@ class AgentManager(BaseManager):
 
     def destroy(self):
         # when new agent joins in the game, we only change this two maps.
+        super(AgentManager, self).destroy()
         self._agent_to_object = {}
         self._object_to_agent = {}
 

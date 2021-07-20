@@ -32,7 +32,7 @@ def test_base_vehicle():
         # v_config = BaseVehicle.get_vehicle_config(dict())
         v_config = PGConfig(BASE_DEFAULT_CONFIG["vehicle_config"]).update(PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"])
         v_config.update({"use_render": False, "use_image": False})
-        v = BaseVehicle(vehicle_config=v_config)
+        v = BaseVehicle(vehicle_config=v_config, random_seed=0)
         v.add_lidar()
         v.add_routing_localization(True)
         v.add_routing_localization(False)

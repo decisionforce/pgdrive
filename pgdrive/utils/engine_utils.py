@@ -1,5 +1,9 @@
+from typing import Optional
+
 from pgdrive.engine.pgdrive_engine import PGDriveEngine
 import copy
+
+from pgdrive.utils import get_np_random
 
 
 def initialize_pgdrive_engine(agent_manager):
@@ -34,3 +38,13 @@ def set_global_config(config):
 
 def get_global_config():
     return copy.copy(PGDriveEngine.global_config)
+
+
+def set_global_random_seed(random_seed: Optional[int]):
+    """
+    Update the random seed and random engine
+    All subclasses of RandomEngine will hold the same random engine, after calling this function
+    :param random_seed: int, random seed
+    """
+    engine = get_pgdrive_engine()
+    engine.seed(random_seed)

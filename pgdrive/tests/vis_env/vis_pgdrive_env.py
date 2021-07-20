@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         """
         super(TestEnv, self).__init__(
             {
-                "environment_num": 1,
+                "environment_num": 2,
                 "traffic_density": 0.2,
                 "traffic_mode": "respawn",
                 "start_seed": 4,
@@ -24,7 +24,7 @@ class TestEnv(PGDriveEnv):
                 "cull_scene": True,
                 # "controller":"joystick",
                 "manual_control": True,
-                "use_render": False,
+                "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "debug": False,

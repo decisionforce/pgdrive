@@ -1,17 +1,17 @@
 from typing import Callable, Optional
-from pgdrive.utils.random import GlobalRandomEngine
+from pgdrive.utils.random import RandomEngine
 
 
-class BaseManager(GlobalRandomEngine):
+class BaseManager(RandomEngine):
     """
     Managers should be created and registered after launching PGDriveEngine
     """
 
     def __init__(self):
         from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
-        super(BaseManager, self).__init__()
         assert pgdrive_engine_initialized(), "You should not create manager before the initialization of PGDriveEngine"
         self.pgdrive_engine = get_pgdrive_engine()
+        super(BaseManager, self).__init__(self.pgdrive_engine.global_random_seed)
         self._spawned_objects = dict()
 
     def spawn_object(self, object_class, *args, **kwargs):
@@ -53,21 +53,23 @@ class BaseManager(GlobalRandomEngine):
         for id in exclude:
             self._spawned_objects.pop(id)
 
-    def before_step(self):
+    def before_step(self,*args,**kwargs)->dict:
         """
         Usually used to set actions for all elements with their policies
         """
         pass
 
-    def step(self):
+    def step(self,*args, **kwargs):
         """
         TODO Remove in the future?
         """
+        pass
 
-    def after_step(self):
+    def after_step(self, *args, **kwargs):
         """
         Update state for this manager after system advancing dt
         """
+        pass
 
     def before_reset(self):
         """

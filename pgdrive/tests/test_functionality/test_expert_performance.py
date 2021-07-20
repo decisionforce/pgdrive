@@ -42,7 +42,7 @@ def _evaluate(env_config, num_episode, has_traffic=True):
     return ep_reward_mean, success_rate
 
 
-def test_expert_with_traffic(use_render=False):
+def test_expert_with_traffic(use_render=True):
     ep_reward, success_rate = _evaluate(
         dict(
             environment_num=1,
@@ -72,7 +72,7 @@ def test_expert_without_traffic():
         num_episode=3,
         has_traffic=False
     )
-    assert 420 <= ep_reward <= 440, ep_reward
+    assert 315 <= ep_reward <= 330, ep_reward
     assert success_rate == 1.0, success_rate
 
 

@@ -27,7 +27,7 @@ class PGDriveEngine(PGWorld):
     ):
         super(PGDriveEngine, self).__init__(self.global_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
-        self._managers = dict()
+        self._managers = dict(agent_manager=agent_manager)
 
         self.agent_manager = agent_manager  # Only a reference
 
@@ -105,7 +105,6 @@ class PGDriveEngine(PGWorld):
     def step(self, step_num: int = 1) -> None:
         """
         Step the dynamics of each entity on the road.
-        :param pg_world: World
         :param step_num: Decision of all entities will repeat *step_num* times
         """
         pg_world = self
@@ -141,6 +140,7 @@ class PGDriveEngine(PGWorld):
             for manager in self._managers.values():
                 manager.after_step()
 
+        # TODO make detector mask a manager and do after_step!
         step_infos = self.update_state_for_all_target_vehicles()
 
         # cull distant blocks
@@ -231,3 +231,8 @@ class PGDriveEngine(PGWorld):
         assert not hasattr(self, manger_name), "Manager name can not be same as the attribute in PGDriveEngine"
         self._managers[manger_name] = manager
         setattr(self, manger_name, manager)
+
+    def seed(self, random_seed):
+        self.global_random_seed = random_seed
+        for mgr in self._managers.values():
+            mgr.seed(random_seed)

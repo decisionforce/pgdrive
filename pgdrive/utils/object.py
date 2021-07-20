@@ -3,7 +3,7 @@ import logging
 from typing import Dict, Union
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
-from pgdrive.utils import PGConfig, random_string, get_np_random
+from pgdrive.utils import PGConfig, random_string, get_np_random, RandomEngine
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
@@ -39,7 +39,7 @@ class PhysicsNodeList(list):
         self.attached = False
 
 
-class Object:
+class Object(RandomEngine):
     """
     Properties and parameters in PARAMETER_SPACE of the object are fixed after calling init().
 
@@ -56,7 +56,7 @@ class Object:
         """
         assert random_seed is not None, "Assign a random seed for {} class in super().__init__()".format(
             self.class_name)
-        super(Object, self).__init__()
+        super(Object, self).__init__(random_seed)
 
         # ID for object
         self.name = random_string() if name is None else name
@@ -69,8 +69,6 @@ class Object:
 
         # initialize and specify the value in config
         self._config = PGConfig({k: None for k in self.PARAMETER_SPACE.parameters})
-        self.random_seed = random_seed
-        self.np_random = get_np_random(random_seed)
         self.sample_parameters()
 
         # each element has its node_path to render, physics node are child nodes of it
@@ -114,7 +112,6 @@ class Object:
         random_seed = self.np_random.randint(low=0, high=int(1e6))
         self.PARAMETER_SPACE.seed(random_seed)
         ret = self.PARAMETER_SPACE.sample()
-        print(ret)
         self.set_config(ret)
 
     def get_state(self) -> Dict:
