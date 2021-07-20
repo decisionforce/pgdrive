@@ -63,11 +63,13 @@ class Map(Object):
     GENERATE_CONFIG = "config"
     GENERATE_TYPE = "type"
 
-    def __init__(self, map_config: dict = None):
+    def __init__(self, map_config: dict = None, random_seed=None):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        super(Map, self).__init__()
+        assert random_seed == map_config[self.SEED], "Global seed {} should equal to seed in map config {}".format(
+            random_seed, map_config[self.SEED])
+        super(Map, self).__init__(random_seed=map_config[self.SEED])
         self.set_config(map_config)
         self.film_size = (self._config["draw_map_resolution"], self._config["draw_map_resolution"])
         self.road_network = RoadNetwork()

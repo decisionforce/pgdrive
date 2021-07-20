@@ -65,9 +65,9 @@ class BaseVehicle(Object):
         self,
         vehicle_config: Union[dict, PGConfig] = None,
         physics_config: dict = None,
-        random_seed: int = 0,
         name: str = None,
-        am_i_the_special_one=False
+        am_i_the_special_one=False,
+        random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -79,7 +79,7 @@ class BaseVehicle(Object):
         self.vehicle_config = PGConfig(vehicle_config)
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.vehicle_config["extra_action_dim"])
 
-        super(BaseVehicle, self).__init__(name)
+        super(BaseVehicle, self).__init__(name,random_seed)
         if physics_config is not None:
             self.set_config(physics_config)
         self.increment_steering = self.vehicle_config["increment_steering"]

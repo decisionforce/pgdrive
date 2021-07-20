@@ -34,7 +34,8 @@ class PGMap(Map):
             parent_node_path,
             pg_physics_world,
             self._config["block_type_version"],
-            exit_length=self._config["exit_length"]
+            exit_length=self._config["exit_length"],
+            random_seed=self.random_seed,
         )
         big_map.generate(self._config[self.GENERATE_TYPE], self._config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks

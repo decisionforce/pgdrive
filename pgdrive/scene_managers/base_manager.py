@@ -1,8 +1,8 @@
 from typing import Callable, Optional
-from pgdrive.utils.random import RandomEngine
+from pgdrive.utils.random import GlobalRandomEngine
 
 
-class BaseManager(RandomEngine):
+class BaseManager(GlobalRandomEngine):
     """
     Managers should be created and registered after launching PGDriveEngine
     """
@@ -21,6 +21,8 @@ class BaseManager(RandomEngine):
         :param kwargs: class init parameters
         :return: object spawned
         """
+        if "random_seed" not in kwargs:
+            kwargs["random_seed"] = self.randint()
         obj = object_class(*args, **kwargs)
         self._spawned_objects[obj.id] = obj
         return obj

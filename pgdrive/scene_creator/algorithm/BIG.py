@@ -1,7 +1,7 @@
 import logging
 from typing import Union
 
-from pgdrive.utils.random import RandomEngine
+from pgdrive.utils import get_np_random
 from panda3d.core import NodePath
 from pgdrive.scene_creator.blocks.block import Block
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
@@ -23,21 +23,24 @@ class BigGenerateMethod:
     SINGLE_BLOCK = "single_block"
 
 
-class BIG(RandomEngine):
+class BIG:
     MAX_TRIAL = 2
 
     def __init__(
-        self,
-        lane_num: int,
-        lane_width: float,
-        global_network: RoadNetwork,
-        render_node_path: NodePath,
-        pg_physics_world: PGPhysicsWorld,
-        block_type_version: str,
-        exit_length=50
+            self,
+            lane_num: int,
+            lane_width: float,
+            global_network: RoadNetwork,
+            render_node_path: NodePath,
+            pg_physics_world: PGPhysicsWorld,
+            block_type_version: str,
+            exit_length=50,
+            random_seed=None
     ):
         super(BIG, self).__init__()
         self._block_sequence = None
+        self.random_seed = random_seed
+        self.np_random = get_np_random(random_seed)
         # Don't change this right now, since we need to make maps identical to old one
         self._lane_num = lane_num
         self._lane_width = lane_width
@@ -102,7 +105,8 @@ class BIG(RandomEngine):
             block_type = PGBlock.get_block(type_id, self.block_type_version)
 
         socket = self.np_random.choice(self.blocks[-1].get_socket_indices())
-        block = block_type(len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network)
+        block = block_type(len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network,
+                           self.np_random.randint(0, 10000))
         return block
 
     def destruct(self, block):

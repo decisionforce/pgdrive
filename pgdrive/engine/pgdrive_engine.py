@@ -1,6 +1,6 @@
 import logging
 from pgdrive.scene_managers.base_manager import BaseManager
-from typing import Dict, AnyStr, Union
+from typing import Dict, AnyStr
 from pgdrive.engine.pgdrive_scene_cull import PGDriveSceneCull
 import numpy as np
 from pgdrive.engine.core.pg_world import PGWorld
@@ -16,6 +16,7 @@ class PGDriveEngine(PGWorld):
     """
     singleton = None
     global_config = None
+    global_random_seed = None
 
     IN_REPLAY = False
     STOP_REPLAY = False

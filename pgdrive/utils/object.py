@@ -1,10 +1,9 @@
 import logging
 
 from typing import Dict, Union
-from pgdrive.utils.random import RandomEngine
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
-from pgdrive.utils import PGConfig, random_string
+from pgdrive.utils import PGConfig, random_string, get_np_random
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
@@ -40,7 +39,7 @@ class PhysicsNodeList(list):
         self.attached = False
 
 
-class Object(RandomEngine):
+class Object:
     """
     Properties and parameters in PARAMETER_SPACE of the object are fixed after calling init().
 
@@ -50,11 +49,13 @@ class Object(RandomEngine):
 
     PARAMETER_SPACE = PGSpace({})
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, random_seed=None):
         """
         Config is a static conception, which specified the parameters of one element.
         There parameters doesn't change, such as length of straight road, max speed of one vehicle, etc.
         """
+        assert random_seed is not None, "Assign a random seed for {} class in super().__init__()".format(
+            self.class_name)
         super(Object, self).__init__()
 
         # ID for object
@@ -68,6 +69,8 @@ class Object(RandomEngine):
 
         # initialize and specify the value in config
         self._config = PGConfig({k: None for k in self.PARAMETER_SPACE.parameters})
+        self.random_seed = random_seed
+        self.np_random = get_np_random(random_seed)
         self.sample_parameters()
 
         # each element has its node_path to render, physics node are child nodes of it
@@ -111,6 +114,7 @@ class Object(RandomEngine):
         random_seed = self.np_random.randint(low=0, high=int(1e6))
         self.PARAMETER_SPACE.seed(random_seed)
         ret = self.PARAMETER_SPACE.sample()
+        print(ret)
         self.set_config(ret)
 
     def get_state(self) -> Dict:

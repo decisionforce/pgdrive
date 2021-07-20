@@ -16,7 +16,7 @@ def vis_big(debug: bool = False, block_type_version="v1", random_seed=None):
         test.cam.setPos(300, 400, 2000)
 
     initialize_asset_loader(test)
-    set_global_random_seed(0)
+    set_global_random_seed(4)
     global_network = RoadNetwork()
 
     big = BIG(2, 3.5, global_network, test.render, test.world, block_type_version=block_type_version)

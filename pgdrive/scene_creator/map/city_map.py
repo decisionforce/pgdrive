@@ -27,11 +27,12 @@ class CityBIG(BIG):
     MAX_TRIAL = 2
 
     def __init__(
-        self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-        pg_physics_world: PGPhysicsWorld, block_type_version: str
+            self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
+            pg_physics_world: PGPhysicsWorld, block_type_version: str, random_seed=None
     ):
         super(CityBIG, self
-              ).__init__(lane_num, lane_width, global_network, render_node_path, pg_physics_world, block_type_version)
+              ).__init__(lane_num, lane_width, global_network, render_node_path, pg_physics_world, block_type_version,
+                         random_seed=random_seed)
 
     def generate(self, generate_method: BigGenerateMethod, parameter: Union[str, int]):
         """

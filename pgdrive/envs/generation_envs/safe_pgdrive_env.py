@@ -129,7 +129,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
         total_cost += info["cost"]
-        env.render(text={"cost": total_cost, "seed": env.current_map.global_random_seed, "reward": r})
+        env.render(text={"cost": total_cost, "seed": env.current_map.random_seed, "reward": r})
         print(len(env.pgdrive_engine.traffic_manager.traffic_vehicles))
         if d:
             total_cost = 0

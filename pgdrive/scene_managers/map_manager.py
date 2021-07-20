@@ -21,9 +21,9 @@ class MapManager(BaseManager):
         self.restored_pg_map_configs = None
         self.pg_maps = {_seed: None for _seed in range(start_seed, start_seed + env_num)}
 
-    def spawn_object(self, object_class, **kwargs):
-        map = super(MapManager, self).spawn_object(object_class,**kwargs)
-        self.pg_maps[map.global_random_seed] = map
+    def spawn_object(self, object_class, *args,**kwargs):
+        map = super(MapManager, self).spawn_object(object_class, random_seed=self.random_seed,**kwargs)
+        self.pg_maps[map.random_seed] = map
         return map
 
     def load_all_maps_from_json(self, path):

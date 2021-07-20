@@ -1,11 +1,11 @@
 import copy
 import logging
 from typing import Dict
-
+from pgdrive.scene_managers.base_manager import BaseManager
 from gym.spaces import Box, Dict
 
 
-class AgentManager:
+class AgentManager(BaseManager):
     """
     This class maintain the relationship between active agents in the environment with the underlying instance
     of objects.
@@ -57,10 +57,11 @@ class AgentManager:
         self._agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
         self._object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
 
-    def _get_vehicles(self, config_dict):
+    def _get_vehicles(self, config_dict:dict):
         from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
         ret = {
-            key: BaseVehicle(v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False))
+            key: BaseVehicle(v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False),
+                             random_seed=self.randint())
             for key, v_config in config_dict.items()
         }
         return ret
@@ -77,10 +78,11 @@ class AgentManager:
         self._init_action_spaces = init_action_space
         self.action_spaces = copy.copy(init_action_space)
 
-    def init(self, config_dict: Dict):
+    def init(self, config_dict: dict):
         """
         Agent manager is really initialized after the BaseVehicle Instances are created
         """
+        super(AgentManager, self).__init__()
         self._init_config_dict = config_dict
         init_vehicles = self._get_vehicles(config_dict=config_dict)
         vehicles_created = set(init_vehicles.keys())
@@ -204,7 +206,7 @@ class AgentManager:
         next_config = self._init_config_dict["agent{}".format(
             ((-self.next_newly_added_agent_count - 1) % len(self._init_object_to_agent))
         )]
-        new_v: BaseVehicle = self._get_vehicles({agent_name: next_config})[agent_name]
+        new_v = self._get_vehicles({agent_name: next_config})[agent_name]
         new_v_name = new_v.name
         new_v.remove_display_region()
         self._newly_added_object_to_agent[new_v_name] = agent_name

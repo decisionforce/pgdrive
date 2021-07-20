@@ -227,7 +227,7 @@ class TrafficManager(BaseManager):
         :return: PGTrafficVehicle
         """
         random_v = vehicle_type.create_random_traffic_vehicle(
-            len(self._spawned_objects), self, lane, long, seed=self.random_seed, enable_respawn=enable_respawn
+            len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
         )
         self._spawned_objects[random_v.id]=random_v
         self._traffic_vehicles.append(random_v)

@@ -13,7 +13,7 @@ class SkyBox(Object):
     ROTATION_MAX = 5000
 
     def __init__(self, pure_background: bool = False):
-        super(SkyBox, self).__init__()
+        super(SkyBox, self).__init__(random_seed=0)
         self._accumulate = 0
         self.f = 1
         if not self.render or pure_background:

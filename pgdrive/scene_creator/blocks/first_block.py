@@ -33,7 +33,7 @@ class FirstBlock(Block):
         length: float = 50
     ):
         place_holder = BlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))
-        super(FirstBlock, self).__init__(0, place_holder, global_network)
+        super(FirstBlock, self).__init__(0, place_holder, global_network, random_seed=0)
         assert length > self.ENTRANCE_LENGTH
         self._block_objects = []
         basic_lane = StraightLane(

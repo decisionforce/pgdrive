@@ -9,7 +9,7 @@ class Light(Object):
     It is dynamic element since it will follow the camera
     """
     def __init__(self, config):
-        super(Light, self).__init__()
+        super(Light, self).__init__(random_seed=0)
         self.global_light = config["global_light"]
         self.node_path = NodePath("Light")
         self.direction_np = NodePath(DirectionalLight("direction light"))

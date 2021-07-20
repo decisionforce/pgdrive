@@ -73,9 +73,9 @@ class Block(Object, BlockDefault):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-    def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork):
+    def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         self._block_name = str(block_index) + self.ID
-        super(Block, self).__init__(self._block_name)
+        super(Block, self).__init__(self._block_name, random_seed)
         # block information
         assert self.ID is not None, "Each Block must has its unique ID When define Block"
         assert len(self.ID) == 1, "Block ID must be a character "
@@ -137,6 +137,7 @@ class Block(Object, BlockDefault):
         Randomly Construct a block, if overlap return False
         """
         self.sample_parameters()
+        print(self._block_name)
         self.node_path = NodePath(self._block_name)
         self._block_objects = []
         if extra_config:

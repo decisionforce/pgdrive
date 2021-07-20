@@ -24,7 +24,7 @@ class TestEnv(PGDriveEnv):
                 "cull_scene": True,
                 # "controller":"joystick",
                 "manual_control": True,
-                "use_render": True,
+                "use_render": False,
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "debug": False,
@@ -35,7 +35,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map":"CCC",
+                "map":"CCCCCC",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
@@ -59,16 +59,16 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption
-        env.render(
-            text={
-                "reward": r,
-                "lane_index": env.vehicle.lane_index,
-                "dist_to_left": env.vehicle.dist_to_left_side,
-                "dist_to_right": env.vehicle.dist_to_right_side,
-                "out_of_route": env.vehicle.out_of_route,
-                "current_seed":env.current_seed
-            }
-        )
+        # # env.render(
+        # #     text={
+        # #         "reward": r,
+        # #         "lane_index": env.vehicle.lane_index,
+        # #         "dist_to_left": env.vehicle.dist_to_left_side,
+        # #         "dist_to_right": env.vehicle.dist_to_right_side,
+        # #         "out_of_route": env.vehicle.out_of_route,
+        # #         "current_seed":env.current_seed
+        # #     }
+        # )
         # if d:
         #     print("Reset")
         #     env.reset()
