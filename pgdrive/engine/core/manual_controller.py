@@ -1,5 +1,8 @@
 from direct.controls.InputState import InputState
 
+import evdev
+from evdev import ecodes, InputDevice
+
 from pgdrive.utils import import_pygame
 from pgdrive.engine.core.pg_world import PGWorld
 
@@ -60,13 +63,20 @@ class JoystickController(Controller):
         assert pygame.joystick.get_count() > 0, "Please connect joystick or use keyboard input"
         print("Successfully Connect your Joystick!")
 
+        ffb_device = evdev.list_devices()[0]
+        self.ffb_dev = InputDevice(ffb_device)
+
         self.joystick = pygame.joystick.Joystick(0)
         self.joystick.init()
 
-    def process_input(self):
+    def process_input(self, vehicle):
         pygame.event.pump()
         steering = -self.joystick.get_axis(0)
-        if abs(steering) < 0.1:
-            steering = 0
-        throttle_brake = -self.joystick.get_axis(4) * abs(self.joystick.get_axis(4))
-        return [steering, throttle_brake]
+        throttle_brake = -self.joystick.get_axis(2)+ self.joystick.get_axis(3)
+        offset=30
+        val=int(65535*(vehicle.speed + offset)/(120+offset)) if vehicle is not None else 0
+        self.ffb_dev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, val)
+
+        #throttle_brake=0.2
+
+        return [steering, throttle_brake/2]
