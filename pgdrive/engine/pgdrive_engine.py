@@ -199,9 +199,11 @@ class PGDriveEngine(PGWorld):
 
         self.current_map = None
 
-        for name, manager in self._managers.items():
-            setattr(self, name, None)
-            manager.destroy()
+        if len(self._managers) > 0:
+            for name, manager in self._managers.items():
+                setattr(self, name, None)
+                if manager is not None:
+                    manager.destroy()
 
         self.clear_world()
         self.close_world()

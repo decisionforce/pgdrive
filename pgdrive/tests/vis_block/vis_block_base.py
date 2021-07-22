@@ -91,10 +91,10 @@ class TestBlock(ShowBase.ShowBase):
         self.accept("a", self.re_add)
 
     def clear(self):
-        self.map.unload_from_world(self)
+        self.map.unload_map(self)
 
     def re_add(self):
-        self.map.load_to_world(self)
+        self.map.load_map(self)
 
     def add_line(self, start_p: Union[Vec3, Tuple], end_p: Union[Vec3, Tuple], color, thickness: float):
         line_seg = LineSegs("interface")

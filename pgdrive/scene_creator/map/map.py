@@ -84,6 +84,7 @@ class Map(Object):
         #  a trick to optimize performance
         self.road_network.after_init()
         self.spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3)]
+        self.unload_from_world()
 
     def _generate(self):
         """Key function! Please overwrite it!"""

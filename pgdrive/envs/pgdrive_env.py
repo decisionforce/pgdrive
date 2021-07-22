@@ -148,7 +148,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 "debug": config["debug"],
                 "decision_repeat": config["decision_repeat"],
                 "fast_launch_window": config["fast"],
-                "cull_scene":config["cull_scene"]
+                "cull_scene": config["cull_scene"]
             }
         )
         config["vehicle_config"].update(
@@ -400,7 +400,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         # remove map from world before adding
         if self.current_map is not None:
-            self.current_map.unload_from_world()
+            map_manager.unload_map(self.current_map)
 
         if map_manager.pg_maps[self.current_seed] is None:
             if self.config["load_map_from_json"]:
@@ -409,10 +409,10 @@ class PGDriveEnv(BasePGDriveEnv):
             else:
                 map_config = self.config["map_config"]
                 map_config.update({"seed": self.current_seed})
-            map_manager.current_map = map_manager.spawn_object(PGMap, map_config=map_config)
+                map = map_manager.spawn_object(PGMap, map_config=map_config)
         else:
-            map_manager.current_map = map_manager.pg_maps[self.current_seed]
-        self.current_map.load_to_world()
+            map = map_manager.pg_maps[self.current_seed]
+        map_manager.load_map(map)
 
     def dump_all_maps(self):
         assert not pgdrive_engine_initialized(), \
@@ -429,7 +429,7 @@ class PGDriveEnv(BasePGDriveEnv):
             map_config.update({"seed": seed})
             set_global_random_seed(seed)
             new_map = self.pgdrive_engine.map_manager.spawn_object(PGMap, map_config=map_config)
-            new_map.unload_from_world()
+            new_map.unload_map()
             logging.info("Finish generating map with seed: {}".format(seed))
 
         map_data = dict()

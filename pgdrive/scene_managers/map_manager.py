@@ -21,8 +21,11 @@ class MapManager(BaseManager):
         self.restored_pg_map_configs = None
         self.pg_maps = {_seed: None for _seed in range(start_seed, start_seed + env_num)}
 
-    def spawn_object(self, object_class, *args,**kwargs):
-        map = super(MapManager, self).spawn_object(object_class, random_seed=self.random_seed,**kwargs)
+    def spawn_object(self, object_class, *args, **kwargs):
+        if "random_seed" in kwargs:
+            assert kwargs["random_seed"] == self.random_seed, "The random seed assigned is not same as map.seed"
+            kwargs.pop("random_seed")
+        map = super(MapManager, self).spawn_object(object_class, random_seed=self.random_seed, *args, **kwargs)
         self.pg_maps[map.random_seed] = map
         return map
 
@@ -63,13 +66,21 @@ class MapManager(BaseManager):
         assert set(self.pgdrive_engine.global_config["map_config"].keys()) == set(maps_collection_config.keys())
         for k in self.pgdrive_engine.global_config["map_config"]:
             assert maps_collection_config[k] == self.pgdrive_engine.global_config["map_config"][k]
-        self.restored_pg_map_configs={}
+        self.restored_pg_map_configs = {}
         # for seed, map_dict in data["map_data"].items():
         for seed, config in data["map_data"].items():
             map_config = {}
             map_config[Map.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
             map_config[Map.GENERATE_CONFIG] = config
             self.restored_pg_map_configs[seed] = map_config
+
+    def load_map(self, map):
+        map.load_to_world()
+        self.current_map = map
+
+    def unload_map(self, map):
+        map.unload_from_world()
+        self.current_map = None
 
     def destroy(self):
         self.pg_maps = None

@@ -60,13 +60,12 @@ class MultiAgentIntersectionEnv(MultiAgentPGDrive):
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
         map_config = self.config["map_config"]
-        map_config.update({"seed": self.current_seed})
 
         if self.current_map is None:
-            self.current_seed = 0
-            new_map = MAIntersectionMap(map_config)
-            self.maps[self.current_seed] = new_map
-            self.current_map = self.maps[self.current_seed]
+            self.seed(map_config["seed"])
+            new_map = self.pgdrive_engine.map_manager.spawn_object(MAIntersectionMap, map_config=map_config,
+                                                                   random_seed=self.current_seed)
+            self.pgdrive_engine.map_manager.load_map(new_map)
             self.current_map.spawn_roads = self.spawn_roads
 
     def _update_destination_for(self, vehicle_id):

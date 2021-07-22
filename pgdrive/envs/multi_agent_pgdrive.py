@@ -59,8 +59,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     # A list of road instances denoting which roads afford spawn points. If not set, then search for all
     # possible roads and spawn new agents in them if possible.
     spawn_roads = [
-        # Road(FirstBlock.NODE_1, FirstBlock.NODE_2),
-        Road(FirstBlock.NODE_2, FirstBlock.NODE_3)
+        Road(FirstBlock.NODE_2, FirstBlock.NODE_3),
     ]
 
     @staticmethod

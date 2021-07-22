@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from pgdrive.engine.pgdrive_engine import PGDriveEngine
@@ -47,4 +48,7 @@ def set_global_random_seed(random_seed: Optional[int]):
     :param random_seed: int, random seed
     """
     engine = get_pgdrive_engine()
-    engine.seed(random_seed)
+    if engine is not None:
+        engine.seed(random_seed)
+    else:
+        logging.warning("PGDriveEngine is not launched, fail to sync seed to engine!")
