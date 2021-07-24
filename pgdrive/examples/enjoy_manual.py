@@ -9,7 +9,6 @@ import random
 import sys
 sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 
-
 from pgdrive import PGDriveEnvV2
 
 if __name__ == "__main__":

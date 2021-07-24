@@ -52,7 +52,7 @@ class TrafficManager(BaseManager):
         """
         map = self.current_map
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
-    
+
         # update vehicle list
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
         for v in self.vehicles:
@@ -99,7 +99,7 @@ class TrafficManager(BaseManager):
         :param dt: Decision keeping time
         :return: None
         """
-        dt=self.pgdrive_engine.world_config["physics_world_step_size"]
+        dt = self.pgdrive_engine.world_config["physics_world_step_size"]
         dt /= 3.6  # 1m/s = 3.6km/h
         for v in self._traffic_vehicles:
             v.step(dt)
@@ -216,8 +216,7 @@ class TrafficManager(BaseManager):
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool,
-                     *args, **kwargs):
+    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool, *args, **kwargs):
         """
         Create one vehicle on lane and a specific place
         :param vehicle_type: PGTrafficVehicle type (s,m,l,xl)
@@ -229,7 +228,7 @@ class TrafficManager(BaseManager):
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
         )
-        self._spawned_objects[random_v.id]=random_v
+        self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
         return random_v
 
@@ -329,7 +328,7 @@ class TrafficManager(BaseManager):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -412,7 +411,7 @@ class TrafficManager(BaseManager):
     @property
     def traffic_vehicles(self):
         return list(self._traffic_vehicles)
-    
+
     def seed(self, random_seed):
         if not self.random_traffic:
             super(TrafficManager, self).seed(random_seed)

@@ -6,7 +6,6 @@ class BaseManager(RandomEngine):
     """
     Managers should be created and registered after launching PGDriveEngine
     """
-
     def __init__(self):
         from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
         assert pgdrive_engine_initialized(), "You should not create manager before the initialization of PGDriveEngine"
@@ -53,13 +52,13 @@ class BaseManager(RandomEngine):
         for id in exclude:
             self._spawned_objects.pop(id)
 
-    def before_step(self,*args,**kwargs)->dict:
+    def before_step(self, *args, **kwargs) -> dict:
         """
         Usually used to set actions for all elements with their policies
         """
         pass
 
-    def step(self,*args, **kwargs):
+    def step(self, *args, **kwargs):
         """
         TODO Remove in the future?
         """

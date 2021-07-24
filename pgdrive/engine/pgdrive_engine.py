@@ -21,9 +21,9 @@ class PGDriveEngine(PGWorld):
     STOP_REPLAY = False
 
     def __init__(
-            self,
-            global_config,
-            agent_manager,
+        self,
+        global_config,
+        agent_manager,
     ):
         self.global_config = global_config
         super(PGDriveEngine, self).__init__(self.global_config["pg_world_config"])

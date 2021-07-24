@@ -66,8 +66,9 @@ class Map(Object):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        assert random_seed == map_config[self.SEED], "Global seed {} should equal to seed in map config {}".format(
-            random_seed, map_config[self.SEED])
+        assert random_seed == map_config[
+            self.SEED
+        ], "Global seed {} should equal to seed in map config {}".format(random_seed, map_config[self.SEED])
         super(Map, self).__init__(random_seed=map_config[self.SEED])
         self.set_config(map_config)
         self.film_size = (self._config["draw_map_resolution"], self._config["draw_map_resolution"])

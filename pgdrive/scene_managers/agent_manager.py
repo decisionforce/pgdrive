@@ -63,10 +63,11 @@ class AgentManager(BaseManager):
     def _get_vehicles(self, config_dict: dict):
         from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
         ret = {
-            key: super(AgentManager, self).spawn_object(BaseVehicle, v_config,
-                                                        am_i_the_special_one=v_config.get("am_i_the_special_one",
-                                                                                          False))
-            for key, v_config in config_dict.items()}
+            key: super(AgentManager, self).spawn_object(
+                BaseVehicle, v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False)
+            )
+            for key, v_config in config_dict.items()
+        }
         return ret
 
     def init_space(self, init_observation_space, init_action_space):

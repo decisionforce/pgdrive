@@ -64,8 +64,9 @@ class TrafficCone(TrafficSign):
 
     NAME = BodyName.Traffic_cone
 
-    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False,
-                 random_seed=None):
+    def __init__(
+        self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False, random_seed=None
+    ):
         super(TrafficCone, self).__init__(lane, lane_index, longitude, lateral, random_seed)
         self.body_node = TrafficSignNode(self.NAME)
         self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
@@ -87,8 +88,9 @@ class TrafficTriangle(TrafficSign):
     NAME = BodyName.Traffic_triangle
     RADIUS = 0.5
 
-    def __init__(self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False,
-                 random_seed=None):
+    def __init__(
+        self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False, random_seed=None
+    ):
         super(TrafficTriangle, self).__init__(lane, lane_index, longitude, lateral, random_seed)
         self.body_node = TrafficSignNode(self.NAME)
         self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))

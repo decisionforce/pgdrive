@@ -59,10 +59,10 @@ class TrafficSignManager(BaseManager):
         building.node_path.reparentTo(render_node)
 
     def spawn_object(
-            self,
-            object_class: Union[TrafficSign, str],
-            *args,
-            **kwargs,
+        self,
+        object_class: Union[TrafficSign, str],
+        *args,
+        **kwargs,
     ):
         """
         Spawn an object by assigning its type and position on the lane
@@ -126,8 +126,9 @@ class TrafficSignManager(BaseManager):
 
     def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):
         engine = get_pgdrive_engine()
-        breakdown_vehicle = engine.traffic_manager.spawn_object(engine.traffic_manager.random_vehicle_type(), lane,
-                                                                longitude, False)
+        breakdown_vehicle = engine.traffic_manager.spawn_object(
+            engine.traffic_manager.random_vehicle_type(), lane, longitude, False
+        )
         breakdown_vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         breakdown_vehicle.set_break_down()
 
@@ -135,8 +136,7 @@ class TrafficSignManager(BaseManager):
         alert.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def prohibit_scene(
-            self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float,
-            on_left=False
+        self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float, on_left=False
     ):
         """
         Generate an accident scene on the most left or most right lane

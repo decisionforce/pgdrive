@@ -74,11 +74,11 @@ class JoystickController(Controller):
     def process_input(self, vehicle):
         pygame.event.pump()
         steering = -self.joystick.get_axis(0)
-        throttle_brake = -self.joystick.get_axis(2)+ self.joystick.get_axis(3)
-        offset=30
-        val=int(65535*(vehicle.speed + offset)/(120+offset)) if vehicle is not None else 0
+        throttle_brake = -self.joystick.get_axis(2) + self.joystick.get_axis(3)
+        offset = 30
+        val = int(65535 * (vehicle.speed + offset) / (120 + offset)) if vehicle is not None else 0
         self.ffb_dev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, val)
 
         #throttle_brake=0.2
 
-        return [steering, throttle_brake/2]
+        return [steering, throttle_brake / 2]

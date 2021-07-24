@@ -30,9 +30,8 @@ def close_pgdrive_engine():
         PGDriveEngine.singleton = None
 
 
-
 def get_global_config():
-    engine=get_pgdrive_engine()
+    engine = get_pgdrive_engine()
     return copy.copy(engine.global_config)
 
 

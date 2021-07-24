@@ -27,12 +27,24 @@ class CityBIG(BIG):
     MAX_TRIAL = 2
 
     def __init__(
-            self, lane_num: int, lane_width: float, global_network: RoadNetwork, render_node_path: NodePath,
-            pg_physics_world: PGPhysicsWorld, block_type_version: str, random_seed=None
+        self,
+        lane_num: int,
+        lane_width: float,
+        global_network: RoadNetwork,
+        render_node_path: NodePath,
+        pg_physics_world: PGPhysicsWorld,
+        block_type_version: str,
+        random_seed=None
     ):
-        super(CityBIG, self
-              ).__init__(lane_num, lane_width, global_network, render_node_path, pg_physics_world, block_type_version,
-                         random_seed=random_seed)
+        super(CityBIG, self).__init__(
+            lane_num,
+            lane_width,
+            global_network,
+            render_node_path,
+            pg_physics_world,
+            block_type_version,
+            random_seed=random_seed
+        )
 
     def generate(self, generate_method: BigGenerateMethod, parameter: Union[str, int]):
         """
@@ -70,7 +82,7 @@ class CityBIG(BIG):
         socket_available = set(socket_available).difference(socket_used)
         socket = self.np_random.choice(sorted(list(socket_available), key=lambda x: x.index))
 
-        block = block_type(len(self.blocks), socket, self._global_network,  self.np_random.randint(0, 10000))
+        block = block_type(len(self.blocks), socket, self._global_network, self.np_random.randint(0, 10000))
         return block
 
 

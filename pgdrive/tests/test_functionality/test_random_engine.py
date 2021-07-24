@@ -17,16 +17,26 @@ def test_seeding():
 
 
 def test_map_random_seeding():
-    cfg_1 = {"environment_num": 1,
-             "start_seed": 5, }
-    cfg_2 = {"environment_num": 10,
-             "start_seed": 5, }
-    cfg_3 = {"environment_num": 100,
-             "start_seed": 5, }
-    cfg_4 = {"environment_num": 10,
-             "start_seed": 0, }
-    cfg_5 = {"environment_num": 3,
-             "start_seed": 3, }
+    cfg_1 = {
+        "environment_num": 1,
+        "start_seed": 5,
+    }
+    cfg_2 = {
+        "environment_num": 10,
+        "start_seed": 5,
+    }
+    cfg_3 = {
+        "environment_num": 100,
+        "start_seed": 5,
+    }
+    cfg_4 = {
+        "environment_num": 10,
+        "start_seed": 0,
+    }
+    cfg_5 = {
+        "environment_num": 3,
+        "start_seed": 3,
+    }
     map_configs = []
     for cfg in [cfg_1, cfg_2, cfg_3, cfg_4, cfg_5]:
         env = PGDriveEnv(cfg)
@@ -62,15 +72,17 @@ def test_fixed_traffic():
 
 
 def test_random_traffic():
-    env = PGDriveEnvV2({
-        "random_traffic": True,
-        "traffic_mode": "respawn",
-        "traffic_density":0.3,
-        "start_seed":5,
+    env = PGDriveEnvV2(
+        {
+            "random_traffic": True,
+            "traffic_mode": "respawn",
+            "traffic_density": 0.3,
+            "start_seed": 5,
 
-        # "fast": True, "use_render": True
-    })
-    has_traffic=False
+            # "fast": True, "use_render": True
+        }
+    )
+    has_traffic = False
     try:
         last_pos = None
         for i in range(20):
@@ -78,7 +90,7 @@ def test_random_traffic():
             assert env.pgdrive_engine.traffic_manager.random_traffic
             new_pos = [v.position for v in env.pgdrive_engine.traffic_manager.traffic_vehicles]
             if len(new_pos) > 0:
-                has_traffic=True
+                has_traffic = True
             if last_pos is not None and len(new_pos) == len(last_pos):
                 assert sum(
                     [norm(lastp[0] - newp[0], lastp[1] - newp[1]) >= 0.5 for lastp, newp in zip(last_pos, new_pos)]

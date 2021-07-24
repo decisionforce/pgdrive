@@ -27,15 +27,15 @@ class BIG:
     MAX_TRIAL = 2
 
     def __init__(
-            self,
-            lane_num: int,
-            lane_width: float,
-            global_network: RoadNetwork,
-            render_node_path: NodePath,
-            pg_physics_world: PGPhysicsWorld,
-            block_type_version: str,
-            exit_length=50,
-            random_seed=None
+        self,
+        lane_num: int,
+        lane_width: float,
+        global_network: RoadNetwork,
+        render_node_path: NodePath,
+        pg_physics_world: PGPhysicsWorld,
+        block_type_version: str,
+        exit_length=50,
+        random_seed=None
     ):
         super(BIG, self).__init__()
         self._block_sequence = None
@@ -105,8 +105,10 @@ class BIG:
             block_type = PGBlock.get_block(type_id, self.block_type_version)
 
         socket = self.np_random.choice(self.blocks[-1].get_socket_indices())
-        block = block_type(len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network,
-                           self.np_random.randint(0, 10000))
+        block = block_type(
+            len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network,
+            self.np_random.randint(0, 10000)
+        )
         return block
 
     def destruct(self, block):

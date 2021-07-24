@@ -23,7 +23,7 @@ def test_original_lidar(render=False):
                 "lane_line_detector": dict(num_lasers=2, distance=50),
             },
             "_disable_detector_mask": True,
-            "map":"XXX"
+            "map": "XXX"
         }
     )
     try:
@@ -72,7 +72,7 @@ def test_lidar_with_mask(render=False):
                 "lane_line_detector": dict(num_lasers=2, distance=50),
             },
             "_disable_detector_mask": False,
-            "map":"XXX"
+            "map": "XXX"
         }
     )
     try:
