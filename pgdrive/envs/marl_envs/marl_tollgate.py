@@ -123,7 +123,6 @@ class MATollGateMap(PGMap):
             self.config["lane_num"],
             parent_node_path,
             pg_physics_world,
-            1,
             length=length
         )
         self.blocks.append(last_block)

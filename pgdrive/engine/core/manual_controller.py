@@ -1,7 +1,8 @@
 from direct.controls.InputState import InputState
-
-import evdev
-from evdev import ecodes, InputDevice
+from pgdrive.utils import is_win
+if not is_win():
+    import evdev
+    from evdev import ecodes, InputDevice
 
 from pgdrive.utils import import_pygame
 from pgdrive.engine.core.pg_world import PGWorld
@@ -60,6 +61,7 @@ class JoystickController(Controller):
     def __init__(self):
         pygame.display.init()
         pygame.joystick.init()
+        assert not is_win(), "Joystick is supported in linux and mac only"
         assert pygame.joystick.get_count() > 0, "Please connect joystick or use keyboard input"
         print("Successfully Connect your Joystick!")
 

@@ -15,7 +15,6 @@ class PGDriveEngine(PGWorld):
     driving task and the game engine modified from Panda3D Engine.
     """
     singleton = None
-    global_config = None
     global_random_seed = None
 
     IN_REPLAY = False
@@ -23,8 +22,10 @@ class PGDriveEngine(PGWorld):
 
     def __init__(
             self,
+            global_config,
             agent_manager,
     ):
+        self.global_config = global_config
         super(PGDriveEngine, self).__init__(self.global_config["pg_world_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         self._managers = dict(agent_manager=agent_manager)

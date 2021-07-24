@@ -1,7 +1,4 @@
 import os.path as osp
-from pgdrive.scene_managers.object_manager import TrafficSignManager
-from pgdrive.scene_managers.traffic_manager import TrafficManager
-
 import sys
 import time
 from collections import defaultdict
@@ -17,10 +14,12 @@ from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_managers.agent_manager import AgentManager
 from pgdrive.scene_managers.map_manager import MapManager
+from pgdrive.scene_managers.object_manager import TrafficSignManager
+from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils import PGConfig, merge_dicts
 from pgdrive.utils import get_np_random
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
-    pgdrive_engine_initialized, set_global_config, get_global_config, set_global_random_seed
+    pgdrive_engine_initialized, set_global_random_seed
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
 
@@ -119,7 +118,7 @@ class BasePGDriveEnv(gym.Env):
         self.default_config_copy = PGConfig(self.default_config(), unchangeable=True)
         merged_config = self._process_extra_config(config)
         global_config = self._post_process_config(merged_config)
-        set_global_config(global_config)
+        self.config = global_config
 
         self.num_agents = self.config["num_agents"]
         self.is_multi_agent = self.config["is_multi_agent"]
@@ -183,7 +182,7 @@ class BasePGDriveEnv(gym.Env):
         # It is the true init() func to create the main vehicle and its module, to avoid incompatible with ray
         if pgdrive_engine_initialized():
             return
-        initialize_pgdrive_engine(self.agent_manager)
+        initialize_pgdrive_engine(self.config, self.agent_manager)
         self.pgdrive_engine = get_pgdrive_engine()
 
         # engine setup
@@ -429,13 +428,6 @@ class BasePGDriveEnv(gym.Env):
     @property
     def current_map(self):
         return self.pgdrive_engine.map_manager.current_map
-
-    @property
-    def config(self):
-        """
-        The meta config data is protected in PGDriveEngine
-        """
-        return get_global_config()
 
     def _reset_global_seed(self, force_seed):
         # create map

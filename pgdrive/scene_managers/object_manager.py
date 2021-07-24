@@ -172,4 +172,4 @@ class TrafficSignManager(BaseManager):
 
     @property
     def objects(self):
-        return list(self._spawned_objects.values()) + list(self._block_objects)
+        return list(self._spawned_objects.values()) + list(self._block_objects.values())

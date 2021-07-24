@@ -3,8 +3,8 @@ from pgdrive.utils.engine_utils import get_pgdrive_engine
 
 
 class BaseBuilding(StaticObject):
-    def __init__(self, lane, lane_index, position, heading: float = 0., node_path=None):
-        super(BaseBuilding, self).__init__(lane, lane_index, position, heading)
+    def __init__(self, lane, lane_index, position, heading: float = 0., node_path=None, random_seed=None):
+        super(BaseBuilding, self).__init__(lane, lane_index, position, heading, random_seed)
         assert node_path is not None
         self.node_path = node_path
 

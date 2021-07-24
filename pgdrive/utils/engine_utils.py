@@ -7,11 +7,11 @@ import copy
 from pgdrive.utils import get_np_random
 
 
-def initialize_pgdrive_engine(agent_manager):
+def initialize_pgdrive_engine(env_global_config, agent_manager):
     cls = PGDriveEngine
     if cls.singleton is None:
-        assert cls.global_config is not None, "Set global config before initialization PGDriveEngine"
-        cls.singleton = cls(agent_manager)
+        # assert cls.global_config is not None, "Set global config before initialization PGDriveEngine"
+        cls.singleton = cls(env_global_config, agent_manager)
     else:
         raise PermissionError("There should be only one PGDriveEngine instance in one process")
 
@@ -30,15 +30,10 @@ def close_pgdrive_engine():
         PGDriveEngine.singleton = None
 
 
-def set_global_config(config):
-    if PGDriveEngine.global_config is None:
-        PGDriveEngine.global_config = config
-    else:
-        PGDriveEngine.global_config.update(config)
-
 
 def get_global_config():
-    return copy.copy(PGDriveEngine.global_config)
+    engine=get_pgdrive_engine()
+    return copy.copy(engine.global_config)
 
 
 def set_global_random_seed(random_seed: Optional[int]):

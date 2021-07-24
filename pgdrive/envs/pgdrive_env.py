@@ -429,7 +429,7 @@ class PGDriveEnv(BasePGDriveEnv):
             map_config.update({"seed": seed})
             set_global_random_seed(seed)
             new_map = self.pgdrive_engine.map_manager.spawn_object(PGMap, map_config=map_config)
-            new_map.unload_map()
+            self.pgdrive_engine.map_manager.unload_map(new_map)
             logging.info("Finish generating map with seed: {}".format(seed))
 
         map_data = dict()
