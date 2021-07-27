@@ -16,7 +16,7 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.object import Object
+from pgdrive.utils.base_object import BaseObject
 from pgdrive.utils.math_utils import norm, PGVector
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
@@ -58,7 +58,7 @@ class BlockSocket:
         return True if self.positive_road == other.positive_road and self.negative_road == other.negative_road else False
 
 
-class Block(Object, BlockDefault):
+class Block(BaseObject, BlockDefault):
     """
     Abstract class of Block,
     BlockSocket: a part of previous block connecting this block

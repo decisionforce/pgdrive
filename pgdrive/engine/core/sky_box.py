@@ -3,10 +3,10 @@ from panda3d.core import SamplerState, Shader, NodePath, ConfigVariableString
 from pgdrive.constants import CamMask
 from pgdrive.utils import is_mac
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.utils.object import Object
+from pgdrive.utils.base_object import BaseObject
 
 
-class SkyBox(Object):
+class SkyBox(BaseObject):
     """
     SkyBox is only related to render
     """

@@ -13,7 +13,7 @@ from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils import get_np_random
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.object import Object
+from pgdrive.utils.base_object import BaseObject
 from pgdrive.utils.scene_utils import ray_localization
 
 
@@ -29,7 +29,7 @@ class TrafficVehicleNode(BulletRigidBodyNode):
         self.kinematic_model = IDMVehicle.create_from(kinematics_model)
 
 
-class PGTrafficVehicle(Object):
+class PGTrafficVehicle(BaseObject):
     COLLISION_MASK = CollisionGroup.TrafficVehicle
     HEIGHT = 1.8
     LENGTH = 4

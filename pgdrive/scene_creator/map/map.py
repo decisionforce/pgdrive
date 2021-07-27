@@ -2,7 +2,7 @@ import copy
 from pgdrive.utils.engine_utils import get_pgdrive_engine, set_global_random_seed
 from pgdrive.scene_creator.road.road import Road
 import logging
-from pgdrive.utils.object import Object
+from pgdrive.utils.base_object import BaseObject
 import numpy as np
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.blocks.block import Block
@@ -42,7 +42,7 @@ class MapGenerateMethod:
     PG_MAP_FILE = "pg_map_file"
 
 
-class Map(Object):
+class Map(BaseObject):
     """
     Base class for Map generation!
     """

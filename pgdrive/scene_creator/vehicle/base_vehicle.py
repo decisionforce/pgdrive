@@ -27,7 +27,7 @@ from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.utils import get_np_random, PGConfig, safe_clip_for_small_array, PGVector
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
-from pgdrive.utils.object import Object
+from pgdrive.utils.base_object import BaseObject
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
@@ -35,7 +35,7 @@ from pgdrive.engine.core.image_buffer import ImageBuffer
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
 
-class BaseVehicle(Object):
+class BaseVehicle(BaseObject):
     MODEL = None
     """
     Vehicle chassis and its wheels index
