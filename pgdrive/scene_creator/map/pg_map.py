@@ -6,10 +6,10 @@ from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod, BIG
 from pgdrive.scene_creator.algorithm.blocks_prob_dist import PGBlock
 from pgdrive.scene_creator.blocks import FirstBlock
-from pgdrive.scene_creator.map.map import Map, MapGenerateMethod
+from pgdrive.scene_creator.map.base_map import BaseMap, MapGenerateMethod
 
 
-class PGMap(Map):
+class PGMap(BaseMap):
     def _generate(self):
         """
         We can override this function to introduce other methods!

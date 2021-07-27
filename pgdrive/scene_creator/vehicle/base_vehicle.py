@@ -15,7 +15,7 @@ from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR,
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
-from pgdrive.scene_creator.map.map import Map
+from pgdrive.scene_creator.map.base_map import BaseMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.vehicle.base_vehicle_node import BaseVehicleNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
@@ -307,7 +307,7 @@ class BaseVehicle(BaseObject):
         self.energy_consumption += step_energy  # L/100 km
         return step_energy, self.energy_consumption
 
-    def reset(self, map: Map, pos: np.ndarray = None, heading: float = 0.0):
+    def reset(self, map: BaseMap, pos: np.ndarray = None, heading: float = 0.0):
         """
         pos is a 2-d array, and heading is a float (unit degree)
         if pos is not None, vehicle will be reset to the position

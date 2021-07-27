@@ -6,7 +6,7 @@ from panda3d.core import NodePath
 from pgdrive.constants import BodyName
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.scene_creator.object.static_object import StaticObject
+from pgdrive.scene_creator.static_object.base_static_object import BaseStaticObject
 
 LaneIndex = Tuple[str, str, int]
 
@@ -23,7 +23,7 @@ class TrafficSignNode(BulletRigidBodyNode):
         self.crashed = False
 
 
-class TrafficSign(StaticObject):
+class TrafficSign(BaseStaticObject):
     """
     Common interface for objects that appear on the road, beside vehicles.
     """

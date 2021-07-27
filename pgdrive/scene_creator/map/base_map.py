@@ -24,14 +24,14 @@ def parse_map_config(easy_map_config, new_map_config, default_config):
         return new_map_config
 
     if isinstance(easy_map_config, int):
-        new_map_config[Map.GENERATE_TYPE] = BigGenerateMethod.BLOCK_NUM
+        new_map_config[BaseMap.GENERATE_TYPE] = BigGenerateMethod.BLOCK_NUM
     elif isinstance(easy_map_config, str):
-        new_map_config[Map.GENERATE_TYPE] = BigGenerateMethod.BLOCK_SEQUENCE
+        new_map_config[BaseMap.GENERATE_TYPE] = BigGenerateMethod.BLOCK_SEQUENCE
     else:
         raise ValueError(
             "Unkown easy map config: {} and original map config: {}".format(easy_map_config, new_map_config)
         )
-    new_map_config[Map.GENERATE_CONFIG] = easy_map_config
+    new_map_config[BaseMap.GENERATE_CONFIG] = easy_map_config
     return new_map_config
 
 
@@ -42,7 +42,7 @@ class MapGenerateMethod:
     PG_MAP_FILE = "pg_map_file"
 
 
-class Map(BaseObject):
+class BaseMap(BaseObject):
     """
     Base class for Map generation!
     """
@@ -69,7 +69,7 @@ class Map(BaseObject):
         assert random_seed == map_config[
             self.SEED
         ], "Global seed {} should equal to seed in map config {}".format(random_seed, map_config[self.SEED])
-        super(Map, self).__init__(random_seed=map_config[self.SEED])
+        super(BaseMap, self).__init__(random_seed=map_config[self.SEED])
         self.set_config(map_config)
         self.film_size = (self._config["draw_map_resolution"], self._config["draw_map_resolution"])
         self.road_network = RoadNetwork()
@@ -136,7 +136,7 @@ class Map(BaseObject):
     def destroy(self):
         for block in self.blocks:
             block.destroy()
-        super(Map, self).destroy()
+        super(BaseMap, self).destroy()
 
     def __del__(self):
         describe = self.random_seed if self.random_seed is not None else "custom"

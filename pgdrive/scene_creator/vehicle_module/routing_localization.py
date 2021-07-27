@@ -7,7 +7,7 @@ from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
 from pgdrive.scene_creator.blocks.first_block import FirstBlock
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
-from pgdrive.scene_creator.map.map import Map
+from pgdrive.scene_creator.map.base_map import BaseMap
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils import clip, norm, get_np_random
 from pgdrive.engine.asset_loader import AssetLoader
@@ -111,7 +111,7 @@ class RoutingLocalizationModule:
             self._dest_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
 
-    def update(self, map: Map, current_lane_index, final_road_node=None, random_seed=False):
+    def update(self, map: BaseMap, current_lane_index, final_road_node=None, random_seed=False):
         start_road_node = current_lane_index[0]
         self.map = map
         if start_road_node is None:

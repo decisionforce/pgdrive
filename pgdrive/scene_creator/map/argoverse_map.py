@@ -1,1 +1,1 @@
-from pgdrive.scene_creator.map.map import Map
+from pgdrive.scene_creator.map.base_map import BaseMap
