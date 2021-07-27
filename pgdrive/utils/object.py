@@ -54,9 +54,11 @@ class Object(RandomEngine):
         Config is a static conception, which specified the parameters of one element.
         There parameters doesn't change, such as length of straight road, max speed of one vehicle, etc.
         """
+
         assert random_seed is not None, "Assign a random seed for {} class in super().__init__()".format(
             self.class_name
         )
+
         super(Object, self).__init__(random_seed)
 
         # ID for object

@@ -19,3 +19,10 @@ class PolicyManager(BaseManager):
             if hasattr(p, "destroy"):
                 p.destroy()
         super(PolicyManager, self).destroy()
+
+    def register_new_policy(self, policy_class, agent_name, *args, **kwargs):
+        policy = self.spawn_object(policy_class, *args, **kwargs)
+        policy_id = policy.name
+        # TODO(pzh) Maybe we create too much dicts here?
+        self._agent_to_policies[agent_name] = policy_id
+        self._object_to_policies[policy_id] = policy
