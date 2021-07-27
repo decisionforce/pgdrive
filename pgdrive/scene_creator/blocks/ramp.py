@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 from pgdrive.constants import Decoration, LineType
-from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, PGBlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import ExtendStraightLane, CreateRoadFrom, CreateAdverseRoad, \
     create_bend_straight
 from pgdrive.scene_creator.lane.straight_lane import StraightLane

@@ -1,4 +1,4 @@
-from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, PGBlockSocket
 from pgdrive.scene_creator.blocks.curve import Curve
 from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
 from pgdrive.scene_creator.blocks.fork import Fork

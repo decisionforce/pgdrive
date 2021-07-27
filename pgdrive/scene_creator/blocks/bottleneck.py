@@ -1,4 +1,4 @@
-from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, PGBlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane, \
     create_wave_lanes
 from pgdrive.constants import LineType
@@ -88,7 +88,7 @@ class Merge(Bottleneck):
         ) and no_cross
 
         negative_sockect_road = -socket_road
-        self.add_sockets(BlockSocket(socket_road, negative_sockect_road))
+        self.add_sockets(PGBlockSocket(socket_road, negative_sockect_road))
 
         # part 2, circular part
         for index, lane in enumerate(self.positive_lanes[straight_lane_num:], 1):
@@ -258,7 +258,7 @@ class Split(Bottleneck):
         ) and no_cross
 
         negative_sockect_road = -socket_road
-        self.add_sockets(BlockSocket(socket_road, negative_sockect_road))
+        self.add_sockets(PGBlockSocket(socket_road, negative_sockect_road))
 
         # part 2, circular part
         lanes = negative_sockect_road.get_lanes(self.block_network)

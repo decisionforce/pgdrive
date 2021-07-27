@@ -2,7 +2,7 @@ import copy
 from collections import deque
 
 import numpy as np
-from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, PGBlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane, \
     CreateTwoWayRoad, create_bend_straight
 from pgdrive.constants import LineType, LineColor
@@ -112,7 +112,7 @@ class ParkingLot(PGBlock):
         return no_cross
 
     def _add_one_parking_space(
-        self, in_socket: BlockSocket, out_socket: BlockSocket, part_idx: int, radius, dist_to_in, dist_to_out
+        self, in_socket: PGBlockSocket, out_socket: PGBlockSocket, part_idx: int, radius, dist_to_in, dist_to_out
     ) -> bool:
         no_cross = True
 

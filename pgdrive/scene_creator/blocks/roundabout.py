@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, PGBlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, create_bend_straight
 from pgdrive.constants import LineType
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -154,7 +154,7 @@ class Roundabout(PGBlock):
 
         return Road(exit_start, exit_end), none_cross
 
-    def get_socket(self, index: int) -> BlockSocket:
+    def get_socket(self, index: int) -> PGBlockSocket:
         socket = super(Roundabout, self).get_socket(index)
         if socket.negative_road in self.get_respawn_roads():
             self._respawn_roads.remove(socket.negative_road)

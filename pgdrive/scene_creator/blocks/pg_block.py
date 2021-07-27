@@ -21,7 +21,7 @@ from pgdrive.utils.math_utils import norm, PGVector
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
 
-class BlockSocket:
+class PGBlockSocket:
     """
     A pair of roads in reverse direction
     Positive_road is right road, and Negative road is left road on which cars drive in reverse direction
@@ -73,7 +73,7 @@ class PGBlock(BaseObject, DrivableAreaProperty):
     When single-direction block created, road_2 in block socket is useless.
     But it's helpful when a town is created.
     """
-    def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
+    def __init__(self, block_index: int, pre_block_socket: PGBlockSocket, global_network: RoadNetwork, random_seed):
         self._block_name = str(block_index) + self.ID
         super(PGBlock, self).__init__(self._block_name, random_seed)
         # block information
@@ -175,7 +175,7 @@ class PGBlock(BaseObject, DrivableAreaProperty):
         success = self.construct_block(root_render_np, pg_physics_world, config)
         return success
 
-    def get_socket(self, index: Union[str, int]) -> BlockSocket:
+    def get_socket(self, index: Union[str, int]) -> PGBlockSocket:
         if isinstance(index, int):
             if index < 0 or index >= len(self._sockets):
                 raise ValueError("Socket of {}: index out of range".format(self.class_name))
@@ -211,11 +211,11 @@ class PGBlock(BaseObject, DrivableAreaProperty):
             ret.append(lanes)
         return ret
 
-    def add_sockets(self, sockets: Union[List[BlockSocket], BlockSocket]):
+    def add_sockets(self, sockets: Union[List[PGBlockSocket], PGBlockSocket]):
         """
         Use this to add sockets instead of modifying the list directly
         """
-        if isinstance(sockets, BlockSocket):
+        if isinstance(sockets, PGBlockSocket):
             self._add_one_socket(sockets)
         elif isinstance(sockets, List):
             for socket in sockets:
@@ -246,8 +246,8 @@ class PGBlock(BaseObject, DrivableAreaProperty):
     def node(cls, block_idx: int, part_idx: int, road_idx: int) -> str:
         return str(block_idx) + cls.ID + str(part_idx) + cls.DASH + str(road_idx) + cls.DASH
 
-    def _add_one_socket(self, socket: BlockSocket):
-        assert isinstance(socket, BlockSocket), "Socket list only accept BlockSocket Type"
+    def _add_one_socket(self, socket: PGBlockSocket):
+        assert isinstance(socket, PGBlockSocket), "Socket list only accept BlockSocket Type"
         if socket.index is not None and not socket.index.startswith(self._block_name):
             logging.warning(
                 "The adding socket has index {}, which is not started with this block name {}. This is dangerous! "
@@ -575,7 +575,7 @@ class PGBlock(BaseObject, DrivableAreaProperty):
             card.setTexture(self.ts_color, self.road_texture)
 
     @staticmethod
-    def create_socket_from_positive_road(road: Road) -> BlockSocket:
+    def create_socket_from_positive_road(road: Road) -> PGBlockSocket:
         """
         We usually create road from positive road, thus this func can get socket easily.
         Note: it is not recommended to generate socket from negative road
@@ -583,7 +583,7 @@ class PGBlock(BaseObject, DrivableAreaProperty):
         assert road.start_node[0] != Road.NEGATIVE_DIR and road.end_node[0] != Road.NEGATIVE_DIR, \
             "Socket can only be created from positive road"
         positive_road = Road(road.start_node, road.end_node)
-        return BlockSocket(positive_road, -positive_road)
+        return PGBlockSocket(positive_road, -positive_road)
 
     def get_socket_indices(self):
         return list(self._sockets.keys())
