@@ -88,6 +88,8 @@ class BaseVehicle(Object):
         self.max_steering = self.vehicle_config["max_steering"]
 
         self.pgdrive_engine = get_pgdrive_engine()
+        assert self.pgdrive_engine is not None, "Please make sure PGDrive engine is successfully initialized!"
+
         self.node_path = NodePath("vehicle")
 
         # color
@@ -344,9 +346,11 @@ class BaseVehicle(Object):
         self.energy_consumption = 0
 
         # overtake_stat
+        # TODO: Remove this!! A single instance of the vehicle should not access its context!!!
         self.front_vehicles = set()
         self.back_vehicles = set()
 
+        # TODO: This should be put into the render-object of this vehicle!
         # for render
         if self.vehicle_panel is not None:
             self.vehicle_panel.renew_2d_car_para_visualization(self)
