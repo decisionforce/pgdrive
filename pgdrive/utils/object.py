@@ -136,6 +136,7 @@ class Object(RandomEngine):
         """
         Do Information fusion and then analyze and wait for decision
         """
+        pass
 
     def set_action(self, *args, **kwargs):
         """

@@ -1,5 +1,4 @@
 import math
-from collections import deque
 from typing import Tuple, List
 
 import numpy as np
@@ -12,7 +11,9 @@ from pgdrive.scene_creator.object.static_object import StaticObject
 # from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_managers.traffic_manager import TrafficManager
+from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.utils.math_utils import clip
+from pgdrive.utils.scene_utils import ray_localization
 
 
 class IDMPolicy(BasePolicy):
@@ -82,7 +83,7 @@ class IDMPolicy(BasePolicy):
             self,
             vehicle: BaseVehicle,
             traffic_mgr: TrafficManager,
-            position: List,
+            # position: List,
             delay_time: float,
             heading: float = 0,
             speed: float = 0,
@@ -97,9 +98,8 @@ class IDMPolicy(BasePolicy):
         self.enable_lane_change = enable_lane_change
         self.delay_time = delay_time
 
-        # self.name = random_string() if name is None else name
         self.traffic_mgr = traffic_mgr
-        self._position = np.array(position).astype('float')
+        # self._position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
 
@@ -112,38 +112,14 @@ class IDMPolicy(BasePolicy):
 
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
-        # self.log = []
-        self.history = deque(maxlen=30)
-        # self.np_random = np_random if np_random else get_np_random()
+        # self.history = deque(maxlen=30)
         self.route = route
 
-    # def randomize_behavior(self):
-    #     pass
-    #
-    # @classmethod
-    # def create_from(cls, vehicle: ControlledVehicle) -> "IDMVehicle":
-    #     """
-    #     Create a new vehicle from an existing one.
-    #
-    #     The vehicle dynamics and target dynamics are copied, other properties are default.
-    #
-    #     :param vehicle: a vehicle
-    #     :return: a new vehicle at the same dynamical state
-    #     """
-    #     v = cls(
-    #         vehicle.traffic_mgr,
-    #         vehicle.position,
-    #         heading=vehicle.heading,
-    #         speed=vehicle.speed,
-    #         target_lane_index=vehicle.target_lane_index,
-    #         target_speed=vehicle.target_speed,
-    #         route=vehicle.route,
-    #         timer=getattr(vehicle, 'timer', None),
-    #         np_random=vehicle.np_random
-    #     )
-    #     return v
+    def update_lane_index(self, lane_index, lane):
+        self.lane_index = lane_index
+        self.lane = lane
 
-    def act(self, vehicle: BaseVehicle, front_vehicle, rear_vehicle, current_map):
+    def before_step(self, vehicle: BaseVehicle, front_vehicle, rear_vehicle, current_map):
         """
         Execute an action.
 
@@ -170,11 +146,8 @@ class IDMPolicy(BasePolicy):
         )
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
-        # Vehicle.act(self, action)  # Skip ControlledVehicle.act(), or the command will be override.
-        # vehicle.act(self, action)
 
         self.action = action
-        # self.apply_action(action)
 
     def clip_actions(self) -> None:
         if self.crashed:
@@ -187,17 +160,27 @@ class IDMPolicy(BasePolicy):
         elif self.speed < -self.MAX_SPEED:
             self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
-    def apply_action(self, dt):
+    def step(self, dt):
         self.delay_time += dt
         if self.action['acceleration'] < 0 and self.speed <= 0:
             self.action['acceleration'] = -self.speed / dt
         self.clip_actions()
         delta_f = self.action['steering']
         beta = np.arctan(1 / 2 * np.tan(delta_f))
-        v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
-        self._position += v * dt
+        # v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
+        # self._position += v * dt
         self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
         self.speed += self.action['acceleration'] * dt
+
+    def after_step(self, *args, **kwargs):
+        engine = get_pgdrive_engine()
+        dir = np.array([math.cos(self.heading), math.sin(self.heading)])
+        lane, lane_index = ray_localization(dir, self.position, engine)
+        if lane is not None:
+            # self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
+            self.lane_index = lane_index
+            self.lane = lane
+        self.out_of_road = not self.lane.on_lane(self.position, margin=2)
 
     def follow_road(self, current_map):
         """At the end of a lane, automatically switch to a next one."""

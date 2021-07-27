@@ -26,9 +26,11 @@ def test_idm_policy():
     v = env.vehicle
     policy = IDMPolicy(
         vehicle=v,
-        position=None, traffic_mgr=env.pgdrive_engine.traffic_manager, delay_time=1, random_seed=env.current_seed
+        traffic_mgr=env.pgdrive_engine.traffic_manager, delay_time=1, random_seed=env.current_seed
     )
-    action = policy.act(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
+    action = policy.before_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
+    action = policy.step(dt=0.02)
+    action = policy.after_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
 
 
 if __name__ == '__main__':

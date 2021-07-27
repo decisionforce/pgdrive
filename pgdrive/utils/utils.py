@@ -4,8 +4,6 @@ import os
 import sys
 import uuid
 
-logger = logging.getLogger(__file__)
-
 
 def import_pygame():
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -148,11 +146,11 @@ def deprecation_warning(old, new, error=False) -> None:
     """
     msg = "`{}` has been deprecated.{}".format(
         old, (" Use `{}` instead.".format(new) if new else ""))
-
     if error is True:
         raise ValueError(msg)
     elif error and issubclass(error, Exception):
         raise error(msg)
     else:
+        logger = logging.getLogger(__name__)
         logger.warning("DeprecationWarning: " + msg +
                        " This will raise an error in the future!")

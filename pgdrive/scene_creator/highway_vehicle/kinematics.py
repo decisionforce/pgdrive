@@ -70,21 +70,21 @@ class Vehicle:
     def set_position(self, pos):
         self._position = np.asarray(pos).copy()
 
-    @classmethod
-    def make_on_lane(cls, traffic_mgr: TrafficManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
-        """
-        Create a vehicle on a given lane at a longitudinal position.
-
-        :param traffic_mgr: the road where the vehicle is driving
-        :param lane_index: index of the lane where the vehicle is located
-        :param longitudinal: longitudinal position along the lane
-        :param speed: initial speed in [m/s]
-        :return: A vehicle with at the specified position
-        """
-        lane = traffic_mgr.current_map.road_network.get_lane(lane_index)
-        if speed is None:
-            speed = lane.speed_limit
-        return cls(traffic_mgr, lane.position(longitudinal, 0), lane.heading_at(longitudinal), speed)
+    # @classmethod
+    # def make_on_lane(cls, traffic_mgr: TrafficManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
+    #     """
+    #     Create a vehicle on a given lane at a longitudinal position.
+    #
+    #     :param traffic_mgr: the road where the vehicle is driving
+    #     :param lane_index: index of the lane where the vehicle is located
+    #     :param longitudinal: longitudinal position along the lane
+    #     :param speed: initial speed in [m/s]
+    #     :return: A vehicle with at the specified position
+    #     """
+    #     lane = traffic_mgr.current_map.road_network.get_lane(lane_index)
+    #     if speed is None:
+    #         speed = lane.speed_limit
+    #     return cls(traffic_mgr, lane.position(longitudinal, 0), lane.heading_at(longitudinal), speed)
 
     @classmethod
     def create_random(
@@ -167,10 +167,10 @@ class Vehicle:
         elif self.speed < -self.MAX_SPEED:
             self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
-    def on_state_update(self) -> None:
-        new_l_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(self.position)
-        self.lane_index = new_l_index
-        self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index)
+    # def on_state_update(self) -> None:
+    #     new_l_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(self.position)
+    #     self.lane_index = new_l_index
+    #     self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index)
 
     def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
         """
@@ -186,42 +186,42 @@ class Vehicle:
             lane = self.lane
         return lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
 
-    def check_collision(self, other: Union['Vehicle', 'TrafficSign']) -> None:
-        """
-        Check for collision with another vehicle.
+    # def check_collision(self, other: Union['Vehicle', 'TrafficSign']) -> None:
+    #     """
+    #     Check for collision with another vehicle.
+    #
+    #     :param other: the other vehicle or object
+    #     """
+    #     if self.crashed or other is self:
+    #         return
+    #
+    #     if isinstance(other, Vehicle):
+    #         if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED:
+    #             return
+    #
+    #         if self._is_colliding(other):
+    #             self.speed = other.speed = min([self.speed, other.speed], key=abs)
+    #             self.crashed = other.crashed = True
+    #     elif isinstance(other, TrafficSign):
+    #         if not self.COLLISIONS_ENABLED:
+    #             return
+    #
+    #         if self._is_colliding(other):
+    #             self.speed = min([self.speed, 0], key=abs)
+    #             self.crashed = other.hit = True
+    #     elif isinstance(other, TrafficSign):
+    #         if self._is_colliding(other):
+    #             other.hit = True
 
-        :param other: the other vehicle or object
-        """
-        if self.crashed or other is self:
-            return
-
-        if isinstance(other, Vehicle):
-            if not self.COLLISIONS_ENABLED or not other.COLLISIONS_ENABLED:
-                return
-
-            if self._is_colliding(other):
-                self.speed = other.speed = min([self.speed, other.speed], key=abs)
-                self.crashed = other.crashed = True
-        elif isinstance(other, TrafficSign):
-            if not self.COLLISIONS_ENABLED:
-                return
-
-            if self._is_colliding(other):
-                self.speed = min([self.speed, 0], key=abs)
-                self.crashed = other.hit = True
-        elif isinstance(other, TrafficSign):
-            if self._is_colliding(other):
-                other.hit = True
-
-    def _is_colliding(self, other):
-        # Fast spherical pre-check
-        if distance_greater(other.position, self.position, self.LENGTH):
-            return False
-        # Accurate rectangular check
-        return utils.rotated_rectangles_intersect(
-            (self.position, 0.9 * self.LENGTH, 0.9 * self.WIDTH, self.heading),
-            (other.position, 0.9 * other.LENGTH, 0.9 * other.WIDTH, other.heading)
-        )
+    # def _is_colliding(self, other):
+    #     # Fast spherical pre-check
+    #     if distance_greater(other.position, self.position, self.LENGTH):
+    #         return False
+    #     # Accurate rectangular check
+    #     return utils.rotated_rectangles_intersect(
+    #         (self.position, 0.9 * self.LENGTH, 0.9 * self.WIDTH, self.heading),
+    #         (other.position, 0.9 * other.LENGTH, 0.9 * other.WIDTH, other.heading)
+    #     )
 
     @property
     def direction(self) -> np.ndarray:
