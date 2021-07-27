@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from pgdrive.scene_creator.blocks.block import Block, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, create_bend_straight
 from pgdrive.constants import LineType
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -9,7 +9,7 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 
 
-class Roundabout(Block):
+class Roundabout(PGBlock):
     """
     roundabout class, the example is the same as Intersection
     """

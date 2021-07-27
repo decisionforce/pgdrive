@@ -1,4 +1,4 @@
-from pgdrive.scene_creator.blocks.block import Block, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane, \
     create_wave_lanes
 from pgdrive.constants import LineType
@@ -6,7 +6,7 @@ from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 
 
-class Bottleneck(Block):
+class Bottleneck(PGBlock):
     """
     This block is used to change thr lane num
     """

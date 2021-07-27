@@ -58,7 +58,7 @@ class BlockSocket:
         return True if self.positive_road == other.positive_road and self.negative_road == other.negative_road else False
 
 
-class Block(BaseObject, DrivableAreaProperty):
+class PGBlock(BaseObject, DrivableAreaProperty):
     """
     Abstract class of Block,
     BlockSocket: a part of previous block connecting this block
@@ -75,14 +75,14 @@ class Block(BaseObject, DrivableAreaProperty):
     """
     def __init__(self, block_index: int, pre_block_socket: BlockSocket, global_network: RoadNetwork, random_seed):
         self._block_name = str(block_index) + self.ID
-        super(Block, self).__init__(self._block_name, random_seed)
+        super(PGBlock, self).__init__(self._block_name, random_seed)
         # block information
         assert self.ID is not None, "Each Block must has its unique ID When define Block"
         assert len(self.ID) == 1, "Block ID must be a character "
         assert self.SOCKET_NUM is not None, "The number of Socket should be specified when define a new block"
         if block_index == 0:
-            from pgdrive.scene_creator.blocks import FirstBlock
-            assert isinstance(self, FirstBlock), "only first block can use block index 0"
+            from pgdrive.scene_creator.blocks import FirstPGBlock
+            assert isinstance(self, FirstPGBlock), "only first block can use block index 0"
         elif block_index < 0:
             logging.debug("It is recommended that block index should > 1")
         self.block_index = block_index
@@ -335,31 +335,31 @@ class Block(BaseObject, DrivableAreaProperty):
                     middle = lane.position(lane.length / 2, i * lane_width / 2)
                     self._add_lane_line2bullet(lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
                 elif isinstance(lane, CircularLane):
-                    segment_num = int(lane.length / Block.CIRCULAR_SEGMENT_LENGTH)
+                    segment_num = int(lane.length / PGBlock.CIRCULAR_SEGMENT_LENGTH)
                     for segment in range(segment_num):
-                        lane_start = lane.position(segment * Block.CIRCULAR_SEGMENT_LENGTH, i * lane_width / 2)
-                        lane_end = lane.position((segment + 1) * Block.CIRCULAR_SEGMENT_LENGTH, i * lane_width / 2)
+                        lane_start = lane.position(segment * PGBlock.CIRCULAR_SEGMENT_LENGTH, i * lane_width / 2)
+                        lane_end = lane.position((segment + 1) * PGBlock.CIRCULAR_SEGMENT_LENGTH, i * lane_width / 2)
                         middle = (lane_start + lane_end) / 2
 
                         self._add_lane_line2bullet(
                             lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k]
                         )
                     # for last part
-                    lane_start = lane.position(segment_num * Block.CIRCULAR_SEGMENT_LENGTH, i * lane_width / 2)
+                    lane_start = lane.position(segment_num * PGBlock.CIRCULAR_SEGMENT_LENGTH, i * lane_width / 2)
                     lane_end = lane.position(lane.length, i * lane_width / 2)
                     middle = (lane_start + lane_end) / 2
                     self._add_lane_line2bullet(lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
 
                 if lane.line_types[k] == LineType.SIDE:
                     radius = lane.radius if isinstance(lane, CircularLane) else 0.0
-                    segment_num = int(lane.length / Block.SIDEWALK_LENGTH)
+                    segment_num = int(lane.length / PGBlock.SIDEWALK_LENGTH)
                     for segment in range(segment_num):
-                        lane_start = lane.position(segment * Block.SIDEWALK_LENGTH, i * lane_width / 2)
-                        lane_end = lane.position((segment + 1) * Block.SIDEWALK_LENGTH, i * lane_width / 2)
+                        lane_start = lane.position(segment * PGBlock.SIDEWALK_LENGTH, i * lane_width / 2)
+                        lane_end = lane.position((segment + 1) * PGBlock.SIDEWALK_LENGTH, i * lane_width / 2)
                         middle = (lane_start + lane_end) / 2
                         self._add_sidewalk2bullet(lane_start, lane_end, middle, radius, lane.direction)
                     # for last part
-                    lane_start = lane.position(segment_num * Block.SIDEWALK_LENGTH, i * lane_width / 2)
+                    lane_start = lane.position(segment_num * PGBlock.SIDEWALK_LENGTH, i * lane_width / 2)
                     lane_end = lane.position(lane.length, i * lane_width / 2)
                     middle = (lane_start + lane_end) / 2
                     if norm(lane_start[0] - lane_end[0], lane_start[1] - lane_end[1]) > 1e-1:
@@ -367,22 +367,22 @@ class Block(BaseObject, DrivableAreaProperty):
 
             elif lane.line_types[k] == LineType.BROKEN:
                 straight = True if isinstance(lane, StraightLane) else False
-                segment_num = int(lane.length / (2 * Block.STRIPE_LENGTH))
+                segment_num = int(lane.length / (2 * PGBlock.STRIPE_LENGTH))
                 for segment in range(segment_num):
-                    lane_start = lane.position(segment * Block.STRIPE_LENGTH * 2, i * lane_width / 2)
+                    lane_start = lane.position(segment * PGBlock.STRIPE_LENGTH * 2, i * lane_width / 2)
                     lane_end = lane.position(
-                        segment * Block.STRIPE_LENGTH * 2 + Block.STRIPE_LENGTH, i * lane_width / 2
+                        segment * PGBlock.STRIPE_LENGTH * 2 + PGBlock.STRIPE_LENGTH, i * lane_width / 2
                     )
                     middle = lane.position(
-                        segment * Block.STRIPE_LENGTH * 2 + Block.STRIPE_LENGTH / 2, i * lane_width / 2
+                        segment * PGBlock.STRIPE_LENGTH * 2 + PGBlock.STRIPE_LENGTH / 2, i * lane_width / 2
                     )
 
                     self._add_lane_line2bullet(
                         lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight
                     )
 
-                lane_start = lane.position(segment_num * Block.STRIPE_LENGTH * 2, i * lane_width / 2)
-                lane_end = lane.position(lane.length + Block.STRIPE_LENGTH, i * lane_width / 2)
+                lane_start = lane.position(segment_num * PGBlock.STRIPE_LENGTH * 2, i * lane_width / 2)
+                lane_end = lane.position(lane.length + PGBlock.STRIPE_LENGTH, i * lane_width / 2)
                 middle = (lane_end[0] + lane_start[0]) / 2, (lane_end[1] + lane_start[1]) / 2
                 if not straight:
                     self._add_lane_line2bullet(
@@ -406,13 +406,13 @@ class Block(BaseObject, DrivableAreaProperty):
         body_node.setKinematic(False)
         body_node.setStatic(True)
         body_np = parent_np.attachNewNode(body_node)
-        shape = BulletBoxShape(Vec3(length / 2, Block.LANE_LINE_WIDTH / 2, Block.LANE_LINE_GHOST_HEIGHT))
+        shape = BulletBoxShape(Vec3(length / 2, PGBlock.LANE_LINE_WIDTH / 2, PGBlock.LANE_LINE_GHOST_HEIGHT))
         body_np.node().addShape(shape)
-        mask = Block.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else Block.BROKEN_COLLISION_MASK
+        mask = PGBlock.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else PGBlock.BROKEN_COLLISION_MASK
         body_np.node().setIntoCollideMask(BitMask32.bit(mask))
         self.static_nodes.append(body_np.node())
 
-        body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT / 2))
+        body_np.setPos(panda_position(middle, PGBlock.LANE_LINE_GHOST_HEIGHT / 2))
         direction_v = lane_end - lane_start
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
@@ -445,17 +445,17 @@ class Block(BaseObject, DrivableAreaProperty):
             body_node.setStatic(True)
             body_np = parent_np.attachNewNode(body_node)
             # its scale will change by setScale
-            body_height = Block.LANE_LINE_GHOST_HEIGHT
+            body_height = PGBlock.LANE_LINE_GHOST_HEIGHT
             shape = BulletBoxShape(
-                Vec3(length / 2 if line_type != LineType.BROKEN else length, Block.LANE_LINE_WIDTH / 2, body_height)
+                Vec3(length / 2 if line_type != LineType.BROKEN else length, PGBlock.LANE_LINE_WIDTH / 2, body_height)
             )
             body_np.node().addShape(shape)
-            mask = Block.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else Block.BROKEN_COLLISION_MASK
+            mask = PGBlock.CONTINUOUS_COLLISION_MASK if line_type != LineType.BROKEN else PGBlock.BROKEN_COLLISION_MASK
             body_np.node().setIntoCollideMask(BitMask32.bit(mask))
             self.static_nodes.append(body_np.node())
 
         # position and heading
-        body_np.setPos(panda_position(middle, Block.LANE_LINE_GHOST_HEIGHT / 2))
+        body_np.setPos(panda_position(middle, PGBlock.LANE_LINE_GHOST_HEIGHT / 2))
         direction_v = lane_end - lane_start
         theta = -numpy.arctan2(direction_v[1], direction_v[0])
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
@@ -463,8 +463,8 @@ class Block(BaseObject, DrivableAreaProperty):
         if self.render:
             # For visualization
             lane_line = self.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
-            lane_line.setScale(length, Block.LANE_LINE_WIDTH, Block.LANE_LINE_THICKNESS)
-            lane_line.setPos(Vec3(0, 0 - Block.LANE_LINE_GHOST_HEIGHT / 2))
+            lane_line.setScale(length, PGBlock.LANE_LINE_WIDTH, PGBlock.LANE_LINE_THICKNESS)
+            lane_line.setPos(Vec3(0, 0 - PGBlock.LANE_LINE_GHOST_HEIGHT / 2))
             lane_line.reparentTo(body_np)
             body_np.set_color(color)
 

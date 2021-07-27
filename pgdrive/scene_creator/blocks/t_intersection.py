@@ -1,5 +1,5 @@
 from pgdrive.constants import Goal, LineType, LineColor
-from pgdrive.scene_creator.blocks.block import BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import BlockSocket
 from pgdrive.scene_creator.blocks.intersection import InterSection
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace

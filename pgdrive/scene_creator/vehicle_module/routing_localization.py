@@ -5,7 +5,7 @@ import numpy as np
 from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib, LineSegs, NodePath
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.map.base_map import BaseMap
 from pgdrive.scene_creator.road.road import Road
@@ -115,7 +115,7 @@ class RoutingLocalizationModule:
         start_road_node = current_lane_index[0]
         self.map = map
         if start_road_node is None:
-            start_road_node = FirstBlock.NODE_1
+            start_road_node = FirstPGBlock.NODE_1
         if final_road_node is None:
             current_road_negative = Road(*current_lane_index[:-1]).is_negative_road()
             random_seed = random_seed if random_seed is not False else map.random_seed
@@ -358,7 +358,7 @@ class RoutingLocalizationModule:
         end_position = start_position[0] + dir[0] * length, start_position[1] + dir[1] * length
         start_position = panda_position(start_position, z=0.15)
         end_position = panda_position(end_position, z=0.15)
-        mask = BitMask32.bit(FirstBlock.CONTINUOUS_COLLISION_MASK)
+        mask = BitMask32.bit(FirstPGBlock.CONTINUOUS_COLLISION_MASK)
         res = pg_world.physics_world.static_world.rayTestClosest(start_position, end_position, mask=mask)
         if not res.hasHit():
             return length

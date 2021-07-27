@@ -15,7 +15,7 @@ from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.math_utils import get_points_bounding_box
 
 if TYPE_CHECKING:
-    from pgdrive.scene_creator.blocks.block import BlockSocket
+    from pgdrive.scene_creator.blocks.pg_block import BlockSocket
     from pgdrive.scene_creator.road.road import Road
     from pgdrive.scene_creator.road.road_network import RoadNetwork
 

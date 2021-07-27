@@ -2,7 +2,7 @@ import copy
 from collections import deque
 
 import numpy as np
-from pgdrive.scene_creator.blocks.block import Block, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane, \
     CreateTwoWayRoad, create_bend_straight
 from pgdrive.constants import LineType, LineColor
@@ -12,7 +12,7 @@ from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 
-class ParkingLot(Block):
+class ParkingLot(PGBlock):
     """
     Parking Lot
     """
@@ -329,8 +329,8 @@ class ParkingLot(Block):
             -2] == "6", "It is not out-direction of this parking space, start_node:{}, end_node:{}".format(
                 start_node, end_node
             )
-        start_node = start_node[:-2] + "1" + Block.DASH
-        end_node = end_node[:-2] + "2" + Block.DASH
+        start_node = start_node[:-2] + "1" + PGBlock.DASH
+        end_node = end_node[:-2] + "2" + PGBlock.DASH
         return Road(start_node, end_node)
 
     @staticmethod
@@ -344,8 +344,8 @@ class ParkingLot(Block):
             -2] == "2", "It is not in-direction of this parking space, start_node:{}, end_node:{}".format(
                 start_node, end_node
             )
-        start_node = start_node[:-2] + "5" + Block.DASH
-        end_node = end_node[:-2] + "6" + Block.DASH
+        start_node = start_node[:-2] + "5" + PGBlock.DASH
+        end_node = end_node[:-2] + "6" + PGBlock.DASH
         return Road(start_node, end_node)
 
     @staticmethod

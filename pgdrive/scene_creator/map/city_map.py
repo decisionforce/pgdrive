@@ -3,8 +3,8 @@ from typing import Union
 
 from panda3d.core import NodePath
 from pgdrive.scene_creator.algorithm.BIG import BIG
-from pgdrive.scene_creator.blocks.block import Block
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.scene_creator.blocks.pg_block import PGBlock
+from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
 from pgdrive.scene_creator.map.base_map import BaseMap
 from pgdrive.scene_creator.algorithm.blocks_prob_dist import PGBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
@@ -56,13 +56,13 @@ class CityBIG(BIG):
         elif generate_method == BigGenerateMethod.BLOCK_SEQUENCE:
             assert isinstance(parameter, str), "When generating map from block sequence, the parameter should be a str"
             self.block_num = len(parameter) + 1
-            self._block_sequence = FirstBlock.ID + parameter
+            self._block_sequence = FirstPGBlock.ID + parameter
         while True:
             if self.big_helper_func():
                 break
         return self._global_network
 
-    def sample_block(self) -> Block:
+    def sample_block(self) -> PGBlock:
         """
         Sample a random block type
         """

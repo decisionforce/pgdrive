@@ -1,4 +1,5 @@
 import logging
+from pgdrive.scene_creator.road.road import Road
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -64,13 +65,9 @@ class ArgoverseMap(BaseMap):
         self._construct_road_network(lane_objs)
 
     def _construct_road_network(self, lane_dict: dict):
-        for lane_id, lane in lane_dict.items():
-            if lane.start_node in self.road_network:
-                if lane.end_node not in self.road_network[lane.start_node]:
-                    self.road_network[lane.start_node][lane.end_node] = []
-                self.road_network[lane.start_node][lane.end_node].append(lane)
-            else:
-                self.road_network[lane.start_node] = {lane.end_node: [lane]}
+        for lane in lane_dict.values():
+            self.road_network.add_road(Road(lane.start_node, lane.end_node), [lane])
+        print("finish")
 
     @staticmethod
     def extract_lane_segment_from_ET_element(child: ET.Element, all_graph_nodes: Mapping[int, Node]
@@ -120,4 +117,4 @@ class ArgoverseMap(BaseMap):
 
 
 if __name__ == "__main__":
-    map = ArgoverseMap({"city": "MIA"})
+    map = ArgoverseMap({"city": "MIA", "draw_map_resolution":1024})

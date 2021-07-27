@@ -5,8 +5,8 @@ import logging
 from pgdrive.scene_creator.base_object import BaseObject
 import numpy as np
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
-from pgdrive.scene_creator.blocks.block import Block
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.scene_creator.blocks.pg_block import PGBlock
+from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.utils import PGConfig, import_pygame
 
@@ -84,7 +84,7 @@ class BaseMap(BaseObject):
 
         #  a trick to optimize performance
         self.road_network.after_init()
-        self.spawn_roads = [Road(FirstBlock.NODE_2, FirstBlock.NODE_3)]
+        self.spawn_roads = [Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3)]
         self.unload_from_world()
 
     def _generate(self):
@@ -107,7 +107,7 @@ class BaseMap(BaseObject):
         assert self.blocks is not None and len(self.blocks) > 0, "Please generate Map before saving it"
         map_config = []
         for b in self.blocks:
-            assert isinstance(b, Block), "None Set can not be saved to json file"
+            assert isinstance(b, PGBlock), "None Set can not be saved to json file"
             b_config = b.get_config()
             json_config = b_config.get_serializable_dict()
             json_config[self.BLOCK_ID] = b.ID

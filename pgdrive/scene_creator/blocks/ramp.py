@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 from pgdrive.constants import Decoration, LineType
-from pgdrive.scene_creator.blocks.block import Block, BlockSocket
+from pgdrive.scene_creator.blocks.pg_block import PGBlock, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import ExtendStraightLane, CreateRoadFrom, CreateAdverseRoad, \
     create_bend_straight
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
@@ -12,7 +12,7 @@ from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 
-class Ramp(Block):
+class Ramp(PGBlock):
     """
                     InRamp                                             OutRamp
     
@@ -85,7 +85,7 @@ class InRampOnStraight(Ramp):
         no_cross = CreateAdverseRoad(acc_road, self.block_network, self._global_network) and no_cross
         left_line_type = LineType.CONTINUOUS if self.positive_lane_num == 1 else LineType.BROKEN
         acc_road.get_lanes(self.block_network)[-1].line_types = [left_line_type, LineType.BROKEN]
-        self.add_sockets(Block.create_socket_from_positive_road(acc_road))
+        self.add_sockets(PGBlock.create_socket_from_positive_road(acc_road))
 
         # ramp part, part 1
         self.set_part_idx(1)

@@ -11,7 +11,7 @@ from pgdrive.engine.core.manual_controller import KeyboardController, JoystickCo
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs.image_obs import ImageStateObservation
 from pgdrive.obs.state_obs import LidarStateObservation
-from pgdrive.scene_creator.blocks.first_block import FirstBlock
+from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
 from pgdrive.scene_creator.map.base_map import BaseMap, MapGenerateMethod, parse_map_config
 from pgdrive.scene_creator.map.pg_map import PGMap
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -78,7 +78,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         image_source="rgb_cam",  # take effect when only when use_image == True
 
         # ===== vehicle spawn =====
-        spawn_lane_index=(FirstBlock.NODE_1, FirstBlock.NODE_2, 0),
+        spawn_lane_index=(FirstPGBlock.NODE_1, FirstPGBlock.NODE_2, 0),
         spawn_longitude=5.0,
         spawn_lateral=0.0,
 
