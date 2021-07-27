@@ -1,6 +1,9 @@
 from pyrosm import OSM, get_data
 import osmnx as ox
 
+# get real map in PBF fromat from https://extract.bbbike.org/
+# install pyrosm and all dependencies via pip install pyrosm osmnx networkx
+
 # Initialize the reader
 osm = OSM("cpii.osm.pbf")
 
@@ -8,6 +11,7 @@ osm = OSM("cpii.osm.pbf")
 nodes, edges = osm.get_network(nodes=True, network_type="driving")
 # Create NetworkX graph
 G = osm.to_graph(nodes, edges, graph_type="networkx")
-ox.plot_graph(G)
+
 ccc = edges.head(40)
 print(ccc.geometry)
+ox.plot_graph(G)
