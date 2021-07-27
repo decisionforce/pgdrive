@@ -1,7 +1,7 @@
 from panda3d.core import LVector4, NodePath, DirectionalLight, AmbientLight
 
 from pgdrive.constants import CamMask
-from pgdrive.utils.base_object import BaseObject
+from pgdrive.scene_creator.base_object import BaseObject
 
 
 class Light(BaseObject):

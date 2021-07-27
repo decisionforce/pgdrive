@@ -1,8 +1,8 @@
 import copy
-from pgdrive.utils.engine_utils import get_pgdrive_engine, set_global_random_seed
+from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.scene_creator.road.road import Road
 import logging
-from pgdrive.utils.base_object import BaseObject
+from pgdrive.scene_creator.base_object import BaseObject
 import numpy as np
 from pgdrive.scene_creator.algorithm.BIG import BigGenerateMethod
 from pgdrive.scene_creator.blocks.block import Block
@@ -88,7 +88,7 @@ class BaseMap(BaseObject):
         self.unload_from_world()
 
     def _generate(self):
-        """Key function! Please overwrite it!"""
+        """Key function! Please overwrite it! This func aims at fill the self.road_network adn self.blocks"""
         raise NotImplementedError("Please use child class like PGMap to replace Map!")
 
     def load_to_world(self):

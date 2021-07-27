@@ -7,17 +7,16 @@ from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletGhostNode
 from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
     TransparencyAttrib, SamplerState, NodePath
 
-from pgdrive.constants import Decoration, BodyName, CamMask, CollisionGroup
-from pgdrive.scene_creator.blocks.constants import BlockDefault
-from pgdrive.scene_creator.lane.abs_lane import AbstractLane, LineType, LineColor
-from pgdrive.engine.core.physics_node import LaneNode
+from pgdrive.constants import BodyName, CamMask, CollisionGroup, LineType, LineColor, DrivableAreaProperty
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
+from pgdrive.engine.physics_node import LaneNode
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.base_object import BaseObject
+from pgdrive.scene_creator.base_object import BaseObject
 from pgdrive.utils.math_utils import norm, PGVector
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
@@ -59,7 +58,7 @@ class BlockSocket:
         return True if self.positive_road == other.positive_road and self.negative_road == other.negative_road else False
 
 
-class Block(BaseObject, BlockDefault):
+class Block(BaseObject, DrivableAreaProperty):
     """
     Abstract class of Block,
     BlockSocket: a part of previous block connecting this block
@@ -507,11 +506,8 @@ class Block(BaseObject, BlockDefault):
         :param from_: From node
         :param to_: To Node
         :param lanes: All lanes of this road
-        :return: None
         """
 
-        # decoration only has vis properties
-        need_body = False if (from_, to_) == (Decoration.start, Decoration.end) else True
         if isinstance(lanes[0], StraightLane):
             for index, lane in enumerate(lanes):
                 middle = lane.position(lane.length / 2, 0)

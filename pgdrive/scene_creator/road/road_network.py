@@ -4,8 +4,8 @@ import math
 from typing import List, Tuple, Dict
 
 import numpy as np
-from pgdrive.constants import Decoration
-from pgdrive.scene_creator.lane.abs_lane import LineType, AbstractLane
+from pgdrive.constants import Decoration, LineType
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.utils.math_utils import get_boxes_bounding_box

@@ -1,12 +1,11 @@
 import numpy as np
-from pgdrive.constants import CamMask
+from pgdrive.constants import CamMask, LineType, LineColor
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.constants import BodyName
 from pgdrive.scene_creator.blocks.block import BlockSocket
 from pgdrive.scene_creator.blocks.bottleneck import Block
 from pgdrive.scene_creator.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, ExtendStraightLane
 from pgdrive.scene_creator.buildings.base_building import BaseBuilding
-from pgdrive.scene_creator.lane.abs_lane import LineType, LineColor
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace

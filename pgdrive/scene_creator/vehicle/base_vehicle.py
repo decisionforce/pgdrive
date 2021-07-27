@@ -17,7 +17,7 @@ from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.map.base_map import BaseMap
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.engine.core.physics_node import BaseVehicleNode
+from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
 from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
 from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector, LaneLineDetector
@@ -27,7 +27,7 @@ from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.utils import get_np_random, PGConfig, safe_clip_for_small_array, PGVector
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
-from pgdrive.utils.base_object import BaseObject
+from pgdrive.scene_creator.base_object import BaseObject
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization

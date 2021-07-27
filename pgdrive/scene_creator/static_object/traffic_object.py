@@ -5,7 +5,7 @@ from panda3d.bullet import BulletCylinderShape
 from panda3d.core import NodePath
 from pgdrive.constants import BodyName
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.core.physics_node import TrafficSignNode
+from pgdrive.engine.physics_node import TrafficSignNode
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.scene_creator.static_object.base_static_object import BaseStaticObject
 

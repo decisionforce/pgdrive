@@ -2,34 +2,14 @@ import math
 from abc import ABCMeta, abstractmethod
 from typing import Tuple, Union, Sequence
 
+from pgdrive.constants import LineType, LineColor
+
 import numpy as np
 
 Vector = Union[np.ndarray, Sequence[float]]
 
 
-class LineType:
-    """A lane side line type."""
-
-    NONE = "none"
-    BROKEN = "broken"
-    CONTINUOUS = "continuous"
-    SIDE = "side"
-    CONTINUOUS_LINE = 4  # deprecated
-
-    @staticmethod
-    def prohibit(line_type) -> bool:
-        if line_type in [LineType.CONTINUOUS, LineType.CONTINUOUS_LINE, LineType.SIDE]:
-            return True
-        else:
-            return False
-
-
-class LineColor:
-    GREY = (1, 1, 1, 1)
-    YELLOW = (245 / 255, 192 / 255, 67 / 255, 1)
-
-
-class AbstractLane(object):
+class AbstractLane:
     """A lane on the road, described by its central curve."""
 
     metaclass__ = ABCMeta
@@ -130,5 +110,3 @@ class AbstractLane(object):
         b = 0 - s
         # return abs(r) + max(s - self.length, 0) + max(0 - s, 0)
         return abs(r) + (a if a > 0 else 0) + (b if b > 0 else 0)
-
-

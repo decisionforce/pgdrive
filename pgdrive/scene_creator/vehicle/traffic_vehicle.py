@@ -1,6 +1,6 @@
 from typing import Union
 
-from pgdrive.engine.core.physics_node import TrafficVehicleNode
+from pgdrive.engine.physics_node import TrafficVehicleNode
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 import math
 
@@ -14,7 +14,7 @@ from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.base_object import BaseObject
+from pgdrive.scene_creator.base_object import BaseObject
 from pgdrive.utils.scene_utils import ray_localization
 
 

@@ -1,11 +1,10 @@
 import math
 
 import numpy as np
-from pgdrive.constants import Decoration
+from pgdrive.constants import Decoration, LineType
 from pgdrive.scene_creator.blocks.block import Block, BlockSocket
 from pgdrive.scene_creator.blocks.create_block_utils import ExtendStraightLane, CreateRoadFrom, CreateAdverseRoad, \
     create_bend_straight
-from pgdrive.scene_creator.lane.abs_lane import LineType
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road
 from pgdrive.scene_creator.road.road_network import RoadNetwork

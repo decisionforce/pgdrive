@@ -2,7 +2,7 @@ from typing import Sequence, Tuple
 
 import numpy as np
 
-from pgdrive.utils.base_object import BaseObject
+from pgdrive.scene_creator.base_object import BaseObject
 
 LaneIndex = Tuple[str, str, int]
 
