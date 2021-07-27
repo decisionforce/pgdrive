@@ -1,5 +1,5 @@
 import logging
-from pgdrive.scene_creator.road.road import Road
+from pgdrive.scene_creator.blocks.argoverse_block import ArgoverseBlock
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -30,8 +30,11 @@ class ArgoverseMap(BaseMap):
     # supported city mas
     SUPPORTED_MAPS = ["MIA", "PIT"]
 
+    # block size
+    BLOCK_LANE_NUM = 40
+
     def __init__(self, map_config, random_seed=0):
-        map_config[self.SEED]=random_seed
+        map_config[self.SEED] = random_seed
         super(ArgoverseMap, self).__init__(map_config=map_config, random_seed=random_seed)
         assert "city" in map_config, "City name is required when generating argoverse map"
         assert map_config["city"] in self.SUPPORTED_MAPS, "City generation of {} is not supported (We support {} now)". \
@@ -65,9 +68,14 @@ class ArgoverseMap(BaseMap):
         self._construct_road_network(lane_objs)
 
     def _construct_road_network(self, lane_dict: dict):
-        for lane in lane_dict.values():
-            self.road_network.add_road(Road(lane.start_node, lane.end_node), [lane])
-        print("finish")
+        lanes = list(lane_dict.values())
+        num = int(len(lanes) / self.BLOCK_LANE_NUM)
+        for i in range(num + 1):
+            end = (i + 1) * self.BLOCK_LANE_NUM if i < num else len(lanes)
+            chosen_lanes = lanes[i * self.BLOCK_LANE_NUM:end]
+            block = ArgoverseBlock(i, self.road_network, chosen_lanes)
+            block.construct_block(self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world)
+            self.blocks.append(block)
 
     @staticmethod
     def extract_lane_segment_from_ET_element(child: ET.Element, all_graph_nodes: Mapping[int, Node]
@@ -117,4 +125,12 @@ class ArgoverseMap(BaseMap):
 
 
 if __name__ == "__main__":
-    map = ArgoverseMap({"city": "MIA", "draw_map_resolution":1024})
+    from pgdrive.utils.engine_utils import initialize_pgdrive_engine
+    from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
+    default_config = BASE_DEFAULT_CONFIG
+    default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True, })
+    initialize_pgdrive_engine(default_config, None)
+    map = ArgoverseMap({"city": "MIA", "draw_map_resolution": 1024})
+    map.load_to_world()
+    map.pgdrive_engine.enableMouse()
+    map.pgdrive_engine.run()

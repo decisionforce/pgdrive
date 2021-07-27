@@ -77,7 +77,8 @@ class WayPointLane(AbstractLane):
             if accumulate_len > longitudinal:
                 return seg["start_point"] + accumulate_len - longitudinal * seg["direction"] + lateral * seg[
                     "lateral_direction"]
-        raise ValueError("The longitudinal length of this lane ({}) < {}".format(accumulate_len, longitudinal))
+        return seg["start_point"] + accumulate_len - longitudinal * seg["direction"] + lateral * seg[
+            "lateral_direction"]
 
     def local_coordinates(self, position: Tuple[float, float]):
         ret = [] # ret_longitude, ret_lateral, sort_key

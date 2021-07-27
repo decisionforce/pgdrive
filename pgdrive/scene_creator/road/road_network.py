@@ -33,19 +33,18 @@ class RoadNetwork:
         self._init_graph_helper()
         self.is_initialized = True
 
-    def add(self, other):
+    def add(self, other, no_intersect=True):
         assert not self.is_initialized, "Adding new blocks should be done before road network initialization!"
         set_1 = set(self.graph) - {Decoration.start, Decoration.end}
         set_2 = set(other.graph) - {Decoration.start, Decoration.end}
         intersect = set_1.intersection(set_2)
-        if len(intersect) == 0:
-            # handle decoration_lanes
-            dec_lanes = self.get_all_decoration_lanes() + other.get_all_decoration_lanes()
-            self.graph.update(copy.copy(other.graph))
-            self.update_decoration_lanes(dec_lanes)
-            return self
-        else:
+        if len(intersect) != 0 and no_intersect:
             raise ValueError("Same start node {} in two road network".format(intersect))
+        # handle decoration_lanes
+        dec_lanes = self.get_all_decoration_lanes() + other.get_all_decoration_lanes()
+        self.graph.update(copy.copy(other.graph))
+        self.update_decoration_lanes(dec_lanes)
+        return self
 
     def __isub__(self, other):
         intersection = self.graph.keys() & other.graph.keys() - {Decoration.start, Decoration.end}
