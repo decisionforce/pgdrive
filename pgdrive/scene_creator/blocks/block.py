@@ -9,7 +9,8 @@ from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, Texture
 
 from pgdrive.constants import Decoration, BodyName, CamMask, CollisionGroup
 from pgdrive.scene_creator.blocks.constants import BlockDefault
-from pgdrive.scene_creator.lane.abs_lane import AbstractLane, LineType, LaneNode, LineColor
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane, LineType, LineColor
+from pgdrive.engine.core.physics_node import LaneNode
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_creator.road.road import Road

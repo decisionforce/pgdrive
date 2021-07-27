@@ -1,32 +1,21 @@
 from typing import Union
+
+from pgdrive.engine.core.physics_node import TrafficVehicleNode
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 import math
 
 import numpy as np
-from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
+from panda3d.bullet import BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
 from pgdrive.constants import BodyName, CollisionGroup
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.base_object import BaseObject
 from pgdrive.utils.scene_utils import ray_localization
-
-
-class TrafficVehicleNode(BulletRigidBodyNode):
-
-    # for lidar detection and other purposes
-    def __init__(self, node_name, kinematics_model: IDMVehicle):
-        BulletRigidBodyNode.__init__(self, node_name)
-        TrafficVehicleNode.setPythonTag(self, BodyName.Traffic_vehicle, self)
-        self.kinematic_model = kinematics_model
-
-    def reset(self, kinematics_model):
-        self.kinematic_model = IDMVehicle.create_from(kinematics_model)
 
 
 class PGTrafficVehicle(BaseObject):
