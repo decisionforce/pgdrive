@@ -16,6 +16,7 @@ from pgdrive.scene_managers.agent_manager import AgentManager
 from pgdrive.scene_managers.map_manager import MapManager
 from pgdrive.scene_managers.object_manager import TrafficSignManager
 from pgdrive.scene_managers.traffic_manager import TrafficManager
+from pgdrive.scene_managers.policy_manager import PolicyManager
 from pgdrive.utils import PGConfig, merge_dicts, get_np_random
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
     pgdrive_engine_initialized, set_global_random_seed
@@ -427,6 +428,7 @@ class BasePGDriveEnv(gym.Env):
         self.pgdrive_engine.register_manager("traffic_manager", TrafficManager())
         self.pgdrive_engine.register_manager("map_manager", MapManager())
         self.pgdrive_engine.register_manager("object_manager", TrafficSignManager())
+        self.pgdrive_engine.register_manager("policy_manager", PolicyManager())
 
     @property
     def current_map(self):

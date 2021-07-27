@@ -1,9 +1,11 @@
 import logging
-from pgdrive.scene_managers.base_manager import BaseManager
 from typing import Dict, AnyStr
-from pgdrive.engine.pgdrive_scene_cull import PGDriveSceneCull
+
 import numpy as np
+
 from pgdrive.engine.core.pg_world import PGWorld
+from pgdrive.engine.pgdrive_scene_cull import PGDriveSceneCull
+from pgdrive.scene_managers.base_manager import BaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +23,9 @@ class PGDriveEngine(PGWorld):
     STOP_REPLAY = False
 
     def __init__(
-        self,
-        global_config,
-        agent_manager,
+            self,
+            global_config,
+            agent_manager,
     ):
         self.global_config = global_config
         super(PGDriveEngine, self).__init__(self.global_config["pg_world_config"])

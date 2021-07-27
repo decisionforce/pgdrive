@@ -23,14 +23,29 @@ def _create_vehicle():
 def test_idm_policy():
     env = PGDriveEnvV2()
     env.reset()
-    v = env.vehicle
-    policy = IDMPolicy(
-        vehicle=v,
-        traffic_mgr=env.pgdrive_engine.traffic_manager, delay_time=1, random_seed=env.current_seed
-    )
-    action = policy.before_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
-    action = policy.step(dt=0.02)
-    action = policy.after_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
+    try:
+        v = env.vehicle
+        policy = IDMPolicy(
+            vehicle=v,
+            traffic_manager=env.pgdrive_engine.traffic_manager,
+            delay_time=1,
+            random_seed=env.current_seed
+        )
+        action = policy.before_step(v, front_vehicle=None, rear_vehicle=None,
+                                    current_map=env.pgdrive_engine.current_map)
+        action = policy.step(dt=0.02)
+        action = policy.after_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
+        env.pgdrive_engine.policy_manager.register_new_policy(
+            IDMPolicy, v.name,
+            vehicle=v,
+            traffic_manager=env.pgdrive_engine.traffic_manager,
+            delay_time=1,
+            random_seed=env.current_seed
+        )
+        env.step(env.action_space.sample())
+        env.reset()
+    finally:
+        env.close()
 
 
 if __name__ == '__main__':

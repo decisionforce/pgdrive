@@ -71,20 +71,20 @@ class Vehicle:
         self._position = np.asarray(pos).copy()
 
     # @classmethod
-    # def make_on_lane(cls, traffic_mgr: TrafficManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
+    # def make_on_lane(cls, traffic_manager: TrafficManager, lane_index: LaneIndex, longitudinal: float, speed: float = 0):
     #     """
     #     Create a vehicle on a given lane at a longitudinal position.
     #
-    #     :param traffic_mgr: the road where the vehicle is driving
+    #     :param traffic_manager: the road where the vehicle is driving
     #     :param lane_index: index of the lane where the vehicle is located
     #     :param longitudinal: longitudinal position along the lane
     #     :param speed: initial speed in [m/s]
     #     :return: A vehicle with at the specified position
     #     """
-    #     lane = traffic_mgr.current_map.road_network.get_lane(lane_index)
+    #     lane = traffic_manager.current_map.road_network.get_lane(lane_index)
     #     if speed is None:
     #         speed = lane.speed_limit
-    #     return cls(traffic_mgr, lane.position(longitudinal, 0), lane.heading_at(longitudinal), speed)
+    #     return cls(traffic_manager, lane.position(longitudinal, 0), lane.heading_at(longitudinal), speed)
 
     @classmethod
     def create_random(
@@ -168,9 +168,9 @@ class Vehicle:
             self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
     # def on_state_update(self) -> None:
-    #     new_l_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(self.position)
+    #     new_l_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(self.position)
     #     self.lane_index = new_l_index
-    #     self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index)
+    #     self.lane = self.traffic_manager.current_map.road_network.get_lane(self.lane_index)
 
     def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
         """

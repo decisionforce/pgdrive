@@ -82,7 +82,7 @@ class IDMPolicy(BasePolicy):
     def __init__(
             self,
             vehicle: BaseVehicle,
-            traffic_mgr: TrafficManager,
+            traffic_manager: TrafficManager,
             # position: List,
             delay_time: float,
             heading: float = 0,
@@ -98,16 +98,16 @@ class IDMPolicy(BasePolicy):
         self.enable_lane_change = enable_lane_change
         self.delay_time = delay_time
 
-        self.traffic_mgr = traffic_mgr
+        self.traffic_manager = traffic_manager
         # self._position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
 
         self.vehicle = vehicle
-        self.lane_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(
+        self.lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
             self.vehicle.position
-        ) if self.traffic_mgr else (np.nan, np.nan)
-        self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index) if self.traffic_mgr else None
+        ) if self.traffic_manager else (np.nan, np.nan)
+        self.lane = self.traffic_manager.current_map.road_network.get_lane(self.lane_index) if self.traffic_manager else None
         self.target_lane_index = target_lane_index or self.lane_index
 
         self.action = {'steering': 0, 'acceleration': 0}
@@ -132,7 +132,7 @@ class IDMPolicy(BasePolicy):
         # TODO: If vehicle is crashed, then we should return everything.
 
         action = {}
-        # front_vehicle, rear_vehicle = traffic_mgr.neighbour_vehicles(self)
+        # front_vehicle, rear_vehicle = traffic_manager.neighbour_vehicles(self)
         # Lateral: MOBIL
         self.follow_road(current_map)
         if self.enable_lane_change:
@@ -293,7 +293,7 @@ class IDMPolicy(BasePolicy):
         if self.lane_index != self.target_lane_index:
             # If we are on correct route but bad lane: abort it if someone else is already changing into the same lane
             if self.lane_index[:2] == self.target_lane_index[:2]:
-                for v in self.traffic_mgr.vehicles:
+                for v in self.traffic_manager.vehicles:
                     if v is not self \
                             and v.lane_index != self.target_lane_index \
                             and isinstance(v, ControlledVehicle) \
@@ -311,9 +311,9 @@ class IDMPolicy(BasePolicy):
         self.delay_time = 0
 
         # decide to make a lane change
-        for lane_index in self.traffic_mgr.current_map.road_network.side_lanes(self.lane_index):
+        for lane_index in self.traffic_manager.current_map.road_network.side_lanes(self.lane_index):
             # Is the candidate lane close enough?
-            if not self.traffic_mgr.current_map.road_network.get_lane(lane_index).is_reachable_from(self.position):
+            if not self.traffic_manager.current_map.road_network.get_lane(lane_index).is_reachable_from(self.position):
                 continue
             # Does the MOBIL model recommend a lane change?
             if self.mobil(lane_index):
@@ -331,14 +331,14 @@ class IDMPolicy(BasePolicy):
         :return: whether the lane change should be performed
         """
         # Is the maneuver unsafe for the new following vehicle?
-        new_preceding, new_following = self.traffic_mgr.neighbour_vehicles(self, lane_index)
+        new_preceding, new_following = self.traffic_manager.neighbour_vehicles(self, lane_index)
         new_following_a = self.acceleration(ego_vehicle=new_following, front_vehicle=new_preceding)
         new_following_pred_a = self.acceleration(ego_vehicle=new_following, front_vehicle=self)
         if new_following_pred_a < -self.LANE_CHANGE_MAX_BRAKING_IMPOSED:
             return False
 
         # Do I have a planned route for a specific lane which is safe for me to access?
-        old_preceding, old_following = self.traffic_mgr.neighbour_vehicles(self)
+        old_preceding, old_following = self.traffic_manager.neighbour_vehicles(self)
         self_pred_a = self.acceleration(ego_vehicle=self, front_vehicle=new_preceding)
         if self.route and self.route[0][2]:
             # Wrong direction
@@ -374,9 +374,9 @@ class IDMPolicy(BasePolicy):
         safe_distance = 200
         # Is the vehicle stopped on the wrong lane?
         if self.target_lane_index != self.lane_index and self.speed < stopped_speed:
-            _, rear = self.traffic_mgr.neighbour_vehicles(self)
-            _, new_rear = self.traffic_mgr.neighbour_vehicles(
-                self, self.traffic_mgr.current_map.road_network.get_lane(self.target_lane_index)
+            _, rear = self.traffic_manager.neighbour_vehicles(self)
+            _, new_rear = self.traffic_manager.neighbour_vehicles(
+                self, self.traffic_manager.current_map.road_network.get_lane(self.target_lane_index)
             )
             # Check for free room behind on both lanes
             if (not rear or rear.lane_distance_to(self) > safe_distance) and \
@@ -392,7 +392,7 @@ class IDMPolicy(BasePolicy):
         :param target_lane_index: index of the lane to follow
         :return: a array of features
         """
-        lane = self.traffic_mgr.current_map.road_network.get_lane(target_lane_index)
+        lane = self.traffic_manager.current_map.road_network.get_lane(target_lane_index)
         lane_coords = lane.local_coordinates(self.position)
         lane_next_coords = lane_coords[0] + self.speed * self.PURSUIT_TAU
         lane_future_heading = lane.heading_at(lane_next_coords)
