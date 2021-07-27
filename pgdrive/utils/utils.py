@@ -4,6 +4,8 @@ import os
 import sys
 import uuid
 
+logger = logging.getLogger(__file__)
+
 
 def import_pygame():
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -97,12 +99,12 @@ def merge_dicts(old_dict, new_dict, allow_new_keys=False, without_copy=False):
 
 
 def _deep_update(
-    original,
-    new_dict,
-    new_keys_allowed=False,
-    allow_new_subkey_list=None,
-    override_all_if_type_changes=None,
-    raise_error=True
+        original,
+        new_dict,
+        new_keys_allowed=False,
+        allow_new_subkey_list=None,
+        override_all_if_type_changes=None,
+        raise_error=True
 ):
     allow_new_subkey_list = allow_new_subkey_list or []
     override_all_if_type_changes = override_all_if_type_changes or []
@@ -132,3 +134,25 @@ def _deep_update(
         else:
             original[k] = value
     return original
+
+
+def deprecation_warning(old, new, error=False) -> None:
+    """Warns (via the `logger` object) or throws a deprecation warning/error.
+
+    Args:
+        old (str): A description of the "thing" that is to be deprecated.
+        new (Optional[str]): A description of the new "thing" that replaces it.
+        error (Optional[Union[bool, Exception]]): Whether or which exception to
+            throw. If True, throw ValueError. If False, just warn.
+            If Exception, throw that Exception.
+    """
+    msg = "`{}` has been deprecated.{}".format(
+        old, (" Use `{}` instead.".format(new) if new else ""))
+
+    if error is True:
+        raise ValueError(msg)
+    elif error and issubclass(error, Exception):
+        raise error(msg)
+    else:
+        logger.warning("DeprecationWarning: " + msg +
+                       " This will raise an error in the future!")

@@ -1,12 +1,13 @@
 import logging
-
 from typing import Dict, Union
+
 from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
-from pgdrive.utils import PGConfig, random_string, get_np_random, RandomEngine
+
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.utils.pg_space import PGSpace
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.utils import PGConfig, random_string, RandomEngine
+from pgdrive.utils.pg_space import PGSpace
 
 
 class PhysicsNodeList(list):
@@ -55,7 +56,7 @@ class Object(RandomEngine):
         There parameters doesn't change, such as length of straight road, max speed of one vehicle, etc.
         """
 
-        assert random_seed is not None, "Assign a random seed for {} class in super().__init__()".format(
+        assert random_seed is not None, "Please assign a random seed for {} class in super().__init__()".format(
             self.class_name
         )
 
@@ -188,7 +189,12 @@ class Object(RandomEngine):
         return self.__class__.__name__
 
     def __del__(self):
-        logging.debug("{} is destroyed".format(str(self)))
+        try:
+            str(self)
+        except AttributeError:
+            pass
+        else:
+            logging.debug("{} is destroyed".format(str(self)))
 
     def __repr__(self):
         return "{}".format(str(self))

@@ -1,4 +1,6 @@
-from typing import Tuple, Union, List
+import math
+from collections import deque
+from typing import Tuple, List
 
 import numpy as np
 
@@ -6,8 +8,9 @@ import pgdrive.utils.math_utils as utils
 from pgdrive.constants import Route, LaneIndex
 from pgdrive.policy.base_policy import BasePolicy
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
-from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.object.static_object import StaticObject
+# from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
+from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils.math_utils import clip
 
@@ -19,6 +22,8 @@ class IDMPolicy(BasePolicy):
     - Longitudinal: the IDM model computes an acceleration given the preceding vehicle's distance and speed.
     - Lateral: the MOBIL model decides when to change lane by maximizing the acceleration of nearby vehicles.
     """
+
+    STEERING_PARAMETERS = [ControlledVehicle.KP_HEADING, ControlledVehicle.KP_HEADING * ControlledVehicle.KP_LATERAL]
 
     # Longitudinal policy parameters
     ACC_MAX = 20.0  # [m/s2]
@@ -45,8 +50,37 @@ class IDMPolicy(BasePolicy):
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 2.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
 
+    """
+    A moving vehicle on a road, and its kinematics.
+
+    The vehicle is represented by a dynamical system: a modified bicycle model.
+    It's state is propagated depending on its steering and acceleration actions.
+    """
+
+    COLLISIONS_ENABLED = True
+    """ Enable collision detection between vehicles """
+
+    LENGTH = 5.0
+    """ Vehicle length [m] """
+    WIDTH = 2.0
+    """ Vehicle width [m] """
+    DEFAULT_SPEEDS = [23, 25]
+    """ Range for random initial speeds [m/s] """
+    MAX_SPEED = 40.
+    """ Maximum reachable speed [m/s] """
+
+    TAU_A = 0.6  # [s]
+    TAU_DS = 0.2  # [s]
+    PURSUIT_TAU = 1.5 * TAU_DS  # [s]
+    KP_A = 1 / TAU_A
+    KP_HEADING = 1 / TAU_DS
+    KP_LATERAL = 1 / 3 * KP_HEADING  # [1/s]
+    MAX_STEERING_ANGLE = np.pi / 3  # [rad]
+    DELTA_SPEED = 5  # [m/s]
+
     def __init__(
             self,
+            vehicle: BaseVehicle,
             traffic_mgr: TrafficManager,
             position: List,
             delay_time: float,
@@ -56,13 +90,32 @@ class IDMPolicy(BasePolicy):
             target_speed: float = None,
             route: Route = None,
             enable_lane_change: bool = True,
-            np_random: np.random.RandomState = None,
+            random_seed=None
+            # np_random: np.random.RandomState = None,
     ):
-        super().__init__(
-            traffic_mgr, position, heading, speed, target_lane_index, target_speed, route, np_random=np_random
-        )
+        super().__init__(random_seed=random_seed)
         self.enable_lane_change = enable_lane_change
         self.delay_time = delay_time
+
+        # self.name = random_string() if name is None else name
+        self.traffic_mgr = traffic_mgr
+        self._position = np.array(position).astype('float')
+        self.heading = heading
+        self.speed = speed
+
+        self.vehicle = vehicle
+        self.lane_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(
+            self.vehicle.position
+        ) if self.traffic_mgr else (np.nan, np.nan)
+        self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index) if self.traffic_mgr else None
+        self.target_lane_index = target_lane_index or self.lane_index
+
+        self.action = {'steering': 0, 'acceleration': 0}
+        self.crashed = False
+        # self.log = []
+        self.history = deque(maxlen=30)
+        # self.np_random = np_random if np_random else get_np_random()
+        self.route = route
 
     # def randomize_behavior(self):
     #     pass
@@ -90,19 +143,22 @@ class IDMPolicy(BasePolicy):
     #     )
     #     return v
 
-    def act(self, vehicle):
+    def act(self, vehicle: BaseVehicle, front_vehicle, rear_vehicle, current_map):
         """
         Execute an action.
 
         For now, no action is supported because the vehicle takes all decisions
         of acceleration and lane changes on its own, based on the IDM and MOBIL models.
         """
-        if vehicle.crashed:
-            return
+
+        # if vehicle.crashed:
+        #     return
+        # TODO: If vehicle is crashed, then we should return everything.
+
         action = {}
-        front_vehicle, rear_vehicle = self.traffic_mgr.neighbour_vehicles(self)
+        # front_vehicle, rear_vehicle = traffic_mgr.neighbour_vehicles(self)
         # Lateral: MOBIL
-        self.follow_road()
+        self.follow_road(current_map)
         if self.enable_lane_change:
             self.change_lane_policy()
         action['steering'] = self.steering_control(self.target_lane_index)
@@ -115,23 +171,59 @@ class IDMPolicy(BasePolicy):
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
         # Vehicle.act(self, action)  # Skip ControlledVehicle.act(), or the command will be override.
-        vehicle.act(self, action)
+        # vehicle.act(self, action)
 
-    # def step(self, dt: float):
-    #     """
-    #     Step the simulation.
-    #
-    #     Increases a timer used for decision policies, and step the vehicle dynamics.
-    #
-    #     :param dt: timestep
-    #     """
-    #     self.delay_time += dt
-    #     if self.action['acceleration'] < 0 and self.speed <= 0:
-    #         self.action['acceleration'] = -self.speed / dt
-    #     super().step(dt)
+        self.action = action
+        # self.apply_action(action)
+
+    def clip_actions(self) -> None:
+        if self.crashed:
+            self.action['steering'] = 0
+            self.action['acceleration'] = -1.0 * self.speed
+        self.action['steering'] = float(self.action['steering'])
+        self.action['acceleration'] = float(self.action['acceleration'])
+        if self.speed > self.MAX_SPEED:
+            self.action['acceleration'] = min(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+        elif self.speed < -self.MAX_SPEED:
+            self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+
+    def apply_action(self, dt):
+        self.delay_time += dt
+        if self.action['acceleration'] < 0 and self.speed <= 0:
+            self.action['acceleration'] = -self.speed / dt
+        self.clip_actions()
+        delta_f = self.action['steering']
+        beta = np.arctan(1 / 2 * np.tan(delta_f))
+        v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
+        self._position += v * dt
+        self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
+        self.speed += self.action['acceleration'] * dt
+
+    def follow_road(self, current_map):
+        """At the end of a lane, automatically switch to a next one."""
+        if current_map.road_network.get_lane(self.target_lane_index).after_end(self.position):
+            self.target_lane_index = current_map.road_network.next_lane(
+                self.target_lane_index, route=self.route, position=self.position, np_random=self.np_random
+            )
+
+    @property
+    def position(self):
+        return self.vehicle.position
+
+    def steering_control(self, target_lane_index: LaneIndex) -> float:
+        """
+        Linear controller with respect to parameters.
+
+        Overrides the non-linear controller ControlledVehicle.steering_control()
+
+        :param target_lane_index: index of the lane to follow
+        :return: a steering wheel angle command [rad]
+        """
+        return float(np.dot(np.array(self.STEERING_PARAMETERS), self.steering_features(target_lane_index)))
 
     def acceleration(
-            self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+            # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+            self, ego_vehicle: ControlledVehicle, front_vehicle, rear_vehicle
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -160,7 +252,8 @@ class IDMPolicy(BasePolicy):
             acceleration = -self.speed / 0.2
         return acceleration
 
-    def desired_gap(self, ego_vehicle: Vehicle, front_vehicle: Vehicle = None) -> float:
+    # def desired_gap(self, ego_vehicle: Vehicle, front_vehicle: Vehicle = None) -> float:
+    def desired_gap(self, ego_vehicle, front_vehicle) -> float:
         """
         Compute the desired distance between a vehicle and its leading vehicle.
 
@@ -175,7 +268,8 @@ class IDMPolicy(BasePolicy):
         d_star = d0 + ego_vehicle.speed * tau + ego_vehicle.speed * dv / (2 * np.sqrt(ab))
         return d_star
 
-    def maximum_speed(self, front_vehicle: Vehicle = None) -> Tuple[float, float]:
+    # def maximum_speed(self, front_vehicle: Vehicle = None) -> Tuple[float, float]:
+    def maximum_speed(self, front_vehicle) -> Tuple[float, float]:
         """
         Compute the maximum allowed speed to avoid Inevitable Collision States.
 
@@ -307,3 +401,22 @@ class IDMPolicy(BasePolicy):
                 # Reverse
                 return -self.COMFORT_ACC_MAX / 2
         return acceleration
+
+    def steering_features(self, target_lane_index: LaneIndex) -> np.ndarray:
+        """
+        A collection of features used to follow a lane
+
+        :param target_lane_index: index of the lane to follow
+        :return: a array of features
+        """
+        lane = self.traffic_mgr.current_map.road_network.get_lane(target_lane_index)
+        lane_coords = lane.local_coordinates(self.position)
+        lane_next_coords = lane_coords[0] + self.speed * self.PURSUIT_TAU
+        lane_future_heading = lane.heading_at(lane_next_coords)
+        features = np.array(
+            [
+                utils.wrap_to_pi(lane_future_heading - self.heading) * self.LENGTH / utils.not_zero(self.speed),
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed) ** 2)
+            ]
+        )
+        return features

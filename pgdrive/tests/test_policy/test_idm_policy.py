@@ -1,3 +1,4 @@
+from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 from pgdrive.envs.pgdrive_env import PGDriveEnvV1_DEFAULT_CONFIG
 from pgdrive.policy.idm_policy import IDMPolicy
@@ -20,9 +21,14 @@ def _create_vehicle():
 
 
 def test_idm_policy():
-    v = _create_vehicle()
-    policy = IDMPolicy(traffic_mgr=None, position=None, delay_time=1)
-    action = policy.act(v)
+    env = PGDriveEnvV2()
+    env.reset()
+    v = env.vehicle
+    policy = IDMPolicy(
+        vehicle=v,
+        position=None, traffic_mgr=env.pgdrive_engine.traffic_manager, delay_time=1, random_seed=env.current_seed
+    )
+    action = policy.act(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
 
 
 if __name__ == '__main__':
