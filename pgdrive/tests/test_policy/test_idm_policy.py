@@ -1,9 +1,13 @@
+import copy
+
+from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 from pgdrive.policy.idm_policy import IDMPolicy
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
 
 
 def _create_vehicle():
-    return BaseVehicle()
+    config = copy.deepcopy(BASE_DEFAULT_CONFIG)["vehicle_config"]
+    return BaseVehicle(config, random_seed=0)
 
 
 def test_idm_policy():

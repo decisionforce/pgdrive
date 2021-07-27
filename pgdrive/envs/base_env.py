@@ -16,8 +16,7 @@ from pgdrive.scene_managers.agent_manager import AgentManager
 from pgdrive.scene_managers.map_manager import MapManager
 from pgdrive.scene_managers.object_manager import TrafficSignManager
 from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.utils import PGConfig, merge_dicts
-from pgdrive.utils import get_np_random
+from pgdrive.utils import PGConfig, merge_dicts, get_np_random
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
     pgdrive_engine_initialized, set_global_random_seed
 
@@ -53,6 +52,7 @@ BASE_DEFAULT_CONFIG = dict(
 
     # ===== Vehicle =====
     vehicle_config=dict(
+        increment_steering=False,
         show_navi_mark=True,
         wheel_friction=0.6,
         max_engine_force=500,
