@@ -164,6 +164,9 @@ class PGDriveEngine(PGWorld):
         return step_infos
 
     def update_state_for_all_target_vehicles(self):
+
+        # TODO(pzh): What is this function? Should we need to call it all steps?
+
         if self.detector_mask is not None:
             is_target_vehicle_dict = {
                 v_obj.name: self.agent_manager.is_active_object(v_obj.name)

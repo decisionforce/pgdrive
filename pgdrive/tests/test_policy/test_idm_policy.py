@@ -1,3 +1,5 @@
+import numpy as np
+
 from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 from pgdrive.envs.pgdrive_env import PGDriveEnvV1_DEFAULT_CONFIG
@@ -59,19 +61,24 @@ def test_idm_policy_briefly():
         env.close()
 
 
-def test_idm_policy_is_moving():
-    env = PGDriveEnvV2({"use_render": True, "fast": True})
+def test_idm_policy_is_moving(render=False, in_test=True):
+    env = PGDriveEnvV2({"use_render": True, "fast": True, "manual_control": True} if render else {})
     env.reset()
+    last_pos = None
     try:
         for _ in range(1000):
             env.step(env.action_space.sample())
             vs = env.pgdrive_engine.traffic_manager.traffic_vehicles
             print("Position: ", {str(v)[:4]: v.position for v in vs})
+            new_pos = np.array([v.position for v in vs])
+            if last_pos is not None and in_test:
+                assert not np.all(new_pos == last_pos)
+            last_pos = new_pos
         env.reset()
     finally:
         env.close()
 
 
 if __name__ == '__main__':
-    # test_idm_policy_briefly()
-    test_idm_policy_is_moving()
+    test_idm_policy_briefly()
+    test_idm_policy_is_moving(render=True, in_test=False)

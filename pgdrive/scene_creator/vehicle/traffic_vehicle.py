@@ -78,12 +78,12 @@ class PGTrafficVehicle(Object):
         self.step(1e-1)
         # self.carNP.setQuat(LQuaternionf(math.cos(-1 * np.pi / 4), 0, 0, math.sin(-1 * np.pi / 4)))
 
-    def before_step(self) -> None:
-        """
-        Determine the action according to the elements in scene
-        :return: None
-        """
-        self.vehicle_node.kinematic_model.act()
+    # def before_step(self) -> None:
+    #     """
+    #     Determine the action according to the elements in scene
+    #     :return: None
+    #     """
+    #     self.vehicle_node.kinematic_model.act()
 
     def step(self, dt):
         if self.break_down:

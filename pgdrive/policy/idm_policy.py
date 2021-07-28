@@ -2,11 +2,12 @@ import math
 from typing import Tuple, List
 
 import numpy as np
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 
 import pgdrive.utils.math_utils as utils
 from pgdrive.constants import Route, LaneIndex
 from pgdrive.policy.base_policy import BasePolicy
-from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle, Vehicle as OldHighwayVehicle
+from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle, Vehicle
 from pgdrive.scene_creator.vehicle.traffic_vehicle import PGTrafficVehicle
 from pgdrive.scene_creator.object.static_object import StaticObject
 # from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
@@ -166,7 +167,7 @@ class IDMPolicy(BasePolicy):
             self.action['acceleration'] = -self.speed / dt
 
         # TODO: This is a workaround.
-        self.vehicle.vehicle_node.kinematic_model.step(dt, action=self.action)
+        # self.vehicle.vehicle_node.kinematic_model.step(dt, action=self.action)
         # self.vehicle.step(dt, self.action)
 
         # self.clip_actions()
@@ -209,6 +210,24 @@ class IDMPolicy(BasePolicy):
         """
         return float(np.dot(np.array(self.STEERING_PARAMETERS), self.steering_features(target_lane_index)))
 
+
+    def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
+        # TODO(pzh): This should be a utility function! Instead of a function inside policy!
+        #  besides, we copied the same code multiple times! In kinematics and basevehicle! This is not good!
+        """
+        Compute the signed distance to another vehicle along a lane.
+
+        :param vehicle: the other vehicle
+        :param lane: a lane
+        :return: the distance to the other vehicle [m]
+        """
+        if not vehicle:
+            return np.nan
+        if not lane:
+            lane = self.lane
+        return lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
+
+
     def acceleration(
         # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
         self,
@@ -238,10 +257,10 @@ class IDMPolicy(BasePolicy):
 
         if front_vehicle:
 
-            if isinstance(ego_vehicle, PGTrafficVehicle):
-                d = ego_vehicle.vehicle_node.kinematic_model.lane_distance_to(front_vehicle)
-            else:
-                d = ego_vehicle.lane_distance_to(front_vehicle)
+            # if isinstance(ego_vehicle, PGTrafficVehicle):
+            d = self.lane_distance_to(front_vehicle)
+            # else:
+            #     d = ego_vehicle.lane_distance_to(front_vehicle)
 
             acceleration -= self.COMFORT_ACC_MAX * \
                             np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)

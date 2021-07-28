@@ -122,14 +122,14 @@ class Vehicle:
         v = cls(vehicle.traffic_mgr, vehicle.position, vehicle.heading, vehicle.speed)
         return v
 
-    def act(self, action: Union[dict, str] = None) -> None:
-        """
-        Store an action to be repeated.
-
-        :param action: the input action
-        """
-        if action:
-            self.action = action
+    # def act(self, action: Union[dict, str] = None) -> None:
+    #     """
+    #     Store an action to be repeated.
+    #
+    #     :param action: the input action
+    #     """
+    #     if action:
+    #         self.action = action
 
     def step(self, dt: float, action) -> None:
         """
@@ -165,24 +165,37 @@ class Vehicle:
         elif self.speed < -self.MAX_SPEED:
             self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
+    @property
+    def direction(self) -> np.ndarray:
+        return np.array([math.cos(self.heading), math.sin(self.heading)])
+
+    @property
+    def velocity(self) -> np.ndarray:
+        return self.speed * self.direction
+
+    @property
+    def heading_theta(self):
+        return self.heading
+
     # def on_state_update(self) -> None:
     #     new_l_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(self.position)
     #     self.lane_index = new_l_index
     #     self.lane = self.traffic_manager.current_map.road_network.get_lane(self.lane_index)
 
-    def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
-        """
-        Compute the signed distance to another vehicle along a lane.
-
-        :param vehicle: the other vehicle
-        :param lane: a lane
-        :return: the distance to the other vehicle [m]
-        """
-        if not vehicle:
-            return np.nan
-        if not lane:
-            lane = self.lane
-        return lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
+    # def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
+    #     """
+    #     Compute the signed distance to another vehicle along a lane.
+    #
+    #     :param vehicle: the other vehicle
+    #     :param lane: a lane
+    #     :return: the distance to the other vehicle [m]
+    #     """
+    #     deprecation_warning(1, 2, True)
+    #     if not vehicle:
+    #         return np.nan
+    #     if not lane:
+    #         lane = self.lane
+    #     return lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
 
     # def check_collision(self, other: Union['Vehicle', 'TrafficSign']) -> None:
     #     """
@@ -221,36 +234,28 @@ class Vehicle:
     #         (other.position, 0.9 * other.LENGTH, 0.9 * other.WIDTH, other.heading)
     #     )
 
-    @property
-    def direction(self) -> np.ndarray:
-        return np.array([math.cos(self.heading), math.sin(self.heading)])
+    # @property
+    # def destination(self) -> np.ndarray:
+    #     if getattr(self, "route", None):
+    #         last_lane = self.traffic_mgr.current_map.road_network.get_lane(self.route[-1])
+    #         return last_lane.position(last_lane.length, 0)
+    #     else:
+    #         return self.position
+    #
+    # @property
+    # def destination_direction(self) -> np.ndarray:
+    #     if (self.destination != self.position).any():
+    #         return (self.destination - self.position) / norm(*(self.destination - self.position))
+    #     else:
+    #         return np.zeros((2, ))
 
-    @property
-    def velocity(self) -> np.ndarray:
-        return self.speed * self.direction
-
-    @property
-    def destination(self) -> np.ndarray:
-        if getattr(self, "route", None):
-            last_lane = self.traffic_mgr.current_map.road_network.get_lane(self.route[-1])
-            return last_lane.position(last_lane.length, 0)
-        else:
-            return self.position
-
-    @property
-    def destination_direction(self) -> np.ndarray:
-        if (self.destination != self.position).any():
-            return (self.destination - self.position) / norm(*(self.destination - self.position))
-        else:
-            return np.zeros((2, ))
-
-    @property
-    def on_road(self) -> bool:
-        """ Is the vehicle on its current lane, or off-traffic_manager ? """
-        return self.lane.on_lane(self.position)
-
-    def front_distance_to(self, other: "Vehicle") -> float:
-        return self.direction.dot(other.position - self.position)
+    # @property
+    # def on_road(self) -> bool:
+    #     """ Is the vehicle on its current lane, or off-traffic_manager ? """
+    #     return self.lane.on_lane(self.position)
+    #
+    # def front_distance_to(self, other: "Vehicle") -> float:
+    #     return self.direction.dot(other.position - self.position)
 
     def to_dict(self, origin_vehicle: "Vehicle" = None, observe_intentions: bool = True) -> dict:
         d = {
@@ -291,6 +296,3 @@ class Vehicle:
     def __repr__(self):
         return self.__str__()
 
-    @property
-    def heading_theta(self):
-        return self.heading

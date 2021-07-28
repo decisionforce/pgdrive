@@ -91,6 +91,11 @@ class TrafficManager(BaseManager):
                     block_vehicles = self.block_triggered_vehicles.pop()
                     self._traffic_vehicles += block_vehicles.vehicles
         for v in self._traffic_vehicles:
+            p = self.pgdrive_engine.policy_manager.get_policy(v.name)
+            # TODO(pzh): Why we input None here? Is that correct?
+            p.before_step(
+                vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map
+            )
             v.before_step()
 
     def step(self):
@@ -102,6 +107,8 @@ class TrafficManager(BaseManager):
         dt = self.pgdrive_engine.world_config["physics_world_step_size"]
         dt /= 3.6  # 1m/s = 3.6km/h
         for v in self._traffic_vehicles:
+            p = self.pgdrive_engine.policy_manager.get_policy(v.name)
+            p.step(dt)
             v.step(dt)
 
     def after_step(self):
@@ -110,6 +117,8 @@ class TrafficManager(BaseManager):
         """
         vehicles_to_remove = []
         for v in self._traffic_vehicles:
+            p = self.pgdrive_engine.policy_manager.get_policy(v.name)
+            p.after_step()
             if v.out_of_road:
                 remove = v.need_remove()
                 if remove:
