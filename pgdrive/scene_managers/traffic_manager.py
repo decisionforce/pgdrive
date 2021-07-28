@@ -93,9 +93,7 @@ class TrafficManager(BaseManager):
         for v in self._traffic_vehicles:
             p = self.pgdrive_engine.policy_manager.get_policy(v.name)
             # TODO(pzh): Why we input None here? Is that correct?
-            p.before_step(
-                vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map
-            )
+            p.before_step(vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map)
             v.before_step()
 
     def step(self):

@@ -59,7 +59,9 @@ class IDMVehicle(ControlledVehicle):
         np_random: np.random.RandomState = None,
     ):
         super().__init__(
-            traffic_mgr, position, heading,
+            traffic_mgr,
+            position,
+            heading,
             speed,
             # target_lane_index, target_speed, route,
             np_random=np_random

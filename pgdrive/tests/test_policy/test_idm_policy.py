@@ -62,7 +62,8 @@ def test_idm_policy_briefly():
 
 
 def test_idm_policy_is_moving(render=False, in_test=True):
-    config = {"traffic_mode": "hybrid", "map": "SS", "traffic_density": 1.0}
+    # config = {"traffic_mode": "hybrid", "map": "SS", "traffic_density": 1.0}
+    config = {"traffic_mode": "hybrid", "map": "SS"}
     if render:
         config.update({"use_render": True, "fast": True, "manual_control": True})
     env = PGDriveEnvV2(config)
