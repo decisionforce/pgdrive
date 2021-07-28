@@ -349,8 +349,8 @@ class BasePGDriveEnv(gym.Env):
     def vehicle(self):
         """A helper to return the vehicle only in the single-agent environment!"""
         assert len(self.vehicles) == 1, (
-            "env.vehicle is only supported in single-agent environment!" if len(self.vehicles) > 1 else
-            "Please initialize the environment first!"
+            "env.vehicle is only supported in single-agent environment!"
+            if len(self.vehicles) > 1 else "Please initialize the environment first!"
         )
         ego_v = self.vehicles[DEFAULT_AGENT]
         return ego_v

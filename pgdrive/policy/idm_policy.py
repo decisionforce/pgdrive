@@ -51,7 +51,6 @@ class IDMPolicy(BasePolicy):
     LANE_CHANGE_MIN_ACC_GAIN = 0.2  # [m/s2]
     LANE_CHANGE_MAX_BRAKING_IMPOSED = 2.0  # [m/s2]
     LANE_CHANGE_DELAY = 1.0  # [s]
-
     """
     A moving vehicle on a road, and its kinematics.
 
@@ -81,19 +80,19 @@ class IDMPolicy(BasePolicy):
     DELTA_SPEED = 5  # [m/s]
 
     def __init__(
-            self,
-            vehicle: BaseVehicle,
-            traffic_manager: TrafficManager,
-            # position: List,
-            delay_time: float,
-            heading: float = 0,
-            speed: float = 0,
-            target_lane_index: int = None,
-            target_speed: float = None,
-            route: Route = None,
-            enable_lane_change: bool = True,
-            random_seed=None
-            # np_random: np.random.RandomState = None,
+        self,
+        vehicle: BaseVehicle,
+        traffic_manager: TrafficManager,
+        # position: List,
+        delay_time: float,
+        heading: float = 0,
+        speed: float = 0,
+        target_lane_index: int = None,
+        target_speed: float = None,
+        route: Route = None,
+        enable_lane_change: bool = True,
+        random_seed=None
+        # np_random: np.random.RandomState = None,
     ):
         super().__init__(random_seed=random_seed)
         self.enable_lane_change = enable_lane_change
@@ -108,7 +107,9 @@ class IDMPolicy(BasePolicy):
         self.lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
             self.vehicle.position
         ) if self.traffic_manager else (np.nan, np.nan)
-        self.lane = self.traffic_manager.current_map.road_network.get_lane(self.lane_index) if self.traffic_manager else None
+        self.lane = self.traffic_manager.current_map.road_network.get_lane(
+            self.lane_index
+        ) if self.traffic_manager else None
         self.target_lane_index = target_lane_index or self.lane_index
 
         self.action = {'steering': 0, 'acceleration': 0}
@@ -142,9 +143,7 @@ class IDMPolicy(BasePolicy):
         action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
 
         # Longitudinal: IDM
-        action['acceleration'] = self.acceleration(
-            ego_vehicle=vehicle, front_vehicle=front_vehicle
-        )
+        action['acceleration'] = self.acceleration(ego_vehicle=vehicle, front_vehicle=front_vehicle)
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
 
@@ -211,8 +210,10 @@ class IDMPolicy(BasePolicy):
         return float(np.dot(np.array(self.STEERING_PARAMETERS), self.steering_features(target_lane_index)))
 
     def acceleration(
-            # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
-            self, ego_vehicle, front_vehicle
+        # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+        self,
+        ego_vehicle,
+        front_vehicle
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -284,7 +285,7 @@ class IDMPolicy(BasePolicy):
         tau = self.TIME_WANTED
         d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.LENGTH / 2 - d0, 0)
         v1_0 = front_vehicle.speed
-        delta = 4 * (a0 * a1 * tau) ** 2 + 8 * a0 * (a1 ** 2) * d + 4 * a0 * a1 * v1_0 ** 2
+        delta = 4 * (a0 * a1 * tau)**2 + 8 * a0 * (a1**2) * d + 4 * a0 * a1 * v1_0**2
         v_max = -a0 * tau + np.sqrt(delta) / (2 * a1)
 
         # Speed control
@@ -368,7 +369,7 @@ class IDMPolicy(BasePolicy):
             old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (
-                    new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
+                new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
             )
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
                 return False
@@ -412,7 +413,7 @@ class IDMPolicy(BasePolicy):
         features = np.array(
             [
                 utils.wrap_to_pi(lane_future_heading - self.heading) * self.LENGTH / utils.not_zero(self.speed),
-                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed) ** 2)
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
             ]
         )
         return features

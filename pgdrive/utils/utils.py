@@ -97,12 +97,12 @@ def merge_dicts(old_dict, new_dict, allow_new_keys=False, without_copy=False):
 
 
 def _deep_update(
-        original,
-        new_dict,
-        new_keys_allowed=False,
-        allow_new_subkey_list=None,
-        override_all_if_type_changes=None,
-        raise_error=True
+    original,
+    new_dict,
+    new_keys_allowed=False,
+    allow_new_subkey_list=None,
+    override_all_if_type_changes=None,
+    raise_error=True
 ):
     allow_new_subkey_list = allow_new_subkey_list or []
     override_all_if_type_changes = override_all_if_type_changes or []
@@ -144,13 +144,11 @@ def deprecation_warning(old, new, error=False) -> None:
             throw. If True, throw ValueError. If False, just warn.
             If Exception, throw that Exception.
     """
-    msg = "`{}` has been deprecated.{}".format(
-        old, (" Use `{}` instead.".format(new) if new else ""))
+    msg = "`{}` has been deprecated.{}".format(old, (" Use `{}` instead.".format(new) if new else ""))
     if error is True:
         raise ValueError(msg)
     elif error and issubclass(error, Exception):
         raise error(msg)
     else:
         logger = logging.getLogger(__name__)
-        logger.warning("DeprecationWarning: " + msg +
-                       " This will raise an error in the future!")
+        logger.warning("DeprecationWarning: " + msg + " This will raise an error in the future!")
