@@ -154,7 +154,6 @@ class IDMPolicy(BasePolicy):
         # Lateral: MOBIL
         self.follow_road(current_map)
 
-
         if self.enable_lane_change:
             self.change_lane_policy()
 
