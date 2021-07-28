@@ -155,9 +155,8 @@ class IDMPolicy(BasePolicy):
         self.follow_road(current_map)
 
 
-        # if self.enable_lane_change:
-        #     self.change_lane_policy()
-
+        if self.enable_lane_change:
+            self.change_lane_policy()
 
         action['steering'] = self.steering_control(self.target_lane_index)
         action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
