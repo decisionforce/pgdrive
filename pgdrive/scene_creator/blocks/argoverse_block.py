@@ -17,7 +17,3 @@ class ArgoverseBlock(BaseBlock):
         for lane in self.argo_lanes:
             self.block_network.add_road(Road(lane.start_node, lane.end_node), [lane])
         return True
-
-    def construct_block(
-            self, root_render_np, pg_physics_world, extra_config=None, no_same_node=True) -> bool:
-        return super(ArgoverseBlock, self).construct_block(root_render_np, pg_physics_world, extra_config, False)

@@ -1,4 +1,5 @@
 import math
+from pgdrive.scene_creator.lane.waypoint_lane import WayPointLane
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 import time
 from collections import deque
@@ -463,8 +464,9 @@ class BaseVehicle(BaseObject):
                 lateral = self.position - target_lane.center
             else:
                 lateral = target_lane.center - self.position
-        else:
-            raise ValueError("Unknown target lane type: {}".format(type(target_lane)))
+        elif isinstance(target_lane, WayPointLane):
+            # TODO FIX this!
+            return 0.5
         lateral_norm = norm(lateral[0], lateral[1])
         forward_direction = self.heading
         # print(f"Old forward direction: {self.forward_direction}, new heading {self.heading}")

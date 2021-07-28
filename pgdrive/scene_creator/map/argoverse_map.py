@@ -18,15 +18,13 @@ logger = logging.getLogger(__name__)
 _PathLike = Union[str, "os.PathLike[str]"]
 
 from pgdrive.scene_creator.map.base_map import BaseMap
+from pgdrive.constants import LineColor
 
 
 class ArgoverseMap(BaseMap):
     """
     This class converting the Argoverse to PGDrive and allow the interactive behaviors
     """
-
-    # according to api of get_vector_map_lane_polygons(), the lane width in argoverse dataset is 3.8m
-    LANE_WIDTH = 3.8
 
     # supported city mas
     SUPPORTED_MAPS = ["MIA", "PIT"]
@@ -44,6 +42,7 @@ class ArgoverseMap(BaseMap):
             format(map_config["city"], self.SUPPORTED_MAPS)
         self.city = map_config["city"]
         super(ArgoverseMap, self).__init__(map_config=map_config, random_seed=random_seed)
+        self.lane_id_lane = None
 
     def _generate(self):
         """
@@ -69,17 +68,30 @@ class ArgoverseMap(BaseMap):
             else:
                 logger.error("Unknown XML item encountered.")
                 raise ValueError("Unknown XML item encountered.")
-        lane_ids = ArgoverseMap.AGMap.get_lane_ids_in_xy_bbox(*self.config["center"],self.config["city"],self.config["radius"])
+        lane_ids = ArgoverseMap.AGMap.get_lane_ids_in_xy_bbox(*self.config["center"], self.config["city"],
+                                                              self.config["radius"])
+        self.lane_id_lane = lane_objs
         self._construct_road_network([lane_objs[k] for k in lane_ids])
 
     def _construct_road_network(self, lanes: list):
-        num = int(len(lanes) / self.BLOCK_LANE_NUM)
-        for i in range(100):
-            end = (i + 1) * self.BLOCK_LANE_NUM if i < num else len(lanes)
-            chosen_lanes = lanes[i * self.BLOCK_LANE_NUM:end]
-            block = ArgoverseBlock(i, self.road_network, chosen_lanes)
-            block.construct_block(self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world)
-            self.blocks.append(block)
+        # num = int(len(lanes) / self.BLOCK_LANE_NUM)
+        # for i in range(1):
+        # end = (i + 1) * self.BLOCK_LANE_NUM if i < num else len(lanes)
+        # chosen_lanes = lanes[i * self.BLOCK_LANE_NUM:end]
+        # TODO Argoverse Block need refine
+        # TODO Set_ROUTE
+        # TODO heading_diff
+        chosen_lanes = lanes
+        for lane in lanes:
+            self._post_process_lane(lane)
+
+        block = ArgoverseBlock(0, self.road_network, chosen_lanes)
+        block.construct_block(self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world)
+        self.blocks.append(block)
+
+    def _post_process_lane(self, lane: ArgoverseLane):
+        if lane.l_neighbor_id is not None and self.lane_id_lane[lane.l_neighbor_id].l_neighbor_id == lane.id:
+            lane.line_color = (LineColor.YELLOW, LineColor.GREY)
 
     @staticmethod
     def extract_lane_segment_from_ET_element(child: ET.Element, all_graph_nodes: Mapping[int, Node]
@@ -131,19 +143,21 @@ class ArgoverseMap(BaseMap):
 if __name__ == "__main__":
     from pgdrive.utils.engine_utils import initialize_pgdrive_engine
     from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
+
     default_config = BASE_DEFAULT_CONFIG
-    default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True, "debug_static_world":True,
-                                              "debug_physics_world":False})
+    default_config["pg_world_config"].update(
+        {"use_render": True, "use_image": False, "debug": True, "fast_launch_window": True, "debug_static_world": True,
+         "debug_physics_world": False})
     initialize_pgdrive_engine(default_config, None)
     xcenter, ycenter = 2599.5505965123866, 1200.0214763629717
     xmin = xcenter - 80  # 150
     xmax = xcenter + 80  # 150
     ymin = ycenter - 80  # 150
     ymax = ycenter + 80  # 150
-    map = ArgoverseMap({"city": "PIT", "draw_map_resolution": 1024, "center":[xcenter, ycenter], "radius":10})
+    map = ArgoverseMap({"city": "PIT", "draw_map_resolution": 1024, "center": [xcenter, ycenter], "radius": 10})
     map.load_to_world()
     map.pgdrive_engine.enableMouse()
-    map.pgdrive_engine.cam.setPos(xcenter, -ycenter,800)
-    map.pgdrive_engine.cam.lookAt(xcenter, -ycenter,0)
+    map.pgdrive_engine.cam.setPos(xcenter, -ycenter, 800)
+    map.pgdrive_engine.cam.lookAt(xcenter, -ycenter, 0)
     while True:
         map.pgdrive_engine.step()

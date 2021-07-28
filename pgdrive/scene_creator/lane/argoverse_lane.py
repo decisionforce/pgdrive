@@ -7,7 +7,7 @@ from pgdrive.constants import LineType, LineColor
 
 class ArgoverseLane(WayPointLane, LaneSegment):
     # according to api of get_vector_map_lane_polygons(), the lane width in argoverse dataset is 3.8m
-    LANE_WIDTH = 3.8
+    LANE_WIDTH = 3.0
 
     def __init__(self,
                  start_node: str,
@@ -22,6 +22,8 @@ class ArgoverseLane(WayPointLane, LaneSegment):
                  successors: Optional[List[int]],
                  centerline: np.ndarray,
                  ):
+        # convert_to_PGDrive_coordinates
+        centerline[:,1]*=-1
         LaneSegment.__init__(self,
                              id,
                              has_traffic_control,
@@ -35,8 +37,14 @@ class ArgoverseLane(WayPointLane, LaneSegment):
         WayPointLane.__init__(self, centerline, self.LANE_WIDTH)
         self.start_node = start_node
         self.end_node = end_node
-        self.line_types = (LineType.CONTINUOUS if self.l_neighbor_id is None else LineType.NONE,
-                           LineType.CONTINUOUS if self.r_neighbor_id is None else LineType.NONE)
-        self.line_color = (
-        LineColor.YELLOW if self.l_neighbor_id is None and self.r_neighbor_id is not None else LineColor.GREY,
-        LineColor.GREY)
+        if is_intersection:
+            # if turn_direction == "RIGHT" and r_neighbor_id is None:
+            #     self.line_types = (LineType.NONE, LineType.CONTINUOUS)
+            # elif turn_direction == "LEFT" and l_neighbor_id is None:
+            #     self.line_types = (LineType.CONTINUOUS,LineType.NONE)
+            # else:
+            #     self.line_types = (LineType.CONTINUOUS if l_neighbor_id is None else LineType.NONE, LineType.CONTINUOUS if r_neighbor_id is None else LineType.NONE)
+            self.line_types = (LineType.NONE, LineType.NONE)
+        else:
+            self.line_types = (LineType.CONTINUOUS, LineType.CONTINUOUS)
+        self.line_color = (LineColor.GREY, LineColor.GREY)

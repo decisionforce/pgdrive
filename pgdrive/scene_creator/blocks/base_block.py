@@ -262,13 +262,14 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
             for c, i in enumerate([-1, 1]):
                 line_color = colors[c]
                 acc_length = 0
-                for segment in lane.segment_property:
-                    lane_start = lane.position(acc_length, i * lane_width / 2)
-                    acc_length += segment["length"]
-                    lane_end = lane.position(acc_length, i * lane_width / 2)
-                    middle = (lane_start + lane_end) / 2
-                    self._add_lane_line2bullet(
-                        lane_start, lane_end, middle, parent_np, line_color, lane.line_types[c])
+                if lane.line_types[c] != LineType.NONE:
+                    for segment in lane.segment_property:
+                        lane_start = lane.position(acc_length, i * lane_width / 2)
+                        acc_length += segment["length"]
+                        lane_end = lane.position(acc_length, i * lane_width / 2)
+                        middle = (lane_start + lane_end) / 2
+                        self._add_lane_line2bullet(
+                            lane_start, lane_end, middle, parent_np, line_color, lane.line_types[c])
 
     def _add_box_body(self, lane_start, lane_end, middle, parent_np: NodePath, line_type, line_color):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
