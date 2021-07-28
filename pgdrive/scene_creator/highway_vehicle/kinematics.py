@@ -51,13 +51,14 @@ class Vehicle:
         self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index) if self.traffic_mgr else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
-        self.log = []
-        self.history = deque(maxlen=30)
+        # self.log = []
+        # self.history = deque(maxlen=30)
         self.np_random = np_random if np_random else get_np_random()
 
-    def update_lane_index(self, lane_index, lane):
-        self.lane_index = lane_index
-        self.lane = lane
+    # def update_lane_index(self, lane_index, lane):
+    #     raise ValueError("Deprecated!")
+    #     self.lane_index = lane_index
+    #     self.lane = lane
 
     @property
     def position(self):
@@ -142,9 +143,9 @@ class Vehicle:
         :param dt: timestep of integration of the model [s]
         """
         assert isinstance(action, dict)
-        self.action = action
-        self.clip_actions()
-        delta_f = self.action['steering']
+        # self.action = action
+        action = self.clip_actions(action)
+        delta_f = action['steering']
         beta = np.arctan(1 / 2 * np.tan(delta_f))
         v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
 
@@ -153,22 +154,23 @@ class Vehicle:
         self._position += v * dt
 
         self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
-        self.speed += self.action['acceleration'] * dt
+        self.speed += action['acceleration'] * dt
         # for performance reason,
         # TODO(pzh): This part is done in the policy. Check!
         # self.on_state_update()
 
-    def clip_actions(self) -> None:
+    def clip_actions(self, action) -> None:
         # TODO(pzh): This part is done in policy. Check!
         if self.crashed:
-            self.action['steering'] = 0
-            self.action['acceleration'] = -1.0 * self.speed
-        self.action['steering'] = float(self.action['steering'])
-        self.action['acceleration'] = float(self.action['acceleration'])
+            action['steering'] = 0
+            action['acceleration'] = -1.0 * self.speed
+        action['steering'] = float(action['steering'])
+        action['acceleration'] = float(action['acceleration'])
         if self.speed > self.MAX_SPEED:
-            self.action['acceleration'] = min(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+            action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
         elif self.speed < -self.MAX_SPEED:
-            self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+            action['acceleration'] = max(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+        return action
 
     @property
     def direction(self) -> np.ndarray:
@@ -300,4 +302,3 @@ class Vehicle:
 
     def __repr__(self):
         return self.__str__()
-

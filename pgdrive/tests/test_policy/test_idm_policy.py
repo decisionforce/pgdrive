@@ -72,7 +72,7 @@ def test_idm_policy_is_moving(render=False, in_test=True):
         for _ in range(1000):
             env.step(env.action_space.sample())
             vs = env.pgdrive_engine.traffic_manager.traffic_vehicles
-            print("Position: ", {str(v)[:4]: v.position for v in vs})
+            # print("Position: ", {str(v)[:4]: v.position for v in vs})
             new_pos = np.array([v.position for v in vs])
             if last_pos is not None and in_test:
                 assert not np.all(new_pos == last_pos)
@@ -83,5 +83,5 @@ def test_idm_policy_is_moving(render=False, in_test=True):
 
 
 if __name__ == '__main__':
-    test_idm_policy_briefly()
-    test_idm_policy_is_moving(render=True, in_test=False)
+    # test_idm_policy_briefly()
+    test_idm_policy_is_moving(render=False, in_test=False)

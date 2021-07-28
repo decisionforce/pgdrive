@@ -1,14 +1,14 @@
-import math
-from typing import Tuple, List
 import copy
+import math
+from typing import Tuple
+
 import numpy as np
-from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 
 import pgdrive.utils.math_utils as utils
 from pgdrive.constants import Route, LaneIndex
 from pgdrive.policy.base_policy import BasePolicy
 from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle, Vehicle
-from pgdrive.scene_creator.vehicle.traffic_vehicle import PGTrafficVehicle
+from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.object.static_object import StaticObject
 # from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -81,19 +81,19 @@ class IDMPolicy(BasePolicy):
     DELTA_SPEED = 5  # [m/s]
 
     def __init__(
-        self,
-        vehicle: BaseVehicle,
-        traffic_manager: TrafficManager,
-        # position: List,
-        delay_time: float,
-        heading: float = 0,
-        speed: float = 0,
-        target_lane_index: int = None,
-        target_speed: float = None,
-        route: Route = None,
-        enable_lane_change: bool = True,
-        random_seed=None
-        # np_random: np.random.RandomState = None,
+            self,
+            vehicle: BaseVehicle,
+            traffic_manager: TrafficManager,
+            # position: List,
+            delay_time: float,
+            # heading: float = 0,
+            # speed: float = 0,
+            target_lane_index: int = None,
+            target_speed: float = 0.01,
+            route: Route = None,
+            enable_lane_change: bool = True,
+            random_seed=None
+            # np_random: np.random.RandomState = None,
     ):
         super().__init__(random_seed=random_seed)
         self.enable_lane_change = enable_lane_change
@@ -101,8 +101,9 @@ class IDMPolicy(BasePolicy):
 
         self.traffic_manager = traffic_manager
         # self._position = np.array(position).astype('float')
-        self.heading = heading
-        self.speed = speed
+        # self.heading = heading
+        # self.speed = speed
+        self.target_speed = target_speed
 
         self.vehicle = vehicle
         self.lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
@@ -145,21 +146,13 @@ class IDMPolicy(BasePolicy):
 
         # Longitudinal: IDM
         action['acceleration'] = self.acceleration(ego_vehicle=vehicle, front_vehicle=front_vehicle)
+
+        # TODO(pzh): @LQY why we remove this line?
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
+
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
 
         self.action = action
-
-    # def clip_actions(self) -> None:
-    #     if self.crashed:
-    #         self.action['steering'] = 0
-    #         self.action['acceleration'] = -1.0 * self.speed
-    #     self.action['steering'] = float(self.action['steering'])
-    #     self.action['acceleration'] = float(self.action['acceleration'])
-    #     if self.speed > self.MAX_SPEED:
-    #         self.action['acceleration'] = min(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
-    #     elif self.speed < -self.MAX_SPEED:
-    #         self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
     def step(self, dt):
         self.delay_time += dt
@@ -187,7 +180,7 @@ class IDMPolicy(BasePolicy):
             # self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
             self.lane_index = lane_index
             self.lane = lane
-        self.out_of_road = not self.lane.on_lane(self.position, margin=2)
+        # self.out_of_road = not self.lane.on_lane(self.position, margin=2)
 
     def follow_road(self, current_map):
         """At the end of a lane, automatically switch to a next one."""
@@ -196,9 +189,20 @@ class IDMPolicy(BasePolicy):
                 self.target_lane_index, route=self.route, position=self.position, np_random=self.np_random
             )
 
+    # ============================================+
+    # TODO(pzh): Currently, this is the _position of the kinematics vehicle!
     @property
     def position(self):
         return self.vehicle.position
+
+    @property
+    def speed(self):
+        return self.vehicle.speed
+
+    @property
+    def heading(self):
+        return self.vehicle.heading
+    # ============================================+
 
     def steering_control(self, target_lane_index: LaneIndex) -> float:
         """
@@ -210,7 +214,6 @@ class IDMPolicy(BasePolicy):
         :return: a steering wheel angle command [rad]
         """
         return float(np.dot(np.array(self.STEERING_PARAMETERS), self.steering_features(target_lane_index)))
-
 
     def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
         # TODO(pzh): This should be a utility function! Instead of a function inside policy!
@@ -228,12 +231,11 @@ class IDMPolicy(BasePolicy):
             lane = self.lane
         return lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
 
-
     def acceleration(
-        # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
-        self,
-        ego_vehicle,
-        front_vehicle
+            # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+            self,
+            ego_vehicle,
+            front_vehicle
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -251,13 +253,13 @@ class IDMPolicy(BasePolicy):
         """
         if not ego_vehicle or isinstance(ego_vehicle, StaticObject):
             return 0
-        ego_target_speed = utils.not_zero(getattr(ego_vehicle, "target_speed", 0))
+
+        ego_target_speed = utils.not_zero(self.target_speed)
 
         # TODO(pzh): We should not required the self.speed! We should get the speed from the vehicle.
         acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(self.speed, 0) / ego_target_speed, self.DELTA))
 
         if front_vehicle:
-
             # if isinstance(ego_vehicle, PGTrafficVehicle):
             d = self.lane_distance_to(front_vehicle)
             # else:
@@ -305,7 +307,7 @@ class IDMPolicy(BasePolicy):
         tau = self.TIME_WANTED
         d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.LENGTH / 2 - d0, 0)
         v1_0 = front_vehicle.speed
-        delta = 4 * (a0 * a1 * tau)**2 + 8 * a0 * (a1**2) * d + 4 * a0 * a1 * v1_0**2
+        delta = 4 * (a0 * a1 * tau) ** 2 + 8 * a0 * (a1 ** 2) * d + 4 * a0 * a1 * v1_0 ** 2
         v_max = -a0 * tau + np.sqrt(delta) / (2 * a1)
 
         # Speed control
@@ -389,7 +391,7 @@ class IDMPolicy(BasePolicy):
             old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (
-                new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
+                    new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
             )
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
                 return False
@@ -433,7 +435,12 @@ class IDMPolicy(BasePolicy):
         features = np.array(
             [
                 utils.wrap_to_pi(lane_future_heading - self.heading) * self.LENGTH / utils.not_zero(self.speed),
-                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed) ** 2)
             ]
         )
         return features
+
+    def reset(self):
+        # self.vehicle_node.reset(self._initial_state)
+        # self.out_of_road = False
+        pass
