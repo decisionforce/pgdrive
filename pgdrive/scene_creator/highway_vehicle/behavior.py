@@ -60,7 +60,7 @@ class IDMVehicle(ControlledVehicle):
     ):
         super().__init__(
             traffic_mgr, position, heading,
-            # speed,
+            speed,
             # target_lane_index, target_speed, route,
             np_random=np_random
         )

@@ -35,13 +35,13 @@ class ControlledVehicle(Vehicle):
         road: TrafficManager,
         position: List,
         heading: float = 0,
-        # speed: float = 0,
+        speed: float = 0,
         # target_lane_index: LaneIndex = None,
         # target_speed: float = None,
         # route: Route = None,
         np_random: np.random.RandomState = None,
     ):
-        super().__init__(road, position, heading, np_random=np_random)
+        super().__init__(road, position, heading, speed=speed, np_random=np_random)
         # self.target_lane_index = target_lane_index or self.lane_index
         # self.target_speed = target_speed or self.speed
         # self.route = route

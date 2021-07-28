@@ -247,7 +247,7 @@ class TrafficManager(BaseManager):
         from pgdrive.policy.idm_policy import IDMPolicy
         e = get_pgdrive_engine()
         e.policy_manager.register_new_policy(
-            IDMPolicy, vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1
+            IDMPolicy, vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1, target_speed=random_v.speed
         )
 
         return random_v

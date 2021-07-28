@@ -106,7 +106,8 @@ class Vehicle:
             list(lane.position(longitude, 0)),
             lane.heading_at(longitude),
             speed,
-            np_random=get_np_random(random_seed)
+            # random_seed=get_np_random(random_seed)
+            # np_random=get_np_random(random_seed)
         )
         return v
 

@@ -106,12 +106,12 @@ class IDMPolicy(BasePolicy):
         self.target_speed = target_speed
 
         self.vehicle = vehicle
-        self.lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
-            self.vehicle.position
-        ) if self.traffic_manager else (np.nan, np.nan)
-        self.lane = self.traffic_manager.current_map.road_network.get_lane(
-            self.lane_index
-        ) if self.traffic_manager else None
+        # self.lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
+        #     self.vehicle.position
+        # ) if self.traffic_manager else (np.nan, np.nan)
+        # self.lane = self.traffic_manager.current_map.road_network.get_lane(
+        #     self.lane_index
+        # ) if self.traffic_manager else None
         self.target_lane_index = target_lane_index or self.lane_index
 
         self.action = {'steering': 0, 'acceleration': 0}
@@ -119,9 +119,23 @@ class IDMPolicy(BasePolicy):
         # self.history = deque(maxlen=30)
         self.route = route
 
-    def update_lane_index(self, lane_index, lane):
-        self.lane_index = lane_index
-        self.lane = lane
+    @property
+    def lane_index(self):
+        # TODO(pzh): Please change this by the ray_localization!!!
+        lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
+            self.vehicle.position
+        ) if self.traffic_manager else (np.nan, np.nan)
+        return lane_index
+
+    @property
+    def lane(self):
+        return self.traffic_manager.current_map.road_network.get_lane(
+            self.lane_index
+        ) if self.traffic_manager else None
+
+    # def update_lane_index(self, lane_index, lane):
+    #     self.lane_index = lane_index
+    #     self.lane = lane
 
     def before_step(self, vehicle: BaseVehicle, front_vehicle, rear_vehicle, current_map):
         """
@@ -139,8 +153,12 @@ class IDMPolicy(BasePolicy):
         # front_vehicle, rear_vehicle = traffic_manager.neighbour_vehicles(self)
         # Lateral: MOBIL
         self.follow_road(current_map)
-        if self.enable_lane_change:
-            self.change_lane_policy()
+
+
+        # if self.enable_lane_change:
+        #     self.change_lane_policy()
+
+
         action['steering'] = self.steering_control(self.target_lane_index)
         action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
 
@@ -173,14 +191,15 @@ class IDMPolicy(BasePolicy):
         # self.speed += self.action['acceleration'] * dt
 
     def after_step(self, *args, **kwargs):
-        engine = get_pgdrive_engine()
-        dir = np.array([math.cos(self.heading), math.sin(self.heading)])
-        lane, lane_index = ray_localization(dir, self.position, engine)
-        if lane is not None:
+        # engine = get_pgdrive_engine()
+        # dir = np.array([math.cos(self.heading), math.sin(self.heading)])
+        # lane, lane_index = ray_localization(dir, self.position, engine)
+        # if lane is not None:
             # self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
-            self.lane_index = lane_index
-            self.lane = lane
+            # self.lane_index = lane_index
+            # self.lane = lane
         # self.out_of_road = not self.lane.on_lane(self.position, margin=2)
+        pass
 
     def follow_road(self, current_map):
         """At the end of a lane, automatically switch to a next one."""
@@ -202,6 +221,7 @@ class IDMPolicy(BasePolicy):
     @property
     def heading(self):
         return self.vehicle.heading
+
     # ============================================+
 
     def steering_control(self, target_lane_index: LaneIndex) -> float:

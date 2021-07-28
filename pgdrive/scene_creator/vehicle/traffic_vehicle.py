@@ -101,13 +101,13 @@ class PGTrafficVehicle(Object):
         self.node_path.setH(heading)
 
     def after_step(self):
-        engine = get_pgdrive_engine()
-        dir = np.array([math.cos(self.heading), math.sin(self.heading)])
-        lane, lane_index = ray_localization(dir, self.position, engine)
-        if lane is not None:
-            e = get_pgdrive_engine()
-            p = e.policy_manager.get_policy(self.name)
-            p.update_lane_index(lane_index, lane)
+        # engine = get_pgdrive_engine()
+        # dir = np.array([math.cos(self.heading), math.sin(self.heading)])
+        # lane, lane_index = ray_localization(dir, self.position, engine)
+        # if lane is not None:
+            # e = get_pgdrive_engine()
+            # p = e.policy_manager.get_policy(self.name)
+            # p.update_lane_index(lane_index, lane)
             # self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
         self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
             self.vehicle_node.kinematic_model.position, margin=2
