@@ -141,12 +141,17 @@ class Vehicle:
 
         :param dt: timestep of integration of the model [s]
         """
+        assert isinstance(action, dict)
         self.action = action
         self.clip_actions()
         delta_f = self.action['steering']
         beta = np.arctan(1 / 2 * np.tan(delta_f))
         v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
-        #     self._position += v * dt
+
+        # TODO(pzh): The real position of the traffic vehicle is changed here!!!!
+        #  we should merge this with BaseVehicle, TrafficVehicle and so on.
+        self._position += v * dt
+
         self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
         self.speed += self.action['acceleration'] * dt
         # for performance reason,

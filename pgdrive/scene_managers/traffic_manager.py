@@ -108,8 +108,8 @@ class TrafficManager(BaseManager):
         dt /= 3.6  # 1m/s = 3.6km/h
         for v in self._traffic_vehicles:
             p = self.pgdrive_engine.policy_manager.get_policy(v.name)
-            p.step(dt)
-            v.step(dt)
+            action = p.step(dt)
+            v.step(dt, action)
 
     def after_step(self):
         """

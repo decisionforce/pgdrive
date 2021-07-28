@@ -1,6 +1,6 @@
 import math
 from typing import Tuple, List
-
+import copy
 import numpy as np
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 
@@ -169,6 +169,7 @@ class IDMPolicy(BasePolicy):
         # TODO: This is a workaround.
         # self.vehicle.vehicle_node.kinematic_model.step(dt, action=self.action)
         # self.vehicle.step(dt, self.action)
+        return copy.copy(self.action)
 
         # self.clip_actions()
         # delta_f = self.action['steering']

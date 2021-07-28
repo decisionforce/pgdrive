@@ -75,7 +75,7 @@ class PGTrafficVehicle(Object):
             carNP.setPos(x_y_z_offset)
 
             carNP.instanceTo(self.node_path)
-        self.step(1e-1)
+        self.step(1e-1, None)
         # self.carNP.setQuat(LQuaternionf(math.cos(-1 * np.pi / 4), 0, 0, math.sin(-1 * np.pi / 4)))
 
     # def before_step(self) -> None:
@@ -85,13 +85,15 @@ class PGTrafficVehicle(Object):
     #     """
     #     self.vehicle_node.kinematic_model.act()
 
-    def step(self, dt):
+    def step(self, dt, action=None):
         if self.break_down:
             return
 
         # TODO: We ignore this part here! Because the code is in IDM policy right now!
         #  Is that OK now?
-        # self.vehicle_node.kinematic_model.step(dt)
+        if action is None:
+            action = {"steering": 0, "acceleration": 0}
+        self.vehicle_node.kinematic_model.step(dt, action)
 
         position = panda_position(self.vehicle_node.kinematic_model.position, 0)
         self.node_path.setPos(position)
