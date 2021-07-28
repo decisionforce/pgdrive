@@ -208,9 +208,11 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                     self._add_lane_line2bullet(lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
 
                 elif isinstance(lane, WayPointLane):
+                    acc_length = 0
                     for segment in lane.segment_property:
-                        lane_start = segment["start_point"]
-                        lane_end = segment["end_point"]
+                        lane_start = lane.position(acc_length, i * lane_width / 2)
+                        acc_length += segment["length"]
+                        lane_end = lane.position(acc_length, i*lane_width/2)
                         middle = (lane_start + lane_end) / 2
 
                         self._add_lane_line2bullet(

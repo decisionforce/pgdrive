@@ -128,7 +128,7 @@ if __name__ == "__main__":
     from pgdrive.utils.engine_utils import initialize_pgdrive_engine
     from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
     default_config = BASE_DEFAULT_CONFIG
-    default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True})
+    default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True, "fast":True})
     initialize_pgdrive_engine(default_config, None)
     map = ArgoverseMap({"city": "MIA", "draw_map_resolution": 1024})
     map.load_to_world()

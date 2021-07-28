@@ -27,6 +27,7 @@ class WayPointLane(AbstractLane):
 
         # Segment is the part between two adjacent way points
         self.segment_property = self._get_properties()
+        self.length=sum([seg["length"] for seg in self.segment_property])
 
     def _get_properties(self):
         ret = []
@@ -75,9 +76,9 @@ class WayPointLane(AbstractLane):
         for seg in self.segment_property:
             accumulate_len += seg["length"]
             if accumulate_len > longitudinal:
-                return seg["start_point"] + accumulate_len - longitudinal * seg["direction"] + lateral * seg[
+                return seg["start_point"] + (accumulate_len - longitudinal) * seg["direction"] + lateral * seg[
                     "lateral_direction"]
-        return seg["start_point"] + accumulate_len - longitudinal * seg["direction"] + lateral * seg[
+        return seg["start_point"] + (accumulate_len - longitudinal) * seg["direction"] + lateral * seg[
             "lateral_direction"]
 
     def local_coordinates(self, position: Tuple[float, float]):

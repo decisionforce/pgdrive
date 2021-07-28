@@ -2,6 +2,7 @@ from pgdrive.scene_creator.lane.waypoint_lane import WayPointLane
 from argoverse.map_representation.lane_segment import LaneSegment
 from typing import Optional, List
 import numpy as np
+from pgdrive.constants import LineType
 
 
 class ArgoverseLane(WayPointLane, LaneSegment):
@@ -34,3 +35,5 @@ class ArgoverseLane(WayPointLane, LaneSegment):
         WayPointLane.__init__(self, centerline, self.LANE_WIDTH)
         self.start_node = start_node
         self.end_node = end_node
+        self.line_types = (LineType.CONTINUOUS if self.l_neighbor_id is None else LineType.BROKEN,
+                           LineType.CONTINUOUS if self.r_neighbor_id is None else LineType.BROKEN)

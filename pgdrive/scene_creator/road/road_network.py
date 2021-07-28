@@ -342,22 +342,6 @@ class RoadNetwork:
     def lanes_list(self) -> List[AbstractLane]:
         return [lane for to in self.graph.values() for ids in to.values() for lane in ids]
 
-    @staticmethod
-    def straight_road_network(lanes: int = 4, length: float = 10000, angle: float = 0) -> 'RoadNetwork':
-        net = RoadNetwork()
-        for lane in range(lanes):
-            origin = np.array([0, lane * StraightLane.DEFAULT_WIDTH])
-            end = np.array([length, lane * StraightLane.DEFAULT_WIDTH])
-            rotation = np.array([[math.cos(angle), math.sin(angle)], [-math.sin(angle), math.cos(angle)]])
-            origin = rotation @ origin
-            end = rotation @ end
-            line_types = (
-                LineType.CONTINUOUS_LINE if lane == 0 else LineType.BROKEN,
-                LineType.CONTINUOUS_LINE if lane == lanes - 1 else LineType.NONE
-            )
-            net.add_lane("0", "1", StraightLane(origin, end, line_types=line_types))
-        return net
-
     def position_heading_along_route(self, route: Route, longitudinal: float, lateral: float) \
             -> Tuple[np.ndarray, float]:
         """

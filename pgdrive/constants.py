@@ -197,11 +197,10 @@ class LineType:
     BROKEN = "broken"
     CONTINUOUS = "continuous"
     SIDE = "side"
-    CONTINUOUS_LINE = 4  # deprecated
 
     @staticmethod
     def prohibit(line_type) -> bool:
-        if line_type in [LineType.CONTINUOUS, LineType.CONTINUOUS_LINE, LineType.SIDE]:
+        if line_type in [LineType.CONTINUOUS, LineType.SIDE]:
             return True
         else:
             return False
