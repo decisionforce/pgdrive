@@ -74,12 +74,13 @@ class WayPointLane(AbstractLane):
     def position(self, longitudinal: float, lateral: float) -> np.ndarray:
         accumulate_len = 0
         for seg in self.segment_property:
-            accumulate_len += seg["length"]
-            if accumulate_len > longitudinal:
+            if accumulate_len+0.1 >= longitudinal:
                 return seg["start_point"] + (accumulate_len - longitudinal) * seg["direction"] + lateral * seg[
                     "lateral_direction"]
-        return seg["start_point"] + (accumulate_len - longitudinal) * seg["direction"] + lateral * seg[
-            "lateral_direction"]
+            accumulate_len += seg["length"]
+
+        return seg["start_point"] + (longitudinal-accumulate_len+seg["length"]) * seg["direction"] + lateral * seg["lateral_direction"]
+
 
     def local_coordinates(self, position: Tuple[float, float]):
         ret = [] # ret_longitude, ret_lateral, sort_key

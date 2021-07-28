@@ -171,9 +171,8 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
 
         self.bounding_box = self.block_network.get_bounding_box()
 
-    def _add_lane(self, lane: AbstractLane, lane_id: int, colors: List[Vec4]):
-        parent_np = self.lane_line_node_path
-        lane_width = lane.width_at(0)
+    def _add_pgdrive_lanes(self, lane, lane_id, lane_width, colors, parent_np):
+        # for pgdrive structure
         for k, i in enumerate([-1, 1]):
             line_color = colors[k]
             if lane.line_types[k] == LineType.NONE or (lane_id != 0 and k == 0):
@@ -206,17 +205,6 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                     lane_end = lane.position(lane.length, i * lane_width / 2)
                     middle = (lane_start + lane_end) / 2
                     self._add_lane_line2bullet(lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
-
-                elif isinstance(lane, WayPointLane):
-                    acc_length = 0
-                    for segment in lane.segment_property:
-                        lane_start = lane.position(acc_length, i * lane_width / 2)
-                        acc_length += segment["length"]
-                        lane_end = lane.position(acc_length, i*lane_width/2)
-                        middle = (lane_start + lane_end) / 2
-
-                        self._add_lane_line2bullet(
-                            lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
 
                 if lane.line_types[k] == LineType.SIDE:
                     radius = lane.radius if isinstance(lane, CircularLane) else 0.0
@@ -259,12 +247,28 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                     self._add_lane_line2bullet(
                         lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k], straight
                     )
-
                 if straight:
                     lane_start = lane.position(0, i * lane_width / 2)
                     lane_end = lane.position(lane.length, i * lane_width / 2)
                     middle = lane.position(lane.length / 2, i * lane_width / 2)
                     self._add_box_body(lane_start, lane_end, middle, parent_np, lane.line_types[k], line_color)
+
+    def _add_lane(self, lane: AbstractLane, lane_id: int, colors: List[Vec4]):
+        parent_np = self.lane_line_node_path
+        lane_width = lane.width_at(0)
+        if isinstance(lane, CircularLane) or isinstance(lane, StraightLane):
+            self._add_pgdrive_lanes(lane, lane_id, lane_width, colors, parent_np)
+        elif isinstance(lane, WayPointLane):
+            for c, i in enumerate([-1, 1]):
+                line_color = colors[c]
+                acc_length = 0
+                for segment in lane.segment_property:
+                    lane_start = lane.position(acc_length, i * lane_width / 2)
+                    acc_length += segment["length"]
+                    lane_end = lane.position(acc_length, i * lane_width / 2)
+                    middle = (lane_start + lane_end) / 2
+                    self._add_lane_line2bullet(
+                        lane_start, lane_end, middle, parent_np, line_color, lane.line_types[c])
 
     def _add_box_body(self, lane_start, lane_end, middle, parent_np: NodePath, line_type, line_color):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
@@ -409,7 +413,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                     middle = (lane_start + lane_end) / 2
                     direction_v = lane_end - middle
                     theta = -numpy.arctan2(direction_v[1], direction_v[0])
-                    width = lane.width_at(0) + self.SIDEWALK_LINE_DIST * 2
+                    width = lane.width_at(0)
                     length = segment["length"]
                     self._add_lane2bullet(middle, width, length, theta, lane, (from_, to_, index))
 

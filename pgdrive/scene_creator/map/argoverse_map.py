@@ -135,12 +135,12 @@ if __name__ == "__main__":
     default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True, "debug_static_world":True,
                                               "debug_physics_world":False})
     initialize_pgdrive_engine(default_config, None)
-    xcenter, ycenter = 2599.5505965123866, 1209.0214763629717
+    xcenter, ycenter = 2599.5505965123866, 1200.0214763629717
     xmin = xcenter - 80  # 150
     xmax = xcenter + 80  # 150
     ymin = ycenter - 80  # 150
     ymax = ycenter + 80  # 150
-    map = ArgoverseMap({"city": "PIT", "draw_map_resolution": 1024, "center":[xcenter, ycenter], "radius":80})
+    map = ArgoverseMap({"city": "PIT", "draw_map_resolution": 1024, "center":[xcenter, ycenter], "radius":10})
     map.load_to_world()
     map.pgdrive_engine.enableMouse()
     map.pgdrive_engine.cam.setPos(xcenter, -ycenter,800)
