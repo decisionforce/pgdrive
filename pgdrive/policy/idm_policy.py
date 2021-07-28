@@ -6,7 +6,8 @@ import numpy as np
 import pgdrive.utils.math_utils as utils
 from pgdrive.constants import Route, LaneIndex
 from pgdrive.policy.base_policy import BasePolicy
-from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle
+from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle, Vehicle as OldHighwayVehicle
+from pgdrive.scene_creator.vehicle.traffic_vehicle import PGTrafficVehicle
 from pgdrive.scene_creator.object.static_object import StaticObject
 # from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
 from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
@@ -142,35 +143,40 @@ class IDMPolicy(BasePolicy):
 
         # Longitudinal: IDM
         action['acceleration'] = self.acceleration(
-            ego_vehicle=vehicle, front_vehicle=front_vehicle, rear_vehicle=rear_vehicle
+            ego_vehicle=vehicle, front_vehicle=front_vehicle
         )
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
 
         self.action = action
 
-    def clip_actions(self) -> None:
-        if self.crashed:
-            self.action['steering'] = 0
-            self.action['acceleration'] = -1.0 * self.speed
-        self.action['steering'] = float(self.action['steering'])
-        self.action['acceleration'] = float(self.action['acceleration'])
-        if self.speed > self.MAX_SPEED:
-            self.action['acceleration'] = min(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
-        elif self.speed < -self.MAX_SPEED:
-            self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+    # def clip_actions(self) -> None:
+    #     if self.crashed:
+    #         self.action['steering'] = 0
+    #         self.action['acceleration'] = -1.0 * self.speed
+    #     self.action['steering'] = float(self.action['steering'])
+    #     self.action['acceleration'] = float(self.action['acceleration'])
+    #     if self.speed > self.MAX_SPEED:
+    #         self.action['acceleration'] = min(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+    #     elif self.speed < -self.MAX_SPEED:
+    #         self.action['acceleration'] = max(self.action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
 
     def step(self, dt):
         self.delay_time += dt
         if self.action['acceleration'] < 0 and self.speed <= 0:
             self.action['acceleration'] = -self.speed / dt
-        self.clip_actions()
-        delta_f = self.action['steering']
-        beta = np.arctan(1 / 2 * np.tan(delta_f))
-        # v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
-        # self._position += v * dt
-        self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
-        self.speed += self.action['acceleration'] * dt
+
+        # TODO: This is a workaround.
+        self.vehicle.vehicle_node.kinematic_model.step(dt, action=self.action)
+        # self.vehicle.step(dt, self.action)
+
+        # self.clip_actions()
+        # delta_f = self.action['steering']
+        # beta = np.arctan(1 / 2 * np.tan(delta_f))
+        # # v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
+        # # self._position += v * dt
+        # self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
+        # self.speed += self.action['acceleration'] * dt
 
     def after_step(self, *args, **kwargs):
         engine = get_pgdrive_engine()
@@ -206,7 +212,7 @@ class IDMPolicy(BasePolicy):
 
     def acceleration(
             # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
-            self, ego_vehicle: ControlledVehicle, front_vehicle, rear_vehicle
+            self, ego_vehicle, front_vehicle
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -225,10 +231,17 @@ class IDMPolicy(BasePolicy):
         if not ego_vehicle or isinstance(ego_vehicle, StaticObject):
             return 0
         ego_target_speed = utils.not_zero(getattr(ego_vehicle, "target_speed", 0))
-        acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(ego_vehicle.speed, 0) / ego_target_speed, self.DELTA))
+
+        # TODO(pzh): We should not required the self.speed! We should get the speed from the vehicle.
+        acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(self.speed, 0) / ego_target_speed, self.DELTA))
 
         if front_vehicle:
-            d = ego_vehicle.lane_distance_to(front_vehicle)
+
+            if isinstance(ego_vehicle, PGTrafficVehicle):
+                d = ego_vehicle.vehicle_node.kinematic_model.lane_distance_to(front_vehicle)
+            else:
+                d = ego_vehicle.lane_distance_to(front_vehicle)
+
             acceleration -= self.COMFORT_ACC_MAX * \
                             np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
         if acceleration < 0 and self.speed < 0:
@@ -339,7 +352,7 @@ class IDMPolicy(BasePolicy):
 
         # Do I have a planned route for a specific lane which is safe for me to access?
         old_preceding, old_following = self.traffic_manager.neighbour_vehicles(self)
-        self_pred_a = self.acceleration(ego_vehicle=self, front_vehicle=new_preceding)
+        self_pred_a = self.acceleration(ego_vehicle=self.vehicle, front_vehicle=new_preceding)
         if self.route and self.route[0][2]:
             # Wrong direction
             if np.sign(lane_index[2] - self.target_lane_index[2]) != np.sign(self.route[0][2] -
@@ -351,7 +364,7 @@ class IDMPolicy(BasePolicy):
 
         # Is there an acceleration advantage for me and/or my followers to change lane?
         else:
-            self_a = self.acceleration(ego_vehicle=self, front_vehicle=old_preceding)
+            self_a = self.acceleration(ego_vehicle=self.vehicle, front_vehicle=old_preceding)
             old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (

@@ -4,12 +4,9 @@ from typing import Union, List
 
 import numpy as np
 
-import pgdrive.utils.math_utils as utils
-from pgdrive.constants import LaneIndex
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
-from pgdrive.scene_creator.object.traffic_object import TrafficSign
 from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random, random_string, distance_greater, norm, deprecation_warning
+from pgdrive.utils import get_np_random, random_string, norm, deprecation_warning
 
 
 class Vehicle:
@@ -42,7 +39,7 @@ class Vehicle:
             name: str = None
     ):
 
-        deprecation_warning("Vehicle", "Policy Class")
+        deprecation_warning("Vehicle", "Policy Class", error=False)
 
         self.name = random_string() if name is None else name
         self.traffic_mgr = traffic_mgr
@@ -136,7 +133,7 @@ class Vehicle:
         if action:
             self.action = action
 
-    def step(self, dt: float) -> None:
+    def step(self, dt: float, action) -> None:
         """
         Propagate the vehicle state given its actions.
 
@@ -146,17 +143,20 @@ class Vehicle:
 
         :param dt: timestep of integration of the model [s]
         """
+        self.action = action
         self.clip_actions()
         delta_f = self.action['steering']
         beta = np.arctan(1 / 2 * np.tan(delta_f))
         v = self.speed * np.array([math.cos(self.heading + beta), math.sin(self.heading + beta)])
-        self._position += v * dt
+    #     self._position += v * dt
         self.heading += self.speed * math.sin(beta) / (self.LENGTH / 2) * dt
         self.speed += self.action['acceleration'] * dt
         # for performance reason,
+        # TODO(pzh): This part is done in the policy. Check!
         # self.on_state_update()
 
     def clip_actions(self) -> None:
+        # TODO(pzh): This part is done in policy. Check!
         if self.crashed:
             self.action['steering'] = 0
             self.action['acceleration'] = -1.0 * self.speed

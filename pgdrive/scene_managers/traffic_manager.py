@@ -230,6 +230,17 @@ class TrafficManager(BaseManager):
         )
         self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
+
+        # TODO(pzh): Clean this part!
+        # TODO(pzh): Check whether delay_time is correct!
+        # TODO(pzh): Check whether the random seed is correct!
+        # Register the IDM policy for each traffic vehicle
+        from pgdrive.policy.idm_policy import IDMPolicy
+        e = get_pgdrive_engine()
+        e.policy_manager.register_new_policy(
+            IDMPolicy, vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1
+        )
+
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_respawn_lane):

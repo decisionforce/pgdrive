@@ -1,18 +1,18 @@
-from typing import Union
-from pgdrive.utils.engine_utils import get_pgdrive_engine
 import math
+from typing import Union
 
 import numpy as np
 from panda3d.bullet import BulletRigidBodyNode, BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
+
 from pgdrive.constants import BodyName, CollisionGroup
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.scene_creator.highway_vehicle.behavior import IDMVehicle
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
 from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random
-from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
+from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.utils.object import Object
 from pgdrive.utils.scene_utils import ray_localization
 
@@ -88,7 +88,11 @@ class PGTrafficVehicle(Object):
     def step(self, dt):
         if self.break_down:
             return
-        self.vehicle_node.kinematic_model.step(dt)
+
+        # TODO: We ignore this part here! Because the code is in IDM policy right now!
+        #  Is that OK now?
+        # self.vehicle_node.kinematic_model.step(dt)
+
         position = panda_position(self.vehicle_node.kinematic_model.position, 0)
         self.node_path.setPos(position)
         heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
@@ -161,14 +165,14 @@ class PGTrafficVehicle(Object):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        random_seed=None,
-        enable_lane_change: bool = True,
-        enable_respawn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            random_seed=None,
+            enable_lane_change: bool = True,
+            enable_respawn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=random_seed)
         v.enable_lane_change = enable_lane_change
@@ -185,3 +189,8 @@ class PGTrafficVehicle(Object):
     def __del__(self):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
         super(PGTrafficVehicle, self).__del__()
+
+    # TODO(pzh): This is only workaround! We should not have so many speed all around!
+    @property
+    def speed(self):
+        return self.vehicle_node.kinematic_model.speed

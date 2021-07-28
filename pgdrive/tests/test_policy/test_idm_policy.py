@@ -20,33 +20,49 @@ def _create_vehicle():
     return v
 
 
-def test_idm_policy():
+def test_idm_policy_briefly():
     env = PGDriveEnvV2()
     env.reset()
     try:
-        v = env.vehicle
-        policy = IDMPolicy(
-            vehicle=v,
-            traffic_manager=env.pgdrive_engine.traffic_manager,
-            delay_time=1,
-            random_seed=env.current_seed
-        )
-        action = policy.before_step(v, front_vehicle=None, rear_vehicle=None,
-                                    current_map=env.pgdrive_engine.current_map)
-        action = policy.step(dt=0.02)
-        action = policy.after_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.pgdrive_engine.current_map)
-        env.pgdrive_engine.policy_manager.register_new_policy(
-            IDMPolicy, v.name,
-            vehicle=v,
-            traffic_manager=env.pgdrive_engine.traffic_manager,
-            delay_time=1,
-            random_seed=env.current_seed
-        )
+        vehicles = env.pgdrive_engine.traffic_manager.traffic_vehicles
+        for v in vehicles:
+            policy = IDMPolicy(
+                vehicle=v,
+                traffic_manager=env.pgdrive_engine.traffic_manager,
+                delay_time=1,
+                random_seed=env.current_seed
+            )
+            action = policy.before_step(v, front_vehicle=None, rear_vehicle=None,
+                                        current_map=env.pgdrive_engine.current_map)
+            action = policy.step(dt=0.02)
+            action = policy.after_step(v, front_vehicle=None, rear_vehicle=None,
+                                       current_map=env.pgdrive_engine.current_map)
+            env.pgdrive_engine.policy_manager.register_new_policy(
+                IDMPolicy,
+                vehicle=v,
+                traffic_manager=env.pgdrive_engine.traffic_manager,
+                delay_time=1,
+                random_seed=env.current_seed
+            )
         env.step(env.action_space.sample())
         env.reset()
     finally:
         env.close()
 
 
+def test_idm_policy_is_moving():
+    env = PGDriveEnvV2()
+    env.reset()
+    try:
+        for _ in range(10):
+            env.step(env.action_space.sample())
+            vs = env.pgdrive_engine.traffic_manager.traffic_vehicles
+            print("Position: ", {str(v)[:4]: v.position for v in vs})
+        env.reset()
+    finally:
+        env.close()
+
+
 if __name__ == '__main__':
-    test_idm_policy()
+    test_idm_policy_briefly()
+    test_idm_policy_is_moving()

@@ -118,18 +118,18 @@ class IDMVehicle(ControlledVehicle):
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
         Vehicle.act(self, action)  # Skip ControlledVehicle.act(), or the command will be override.
 
-    def step(self, dt: float):
-        """
-        Step the simulation.
-
-        Increases a timer used for decision policies, and step the vehicle dynamics.
-
-        :param dt: timestep
-        """
-        self.timer += dt
-        if self.action['acceleration'] < 0 and self.speed <= 0:
-            self.action['acceleration'] = -self.speed / dt
-        super().step(dt)
+    # def step(self, dt: float):
+    #     """
+    #     Step the simulation.
+    #
+    #     Increases a timer used for decision policies, and step the vehicle dynamics.
+    #
+    #     :param dt: timestep
+    #     """
+    #     self.timer += dt
+    #     if self.action['acceleration'] < 0 and self.speed <= 0:
+    #         self.action['acceleration'] = -self.speed / dt
+    #     super().step(dt)
 
     def acceleration(
         self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
