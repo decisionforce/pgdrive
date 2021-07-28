@@ -1,5 +1,5 @@
-import logging
 from typing import Dict, Union, List, Tuple
+from pgdrive.scene_creator.lane.waypoint_lane import WayPointLane
 
 import numpy
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletGhostNode
@@ -207,6 +207,15 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                     middle = (lane_start + lane_end) / 2
                     self._add_lane_line2bullet(lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
 
+                elif isinstance(lane, WayPointLane):
+                    for segment in lane.segment_property:
+                        lane_start = segment["start_point"]
+                        lane_end = segment["end_point"]
+                        middle = (lane_start + lane_end) / 2
+
+                        self._add_lane_line2bullet(
+                            lane_start, lane_end, middle, parent_np, line_color, lane.line_types[k])
+
                 if lane.line_types[k] == LineType.SIDE:
                     radius = lane.radius if isinstance(lane, CircularLane) else 0.0
                     segment_num = int(lane.length / DrivableAreaProperty.SIDEWALK_LENGTH)
@@ -379,7 +388,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                 width = lane.width_at(0) + self.SIDEWALK_LINE_DIST * 2
                 length = lane.length
                 self._add_lane2bullet(middle, width, length, theta, lane, (from_, to_, index))
-        else:
+        elif isinstance(lanes[0], CircularLane):
             for index, lane in enumerate(lanes):
                 segment_num = int(lane.length / self.CIRCULAR_SEGMENT_LENGTH)
                 for i in range(segment_num):
@@ -390,6 +399,17 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
                     width = lane.width_at(0) + self.SIDEWALK_LINE_DIST * 2
                     length = lane.length
                     self._add_lane2bullet(middle, width, length * 1.3 / segment_num, theta, lane, (from_, to_, index))
+        elif isinstance(lanes[0], WayPointLane):
+            for index, lane in enumerate(lanes):
+                for segment in lane.segment_property:
+                    lane_start = segment["start_point"]
+                    lane_end = segment["end_point"]
+                    middle = (lane_start + lane_end) / 2
+                    direction_v = lane_end - middle
+                    theta = -numpy.arctan2(direction_v[1], direction_v[0])
+                    width = lane.width_at(0) + self.SIDEWALK_LINE_DIST * 2
+                    length = segment["length"]
+                    self._add_lane2bullet(middle, width, length, theta, lane, (from_, to_, index))
 
     def _add_lane2bullet(self, middle, width, length, theta, lane: Union[StraightLane, CircularLane], lane_index):
         """
