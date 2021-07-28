@@ -84,4 +84,4 @@ def test_idm_policy_is_moving(render=False, in_test=True):
 
 if __name__ == '__main__':
     # test_idm_policy_briefly()
-    test_idm_policy_is_moving(render=False, in_test=False)
+    test_idm_policy_is_moving(render=True, in_test=False)

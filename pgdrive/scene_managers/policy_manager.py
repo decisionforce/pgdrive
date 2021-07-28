@@ -26,6 +26,9 @@ class PolicyManager(BaseManager):
 
     def get_policy(self, vehicle_name):
         # TODO(pzh) I am not sure yet to use object name or agent name here!
+        if vehicle_name not in self._vehicle_name_to_policy:
+            print("please stop here")
+            return None
         return self._vehicle_name_to_policy[vehicle_name]
 
     def destroy(self):

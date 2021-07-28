@@ -330,10 +330,17 @@ class IDMPolicy(BasePolicy):
             # If we are on correct route but bad lane: abort it if someone else is already changing into the same lane
             if self.lane_index[:2] == self.target_lane_index[:2]:
                 for v in self.traffic_manager.vehicles:
+
+                    e = get_pgdrive_engine()
+                    p = e.policy_manager.get_policy(v.name)
+                    if p is None:
+                        continue
+                    v_target_lane = p.target_lane_index
+
                     if v is not self \
                             and v.lane_index != self.target_lane_index \
                             and isinstance(v, ControlledVehicle) \
-                            and v.target_lane_index == self.target_lane_index:
+                            and v_target_lane == self.target_lane_index:
                         d = self.lane_distance_to(v)
                         d_star = self.desired_gap(self, v)
                         if 0 < d < d_star:
