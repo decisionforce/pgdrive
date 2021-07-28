@@ -35,5 +35,5 @@ class ArgoverseLane(WayPointLane, LaneSegment):
         WayPointLane.__init__(self, centerline, self.LANE_WIDTH)
         self.start_node = start_node
         self.end_node = end_node
-        self.line_types = (LineType.CONTINUOUS if self.l_neighbor_id is None else LineType.BROKEN,
-                           LineType.CONTINUOUS if self.r_neighbor_id is None else LineType.BROKEN)
+        self.line_types = (LineType.BROKEN if self.l_neighbor_id is None else LineType.BROKEN,
+                           LineType.BROKEN if self.r_neighbor_id is None else LineType.BROKEN)

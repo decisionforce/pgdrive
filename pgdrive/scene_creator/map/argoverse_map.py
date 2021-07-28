@@ -1,4 +1,5 @@
 import logging
+from argoverse.map_representation.map_api import ArgoverseMap as AGMap
 from pgdrive.scene_creator.blocks.argoverse_block import ArgoverseBlock
 import os
 import xml.etree.ElementTree as ET
@@ -33,6 +34,9 @@ class ArgoverseMap(BaseMap):
     # block size
     BLOCK_LANE_NUM = 40
 
+    # origin ag map
+    AGMap = AGMap()
+
     def __init__(self, map_config, random_seed=0):
         map_config[self.SEED] = random_seed
         assert "city" in map_config, "City name is required when generating argoverse map"
@@ -65,10 +69,10 @@ class ArgoverseMap(BaseMap):
             else:
                 logger.error("Unknown XML item encountered.")
                 raise ValueError("Unknown XML item encountered.")
-        self._construct_road_network(lane_objs)
+        lane_ids = ArgoverseMap.AGMap.get_lane_ids_in_xy_bbox(*self.config["center"],self.config["city"],self.config["radius"])
+        self._construct_road_network([lane_objs[k] for k in lane_ids])
 
-    def _construct_road_network(self, lane_dict: dict):
-        lanes = list(lane_dict.values())
+    def _construct_road_network(self, lanes: list):
         num = int(len(lanes) / self.BLOCK_LANE_NUM)
         for i in range(100):
             end = (i + 1) * self.BLOCK_LANE_NUM if i < num else len(lanes)
@@ -128,11 +132,18 @@ if __name__ == "__main__":
     from pgdrive.utils.engine_utils import initialize_pgdrive_engine
     from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
     default_config = BASE_DEFAULT_CONFIG
-    default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True, "fast":True})
+    default_config["pg_world_config"].update({"use_render": True, "use_image": False, "debug": True, "fast_launch_window":True, "debug_static_world":True,
+                                              "debug_physics_world":False})
     initialize_pgdrive_engine(default_config, None)
-    map = ArgoverseMap({"city": "MIA", "draw_map_resolution": 1024})
+    xcenter, ycenter = 2599.5505965123866, 1209.0214763629717
+    xmin = xcenter - 80  # 150
+    xmax = xcenter + 80  # 150
+    ymin = ycenter - 80  # 150
+    ymax = ycenter + 80  # 150
+    map = ArgoverseMap({"city": "PIT", "draw_map_resolution": 1024, "center":[xcenter, ycenter], "radius":80})
     map.load_to_world()
     map.pgdrive_engine.enableMouse()
-    map.pgdrive_engine.cam.setPos(600, -1300,800)
-    map.pgdrive_engine.cam.lookAt(600,-1300,0)
-    map.pgdrive_engine.run()
+    map.pgdrive_engine.cam.setPos(xcenter, -ycenter,800)
+    map.pgdrive_engine.cam.lookAt(xcenter, -ycenter,0)
+    while True:
+        map.pgdrive_engine.step()
