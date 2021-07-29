@@ -24,7 +24,7 @@ class CircularLane(AbstractLane):
     ) -> None:
         super().__init__()
         self.set_speed_limit(speed_limit)
-        self.center = Vector_type(center)
+        self.center = Vector(center)
         self.radius = radius
         self.start_phase = start_phase
         self.end_phase = end_phase
@@ -42,7 +42,7 @@ class CircularLane(AbstractLane):
     def position(self, longitudinal: float, lateral: float) -> Vector:
         phi = self.direction * longitudinal / self.radius + self.start_phase
         # return self.center + (self.radius - lateral * self.direction) * np.array([math.cos(phi), math.sin(phi)])
-        return self.center + (self.radius - lateral * self.direction) * Vector_type((math.cos(phi), math.sin(phi)))
+        return self.center + (self.radius - lateral * self.direction) * Vector((math.cos(phi), math.sin(phi)))
 
     def heading_at(self, longitudinal: float) -> float:
         phi = self.direction * longitudinal / self.radius + self.start_phase
