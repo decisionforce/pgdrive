@@ -11,14 +11,13 @@ class WayPointLane(AbstractLane):
     CenterLineLane is created by giving the center line points array or way points array.
     By using this lane type, map can be constructed from Waymo/Argoverse/OpenstreetMap dataset
     """
-
     def __init__(
-            self,
-            center_line_points: Union[list, np.ndarray],
-            width: float,
-            forbidden: bool = False,
-            speed_limit: float = 1000,
-            priority: int = 0
+        self,
+        center_line_points: Union[list, np.ndarray],
+        width: float,
+        forbidden: bool = False,
+        speed_limit: float = 1000,
+        priority: int = 0
     ):
         super(WayPointLane, self).__init__()
         self.set_speed_limit(speed_limit)
