@@ -1,11 +1,11 @@
 from pgdrive.constants import TerminationState
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.utils import PGConfig
+from pgdrive.utils import Config
 from pgdrive.utils.math_utils import clip
 
 
 class SafePGDriveEnv(PGDriveEnv):
-    def default_config(self) -> PGConfig:
+    def default_config(self) -> Config:
         config = super(SafePGDriveEnv, self).default_config()
         config.update(
             {

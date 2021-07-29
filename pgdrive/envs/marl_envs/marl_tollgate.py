@@ -9,7 +9,7 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.blocks.tollgate import TollGate
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.road.road import Road
-from pgdrive.utils import PGConfig, clip
+from pgdrive.utils import Config, clip
 
 MATollConfig = dict(
     num_agents=40,
@@ -167,7 +167,7 @@ class MultiAgentTollgateEnv(MultiAgentPGDrive):
         return super(MultiAgentTollgateEnv, self).reset(*args, **kwargs)
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         assert MATollConfig["vehicle_config"]["side_detector"]["num_lasers"] > 2
         assert MATollConfig["vehicle_config"]["lane_line_detector"]["num_lasers"] > 2
         return MultiAgentPGDrive.default_config().update(MATollConfig, allow_overwrite=True)

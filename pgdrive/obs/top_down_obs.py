@@ -8,7 +8,7 @@ from typing import Tuple
 
 import gym
 import numpy as np
-from pgdrive.constants import Decoration, DEFAULT_AGENT, PG_EDITION
+from pgdrive.constants import Decoration, DEFAULT_AGENT, EDITION
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.obs.top_down_obs_impl import WorldSurface, ObservationWindow, COLOR_BLACK, \
     VehicleGraphics, LaneGraphics
@@ -53,7 +53,7 @@ class TopDownObservation(ObservationBase):
 
         # initialize
         pygame.init()
-        pygame.display.set_caption(PG_EDITION + " (Top-down)")
+        pygame.display.set_caption(EDITION + " (Top-down)")
         # main_window_position means the left upper location.
         os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}' \
             .format(main_window_position[0] - self.resolution[0], main_window_position[1])

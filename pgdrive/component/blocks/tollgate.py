@@ -8,7 +8,7 @@ from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, Creat
 from pgdrive.component.buildings.base_building import BaseBuilding
 from pgdrive.component.road.road import Road
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 
 TollGateBuilding = BaseBuilding
 
@@ -18,7 +18,7 @@ class TollGate(PGBlock):
     Toll, like Straight, but has speed limit
     """
     SOCKET_NUM = 1
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.BOTTLENECK_PARAMETER)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.BOTTLENECK_PARAMETER)
     ID = "$"
 
     SPEED_LIMIT = 3  # m/s ~= 5 miles per hour https://bestpass.com/feed/61-speeding-through-tolls

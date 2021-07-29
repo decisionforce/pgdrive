@@ -6,7 +6,7 @@ from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, Creat
 from pgdrive.constants import LineType
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 
 
 class Roundabout(PGBlock):
@@ -14,7 +14,7 @@ class Roundabout(PGBlock):
     roundabout class, the example is the same as Intersection
     """
     ID = "O"
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.ROUNDABOUT)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.ROUNDABOUT)
     SOCKET_NUM = 3
     RADIUS_IN = 20
     ANGLE = 60

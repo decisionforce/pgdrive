@@ -226,11 +226,11 @@ class TrafficManager(BaseManager):
     def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool, *args, **kwargs):
         """
         Create one vehicle on lane and a specific place
-        :param vehicle_type: PGTrafficVehicle type (s,m,l,xl)
+        :param vehicle_type: TrafficVehicle type (s,m,l,xl)
         :param lane: Straight Lane or Circular Lane
         :param long: longitude position on lane
         :param enable_respawn: Respawn or not
-        :return: PGTrafficVehicle
+        :return: TrafficVehicle
         """
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn

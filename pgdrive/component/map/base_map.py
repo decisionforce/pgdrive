@@ -8,14 +8,14 @@ from pgdrive.component.algorithm.BIG import BigGenerateMethod
 from pgdrive.component.blocks.pg_block import PGBlock
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.road.road_network import RoadNetwork
-from pgdrive.utils import PGConfig, import_pygame
+from pgdrive.utils import Config, import_pygame
 
 pygame = import_pygame()
 
 
 def parse_map_config(easy_map_config, new_map_config, default_config):
-    assert isinstance(new_map_config, PGConfig)
-    assert isinstance(default_config, PGConfig)
+    assert isinstance(new_map_config, Config)
+    assert isinstance(default_config, Config)
 
     # Return the user specified config if overwritten
     if not default_config["map_config"].is_identical(new_map_config):

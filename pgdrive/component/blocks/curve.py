@@ -4,7 +4,7 @@ from pgdrive.component.blocks.pg_block import PGBlock
 from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, CreateRoadFrom, create_bend_straight
 from pgdrive.constants import LineType
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 
 
 class Curve(PGBlock):
@@ -17,7 +17,7 @@ class Curve(PGBlock):
     """
     ID = "C"
     SOCKET_NUM = 1
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.CURVE)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.CURVE)
 
     def _try_plug_into_previous_block(self) -> bool:
         parameters = self.get_config()

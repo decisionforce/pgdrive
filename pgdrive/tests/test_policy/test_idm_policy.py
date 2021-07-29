@@ -5,14 +5,14 @@ from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 from pgdrive.envs.pgdrive_env import PGDriveEnvV1_DEFAULT_CONFIG
 from pgdrive.policy.idm_policy import IDMPolicy
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
-from pgdrive.utils import PGConfig
+from pgdrive.utils import Config
 from pgdrive.utils.engine_utils import initialize_engine
 
 
 def _create_vehicle():
-    v_config = PGConfig(BASE_DEFAULT_CONFIG["vehicle_config"]).update(PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"])
+    v_config = Config(BASE_DEFAULT_CONFIG["vehicle_config"]).update(PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"])
     v_config.update({"use_render": False, "use_image": False})
-    config = PGConfig(BASE_DEFAULT_CONFIG)
+    config = Config(BASE_DEFAULT_CONFIG)
     config.update(
         {
             "engine_config": {

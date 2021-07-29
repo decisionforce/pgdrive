@@ -4,14 +4,14 @@ import numpy as np
 from pgdrive.constants import DEFAULT_AGENT, TerminationState
 from pgdrive.envs.pgdrive_env import PGDriveEnv as PGDriveEnvV1
 from pgdrive.manager.traffic_manager import TrafficMode
-from pgdrive.utils import PGConfig, clip
+from pgdrive.utils import Config, clip
 
 
 class PGDriveEnvV2(PGDriveEnvV1):
     DEFAULT_AGENT = DEFAULT_AGENT
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         config = PGDriveEnvV1.default_config()
         config.update(
             dict(

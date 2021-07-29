@@ -27,11 +27,11 @@ from pgdrive.component.vehicle_module.distance_detector import SideDetector, Lan
 from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.component.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.component.vehicle_module.vehicle_panel import VehiclePanel
-from pgdrive.utils import get_np_random, PGConfig, safe_clip_for_small_array, PGVector
+from pgdrive.utils import get_np_random, Config, safe_clip_for_small_array, Vector
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.engine_utils import get_engine
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
-from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 
 
@@ -47,7 +47,7 @@ class BaseVehicle(BaseObject):
                     II-----II
                     2       3
     """
-    PARAMETER_SPACE = PGSpace(VehicleParameterSpace.BASE_VEHICLE)  # it will not sample config from parameter space
+    PARAMETER_SPACE = ParameterSpace(VehicleParameterSpace.BASE_VEHICLE)  # it will not sample config from parameter space
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
@@ -63,7 +63,7 @@ class BaseVehicle(BaseObject):
 
     def __init__(
         self,
-        vehicle_config: Union[dict, PGConfig] = None,
+        vehicle_config: Union[dict, Config] = None,
         physics_config: dict = None,
         name: str = None,
         am_i_the_special_one=False,
@@ -77,7 +77,7 @@ class BaseVehicle(BaseObject):
         :param random_seed: int
         """
         assert vehicle_config is not None, "Please specify the vehicle config."
-        self.vehicle_config = PGConfig(vehicle_config)
+        self.vehicle_config = Config(vehicle_config)
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.vehicle_config["extra_action_dim"])
 
         super(BaseVehicle, self).__init__(name, random_seed)
@@ -433,7 +433,7 @@ class BaseVehicle(BaseObject):
     def heading(self):
         real_heading = self.heading_theta
         # heading = np.array([math.cos(real_heading), math.sin(real_heading)])
-        heading = PGVector((math.cos(real_heading), math.sin(real_heading)))
+        heading = Vector((math.cos(real_heading), math.sin(real_heading)))
         return heading
 
     @property
@@ -598,7 +598,7 @@ class BaseVehicle(BaseObject):
         wheel.setWheelDirectionCs(Vec3(0, 0, -1))
         wheel.setWheelAxleCs(Vec3(1, 0, 0))
 
-        # TODO add them to PGConfig in the future
+        # TODO add them to Config in the future
         wheel.setWheelRadius(radius)
         wheel.setMaxSuspensionTravelCm(40)
         wheel.setSuspensionStiffness(30)

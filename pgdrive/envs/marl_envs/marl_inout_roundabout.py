@@ -8,7 +8,7 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.blocks.roundabout import Roundabout
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.road.road import Road
-from pgdrive.utils import get_np_random, norm, PGConfig
+from pgdrive.utils import get_np_random, norm, Config
 
 MARoundaboutConfig = dict(
     map_config=dict(exit_length=60, lane_num=2),
@@ -117,7 +117,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     ]
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         return MultiAgentPGDrive.default_config().update(MARoundaboutConfig, allow_overwrite=True)
 
     def _update_map(self, episode_data: dict = None, force_seed=None):
@@ -137,7 +137,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
         vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
+    def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
 
 

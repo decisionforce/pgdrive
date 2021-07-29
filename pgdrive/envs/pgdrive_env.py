@@ -17,7 +17,7 @@ from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.component.vehicle_module.distance_detector import DetectorMask
 from pgdrive.manager.traffic_manager import TrafficMode
-from pgdrive.utils import clip, PGConfig, get_np_random, concat_step_infos
+from pgdrive.utils import clip, Config, get_np_random, concat_step_infos
 from pgdrive.utils.engine_utils import engine_initialized
 from pgdrive.utils.engine_utils import set_global_random_seed
 
@@ -114,7 +114,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
 class PGDriveEnv(BasePGDriveEnv):
     @classmethod
-    def default_config(cls) -> "PGConfig":
+    def default_config(cls) -> "Config":
         config = super(PGDriveEnv, cls).default_config()
         config.update(PGDriveEnvV1_DEFAULT_CONFIG)
         config.register_type("map", str, int)
@@ -126,7 +126,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         self.current_track_vehicle: Optional[BaseVehicle] = None
 
-    def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
+    def _process_extra_config(self, config: Union[dict, "Config"]) -> "Config":
         """Check, update, sync and overwrite some config."""
         config = self.default_config().update(config, allow_overwrite=False)
         if config["vehicle_config"]["lidar"]["distance"] > 50:
@@ -538,7 +538,7 @@ class PGDriveEnv(BasePGDriveEnv):
         }
         return (steering, throttle) if saver_info["takeover"] else action, saver_info
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationType":
+    def get_single_observation(self, vehicle_config: "Config") -> "ObservationType":
         if self.config["use_image"]:
             o = ImageStateObservation(vehicle_config)
         else:

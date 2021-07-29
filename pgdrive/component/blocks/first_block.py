@@ -6,7 +6,7 @@ from pgdrive.component.blocks.create_block_utils import CreateRoadFrom, CreateAd
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import RoadNetwork
-from pgdrive.utils.pg_space import PGSpace
+from pgdrive.utils.pg_space import ParameterSpace
 from pgdrive.engine.core.physics_world import PhysicsWorld
 
 
@@ -17,7 +17,7 @@ class FirstPGBlock(PGBlock):
     NODE_1 = ">"
     NODE_2 = ">>"
     NODE_3 = ">>>"
-    PARAMETER_SPACE = PGSpace({})
+    PARAMETER_SPACE = ParameterSpace({})
     ID = "I"
     SOCKET_NUM = 1
     ENTRANCE_LENGTH = 10

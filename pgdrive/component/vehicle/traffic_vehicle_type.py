@@ -1,9 +1,9 @@
-from pgdrive.component.vehicle.traffic_vehicle import PGTrafficVehicle
+from pgdrive.component.vehicle.traffic_vehicle import TrafficVehicle
 
 factor = 1
 
 
-class LVehicle(PGTrafficVehicle):
+class LVehicle(TrafficVehicle):
     LENGTH = 4.8
     WIDTH = 1.8
     HEIGHT = 1.9
@@ -12,7 +12,7 @@ class LVehicle(PGTrafficVehicle):
     ]
 
 
-class SVehicle(PGTrafficVehicle):
+class SVehicle(TrafficVehicle):
     LENGTH = 3.2
     WIDTH = 1.8
     HEIGHT = 1.5
@@ -21,7 +21,7 @@ class SVehicle(PGTrafficVehicle):
     ]
 
 
-class MVehicle(PGTrafficVehicle):
+class MVehicle(TrafficVehicle):
     LENGTH = 3.9
     WIDTH = 2.0
     HEIGHT = 1.3
@@ -30,7 +30,7 @@ class MVehicle(PGTrafficVehicle):
     ]
 
 
-class XLVehicle(PGTrafficVehicle):
+class XLVehicle(TrafficVehicle):
     LENGTH = 7.3
     WIDTH = 2.3
     HEIGHT = 2.7

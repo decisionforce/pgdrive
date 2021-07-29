@@ -6,8 +6,8 @@ from panda3d.core import NodePath
 
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.physics_world import PhysicsWorld
-from pgdrive.utils.pg_config import PGConfig
-from pgdrive.utils.pg_space import PGSpace
+from pgdrive.utils.pg_config import Config
+from pgdrive.utils.pg_space import ParameterSpace
 from pgdrive.utils.random import random_string, RandomEngine
 
 
@@ -49,7 +49,7 @@ class BaseObject(RandomEngine):
     Instead, only other Elements or DynamicElements can affect them and change their states.
     """
 
-    PARAMETER_SPACE = PGSpace({})
+    PARAMETER_SPACE = ParameterSpace({})
 
     def __init__(self, name=None, random_seed=None):
         """
@@ -68,11 +68,11 @@ class BaseObject(RandomEngine):
 
         # Parameter check
         assert isinstance(
-            self.PARAMETER_SPACE, PGSpace
+            self.PARAMETER_SPACE, ParameterSpace
         ), "Using PGSpace to define parameter spaces of " + self.class_name
 
         # initialize and specify the value in config
-        self._config = PGConfig({k: None for k in self.PARAMETER_SPACE.parameters})
+        self._config = Config({k: None for k in self.PARAMETER_SPACE.parameters})
         self.sample_parameters()
 
         # each element has its node_path to render, physics node are child nodes of it
@@ -93,7 +93,7 @@ class BaseObject(RandomEngine):
                 # It is closed before!
                 self.loader.__init__()
 
-    def get_config(self, copy=True) -> Union[PGConfig, Dict]:
+    def get_config(self, copy=True) -> Union[Config, Dict]:
         """
         Return self._config
         :param copy:

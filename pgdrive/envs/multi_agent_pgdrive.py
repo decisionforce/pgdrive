@@ -6,7 +6,7 @@ from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.road.road import Road
 from pgdrive.manager.spawn_manager import SpawnManager
-from pgdrive.utils import setup_logger, get_np_random, PGConfig
+from pgdrive.utils import setup_logger, get_np_random, Config
 from pgdrive.utils.pg_config import merge_dicts
 
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
@@ -62,7 +62,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     ]
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         config = PGDriveEnvV2.default_config()
         config.update(MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG)
         return config
@@ -72,7 +72,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         super(MultiAgentPGDrive, self).__init__(config)
         self._top_down_renderer = None
 
-    def _process_extra_config(self, config) -> "PGConfig":
+    def _process_extra_config(self, config) -> "Config":
         ret_config = self.default_config().update(
             config, allow_overwrite=False, stop_recursive_update=["target_vehicle_configs"]
         )
@@ -212,7 +212,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         Newly introduce method
         """
         vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
-        return PGConfig(vehicle_config)
+        return Config(vehicle_config)
 
     def _after_lazy_init(self):
         super(MultiAgentPGDrive, self)._after_lazy_init()

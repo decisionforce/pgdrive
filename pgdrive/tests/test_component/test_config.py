@@ -1,10 +1,10 @@
-from pgdrive.utils import PGConfig, recursive_equal
+from pgdrive.utils import Config, recursive_equal
 
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 
 
 def test_config_unchangeable():
-    c = PGConfig({"aaa": 100}, unchangeable=True)
+    c = Config({"aaa": 100}, unchangeable=True)
     try:
         c['aaa'] = 1000
     except ValueError as e:

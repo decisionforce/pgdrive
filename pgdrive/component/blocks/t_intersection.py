@@ -2,7 +2,7 @@ from pgdrive.constants import Goal, LineType, LineColor
 from pgdrive.component.blocks.pg_block import PGBlockSocket
 from pgdrive.component.blocks.intersection import InterSection
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 
 
 class TInterSection(InterSection):
@@ -12,7 +12,7 @@ class TInterSection(InterSection):
 
     ID = "T"
     SOCKET_NUM = 2
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.T_INTERSECTION)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.T_INTERSECTION)
 
     def _try_plug_into_previous_block(self) -> bool:
         no_cross = super(TInterSection, self)._try_plug_into_previous_block()

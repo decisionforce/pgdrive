@@ -17,7 +17,7 @@ from pgdrive.manager.map_manager import MapManager
 from pgdrive.manager.object_manager import TrafficSignManager
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.manager.policy_manager import PolicyManager
-from pgdrive.utils import PGConfig, merge_dicts, get_np_random
+from pgdrive.utils import Config, merge_dicts, get_np_random
 from pgdrive.utils.engine_utils import get_engine, initialize_engine, close_engine, \
     engine_initialized, set_global_random_seed
 
@@ -111,12 +111,12 @@ class BasePGDriveEnv(gym.Env):
     _DEBUG_RANDOM_SEED = None
 
     @classmethod
-    def default_config(cls) -> "PGConfig":
-        return PGConfig(BASE_DEFAULT_CONFIG)
+    def default_config(cls) -> "Config":
+        return Config(BASE_DEFAULT_CONFIG)
 
     # ===== Intialization =====
     def __init__(self, config: dict = None):
-        self.default_config_copy = PGConfig(self.default_config(), unchangeable=True)
+        self.default_config_copy = Config(self.default_config(), unchangeable=True)
         merged_config = self._process_extra_config(config)
         global_config = self._post_process_config(merged_config)
         self.config = global_config
@@ -155,7 +155,7 @@ class BasePGDriveEnv(gym.Env):
         # In MARL envs with respawn mechanism, varying episode lengths might happen.
         self.episode_lengths = defaultdict(int)
 
-    def _process_extra_config(self, config: Union[dict, "PGConfig"]) -> "PGConfig":
+    def _process_extra_config(self, config: Union[dict, "Config"]) -> "Config":
         """Check, update, sync and overwrite some config."""
         return config
 
@@ -355,7 +355,7 @@ class BasePGDriveEnv(gym.Env):
         ego_v = self.vehicles[DEFAULT_AGENT]
         return ego_v
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
+    def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
         raise NotImplementedError()
 
     def _wrap_as_single_agent(self, data):

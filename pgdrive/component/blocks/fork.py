@@ -7,7 +7,7 @@ from pgdrive.component.blocks.create_block_utils import CreateRoadFrom, CreateAd
 from pgdrive.component.blocks.ramp import Ramp
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 
@@ -15,7 +15,7 @@ class Fork(Ramp):
     """
     Similar to Ramp
     """
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.FORK_PARAMETER)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.FORK_PARAMETER)
 
 
 class InFork(Fork):

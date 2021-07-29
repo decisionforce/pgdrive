@@ -1,7 +1,7 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.component.blocks.roundabout import Roundabout
 from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod
-from pgdrive.utils import get_np_random, PGConfig
+from pgdrive.utils import get_np_random, Config
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
@@ -17,7 +17,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     ]
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         raise ValueError("This class is deprecated! Please use MultiAgentRoundaboutEnv instead!")
         config = MultiAgentPGDrive.default_config()
         config.update(

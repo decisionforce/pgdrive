@@ -7,7 +7,7 @@ from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
 
 
-class PGReplayer:
+class Replayer:
     def __init__(self, traffic_mgr: TrafficManager, current_map: PGMap, episode_data: dict):
         self.restore_episode_info = episode_data["frame"]
         self.restore_episode_info.reverse()
@@ -66,7 +66,7 @@ class PGReplayer:
         logging.debug("Replay system is destroyed")
 
 
-class PGRecorder:
+class Recorder:
     def __init__(self, map: PGMap, init_traffic_vehicle_states: dict):
         map_data = dict()
         map_data[map.random_seed] = map.save_map()

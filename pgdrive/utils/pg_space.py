@@ -148,14 +148,14 @@ class Dict(Space):
         return isinstance(other, Dict) and self.spaces == other.spaces
 
 
-class PGSpace(Dict):
+class ParameterSpace(Dict):
     """
     length = PGSpace(name="length",max=50.0,min=10.0)
     Usage:
     PGSpace({"lane_length":length})
     """
     def __init__(self, our_config: tp.Dict[str, tp.Union[PGBoxSpace, PGDiscreteSpace, PGConstantSpace]]):
-        super(PGSpace, self).__init__(PGSpace.wrap2gym_space(our_config))
+        super(ParameterSpace, self).__init__(ParameterSpace.wrap2gym_space(our_config))
         self.parameters = set(our_config.keys())
 
     @staticmethod
@@ -473,7 +473,7 @@ if __name__ == "__main__":
         "angle": PGBoxSpace(min=50.0, max=360.0),
         "goal": PGDiscreteSpace(min=0, max=2)
     }
-    config = PGSpace(config)
+    config = ParameterSpace(config)
     print(config.sample())
     config.seed(1)
     print(config.sample())

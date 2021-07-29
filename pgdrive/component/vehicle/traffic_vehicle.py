@@ -16,7 +16,7 @@ from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.engine_utils import get_engine
 
 
-class PGTrafficVehicle(BaseObject):
+class TrafficVehicle(BaseObject):
     COLLISION_MASK = CollisionGroup.TrafficVehicle
     HEIGHT = 1.8
     LENGTH = 4
@@ -35,7 +35,7 @@ class PGTrafficVehicle(BaseObject):
         """
         kinematic_model.LENGTH = self.LENGTH
         kinematic_model.WIDTH = self.WIDTH
-        super(PGTrafficVehicle, self).__init__(random_seed=random_seed)
+        super(TrafficVehicle, self).__init__(random_seed=random_seed)
         self.vehicle_node = TrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model))
         chassis_shape = BulletBoxShape(Vec3(self.LENGTH / 2, self.WIDTH / 2, self.HEIGHT / 2))
         self.index = index
@@ -52,11 +52,11 @@ class PGTrafficVehicle(BaseObject):
 
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
         if self.render:
-            if path not in PGTrafficVehicle.model_collection:
+            if path not in TrafficVehicle.model_collection:
                 carNP = self.loader.loadModel(AssetLoader.file_path("models", path))
-                PGTrafficVehicle.model_collection[path] = carNP
+                TrafficVehicle.model_collection[path] = carNP
             else:
-                carNP = PGTrafficVehicle.model_collection[path]
+                carNP = TrafficVehicle.model_collection[path]
             carNP.setScale(scale)
             carNP.setH(H)
             carNP.setPos(x_y_z_offset)
@@ -126,7 +126,7 @@ class PGTrafficVehicle(BaseObject):
     def destroy(self):
         self.vehicle_node.kinematic_model.destroy()
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
-        super(PGTrafficVehicle, self).destroy()
+        super(TrafficVehicle, self).destroy()
 
     def get_name(self):
         return self.vehicle_node.getName() + "_" + str(self.index)
@@ -191,7 +191,7 @@ class PGTrafficVehicle(BaseObject):
 
     def __del__(self):
         self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
-        super(PGTrafficVehicle, self).__del__()
+        super(TrafficVehicle, self).__del__()
 
     # TODO(pzh): This is only workaround! We should not have so many speed all around!
     @property

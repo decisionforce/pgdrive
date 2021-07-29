@@ -17,7 +17,7 @@ from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import RoadNetwork
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.math_utils import norm, PGVector
+from pgdrive.utils.math_utils import norm, Vector
 
 
 class BaseBlock(BaseObject, DrivableAreaProperty):
@@ -377,7 +377,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
             else:
                 factor = (1 + self.SIDEWALK_WIDTH / radius) * (1 + self.SIDEWALK_LINE_DIST / radius)
         direction_v = lane_end - lane_start
-        vertical_v = PGVector((-direction_v[1], direction_v[0])) / norm(*direction_v)
+        vertical_v = Vector((-direction_v[1], direction_v[0])) / norm(*direction_v)
         middle += vertical_v * (self.SIDEWALK_WIDTH / 2 + self.SIDEWALK_LINE_DIST)
         side_np.setPos(panda_position(middle, 0))
         theta = -numpy.arctan2(direction_v[1], direction_v[0])

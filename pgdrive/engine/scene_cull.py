@@ -6,7 +6,7 @@ from pgdrive.utils.math_utils import norm
 logger = logging.getLogger(__name__)
 
 
-class PGDriveSceneCull:
+class SceneCull:
     """
     Used to cull distant rendering object in PGDrive to improve rendering efficiency
     """

@@ -10,7 +10,7 @@ from pgdrive.component.blocks.t_intersection import TInterSection
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.road.road import Road
 from pgdrive.manager.spawn_manager import SpawnManager
-from pgdrive.utils import get_np_random, PGConfig
+from pgdrive.utils import get_np_random, Config
 
 MAParkingLotConfig = dict(
     num_agents=10,
@@ -120,7 +120,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         return self.in_spawn_roads + self.out_spawn_roads
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         return MultiAgentPGDrive.default_config().update(MAParkingLotConfig, allow_overwrite=True)
 
     @staticmethod
@@ -130,7 +130,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             ret.append(Road(ParkingLot.node(1, i, 5), ParkingLot.node(1, i, 6)))
         return ret
 
-    def _process_extra_config(self, config) -> "PGConfig":
+    def _process_extra_config(self, config) -> "Config":
         ret_config = self.default_config().update(
             config, allow_overwrite=False, stop_recursive_update=["target_vehicle_configs"]
         )
@@ -240,7 +240,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         new_obs = self.observations[new_agent_id].observe(vehicle)
         return new_agent_id, new_obs
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
+    def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
 
     def _reset_agents(self):

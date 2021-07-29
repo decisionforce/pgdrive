@@ -6,7 +6,7 @@ from pgdrive.component.blocks.bottleneck import Merge, Split
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.road.road import Road
-from pgdrive.utils import PGConfig
+from pgdrive.utils import Config
 
 MABottleneckConfig = dict(
     num_agents=20,
@@ -67,7 +67,7 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
     spawn_roads = [Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3), -Road(Split.node(2, 0, 0), Split.node(2, 0, 1))]
 
     @staticmethod
-    def default_config() -> PGConfig:
+    def default_config() -> Config:
         assert MABottleneckConfig["vehicle_config"]["side_detector"]["num_lasers"] > 2
         assert MABottleneckConfig["vehicle_config"]["lane_line_detector"]["num_lasers"] > 2
         MABottleneckConfig["map_config"]["lane_num"] = MABottleneckConfig["map_config"]["bottle_lane_num"]
@@ -84,7 +84,7 @@ class MultiAgentBottleneckEnv(MultiAgentPGDrive):
             self.engine.map_manager.load_map(new_map)
             self.current_map.spawn_roads = self.spawn_roads
 
-    def get_single_observation(self, vehicle_config: "PGConfig") -> "ObservationBase":
+    def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
 
     def reward_function(self, vehicle_id: str):

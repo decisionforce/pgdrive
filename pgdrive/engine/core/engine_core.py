@@ -8,13 +8,13 @@ from direct.showbase import ShowBase
 from panda3d.bullet import BulletDebugNode
 from panda3d.core import AntialiasAttrib, loadPrcFileData, LineSegs, PythonCallbackObject
 
-from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, PG_EDITION, CamMask, \
+from pgdrive.constants import RENDER_MODE_OFFSCREEN, RENDER_MODE_NONE, RENDER_MODE_ONSCREEN, EDITION, CamMask, \
     BKG_COLOR
 from pgdrive.engine.asset_loader import AssetLoader, initialize_asset_loader, close_asset_loader
-from pgdrive.engine.core.collision_callback import pg_collision_callback
+from pgdrive.engine.core.collision_callback import collision_callback
 from pgdrive.engine.core.force_fps import ForceFPS
 from pgdrive.engine.core.light import Light
-from pgdrive.engine.core.onscreen_message import PGOnScreenMessage
+from pgdrive.engine.core.onscreen_message import ScreenMessage
 from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.engine.core.sky_box import SkyBox
 from pgdrive.engine.core.terrain import Terrain
@@ -37,7 +37,7 @@ def _free_warning():
 
 class EngineCore(ShowBase.ShowBase):
     DEBUG = False
-    loadPrcFileData("", "window-title {}".format(PG_EDITION))
+    loadPrcFileData("", "window-title {}".format(EDITION))
     loadPrcFileData("", "framebuffer-multisample 1")
     loadPrcFileData("", "multisamples 8")
     loadPrcFileData("", 'bullet-filter-algorithm groups-mask')
@@ -185,7 +185,7 @@ class EngineCore(ShowBase.ShowBase):
         self.physics_world = PhysicsWorld(self.world_config["debug_static_world"])
 
         # collision callback
-        self.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(pg_collision_callback))
+        self.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(collision_callback))
 
         # for real time simulation
         self.force_fps = ForceFPS(self, start=True)
@@ -240,7 +240,7 @@ class EngineCore(ShowBase.ShowBase):
                 self.setFrameRateMeter(True)
 
             # onscreen message
-            self.on_screen_message = PGOnScreenMessage(
+            self.on_screen_message = ScreenMessage(
                 debug=self.DEBUG
             ) if self.mode == RENDER_MODE_ONSCREEN and self.world_config["onscreen_message"] else None
             self._show_help_message = False

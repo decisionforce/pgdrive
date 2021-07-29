@@ -279,7 +279,7 @@ class IDMPolicy(BasePolicy):
         acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(self.speed, 0) / ego_target_speed, self.DELTA))
 
         if front_vehicle:
-            # if isinstance(ego_vehicle, PGTrafficVehicle):
+            # if isinstance(ego_vehicle, TrafficVehicle):
             d = self.lane_distance_to(front_vehicle)
 
             if d > 0:

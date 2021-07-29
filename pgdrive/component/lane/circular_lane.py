@@ -2,9 +2,9 @@ import math
 from typing import Tuple
 
 import numpy as np
-from pgdrive.component.lane.abs_lane import AbstractLane, Vector
+from pgdrive.component.lane.abs_lane import AbstractLane, Vector_type
 from pgdrive.constants import LineType
-from pgdrive.utils.math_utils import wrap_to_pi, norm, PGVector
+from pgdrive.utils.math_utils import wrap_to_pi, norm, Vector
 
 
 class CircularLane(AbstractLane):
@@ -24,7 +24,7 @@ class CircularLane(AbstractLane):
     ) -> None:
         super().__init__()
         self.set_speed_limit(speed_limit)
-        self.center = PGVector(center)
+        self.center = Vector_type(center)
         self.radius = radius
         self.start_phase = start_phase
         self.end_phase = end_phase
@@ -39,10 +39,10 @@ class CircularLane(AbstractLane):
         self.length = self.radius * (self.end_phase - self.start_phase) * self.direction
 
     # def position(self, longitudinal: float, lateral: float) -> np.ndarray:
-    def position(self, longitudinal: float, lateral: float) -> PGVector:
+    def position(self, longitudinal: float, lateral: float) -> Vector:
         phi = self.direction * longitudinal / self.radius + self.start_phase
         # return self.center + (self.radius - lateral * self.direction) * np.array([math.cos(phi), math.sin(phi)])
-        return self.center + (self.radius - lateral * self.direction) * PGVector((math.cos(phi), math.sin(phi)))
+        return self.center + (self.radius - lateral * self.direction) * Vector_type((math.cos(phi), math.sin(phi)))
 
     def heading_at(self, longitudinal: float) -> float:
         phi = self.direction * longitudinal / self.radius + self.start_phase

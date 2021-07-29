@@ -4,7 +4,7 @@ from typing import Dict, AnyStr
 import numpy as np
 
 from pgdrive.engine.core.engine_core import EngineCore
-from pgdrive.engine.scene_cull import PGDriveSceneCull
+from pgdrive.engine.scene_cull import SceneCull
 from pgdrive.manager.base_manager import BaseManager
 
 logger = logging.getLogger(__name__)
@@ -151,14 +151,14 @@ class BaseEngine(EngineCore):
         poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene:
             # TODO use a for loop
-            PGDriveSceneCull.cull_distant_blocks(
+            SceneCull.cull_distant_blocks(
                 self, self.current_map.blocks, poses, self.world_config["max_distance"]
             )
 
-            PGDriveSceneCull.cull_distant_traffic_vehicles(
+            SceneCull.cull_distant_traffic_vehicles(
                 self, self.traffic_manager.traffic_vehicles, poses, self.world_config["max_distance"]
             )
-            PGDriveSceneCull.cull_distant_objects(
+            SceneCull.cull_distant_objects(
                 self, self.object_manager.objects, poses, self.world_config["max_distance"]
             )
 

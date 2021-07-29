@@ -2,7 +2,7 @@ import math
 from typing import Tuple
 
 import numpy as np
-from pgdrive.component.lane.abs_lane import AbstractLane, Vector
+from pgdrive.component.lane.abs_lane import AbstractLane, Vector_type
 from pgdrive.constants import LineType
 from pgdrive.utils.math_utils import norm
 
@@ -11,8 +11,8 @@ class StraightLane(AbstractLane):
     """A lane going in straight line."""
     def __init__(
         self,
-        start: Vector,
-        end: Vector,
+        start: Vector_type,
+        end: Vector_type,
         width: float = AbstractLane.DEFAULT_WIDTH,
         line_types: Tuple[LineType, LineType] = (LineType.BROKEN, LineType.BROKEN),
         forbidden: bool = False,
@@ -65,7 +65,7 @@ class StraightLane(AbstractLane):
         lateral = delta_x * self.direction_lateral[0] + delta_y * self.direction_lateral[1]
         return float(longitudinal), float(lateral)
 
-    def reset_start_end(self, start: Vector, end: Vector):
+    def reset_start_end(self, start: Vector_type, end: Vector_type):
         super(StraightLane, self).__init__()
         self.start = start
         self.end = end

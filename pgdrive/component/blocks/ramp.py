@@ -8,7 +8,7 @@ from pgdrive.component.blocks.create_block_utils import ExtendStraightLane, Crea
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import RoadNetwork
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 
@@ -23,7 +23,7 @@ class Ramp(PGBlock):
                       //                                                      \\                                                         
     { ---------------//                                                        \\---------------}    
     """
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.RAMP_PARAMETER)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.RAMP_PARAMETER)
     SOCKET_NUM = 1
 
     # can be added to parameter space in the future

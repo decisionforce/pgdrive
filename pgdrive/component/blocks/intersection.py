@@ -8,7 +8,7 @@ from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, Creat
 from pgdrive.constants import LineType
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import PGSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 
@@ -33,7 +33,7 @@ class InterSection(PGBlock):
 
     ID = "X"
     EXTRA_PART = "extra"
-    PARAMETER_SPACE = PGSpace(BlockParameterSpace.INTERSECTION)
+    PARAMETER_SPACE = ParameterSpace(BlockParameterSpace.INTERSECTION)
     SOCKET_NUM = 3
     ANGLE = 90  # may support other angle in the future
     EXIT_PART_LENGTH = 30
