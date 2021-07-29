@@ -21,7 +21,7 @@ class ArgoverseEnv(PGDriveEnv):
                 }
             )
             map = ArgoverseMap(self.config["map_config"])
-            self.pgdrive_engine.map_manager.load_map(map)
+            self.engine.map_manager.load_map(map)
 
 
 class TestEnv(ArgoverseEnv):

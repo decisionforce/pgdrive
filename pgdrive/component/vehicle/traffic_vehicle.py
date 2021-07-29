@@ -13,7 +13,7 @@ from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 
 
 class PGTrafficVehicle(BaseObject):
@@ -88,11 +88,11 @@ class PGTrafficVehicle(BaseObject):
         self.node_path.setH(heading)
 
     def after_step(self):
-        # engine = get_pgdrive_engine()
+        # engine = get_engine()
         # dir = np.array([math.cos(self.heading), math.sin(self.heading)])
         # lane, lane_index = ray_localization(dir, self.position, engine)
         # if lane is not None:
-        # e = get_pgdrive_engine()
+        # e = get_engine()
         # p = e.policy_manager.get_policy(self.name)
         # p.update_lane_index(lane_index, lane)
         # self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
@@ -106,7 +106,7 @@ class PGTrafficVehicle(BaseObject):
 
     @property
     def out_of_road(self):
-        p = get_pgdrive_engine().policy_manager.get_policy(self.name)
+        p = get_engine().policy_manager.get_policy(self.name)
         ret = not p.lane.on_lane(self.vehicle_node.kinematic_model.position, margin=2)
         return ret
 

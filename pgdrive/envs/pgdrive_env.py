@@ -18,7 +18,7 @@ from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.component.vehicle_module.distance_detector import DetectorMask
 from pgdrive.manager.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, get_np_random, concat_step_infos
-from pgdrive.utils.engine_utils import pgdrive_engine_initialized
+from pgdrive.utils.engine_utils import engine_initialized
 from pgdrive.utils.engine_utils import set_global_random_seed
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
@@ -181,18 +181,18 @@ class PGDriveEnv(BasePGDriveEnv):
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
             self.main_camera = ChaseCamera(
-                self.pgdrive_engine.cam, self.config["camera_height"], self.config["camera_dist"]
+                self.engine.cam, self.config["camera_height"], self.config["camera_dist"]
             )
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.track(self.current_track_vehicle)
-            self.pgdrive_engine.accept("b", self.bird_view_camera)
-        self.pgdrive_engine.accept("q", self.chase_another_v)
+            self.engine.accept("b", self.bird_view_camera)
+        self.engine.accept("q", self.chase_another_v)
 
         # setup the detector mask
 
         if any([v.lidar is not None for v in self.vehicles.values()]) and (not self.config["_disable_detector_mask"]):
             v = next(iter(self.vehicles.values()))
-            self.pgdrive_engine.detector_mask = DetectorMask(
+            self.engine.detector_mask = DetectorMask(
                 num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
                 max_distance=self.config["vehicle_config"]["lidar"]["distance"],
                 max_span=v.WIDTH + v.LENGTH
@@ -374,14 +374,14 @@ class PGDriveEnv(BasePGDriveEnv):
 
     def _get_reset_return(self):
         ret = {}
-        self.pgdrive_engine.update_state_for_all_target_vehicles()
+        self.engine.update_state_for_all_target_vehicles()
         for v_id, v in self.vehicles.items():
             self.observations[v_id].reset(self, v)
             ret[v_id] = self.observations[v_id].observe(v)
         return ret if self.is_multi_agent else ret[DEFAULT_AGENT]
 
     def _update_map(self, episode_data: dict = None):
-        map_manager = self.pgdrive_engine.map_manager
+        map_manager = self.engine.map_manager
         if episode_data is not None:
             # TODO restore/replay here
             # Since in episode data map data only contains one map, values()[0] is the map_parameters
@@ -416,21 +416,21 @@ class PGDriveEnv(BasePGDriveEnv):
         map_manager.load_map(map)
 
     def dump_all_maps(self):
-        assert not pgdrive_engine_initialized(), \
+        assert not engine_initialized(), \
             "We assume you generate map files in independent tasks (not in training). " \
             "So you should run the generating script without calling reset of the " \
             "environment."
 
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
-        assert pgdrive_engine_initialized()
-        self.pgdrive_engine.clear_world()
+        assert engine_initialized()
+        self.engine.clear_world()
 
         for seed in range(self.start_seed, self.start_seed + self.env_num):
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
             set_global_random_seed(seed)
-            new_map = self.pgdrive_engine.map_manager.spawn_object(PGMap, map_config=map_config)
-            self.pgdrive_engine.map_manager.unload_map(new_map)
+            new_map = self.engine.map_manager.spawn_object(PGMap, map_config=map_config)
+            self.engine.map_manager.unload_map(new_map)
             logging.info("Finish generating map with seed: {}".format(seed))
 
         map_data = dict()
@@ -548,7 +548,7 @@ class PGDriveEnv(BasePGDriveEnv):
     def setup_engine(self):
         super(PGDriveEnv, self).setup_engine()
         # Press t can let expert take over. But this function is still experimental.
-        self.pgdrive_engine.accept("t", self.toggle_expert_takeover)
+        self.engine.accept("t", self.toggle_expert_takeover)
 
 
 def _auto_termination(vehicle, should_done):

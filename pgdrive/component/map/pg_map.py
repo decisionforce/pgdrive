@@ -14,7 +14,7 @@ class PGMap(BaseMap):
         """
         We can override this function to introduce other methods!
         """
-        parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
+        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
         generate_type = self._config[self.GENERATE_TYPE]
         if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:
             self._big_generate(parent_node_path, pg_physics_world)

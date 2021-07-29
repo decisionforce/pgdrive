@@ -81,7 +81,7 @@ class ArgoverseMap(BaseMap):
             self._post_process_lane(lane)
 
         block = ArgoverseBlock(0, self.road_network, chosen_lanes)
-        block.construct_block(self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world)
+        block.construct_block(self.engine.worldNP, self.engine.physics_world)
         self.blocks.append(block)
 
     def _post_process_lane(self, lane: ArgoverseLane):
@@ -136,7 +136,7 @@ class ArgoverseMap(BaseMap):
 
 
 if __name__ == "__main__":
-    from pgdrive.utils.engine_utils import initialize_pgdrive_engine
+    from pgdrive.utils.engine_utils import initialize_engine
     from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 
     default_config = BASE_DEFAULT_CONFIG
@@ -150,7 +150,7 @@ if __name__ == "__main__":
             "debug_physics_world": False
         }
     )
-    initialize_pgdrive_engine(default_config, None)
+    initialize_engine(default_config, None)
     xcenter, ycenter = 2599.5505965123866, 1200.0214763629717
     xmin = xcenter - 80  # 150
     xmax = xcenter + 80  # 150
@@ -158,8 +158,8 @@ if __name__ == "__main__":
     ymax = ycenter + 80  # 150
     map = ArgoverseMap({"city": "PIT", "draw_map_resolution": 1024, "center": [xcenter, ycenter], "radius": 10})
     map.load_to_world()
-    map.pgdrive_engine.enableMouse()
-    map.pgdrive_engine.cam.setPos(xcenter, -ycenter, 800)
-    map.pgdrive_engine.cam.lookAt(xcenter, -ycenter, 0)
+    map.engine.enableMouse()
+    map.engine.cam.setPos(xcenter, -ycenter, 800)
+    map.engine.cam.lookAt(xcenter, -ycenter, 0)
     while True:
-        map.pgdrive_engine.step()
+        map.engine.step()

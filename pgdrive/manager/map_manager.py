@@ -15,8 +15,8 @@ class MapManager(BaseManager):
         self.current_map = None
 
         # for pgmaps
-        start_seed = self.pgdrive_engine.global_config["start_seed"]
-        env_num = self.pgdrive_engine.global_config["environment_num"]
+        start_seed = self.engine.global_config["start_seed"]
+        env_num = self.engine.global_config["environment_num"]
         self.restored_pg_map_configs = None
         self.pg_maps = {_seed: None for _seed in range(start_seed, start_seed + env_num)}
 
@@ -33,7 +33,7 @@ class MapManager(BaseManager):
         assert osp.isfile(path)
         with open(path, "r") as f:
             config_and_data = json.load(f)
-        global_config = self.pgdrive_engine.global_config
+        global_config = self.engine.global_config
         start_seed = global_config["start_seed"]
         env_num = global_config["environment_num"]
         if recursive_equal(global_config["map_config"], config_and_data["map_config"]) \
@@ -62,9 +62,9 @@ class MapManager(BaseManager):
         )
 
         maps_collection_config = data["map_config"]
-        assert set(self.pgdrive_engine.global_config["map_config"].keys()) == set(maps_collection_config.keys())
-        for k in self.pgdrive_engine.global_config["map_config"]:
-            assert maps_collection_config[k] == self.pgdrive_engine.global_config["map_config"][k]
+        assert set(self.engine.global_config["map_config"].keys()) == set(maps_collection_config.keys())
+        for k in self.engine.global_config["map_config"]:
+            assert maps_collection_config[k] == self.engine.global_config["map_config"][k]
         self.restored_pg_map_configs = {}
         # for seed, map_dict in data["map_data"].items():
         for seed, config in data["map_data"].items():

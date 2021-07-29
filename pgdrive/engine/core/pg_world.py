@@ -354,8 +354,6 @@ class PGWorld(ShowBase.ShowBase):
         :param end_p: 2d vec
         :param color: 4d vec, line color
         :param thickness: line thickness
-        :param pg_world: pg_world class
-        :return:
         """
         line_seg = LineSegs("interface")
         line_seg.setColor(*color)

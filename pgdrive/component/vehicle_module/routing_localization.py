@@ -199,7 +199,7 @@ class RoutingLocalizationModule:
             self._update_navi_arrow([lanes_heading1, lanes_heading2])
             dest_pos = self._dest_node_path.getPos()
             self._draw_line_to_dest(
-                pgdrive_engine=ego_vehicle.pgdrive_engine,
+                engine=ego_vehicle.engine,
                 start_position=ego_vehicle.position,
                 end_position=(dest_pos[0], -dest_pos[1])
             )
@@ -333,7 +333,7 @@ class RoutingLocalizationModule:
         possible_lanes = ray_localization(
             np.array(ego_vehicle.heading.tolist()),
             ego_vehicle.position,
-            ego_vehicle.pgdrive_engine,
+            ego_vehicle.engine,
             return_all_result=True
         )
         for lane, index, l_1_dist in possible_lanes:
@@ -368,7 +368,7 @@ class RoutingLocalizationModule:
         else:
             return res.getHitFraction() * length
 
-    def _draw_line_to_dest(self, pgdrive_engine, start_position, end_position):
+    def _draw_line_to_dest(self, engine, start_position, end_position):
         if not self._show_line_to_dest:
             return
         line_seg = self._line_to_dest
@@ -377,4 +377,4 @@ class RoutingLocalizationModule:
         self._dynamic_line_np.removeNode()
         self._dynamic_line_np = NodePath(line_seg.create(False))
         self._dynamic_line_np.hide(CamMask.Shadow | CamMask.RgbCam)
-        self._dynamic_line_np.reparentTo(pgdrive_engine.render)
+        self._dynamic_line_np.reparentTo(engine.render)

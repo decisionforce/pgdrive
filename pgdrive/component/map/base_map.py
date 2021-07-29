@@ -1,5 +1,5 @@
 import copy
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 from pgdrive.component.road.road import Road
 import logging
 from pgdrive.component.base_object import BaseObject
@@ -78,7 +78,7 @@ class BaseMap(BaseObject):
         self.blocks = []
 
         # Generate map and insert blocks
-        self.pgdrive_engine = get_pgdrive_engine()
+        self.engine = get_engine()
         self._generate()
         assert self.blocks, "The generate methods does not fill blocks!"
 
@@ -92,13 +92,13 @@ class BaseMap(BaseObject):
         raise NotImplementedError("Please use child class like PGMap to replace Map!")
 
     def load_to_world(self):
-        parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
+        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
         for block in self.blocks:
             block.attach_to_world(parent_node_path, pg_physics_world)
 
     def unload_from_world(self):
         for block in self.blocks:
-            block.detach_from_world(self.pgdrive_engine.physics_world)
+            block.detach_from_world(self.engine.physics_world)
 
     def save_map(self):
         """

@@ -26,7 +26,7 @@ def test_base_vehicle():
     env = PGDriveEnv()
     try:
         env.reset()
-        pg_world = env.pgdrive_engine
+        pg_world = env.engine
         map = env.current_map
 
         # v_config = BaseVehicle.get_vehicle_config(dict())

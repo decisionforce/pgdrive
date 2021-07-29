@@ -14,7 +14,7 @@ from pgdrive.component.static_object import BaseStaticObject
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils import norm
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 from pgdrive.utils.math_utils import clip
 from pgdrive.utils.scene_utils import ray_localization
 
@@ -188,7 +188,7 @@ class IDMPolicy(BasePolicy):
         # self.speed += self.action['acceleration'] * dt
 
     def after_step(self, *args, **kwargs):
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         dir = np.array([math.cos(self.heading), math.sin(self.heading)])
         lane, lane_index = ray_localization(dir, self.position, engine)
         if lane is not None:
@@ -358,7 +358,7 @@ class IDMPolicy(BasePolicy):
             if self.lane_index[:2] == self.target_lane_index[:2]:
                 for v in self.traffic_manager.vehicles:
 
-                    e = get_pgdrive_engine()
+                    e = get_engine()
                     p = e.policy_manager.get_policy(v.name)
                     if p is None:
                         continue

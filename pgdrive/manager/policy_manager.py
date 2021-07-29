@@ -17,7 +17,7 @@ class PolicyManager(BaseManager):
         print('222')
 
     def register_new_policy(self, policy_class, vehicle, traffic_manager, *args, **kwargs):
-        # e = get_pgdrive_engine()
+        # e = get_engine()
         # TODO: We should have a general "vehicle manager". Then we can get the BaseVehicle instance from
         #  engine according to agent_name! Here is only a workaround.
         policy = self.spawn_object(policy_class, vehicle=vehicle, traffic_manager=traffic_manager, *args, **kwargs)

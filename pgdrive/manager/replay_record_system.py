@@ -1,7 +1,7 @@
 import copy
 from pgdrive.component.road.road import Road
 import logging
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
@@ -24,7 +24,7 @@ class PGReplayer:
         assert isinstance(self.restore_vehicles, dict), "No place to restore vehicles"
         import pgdrive.component.vehicle.traffic_vehicle_type as v_types
         traffics = episode_data["init_traffic"]
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         for name, config in traffics.items():
             car_type = getattr(v_types, config["type"])
             car = car_type.create_traffic_vehicle_from_config(traffic_mgr, config)

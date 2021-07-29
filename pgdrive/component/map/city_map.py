@@ -88,7 +88,7 @@ class CityBIG(BIG):
 
 class CityMap(BaseMap):
     def _generate(self):
-        parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
+        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
         big_map = CityBIG(
             self._config[self.LANE_NUM], self._config[self.LANE_WIDTH], self.road_network, parent_node_path,
             pg_physics_world, self._config["block_type_version"]

@@ -176,8 +176,8 @@ class BaseObject(RandomEngine):
         """
         Fully delete this element and release the memory
         """
-        from pgdrive.utils.engine_utils import get_pgdrive_engine
-        engine = get_pgdrive_engine()
+        from pgdrive.utils.engine_utils import get_engine
+        engine = get_engine()
         self.detach_from_world(engine.physics_world)
         if self.node_path is not None:
             self.node_path.removeNode()

@@ -1,6 +1,6 @@
 import copy
 from math import floor
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 import numpy as np
 from panda3d.bullet import BulletBoxShape, BulletGhostNode
 from panda3d.core import Vec3, BitMask32
@@ -167,7 +167,7 @@ class SpawnManager:
         In each episode, we allow the vehicles to respawn at the start of road, randomize will give vehicles a random
         position in the respawn region
         """
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         ret = {}
         for bid, bp in self.safe_spawn_places.items():
             if bid in self.spawn_places_used:

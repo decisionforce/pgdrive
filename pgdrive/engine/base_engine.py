@@ -4,7 +4,7 @@ from typing import Dict, AnyStr
 import numpy as np
 
 from pgdrive.engine.core.pg_world import PGWorld
-from pgdrive.engine.pgdrive_scene_cull import PGDriveSceneCull
+from pgdrive.engine.scene_cull import PGDriveSceneCull
 from pgdrive.manager.base_manager import BaseManager
 
 logger = logging.getLogger(__name__)
@@ -201,7 +201,7 @@ class BaseEngine(PGWorld):
     def close(self):
         """
         Note:
-        Instead of calling this func directly, close Engine by using engine_utils.close_pgdrive_engine
+        Instead of calling this func directly, close Engine by using engine_utils.close_engine
         """
 
         self.current_map = None

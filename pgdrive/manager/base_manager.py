@@ -7,10 +7,10 @@ class BaseManager(RandomEngine):
     Managers should be created and registered after launching BaseEngine
     """
     def __init__(self):
-        from pgdrive.utils.engine_utils import get_pgdrive_engine, pgdrive_engine_initialized
-        assert pgdrive_engine_initialized(), "You should not create manager before the initialization of BaseEngine"
-        self.pgdrive_engine = get_pgdrive_engine()
-        super(BaseManager, self).__init__(self.pgdrive_engine.global_random_seed)
+        from pgdrive.utils.engine_utils import get_engine, engine_initialized
+        assert engine_initialized(), "You should not create manager before the initialization of BaseEngine"
+        self.engine = get_engine()
+        super(BaseManager, self).__init__(self.engine.global_random_seed)
         self._spawned_objects = dict()
 
     def spawn_object(self, object_class, *args, **kwargs):
@@ -95,4 +95,4 @@ class BaseManager(RandomEngine):
         """
         self.clear_objects()
         self._spawned_objects = None
-        self.pgdrive_engine = None
+        self.engine = None

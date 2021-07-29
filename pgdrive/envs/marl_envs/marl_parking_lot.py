@@ -66,7 +66,7 @@ class MAParkingLotMap(PGMap):
     def _generate(self):
         length = self.config["exit_length"]
 
-        parent_node_path, pg_physics_world = self.pgdrive_engine.worldNP, self.pgdrive_engine.physics_world
+        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
 
         # Build a first-block
@@ -175,10 +175,10 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
 
         if self.current_map is None:
             self.seed(map_config["seed"])
-            new_map = self.pgdrive_engine.map_manager.spawn_object(
+            new_map = self.engine.map_manager.spawn_object(
                 MAParkingLotMap, map_config=map_config, random_seed=self.current_seed
             )
-            self.pgdrive_engine.map_manager.load_map(new_map)
+            self.engine.map_manager.load_map(new_map)
             self.current_map.spawn_roads = self.spawn_roads
 
     def _update_destination_for(self, vehicle_id):
@@ -469,7 +469,7 @@ def _profile():
     for s in range(10000):
         o, r, d, i = env.step(env.action_space.sample())
 
-        # mask_ratio = env.pgdrive_engine.detector_mask.get_mask_ratio()
+        # mask_ratio = env.engine.detector_mask.get_mask_ratio()
         # print("Mask ratio: ", mask_ratio)
 
         if all(d.values()):

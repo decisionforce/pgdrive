@@ -33,7 +33,7 @@ class DepthCamera(ImageBuffer):
         self.lens.setAspectRatio(2.0)
 
         # add shader for it
-        if self.pgdrive_engine.world_config["headless_image"]:
+        if self.engine.world_config["headless_image"]:
             vert_path = AssetLoader.file_path("shaders", "depth_cam_gles.vert.glsl")
             frag_path = AssetLoader.file_path("shaders", "depth_cam_gles.frag.glsl")
         else:
@@ -60,7 +60,7 @@ class DepthCamera(ImageBuffer):
             self.ground_model.hide(BitMask32.allOn())
             self.ground_model.show(CamMask.DepthCam)
             self.ground.Generate()
-            self.pgdrive_engine.task_manager.add(
+            self.engine.task_manager.add(
                 self.renew_pos_of_ground_mode, self.TASK_NAME, extraArgs=[chassis_np], appendTask=True
             )
 
@@ -71,4 +71,4 @@ class DepthCamera(ImageBuffer):
 
     def destroy(self):
         super(DepthCamera, self).destroy()
-        self.pgdrive_engine.task_manager.remove(self.TASK_NAME)
+        self.engine.task_manager.remove(self.TASK_NAME)

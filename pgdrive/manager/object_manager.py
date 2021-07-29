@@ -10,7 +10,7 @@ from pgdrive.component.static_object.traffic_object import TrafficSign
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import LaneIndex
 from pgdrive.manager.base_manager import BaseManager
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 
 
 class TrafficSignManager(BaseManager):
@@ -43,8 +43,8 @@ class TrafficSignManager(BaseManager):
         Clear all objects in th scene
         """
         self.clear_objects()
-        self.accident_prob = self.pgdrive_engine.global_config["accident_prob"]
-        map = self.pgdrive_engine.map_manager.current_map
+        self.accident_prob = self.engine.global_config["accident_prob"]
+        map = self.engine.map_manager.current_map
         for block in map.blocks:
             block.construct_block_buildings(self)
 
@@ -81,7 +81,7 @@ class TrafficSignManager(BaseManager):
         Generate an accident scene or construction scene on block
         :return: None
         """
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         accident_prob = self.accident_prob
         if abs(accident_prob - 0.0) < 1e-2:
             return
@@ -125,7 +125,7 @@ class TrafficSignManager(BaseManager):
                 self.break_down_scene(lane, accident_road.lane_index(accident_lane_idx), longitude)
 
     def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         breakdown_vehicle = engine.traffic_manager.spawn_object(
             engine.traffic_manager.random_vehicle_type(), lane, longitude, False
         )
@@ -147,7 +147,7 @@ class TrafficSignManager(BaseManager):
         :param on_left: on left or right side
         :return: None
         """
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         lat_num = int(lateral_len / self.CONE_LATERAL)
         longitude_num = int(self.ACCIDENT_AREA_LEN / self.CONE_LONGITUDE)
         lat_1 = [lat * self.CONE_LATERAL for lat in range(lat_num)]

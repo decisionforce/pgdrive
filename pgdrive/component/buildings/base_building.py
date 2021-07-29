@@ -1,5 +1,5 @@
 from pgdrive.component.static_object.base_static_object import BaseStaticObject
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 
 
 class BaseBuilding(BaseStaticObject):
@@ -9,7 +9,7 @@ class BaseBuilding(BaseStaticObject):
         self.node_path = node_path
 
     def destroy(self):
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         self.detach_from_world(engine.pg_physics_world)
         self.node_path.removeNode()
         self.dynamic_nodes.clear()

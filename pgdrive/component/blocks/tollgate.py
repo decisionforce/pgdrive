@@ -1,6 +1,6 @@
 import numpy as np
 from pgdrive.constants import CamMask, LineType, LineColor
-from pgdrive.utils.engine_utils import get_pgdrive_engine
+from pgdrive.utils.engine_utils import get_engine
 from pgdrive.constants import BodyName
 from pgdrive.component.blocks.pg_block import PGBlockSocket
 from pgdrive.component.blocks.bottleneck import PGBlock
@@ -95,7 +95,7 @@ class TollGate(PGBlock):
                 self._block_objects.append(building)
 
     def construct_block_buildings(self, object_manager):
-        engine = get_pgdrive_engine()
+        engine = get_engine()
         for building in self._block_objects:
             object_manager.add_block_buildings(building, engine.pbr_worldNP)
             # for performance reason
