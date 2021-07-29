@@ -11,12 +11,14 @@ class WayPointLane(AbstractLane):
     CenterLineLane is created by giving the center line points array or way points array.
     By using this lane type, map can be constructed from Waymo/Argoverse/OpenstreetMap dataset
     """
-
-    def __init__(self, center_line_points: Union[list, np.ndarray],
-                 width: float,
-                 forbidden: bool = False,
-                 speed_limit: float = 1000,
-                 priority: int = 0):
+    def __init__(
+        self,
+        center_line_points: Union[list, np.ndarray],
+        width: float,
+        forbidden: bool = False,
+        speed_limit: float = 1000,
+        priority: int = 0
+    ):
         super(WayPointLane, self).__init__()
         self.set_speed_limit(speed_limit)
         self.width = width
@@ -33,12 +35,14 @@ class WayPointLane(AbstractLane):
         ret = []
         for idx, p_start in enumerate(self.center_line_points[:-1]):
             p_end = self.center_line_points[idx + 1]
-            seg_property = {"length": self.points_distance(p_start, p_end),
-                            "direction": self.points_direction(p_start, p_end),
-                            "lateral_direction": self.points_lateral_direction(p_start, p_end),
-                            "heading": self.points_heading(p_start, p_end),
-                            "start_point": p_start,
-                            "end_point": p_end}
+            seg_property = {
+                "length": self.points_distance(p_start, p_end),
+                "direction": self.points_direction(p_start, p_end),
+                "lateral_direction": self.points_lateral_direction(p_start, p_end),
+                "heading": self.points_heading(p_start, p_end),
+                "start_point": p_start,
+                "end_point": p_end
+            }
             ret.append(seg_property)
         return ret
 
@@ -75,12 +79,12 @@ class WayPointLane(AbstractLane):
         accumulate_len = 0
         for seg in self.segment_property:
             if accumulate_len + 0.1 >= longitudinal:
-                return seg["start_point"] + (accumulate_len - longitudinal) * seg["direction"] + lateral * seg[
-                    "lateral_direction"]
+                return seg["start_point"] + (accumulate_len -
+                                             longitudinal) * seg["direction"] + lateral * seg["lateral_direction"]
             accumulate_len += seg["length"]
 
-        return seg["start_point"] + (longitudinal - accumulate_len + seg["length"]) * seg["direction"] + lateral * seg[
-            "lateral_direction"]
+        return seg["start_point"] + (longitudinal - accumulate_len +
+                                     seg["length"]) * seg["direction"] + lateral * seg["lateral_direction"]
 
     def local_coordinates(self, position: Tuple[float, float]):
         ret = []  # ret_longitude, ret_lateral, sort_key

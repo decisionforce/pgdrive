@@ -25,7 +25,6 @@ class LaneNode(BulletRigidBodyNode):
     """
     It is the body of land in panda3d, which can help quickly find current lane of vehicles
     """
-
     def __init__(self, node_name, lane, lane_index=(str, str, int)):
         """
         Using ray cast to query the lane information
@@ -45,7 +44,6 @@ class BaseVehicleNode(BulletRigidBodyNode):
     """
     Collision Properties should place here, info here can used for collision callback
     """
-
     def __init__(self, body_name: str, base_vehicle):
         BulletRigidBodyNode.__init__(self, body_name)
         BulletRigidBodyNode.setPythonTag(self, body_name, self)

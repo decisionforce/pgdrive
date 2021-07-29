@@ -1,8 +1,8 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.scene_creator.map.argoverse_map import ArgoverseMap
 
-class ArgoverseEnv(PGDriveEnv):
 
+class ArgoverseEnv(PGDriveEnv):
     def _post_process_config(self, config):
         config = super(ArgoverseEnv, self)._post_process_config(config)
         config["vehicle_config"]["spawn_lane_index"] = ("11713", "4250", 0)
@@ -11,7 +11,14 @@ class ArgoverseEnv(PGDriveEnv):
     def _update_map(self, episode_data: dict = None):
         xcenter, ycenter = 2599.5505965123866, 1200.0214763629717
         if self.current_map is None:
-            self.config["map_config"].update({"city": "PIT", "draw_map_resolution": 1024, "center": [xcenter, ycenter], "radius": 1000})
+            self.config["map_config"].update(
+                {
+                    "city": "PIT",
+                    "draw_map_resolution": 1024,
+                    "center": [xcenter, ycenter],
+                    "radius": 1000
+                }
+            )
             map = ArgoverseMap(self.config["map_config"])
             self.pgdrive_engine.map_manager.load_map(map)
 
