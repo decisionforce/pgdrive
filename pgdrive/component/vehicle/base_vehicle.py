@@ -31,7 +31,7 @@ from pgdrive.utils import get_np_random, Config, safe_clip_for_small_array, Vect
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.engine_utils import get_engine
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
-from pgdrive.utils.pg_space import ParameterSpace, Parameter, VehicleParameterSpace
+from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 
 

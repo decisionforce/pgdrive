@@ -8,7 +8,7 @@ from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, Creat
 from pgdrive.component.buildings.base_building import BaseBuilding
 from pgdrive.component.road.road import Road
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.space import ParameterSpace, Parameter, BlockParameterSpace
 
 TollGateBuilding = BaseBuilding
 

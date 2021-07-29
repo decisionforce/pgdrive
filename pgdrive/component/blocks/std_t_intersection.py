@@ -1,5 +1,5 @@
 from pgdrive.component.blocks.t_intersection import TInterSection
-from pgdrive.utils.pg_space import Parameter
+from pgdrive.utils.space import Parameter
 
 
 class StdTInterSection(TInterSection):

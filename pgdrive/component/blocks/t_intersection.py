@@ -2,7 +2,7 @@ from pgdrive.constants import Goal, LineType, LineColor
 from pgdrive.component.blocks.pg_block import PGBlockSocket
 from pgdrive.component.blocks.intersection import InterSection
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.space import ParameterSpace, Parameter, BlockParameterSpace
 
 
 class TInterSection(InterSection):

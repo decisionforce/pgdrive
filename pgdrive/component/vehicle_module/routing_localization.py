@@ -11,7 +11,7 @@ from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.road.road import Road
 from pgdrive.utils import clip, norm, get_np_random
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.utils.pg_space import Parameter, BlockParameterSpace
+from pgdrive.utils.space import Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.coordinates_shift import panda_position
 

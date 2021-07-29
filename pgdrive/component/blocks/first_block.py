@@ -6,7 +6,7 @@ from pgdrive.component.blocks.create_block_utils import CreateRoadFrom, CreateAd
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import RoadNetwork
-from pgdrive.utils.pg_space import ParameterSpace
+from pgdrive.utils.space import ParameterSpace
 from pgdrive.engine.core.physics_world import PhysicsWorld
 
 

@@ -1,4 +1,4 @@
-from pgdrive.utils.pg_config import Config
+from pgdrive.utils.config import Config
 
 
 def test_recursive_config():

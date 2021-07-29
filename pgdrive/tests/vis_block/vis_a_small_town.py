@@ -7,7 +7,7 @@ from pgdrive.component.blocks.t_intersection import TInterSection
 from pgdrive.component.road.road_network import RoadNetwork
 from pgdrive.tests.vis_block.vis_block_base import TestBlock
 from pgdrive.engine.asset_loader import initialize_asset_loader
-from pgdrive.utils.pg_space import Parameter
+from pgdrive.utils.space import Parameter
 
 if __name__ == "__main__":
     test = TestBlock(False)

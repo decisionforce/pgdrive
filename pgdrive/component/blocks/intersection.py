@@ -8,7 +8,7 @@ from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, Creat
 from pgdrive.constants import LineType
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.space import ParameterSpace, Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import check_lane_on_road
 
 

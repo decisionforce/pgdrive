@@ -3,7 +3,7 @@ from pgdrive.component.blocks.create_block_utils import CreateAdverseRoad, Creat
     create_wave_lanes
 from pgdrive.constants import LineType
 from pgdrive.component.road.road import Road
-from pgdrive.utils.pg_space import ParameterSpace, Parameter, BlockParameterSpace
+from pgdrive.utils.space import ParameterSpace, Parameter, BlockParameterSpace
 
 
 class Bottleneck(PGBlock):

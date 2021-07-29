@@ -7,7 +7,7 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.road.road import Road
 from pgdrive.manager.spawn_manager import SpawnManager
 from pgdrive.utils import setup_logger, get_np_random, Config
-from pgdrive.utils.pg_config import merge_dicts
+from pgdrive.utils.config import merge_dicts
 
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====

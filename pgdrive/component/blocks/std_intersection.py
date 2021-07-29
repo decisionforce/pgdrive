@@ -1,5 +1,5 @@
 from pgdrive.component.blocks.intersection import InterSection
-from pgdrive.utils.pg_space import Parameter
+from pgdrive.utils.space import Parameter
 
 
 class StdInterSection(InterSection):
