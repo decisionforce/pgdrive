@@ -24,14 +24,11 @@ class BaseEngine(EngineCore):
 
     def __init__(
             self,
-            global_config,
-            agent_manager,
-    ):
+            global_config):
         self.global_config = global_config
         super(BaseEngine, self).__init__(self.global_config["engine_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         self._managers = OrderedDict()
-        self._add_default_managers(agent_manager=agent_manager)
 
         # for recovering, they can not exist together
         # TODO new record/replay
@@ -237,19 +234,6 @@ class BaseEngine(EngineCore):
         self.global_random_seed = random_seed
         for mgr in self._managers.values():
             mgr.seed(random_seed)
-
-    def _add_default_managers(self, agent_manager):
-        from pgdrive.manager.map_manager import MapManager
-        from pgdrive.manager.object_manager import TrafficSignManager
-        from pgdrive.manager.traffic_manager import TrafficManager
-        from pgdrive.manager.policy_manager import PolicyManager
-
-        # Add managers to BaseEngine, the order
-        self.register_manager("agent_manager", agent_manager)
-        self.register_manager("map_manager", MapManager())
-        self.register_manager("object_manager", TrafficSignManager())
-        self.register_manager("traffic_manager", TrafficManager())
-        self.register_manager("policy_manager", PolicyManager())
 
     @property
     def current_map(self):
