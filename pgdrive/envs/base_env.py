@@ -264,7 +264,7 @@ class BasePGDriveEnv(gym.Env):
                 image_source = "rgb_cam"
                 assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
                 self.temporary_img_obs = ImageObservation(
-                    self.vehicles[DEFAULT_AGENT].vehicle_config, image_source, False
+                    self.vehicles[DEFAULT_AGENT].config, image_source, False
                 )
             else:
                 raise ValueError("Not implemented yet!")

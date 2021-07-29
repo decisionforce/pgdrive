@@ -164,7 +164,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         # update config (for new possible spawn places)
         for v_id, v in self.vehicles.items():
             if v_id in self.config["target_vehicle_configs"]:
-                v.vehicle_config = self._get_single_vehicle_config(self.config["target_vehicle_configs"][v_id])
+                v.config = self._get_single_vehicle_config(self.config["target_vehicle_configs"][v_id])
         super(MultiAgentPGDrive, self)._reset_agents()  # Update config before actually resetting!
         for v_id, _ in self.vehicles.items():
             self._update_destination_for(v_id)
@@ -267,7 +267,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]
-        vehicle.vehicle_config.update(new_spawn_place_config)
+        vehicle.config.update(new_spawn_place_config)
         vehicle.reset(self.current_map)
         self._update_destination_for(new_agent_id)
         vehicle.after_step(detector_mask=None)

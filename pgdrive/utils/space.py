@@ -237,12 +237,6 @@ class VehicleParameterSpace:
         Parameter.vehicle_vis_y: ConstantSpace(0.1),
         Parameter.vehicle_vis_z: ConstantSpace(-0.31),
         Parameter.vehicle_vis_scale: ConstantSpace(0.013),
-
-        # TODO the following parameters will be opened soon using PGBoxSPace
-        # Parameter.steering_max: ConstantSpace(40.0),
-        # Parameter.engine_force_max: ConstantSpace(500.0),
-        # Parameter.brake_force_max: ConstantSpace(40.0),
-        # Parameter.speed_max: ConstantSpace(120),
     }
 
 

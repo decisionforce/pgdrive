@@ -231,7 +231,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
 
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]
-        vehicle.vehicle_config.update(new_spawn_place_config)
+        vehicle.config.update(new_spawn_place_config)
         vehicle.reset(self.current_map)
         self._update_destination_for(new_agent_id)
         vehicle.after_step(detector_mask=None)
