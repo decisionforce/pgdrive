@@ -18,7 +18,7 @@ def capture_image(headless):
             start_seed=666,
             traffic_density=0.1,
             use_image=True,
-            engine_config=dict(headless_image=headless)
+            headless_image=headless
         )
     )
     env.reset()

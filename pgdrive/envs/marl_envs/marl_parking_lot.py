@@ -36,6 +36,7 @@ class ParkingSpaceManager:
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
+
     def __init__(self, parking_spaces: list):
         self.parking_space_available = set()
         self._parking_spaces = parking_spaces
@@ -283,9 +284,7 @@ def _expert():
                 "use_saver": True,
                 "save_level": 1.
             },
-            "engine_config": {
-                "debug_physics_world": True
-            },
+            "debug_physics_world": True,
             "fast": True,
             # "use_render": True,
             "debug": True,
@@ -329,9 +328,7 @@ def _vis_debug_respawn():
                 },
                 "show_lidar": False,
             },
-            "engine_config": {
-                "debug_physics_world": True
-            },
+            "debug_physics_world": True,
             "fast": True,
             "use_render": True,
             "debug": False,
@@ -384,10 +381,8 @@ def _vis():
                 },
                 "show_lidar": False,
             },
-            "engine_config": {
-                "debug_static_world": True,
-                "global_light": True
-            },
+            "debug_static_world": True,
+            "global_light": True,
             "fast": True,
             "use_render": True,
             "debug": True,
@@ -552,7 +547,7 @@ if __name__ == "__main__":
         MultiAgentParkingLotEnv,
         False,
         other_traj="metasvodist_parking_best.json",
-        extra_config={"engine_config": {
+        extra_config={
             "global_light": True
-        }}
+        }
     )

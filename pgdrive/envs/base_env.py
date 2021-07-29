@@ -65,37 +65,39 @@ BASE_DEFAULT_CONFIG = dict(
     ),
 
     # ===== Others =====
-    engine_config=dict(
-        window_size=(1200, 900),  # width, height
-        physics_world_step_size=2e-2,
-        show_fps=True,
-        global_light=False,
+    window_size=(1200, 900),  # width, height
 
-        # show message when render is called
-        onscreen_message=True,
+    physics_world_step_size=2e-2,
 
-        # limit the render fps
-        # Press "f" to switch FPS, this config is deprecated!
-        # force_fps=None,
+    show_fps=True,
 
-        # only render physics world without model, a special debug option
-        debug_physics_world=False,
+    global_light=False,
 
-        # debug static world
-        debug_static_world=False,
+    # show message when render is called
+    onscreen_message=True,
 
-        # set to true only when on headless machine and use rgb image!!!!!!
-        headless_image=False,
+    # limit the render fps
+    # Press "f" to switch FPS, this config is deprecated!
+    # force_fps=None,
 
-        # turn on to profile the efficiency
-        pstats=False,
+    # only render physics world without model, a special debug option
+    debug_physics_world=False,
 
-        # The maximum distance used in PGLOD. Set to None will use the default values.
-        max_distance=None,
+    # debug static world
+    debug_static_world=False,
 
-        # Force to generate objects in the left lane.
-        _debug_crash_object=False
-    ),
+    # set to true only when on headless machine and use rgb image!!!!!!
+    headless_image=False,
+
+    # turn on to profile the efficiency
+    pstats=False,
+
+    # The maximum distance used in PGLOD. Set to None will use the default values.
+    max_distance=None,
+
+    # Force to generate objects in the left lane.
+    _debug_crash_object=False,
+
     record_episode=False,
 )
 
@@ -179,8 +181,7 @@ class BasePGDriveEnv(gym.Env):
         # It is the true init() func to create the main vehicle and its module, to avoid incompatible with ray
         if engine_initialized():
             return
-        initialize_engine(self.config, self.agent_manager)
-        self.engine = get_engine()
+        self.engine = initialize_engine(self.config, self.agent_manager)
 
         # engine setup
         self.setup_engine()

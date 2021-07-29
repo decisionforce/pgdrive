@@ -67,7 +67,7 @@ class TollGateStateObservation(StateObservation):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         ego_state = self.vehicle_state(vehicle)
@@ -297,9 +297,7 @@ def _expert():
                 "use_saver": True,
                 "save_level": 1.
             },
-            "engine_config": {
-                "debug_physics_world": True
-            },
+            "debug_physics_world": True,
             "fast": True,
             # "use_render": True,
             "debug": True,
@@ -343,9 +341,7 @@ def _vis_debug_respawn():
                 },
                 "show_lidar": False,
             },
-            "engine_config": {
-                "debug_physics_world": True
-            },
+            "debug_physics_world": True,
             "fast": True,
             "use_render": True,
             "debug": False,
