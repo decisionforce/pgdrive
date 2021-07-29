@@ -66,11 +66,8 @@ BASE_DEFAULT_CONFIG = dict(
 
     # ===== Others =====
     window_size=(1200, 900),  # width, height
-
     physics_world_step_size=2e-2,
-
     show_fps=True,
-
     global_light=False,
 
     # show message when render is called
@@ -97,7 +94,6 @@ BASE_DEFAULT_CONFIG = dict(
 
     # Force to generate objects in the left lane.
     _debug_crash_object=False,
-
     record_episode=False,
 )
 

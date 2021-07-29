@@ -162,8 +162,13 @@ if __name__ == "__main__":
     ymin = ycenter - 80  # 150
     ymax = ycenter + 80  # 150
     map = ArgoverseMap(
-        {"city": "PIT", "draw_map_resolution": 1024, "center": ArgoverseMap.pgdrive_position([xcenter, ycenter]),
-         "radius": 1000})
+        {
+            "city": "PIT",
+            "draw_map_resolution": 1024,
+            "center": ArgoverseMap.pgdrive_position([xcenter, ycenter]),
+            "radius": 1000
+        }
+    )
     engine.map_manager.load_map(map)
     map.engine.enableMouse()
 
