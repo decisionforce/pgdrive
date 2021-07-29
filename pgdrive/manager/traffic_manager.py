@@ -10,6 +10,7 @@ from pgdrive.component.road.road import Road
 from pgdrive.manager.base_manager import BaseManager
 from pgdrive.utils import norm, merge_dicts
 from pgdrive.utils.engine_utils import get_engine
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 
@@ -232,9 +233,15 @@ class TrafficManager(BaseManager):
         :param enable_respawn: Respawn or not
         :return: TrafficVehicle
         """
-        random_v = vehicle_type.create_random_traffic_vehicle(
-            len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
-        )
+
+        # random_v = vehicle_type.create_random_traffic_vehicle(
+        #     len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
+        # )
+
+        # TODO(pzh): Help!!!!
+        assert vehicle_type == BaseVehicle
+        random_v = BaseVehicle(v_config)
+
         self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
 

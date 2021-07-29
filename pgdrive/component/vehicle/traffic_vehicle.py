@@ -4,19 +4,29 @@ import numpy as np
 from panda3d.bullet import BulletBoxShape
 from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
 
-from pgdrive.constants import BodyName, CollisionGroup
-from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.physics_node import TrafficVehicleNode
 from pgdrive.component.base_object import BaseObject
 from pgdrive.component.highway_vehicle.behavior import IDMVehicle
 from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.constants import BodyName, CollisionGroup
+from pgdrive.engine.asset_loader import AssetLoader
+from pgdrive.engine.physics_node import TrafficVehicleNode
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.engine_utils import get_engine
+from pgdrive.utils.utils import deprecation_warning
+
+# TODO(pzh): This is a workaround!
+TrafficVehicleMask = CollisionGroup.TrafficVehicle
 
 
-class TrafficVehicle(BaseObject):
+class TrafficVehicle(BaseVehicle):
+    pass
+
+
+class TrafficVehicleDeprecated(BaseObject):
+    # TODO(pzh): Is this collision mask successfully transferred?
     COLLISION_MASK = CollisionGroup.TrafficVehicle
     HEIGHT = 1.8
     LENGTH = 4
@@ -33,6 +43,9 @@ class TrafficVehicle(BaseObject):
         :param enable_respawn: It will be generated at the spawn place again when arriving at the destination
         :param random_seed: Random Engine seed
         """
+
+        deprecation_warning("traffic vehicle", "base vehicle", error=True)
+
         kinematic_model.LENGTH = self.LENGTH
         kinematic_model.WIDTH = self.WIDTH
         super(TrafficVehicle, self).__init__(random_seed=random_seed)
@@ -168,14 +181,14 @@ class TrafficVehicle(BaseObject):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        random_seed=None,
-        enable_lane_change: bool = True,
-        enable_respawn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            random_seed=None,
+            enable_lane_change: bool = True,
+            enable_respawn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=random_seed)
         v.enable_lane_change = enable_lane_change
