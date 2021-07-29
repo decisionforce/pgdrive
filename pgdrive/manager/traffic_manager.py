@@ -273,7 +273,7 @@ class TrafficManager(BaseManager):
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             model_config = self.random_vehicle_type()
-            vehicle_config = {"model": model_config}
+            vehicle_config = {"model_details": model_config}
             # self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
             # self.spawn_object(BaseVehicle, lane, long, is_respawn_lane)
             self.spawn_object(BaseVehicle, vehicle_config)

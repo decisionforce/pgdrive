@@ -99,6 +99,7 @@ class BaseObject(RandomEngine):
         :param copy:
         :return: a copy of config dict
         """
+        # TODO(pzh): This function is really stupid! We should remove it!!!!!
         if copy:
             return self._config.copy()
         return self._config

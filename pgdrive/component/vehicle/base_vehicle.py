@@ -48,7 +48,8 @@ DEFAULT_VEHICLE_CONFIG = dict(
     show_dest_mark=False,
     show_line_to_dest=False,
     am_i_the_special_one=False,
-    model_type="ego"
+    model_type="ego",
+    model_details={},
 )
 
 # TODO(pzh): Remove model type to other places! We should have a unify model selection flow.
@@ -57,9 +58,9 @@ factor = 1
 
 MODEL_TYPES = dict(
     ego=dict(
-        length=0,
-        width=0,
-        height=1.9,
+        length=4,
+        width=1.5,
+        height=1,
         model=dict(
             path='models/ferra/scene.gltf',
             scale=None,
@@ -628,14 +629,29 @@ class BaseVehicle(BaseObject):
 
         if self.render:
             if self.MODEL is None:
-                model_path = 'models/ferra/scene.gltf'
+
+                # TODO(pzh): We should put ego into default config!
+                model_details = self.config["model_details"] or MODEL_TYPES["ego"]
+
+                model_path = model_details["model"]["path"]
                 self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
                 self.MODEL.setZ(para[Parameter.vehicle_vis_z])
                 self.MODEL.setY(para[Parameter.vehicle_vis_y])
                 self.MODEL.setH(para[Parameter.vehicle_vis_h])
+
+
+                # !!!!!!!!!!!!!!! DO THIS RIGHT NOW !!!!!!!!!!!
                 self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
+
+
+
+
+
+
             self.MODEL.instanceTo(self.chassis_np)
+
             if self.config["random_color"]:
+                # TODO(pzh): We can randomized the color of traffic vehicle!
                 material = Material()
                 material.setBaseColor(
                     (
