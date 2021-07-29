@@ -6,9 +6,9 @@ from panda3d.core import NodePath
 
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
-from pgdrive.utils.random import random_string, RandomEngine
 from pgdrive.utils.pg_config import PGConfig
 from pgdrive.utils.pg_space import PGSpace
+from pgdrive.utils.random import random_string, RandomEngine
 
 
 class PhysicsNodeList(list):
@@ -56,7 +56,8 @@ class BaseObject(RandomEngine):
         Config is a static conception, which specified the parameters of one element.
         There parameters doesn't change, such as length of straight road, max speed of one vehicle, etc.
         """
-        assert random_seed is not None, "Assign a random seed for {} class in super().__init__()".format(
+
+        assert random_seed is not None, "Please assign a random seed for {} class in super().__init__()".format(
             self.class_name
         )
         super(BaseObject, self).__init__(random_seed)
@@ -135,6 +136,7 @@ class BaseObject(RandomEngine):
         """
         Do Information fusion and then analyze and wait for decision
         """
+        pass
 
     def set_action(self, *args, **kwargs):
         """
@@ -188,7 +190,12 @@ class BaseObject(RandomEngine):
         return self.__class__.__name__
 
     def __del__(self):
-        logging.debug("{} is destroyed".format(str(self)))
+        try:
+            str(self)
+        except AttributeError:
+            pass
+        else:
+            logging.debug("{} is destroyed".format(str(self)))
 
     def __repr__(self):
         return "{}".format(str(self))
