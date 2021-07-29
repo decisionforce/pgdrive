@@ -22,9 +22,7 @@ class BaseEngine(EngineCore):
     IN_REPLAY = False
     STOP_REPLAY = False
 
-    def __init__(
-            self,
-            global_config):
+    def __init__(self, global_config):
         self.global_config = global_config
         super(BaseEngine, self).__init__(self.global_config["engine_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
