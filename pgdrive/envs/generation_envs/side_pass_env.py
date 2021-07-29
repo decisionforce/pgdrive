@@ -43,9 +43,7 @@ class SidePassEnv(PGDriveEnv):
         breakdown_vehicle = self.engine.traffic_manager.spawn_object(LVehicle, lane_, 30, False)
         breakdown_vehicle.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
-        self.alert = self.engine.object_manager.spawn_object(
-            "Traffic Triangle", lane, (">>>", "1C0_0_", 0), 22, 0
-        )
+        self.alert = self.engine.object_manager.spawn_object("Traffic Triangle", lane, (">>>", "1C0_0_", 0), 22, 0)
         self.alert.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
         # part 1
@@ -58,9 +56,7 @@ class SidePassEnv(PGDriveEnv):
         ]
 
         for p in pos:
-            cone = self.engine.object_manager.spawn_object(
-                "Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0], p[1]
-            )
+            cone = self.engine.object_manager.spawn_object("Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0], p[1])
             cone.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
         from pgdrive.component.vehicle.traffic_vehicle_type import SVehicle, XLVehicle
         v_pos = [8, 14]
@@ -80,9 +76,7 @@ class SidePassEnv(PGDriveEnv):
 
         for p in pos:
             p_ = (p[0] + 5, -p[1])
-            cone = self.engine.object_manager.spawn_object(
-                "Traffic Cone", lane, ("3R0_0_", "3R0_1_", 0), p_[0], p_[1]
-            )
+            cone = self.engine.object_manager.spawn_object("Traffic Cone", lane, ("3R0_0_", "3R0_1_", 0), p_[0], p_[1])
             cone.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
         v_pos = [14, 19]
@@ -92,14 +86,10 @@ class SidePassEnv(PGDriveEnv):
             )
             v.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
-        alert = self.engine.object_manager.spawn_object(
-            "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -35, 0
-        )
+        alert = self.engine.object_manager.spawn_object("Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -35, 0)
         alert.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
-        alert = self.engine.object_manager.spawn_object(
-            "Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -60, 0
-        )
+        alert = self.engine.object_manager.spawn_object("Traffic Triangle", lane, ("3R0_0_", "3R0_1_", 0), -60, 0)
         alert.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
         # part 3
@@ -112,9 +102,7 @@ class SidePassEnv(PGDriveEnv):
 
         for p in pos:
             p_ = (p[0] + 5, p[1] * 3.5 / 3)
-            cone = self.engine.object_manager.spawn_object(
-                "Traffic Cone", lane, ("4C0_0_", "4C0_1_", 2), p_[0], p_[1]
-            )
+            cone = self.engine.object_manager.spawn_object("Traffic Cone", lane, ("4C0_0_", "4C0_1_", 2), p_[0], p_[1])
             cone.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
         v_pos = [14, 19]
@@ -130,9 +118,7 @@ class SidePassEnv(PGDriveEnv):
 
         for p in pos:
             p_ = (p[0] + 60, -p[1] * 3.5 / 3)
-            cone = self.engine.object_manager.spawn_object(
-                "Traffic Cone", lane, ("4C0_1_", "5R0_0_", 0), p_[0], p_[1]
-            )
+            cone = self.engine.object_manager.spawn_object("Traffic Cone", lane, ("4C0_1_", "5R0_0_", 0), p_[0], p_[1])
             cone.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
 
         return ret

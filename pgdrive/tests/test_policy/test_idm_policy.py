@@ -36,18 +36,11 @@ def test_idm_policy_briefly():
         vehicles = env.engine.traffic_manager.traffic_vehicles
         for v in vehicles:
             policy = IDMPolicy(
-                vehicle=v,
-                traffic_manager=env.engine.traffic_manager,
-                delay_time=1,
-                random_seed=env.current_seed
+                vehicle=v, traffic_manager=env.engine.traffic_manager, delay_time=1, random_seed=env.current_seed
             )
-            action = policy.before_step(
-                v, front_vehicle=None, rear_vehicle=None, current_map=env.engine.current_map
-            )
+            action = policy.before_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.engine.current_map)
             action = policy.step(dt=0.02)
-            action = policy.after_step(
-                v, front_vehicle=None, rear_vehicle=None, current_map=env.engine.current_map
-            )
+            action = policy.after_step(v, front_vehicle=None, rear_vehicle=None, current_map=env.engine.current_map)
             env.engine.policy_manager.register_new_policy(
                 IDMPolicy,
                 vehicle=v,

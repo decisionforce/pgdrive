@@ -151,16 +151,12 @@ class BaseEngine(EngineCore):
         poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene:
             # TODO use a for loop
-            SceneCull.cull_distant_blocks(
-                self, self.current_map.blocks, poses, self.world_config["max_distance"]
-            )
+            SceneCull.cull_distant_blocks(self, self.current_map.blocks, poses, self.world_config["max_distance"])
 
             SceneCull.cull_distant_traffic_vehicles(
                 self, self.traffic_manager.traffic_vehicles, poses, self.world_config["max_distance"]
             )
-            SceneCull.cull_distant_objects(
-                self, self.object_manager.objects, poses, self.world_config["max_distance"]
-            )
+            SceneCull.cull_distant_objects(self, self.object_manager.objects, poses, self.world_config["max_distance"])
 
         return step_infos
 

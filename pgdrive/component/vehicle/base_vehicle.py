@@ -47,7 +47,9 @@ class BaseVehicle(BaseObject):
                     II-----II
                     2       3
     """
-    PARAMETER_SPACE = ParameterSpace(VehicleParameterSpace.BASE_VEHICLE)  # it will not sample config from parameter space
+    PARAMETER_SPACE = ParameterSpace(
+        VehicleParameterSpace.BASE_VEHICLE
+    )  # it will not sample config from parameter space
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
@@ -113,8 +115,7 @@ class BaseVehicle(BaseObject):
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-        self.vehicle_panel = VehiclePanel(self.engine
-                                          ) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
+        self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
 
         # state info
         self.throttle_brake = 0.0
@@ -269,13 +270,9 @@ class BaseVehicle(BaseObject):
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         if self.side_detector is not None:
-            self.side_detector.perceive(
-                self.position, self.heading_theta, self.engine.physics_world.static_world
-            )
+            self.side_detector.perceive(self.position, self.heading_theta, self.engine.physics_world.static_world)
         if self.lane_line_detector is not None:
-            self.lane_line_detector.perceive(
-                self.position, self.heading_theta, self.engine.physics_world.static_world
-            )
+            self.lane_line_detector.perceive(self.position, self.heading_theta, self.engine.physics_world.static_world)
         self._state_check()
         self.update_dist_to_left_right()
         step_energy, episode_energy = self._update_energy_consumption()
@@ -689,8 +686,7 @@ class BaseVehicle(BaseObject):
         contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
         text = contacts[0] if len(contacts) != 0 else None
         if text is None:
-            text = "Normal" if time.time(
-            ) - self.engine._episode_start_time > 10 else "Press H to see help message"
+            text = "Normal" if time.time() - self.engine._episode_start_time > 10 else "Press H to see help message"
             self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
         else:
             if text == BodyName.Base_vehicle_beneath:

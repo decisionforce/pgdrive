@@ -50,9 +50,7 @@ class RoutingLocalizationModule:
 
         # Vis
         self._is_showing = True  # store the state of navigation mark
-        self._show_navi_info = (
-            engine.mode == RENDER_MODE_ONSCREEN and not engine.world_config["debug_physics_world"]
-        )
+        self._show_navi_info = (engine.mode == RENDER_MODE_ONSCREEN and not engine.world_config["debug_physics_world"])
         self._dest_node_path = None
         self._goal_node_path = None
         self._arrow_node_path = None
@@ -331,10 +329,7 @@ class RoutingLocalizationModule:
 
     def get_current_lane(self, ego_vehicle):
         possible_lanes = ray_localization(
-            np.array(ego_vehicle.heading.tolist()),
-            ego_vehicle.position,
-            ego_vehicle.engine,
-            return_all_result=True
+            np.array(ego_vehicle.heading.tolist()), ego_vehicle.position, ego_vehicle.engine, return_all_result=True
         )
         for lane, index, l_1_dist in possible_lanes:
             if lane in self.current_ref_lanes:

@@ -7,7 +7,6 @@ from pgdrive.constants import LineType, LineColor
 import numpy as np
 
 
-
 class AbstractLane:
     """A lane on the road, described by its central curve."""
 

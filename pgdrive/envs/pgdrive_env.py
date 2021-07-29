@@ -180,9 +180,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         # for manual_control and main camera type
         if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
-            self.main_camera = ChaseCamera(
-                self.engine.cam, self.config["camera_height"], self.config["camera_dist"]
-            )
+            self.main_camera = ChaseCamera(self.engine.cam, self.config["camera_height"], self.config["camera_dist"])
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.track(self.current_track_vehicle)
             self.engine.accept("b", self.bird_view_camera)
