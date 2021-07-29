@@ -1,4 +1,5 @@
 import logging
+from pgdrive.utils.utils import is_win
 import os
 import pathlib
 import sys
@@ -16,7 +17,6 @@ class AssetLoader:
         """
         Due to the feature of Panda3d, keep reference of loader in static variable
         """
-        from pgdrive.utils import is_win
         root_path = pathlib.PurePosixPath(__file__).parent.parent if not is_win() else pathlib.Path(__file__).resolve(
         ).parent.parent
         AssetLoader.asset_path = root_path.joinpath("assets")

@@ -1,24 +1,26 @@
 import math
-from pgdrive.scene_creator.lane.waypoint_lane import WayPointLane
-from pgdrive.utils.engine_utils import get_pgdrive_engine
 import time
 from collections import deque
 from typing import Union, Optional
 
 import gym
 import numpy as np
-from panda3d.core import Material
 import seaborn as sns
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
-from panda3d.core import Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
+from panda3d.core import Material, Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
 
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
+from pgdrive.engine.asset_loader import AssetLoader
+from pgdrive.engine.core.image_buffer import ImageBuffer
+from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.physics_node import BaseVehicleNode
+from pgdrive.scene_creator.base_object import BaseObject
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.lane.circular_lane import CircularLane
 from pgdrive.scene_creator.lane.straight_lane import StraightLane
+from pgdrive.scene_creator.lane.waypoint_lane import WayPointLane
 from pgdrive.scene_creator.map.base_map import BaseMap
 from pgdrive.scene_creator.road.road import Road
-from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.scene_creator.vehicle_module import Lidar, MiniMap
 from pgdrive.scene_creator.vehicle_module.depth_camera import DepthCamera
 from pgdrive.scene_creator.vehicle_module.distance_detector import SideDetector, LaneLineDetector
@@ -26,14 +28,11 @@ from pgdrive.scene_creator.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.scene_creator.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.scene_creator.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.utils import get_np_random, PGConfig, safe_clip_for_small_array, PGVector
-from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
-from pgdrive.scene_creator.base_object import BaseObject
+from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.utils.pg_space import PGSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
-from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
 
 
 class BaseVehicle(BaseObject):
@@ -77,6 +76,7 @@ class BaseVehicle(BaseObject):
         :param physics_config: vehicle height/width/length, find more physics para in VehicleParameterSpace
         :param random_seed: int
         """
+        assert vehicle_config is not None, "Please specify the vehicle config."
         self.vehicle_config = PGConfig(vehicle_config)
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.vehicle_config["extra_action_dim"])
 
@@ -89,6 +89,8 @@ class BaseVehicle(BaseObject):
         self.max_steering = self.vehicle_config["max_steering"]
 
         self.pgdrive_engine = get_pgdrive_engine()
+        assert self.pgdrive_engine is not None, "Please make sure PGDrive engine is successfully initialized!"
+
         self.node_path = NodePath("vehicle")
 
         # color
@@ -345,9 +347,11 @@ class BaseVehicle(BaseObject):
         self.energy_consumption = 0
 
         # overtake_stat
+        # TODO: Remove this!! A single instance of the vehicle should not access its context!!!
         self.front_vehicles = set()
         self.back_vehicles = set()
 
+        # TODO: This should be put into the render-object of this vehicle!
         # for render
         if self.vehicle_panel is not None:
             self.vehicle_panel.renew_2d_car_para_visualization(self)

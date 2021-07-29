@@ -3,6 +3,7 @@ import typing as tp
 from collections import namedtuple, OrderedDict
 
 import numpy as np
+
 from pgdrive.utils.random import get_np_random
 
 PGBoxSpace = namedtuple("PGBoxSpace", "max min")
