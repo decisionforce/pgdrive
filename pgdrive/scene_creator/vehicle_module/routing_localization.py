@@ -121,21 +121,17 @@ class RoutingLocalizationModule:
             random_seed = random_seed if random_seed is not False else map.random_seed
             # choose first block when born on negative road
             block = map.blocks[0] if current_road_negative else map.blocks[-1]
-            try:
-                sockets = block.get_socket_list()
-                while True:
-                    socket = get_np_random(random_seed).choice(sockets)
-                    if not socket.is_socket_node(start_road_node):
-                        break
-                    else:
-                        sockets.remove(socket)
-                        if len(sockets) == 0:
-                            raise ValueError("Can not set a destination!")
-                # choose negative road end node when current road is negative road
-                final_road_node = socket.negative_road.end_node if current_road_negative else socket.positive_road.end_node
-            except AttributeError:
-                # TODO fix me, for test argoverse
-                final_road_node = "968"
+            sockets = block.get_socket_list()
+            while True:
+                socket = get_np_random(random_seed).choice(sockets)
+                if not socket.is_socket_node(start_road_node):
+                    break
+                else:
+                    sockets.remove(socket)
+                    if len(sockets) == 0:
+                        raise ValueError("Can not set a destination!")
+            # choose negative road end node when current road is negative road
+            final_road_node = socket.negative_road.end_node if current_road_negative else socket.positive_road.end_node
         self.set_route(start_road_node, final_road_node)
 
     def set_route(self, start_road_node: str, end_road_node: str):

@@ -6,6 +6,7 @@ class ArgoverseEnv(PGDriveEnv):
     def _post_process_config(self, config):
         config = super(ArgoverseEnv, self)._post_process_config(config)
         config["vehicle_config"]["spawn_lane_index"] = ("11713", "4250", 0)
+        config["vehicle_config"]["destination_lane_index"] = ("4250", "968", 0)
         return config
 
     def _update_map(self, episode_data: dict = None):
@@ -16,7 +17,7 @@ class ArgoverseEnv(PGDriveEnv):
                     "city": "PIT",
                     "draw_map_resolution": 1024,
                     "center": [xcenter, ycenter],
-                    "radius": 1000
+                    "radius": 100
                 }
             )
             map = ArgoverseMap(self.config["map_config"])
@@ -60,6 +61,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step([1.0, 0.])
         info = {}
         info["lane_index"] = env.vehicle.lane_index
+        info["heading_diff"] = env.vehicle.heading_diff(env.vehicle.lane)
         # info["left_lane_index"] =
         # info["right_lane_index"]
         env.render(text=info)

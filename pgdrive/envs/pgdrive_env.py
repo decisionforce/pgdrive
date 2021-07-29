@@ -78,6 +78,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
         # ===== vehicle spawn =====
         spawn_lane_index=(FirstPGBlock.NODE_1, FirstPGBlock.NODE_2, 0),
+        destination_lane_index=None,
         spawn_longitude=5.0,
         spawn_lateral=0.0,
 

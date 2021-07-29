@@ -80,8 +80,6 @@ class ArgoverseMap(BaseMap):
         # end = (i + 1) * self.BLOCK_LANE_NUM if i < num else len(lanes)
         # chosen_lanes = lanes[i * self.BLOCK_LANE_NUM:end]
         # TODO Argoverse Block need refine
-        # TODO Set_ROUTE
-        # TODO heading_diff
         chosen_lanes = lanes
         for lane in lanes:
             self._post_process_lane(lane)
