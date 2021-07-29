@@ -15,7 +15,7 @@ from pgdrive.engine.core.collision_callback import pg_collision_callback
 from pgdrive.engine.core.force_fps import ForceFPS
 from pgdrive.engine.core.light import Light
 from pgdrive.engine.core.onscreen_message import PGOnScreenMessage
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.engine.core.sky_box import SkyBox
 from pgdrive.engine.core.terrain import Terrain
 from pgdrive.utils.utils import is_mac, setup_logger
@@ -182,7 +182,7 @@ class PGWorld(ShowBase.ShowBase):
         self.world_light = None
 
         # physics world
-        self.physics_world = PGPhysicsWorld(self.world_config["debug_static_world"])
+        self.physics_world = PhysicsWorld(self.world_config["debug_static_world"])
 
         # collision callback
         self.physics_world.dynamic_world.setContactAddedCallback(PythonCallbackObject(pg_collision_callback))

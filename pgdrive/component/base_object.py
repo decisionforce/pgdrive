@@ -5,7 +5,7 @@ from panda3d.bullet import BulletWorld
 from panda3d.core import NodePath
 
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.utils.pg_config import PGConfig
 from pgdrive.utils.pg_space import PGSpace
 from pgdrive.utils.random import random_string, RandomEngine
@@ -155,7 +155,7 @@ class BaseObject(RandomEngine):
         """
         raise NotImplementedError
 
-    def attach_to_world(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
+    def attach_to_world(self, parent_node_path: NodePath, pg_physics_world: PhysicsWorld):
         if self.render:
             # double check :-)
             assert isinstance(self.node_path, NodePath), "No render model on node_path in this Element"
@@ -163,7 +163,7 @@ class BaseObject(RandomEngine):
         self.dynamic_nodes.attach_to_physics_world(pg_physics_world.dynamic_world)
         self.static_nodes.attach_to_physics_world(pg_physics_world.static_world)
 
-    def detach_from_world(self, pg_physics_world: PGPhysicsWorld):
+    def detach_from_world(self, pg_physics_world: PhysicsWorld):
         """
         It is not fully remove, if this element is useless in the future, call Func delete()
         """

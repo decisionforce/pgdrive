@@ -2,7 +2,7 @@ from typing import List
 
 from panda3d.core import NodePath
 
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.component.algorithm.BIG import BigGenerateMethod, BIG
 from pgdrive.component.algorithm.blocks_prob_dist import PGBlock
 from pgdrive.component.blocks import FirstPGBlock
@@ -26,7 +26,7 @@ class PGMap(BaseMap):
         else:
             raise ValueError("Map can not be created by {}".format(generate_type))
 
-    def _big_generate(self, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
+    def _big_generate(self, parent_node_path: NodePath, pg_physics_world: PhysicsWorld):
         big_map = BIG(
             self._config[self.LANE_NUM],
             self._config[self.LANE_WIDTH],
@@ -40,7 +40,7 @@ class PGMap(BaseMap):
         big_map.generate(self._config[self.GENERATE_TYPE], self._config[self.GENERATE_CONFIG])
         self.blocks = big_map.blocks
 
-    def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: PGPhysicsWorld):
+    def _config_generate(self, blocks_config: List, parent_node_path: NodePath, pg_physics_world: PhysicsWorld):
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
         last_block = FirstPGBlock(
             self.road_network, self._config[self.LANE_WIDTH], self._config[self.LANE_NUM], parent_node_path,

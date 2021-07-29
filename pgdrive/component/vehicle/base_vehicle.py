@@ -12,7 +12,7 @@ from panda3d.core import Material, Vec3, TransformState, NodePath, LQuaternionf,
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.component.base_object import BaseObject
 from pgdrive.component.lane.abs_lane import AbstractLane
@@ -514,7 +514,7 @@ class BaseVehicle(BaseObject):
 
     """-------------------------------------- for vehicle making ------------------------------------------"""
 
-    def _add_chassis(self, pg_physics_world: PGPhysicsWorld):
+    def _add_chassis(self, pg_physics_world: PhysicsWorld):
         para = self.get_config()
         self.LENGTH = self.vehicle_config["vehicle_length"]
         self.WIDTH = self.vehicle_config["vehicle_width"]

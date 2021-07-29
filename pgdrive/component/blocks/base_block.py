@@ -8,7 +8,7 @@ from panda3d.core import Vec3, LQuaternionf, BitMask32, Vec4, CardMaker, Texture
 
 from pgdrive.constants import BodyName, CamMask, CollisionGroup, LineType, LineColor, DrivableAreaProperty
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.engine.physics_node import LaneNode
 from pgdrive.component.base_object import BaseObject
 from pgdrive.component.lane.abs_lane import AbstractLane
@@ -72,7 +72,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
     def construct_block(
         self,
         root_render_np: NodePath,
-        pg_physics_world: PGPhysicsWorld,
+        pg_physics_world: PhysicsWorld,
         extra_config: Dict = None,
         no_same_node=True
     ) -> bool:
@@ -95,7 +95,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         self.attach_to_world(root_render_np, pg_physics_world)
         return success
 
-    def destruct_block(self, pg_physics_world: PGPhysicsWorld):
+    def destruct_block(self, pg_physics_world: PhysicsWorld):
         self._clear_topology()
         self.detach_from_world(pg_physics_world)
         self.node_path.removeNode()
@@ -105,7 +105,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
             obj.destroy(pg_physics_world)
         self._block_objects = None
 
-    def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PGPhysicsWorld):
+    def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PhysicsWorld):
         success = self.construct_block(root_render_np, pg_physics_world, config)
         return success
 

@@ -7,7 +7,7 @@ from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import RoadNetwork
 from pgdrive.utils.pg_space import PGSpace
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 
 
 class FirstPGBlock(PGBlock):
@@ -28,7 +28,7 @@ class FirstPGBlock(PGBlock):
         lane_width: float,
         lane_num: int,
         render_root_np: NodePath,
-        pg_physics_world: PGPhysicsWorld,
+        pg_physics_world: PhysicsWorld,
         length: float = 50
     ):
         place_holder = PGBlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))

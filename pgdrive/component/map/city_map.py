@@ -8,7 +8,7 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.algorithm.blocks_prob_dist import PGBlock
 from pgdrive.component.road.road_network import RoadNetwork
-from pgdrive.engine.core.pg_physics_world import PGPhysicsWorld
+from pgdrive.engine.core.physics_world import PhysicsWorld
 
 
 class NextStep:
@@ -32,7 +32,7 @@ class CityBIG(BIG):
         lane_width: float,
         global_network: RoadNetwork,
         render_node_path: NodePath,
-        pg_physics_world: PGPhysicsWorld,
+        pg_physics_world: PhysicsWorld,
         block_type_version: str,
         random_seed=None
     ):
