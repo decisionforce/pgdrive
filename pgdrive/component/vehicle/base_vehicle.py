@@ -77,7 +77,7 @@ class BaseVehicle(BaseObject):
         :param random_seed: int
         """
         super(BaseVehicle, self).__init__(name, random_seed)
-        self.update_config(vehicle_config)
+        self.update_config(vehicle_config, allow_add_new_key=True)
         assert vehicle_config is not None, "Please specify the vehicle config."
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
 

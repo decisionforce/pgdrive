@@ -103,11 +103,11 @@ class BaseObject(RandomEngine):
             return self._config.copy()
         return self._config
 
-    def update_config(self, config: dict):
+    def update_config(self, config: dict, allow_add_new_key=False):
         """
         Merge config and self._config
         """
-        self._config.update(config)
+        self._config.update(config, allow_add_new_key=allow_add_new_key)
 
     def sample_parameters(self):
         """

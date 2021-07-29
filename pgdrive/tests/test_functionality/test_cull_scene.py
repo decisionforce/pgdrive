@@ -11,7 +11,7 @@ def test_cull_scene(use_render=False):
                 "target_vehicle_configs": {},
                 "num_agents": 0,
                 "crash_done": True,
-            }, allow_overwrite=True)
+            }, allow_add_new_key=True)
             return config
 
     for _ in range(5):
