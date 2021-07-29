@@ -66,7 +66,7 @@ class MAParkingLotMap(PGMap):
     def _generate(self):
         length = self.config["exit_length"]
 
-        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
+        parent_node_path, physics_world = self.engine.worldNP, self.engine.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
 
         # Build a first-block
@@ -75,14 +75,14 @@ class MAParkingLotMap(PGMap):
             self.config[self.LANE_WIDTH],
             self.config[self.LANE_NUM],
             parent_node_path,
-            pg_physics_world,
+            physics_world,
             length=length
         )
         self.blocks.append(last_block)
 
         last_block = ParkingLot(1, last_block.get_socket(0), self.road_network, 1)
         last_block.construct_block(
-            parent_node_path, pg_physics_world, {"one_side_vehicle_number": int(self.config["parking_space_num"] / 2)}
+            parent_node_path, physics_world, {"one_side_vehicle_number": int(self.config["parking_space_num"] / 2)}
         )
         self.blocks.append(last_block)
         self.parking_space_manager = ParkingSpaceManager(last_block.dest_roads)
@@ -93,7 +93,7 @@ class MAParkingLotMap(PGMap):
         last_block = TInterSection(2, last_block.get_socket(index=0), self.road_network, random_seed=1)
         last_block.construct_block(
             parent_node_path,
-            pg_physics_world,
+            physics_world,
             extra_config={
                 "t_type": 1,
                 "change_lane_num": 0

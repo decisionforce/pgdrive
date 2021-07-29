@@ -92,9 +92,9 @@ class BaseMap(BaseObject):
         raise NotImplementedError("Please use child class like PGMap to replace Map!")
 
     def load_to_world(self):
-        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
+        parent_node_path, physics_world = self.engine.worldNP, self.engine.physics_world
         for block in self.blocks:
-            block.attach_to_world(parent_node_path, pg_physics_world)
+            block.attach_to_world(parent_node_path, physics_world)
 
     def unload_from_world(self):
         for block in self.blocks:

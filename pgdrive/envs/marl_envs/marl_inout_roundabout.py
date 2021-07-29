@@ -24,7 +24,7 @@ class MARoundaboutMap(PGMap):
     def _generate(self):
         length = self.config["exit_length"]
 
-        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
+        parent_node_path, physics_world = self.engine.worldNP, self.engine.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
 
         # Build a first-block
@@ -33,7 +33,7 @@ class MARoundaboutMap(PGMap):
             self.config[self.LANE_WIDTH],
             self.config[self.LANE_NUM],
             parent_node_path,
-            pg_physics_world,
+            physics_world,
             length=length
         )
         self.blocks.append(last_block)
@@ -43,7 +43,7 @@ class MARoundaboutMap(PGMap):
         last_block = Roundabout(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
         last_block.construct_block(
             parent_node_path,
-            pg_physics_world,
+            physics_world,
             extra_config={
                 "exit_radius": 10,
                 "inner_radius": 30,

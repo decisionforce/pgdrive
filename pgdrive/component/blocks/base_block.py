@@ -72,7 +72,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
     def construct_block(
         self,
         root_render_np: NodePath,
-        pg_physics_world: PhysicsWorld,
+        physics_world: PhysicsWorld,
         extra_config: Dict = None,
         no_same_node=True
     ) -> bool:
@@ -92,21 +92,21 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         success = self._sample_topology()
         self._global_network.add(self.block_network, no_same_node)
         self._create_in_world()
-        self.attach_to_world(root_render_np, pg_physics_world)
+        self.attach_to_world(root_render_np, physics_world)
         return success
 
-    def destruct_block(self, pg_physics_world: PhysicsWorld):
+    def destruct_block(self, physics_world: PhysicsWorld):
         self._clear_topology()
-        self.detach_from_world(pg_physics_world)
+        self.detach_from_world(physics_world)
         self.node_path.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()
         for obj in self._block_objects:
-            obj.destroy(pg_physics_world)
+            obj.destroy(physics_world)
         self._block_objects = None
 
-    def construct_from_config(self, config: Dict, root_render_np: NodePath, pg_physics_world: PhysicsWorld):
-        success = self.construct_block(root_render_np, pg_physics_world, config)
+    def construct_from_config(self, config: Dict, root_render_np: NodePath, physics_world: PhysicsWorld):
+        success = self.construct_block(root_render_np, physics_world, config)
         return success
 
     def get_respawn_roads(self):

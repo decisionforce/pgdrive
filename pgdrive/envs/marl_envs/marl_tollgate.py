@@ -113,7 +113,7 @@ class MATollGateMap(PGMap):
     def _generate(self):
         length = self.config["exit_length"]
 
-        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
+        parent_node_path, physics_world = self.engine.worldNP, self.engine.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
 
         # Build a first-block
@@ -122,14 +122,14 @@ class MATollGateMap(PGMap):
             self.config[self.LANE_WIDTH],
             self.config["lane_num"],
             parent_node_path,
-            pg_physics_world,
+            physics_world,
             length=length
         )
         self.blocks.append(last_block)
 
         split = Split(1, last_block.get_socket(index=0), self.road_network, random_seed=1)
         split.construct_block(
-            parent_node_path, pg_physics_world, {
+            parent_node_path, physics_world, {
                 "length": 2,
                 "lane_num": self.config["toll_lane_num"] - self.config["lane_num"],
                 "bottle_len": self.BOTTLE_LENGTH,
@@ -137,7 +137,7 @@ class MATollGateMap(PGMap):
         )
         self.blocks.append(split)
         toll = TollGate(2, split.get_socket(index=0), self.road_network, random_seed=1)
-        toll.construct_block(parent_node_path, pg_physics_world, {
+        toll.construct_block(parent_node_path, physics_world, {
             "length": self.config["toll_length"],
         })
 
@@ -150,7 +150,7 @@ class MATollGateMap(PGMap):
                 lane_num=self.config["toll_lane_num"] - self.config["lane_num"],
                 length=self.config["exit_length"],
                 bottle_len=self.BOTTLE_LENGTH,
-            ), parent_node_path, pg_physics_world
+            ), parent_node_path, physics_world
         )
         self.blocks.append(merge)
 

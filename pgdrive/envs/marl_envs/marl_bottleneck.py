@@ -30,7 +30,7 @@ class MABottleneckMap(PGMap):
     def _generate(self):
         length = self.config["exit_length"]
 
-        parent_node_path, pg_physics_world = self.engine.worldNP, self.engine.physics_world
+        parent_node_path, physics_world = self.engine.worldNP, self.engine.physics_world
         assert len(self.road_network.graph) == 0, "These Map is not empty, please create a new map to read config"
 
         # Build a first-block
@@ -39,7 +39,7 @@ class MABottleneckMap(PGMap):
             self.config[self.LANE_WIDTH],
             self.config["bottle_lane_num"],
             parent_node_path,
-            pg_physics_world,
+            physics_world,
             length=length
         )
         self.blocks.append(last_block)
@@ -50,7 +50,7 @@ class MABottleneckMap(PGMap):
             dict(
                 lane_num=self.config["bottle_lane_num"] - self.config["neck_lane_num"],
                 length=self.config["neck_length"]
-            ), parent_node_path, pg_physics_world
+            ), parent_node_path, physics_world
         )
         self.blocks.append(merge)
         split = Split(2, merge.get_socket(index=0), self.road_network, random_seed=1)
@@ -58,7 +58,7 @@ class MABottleneckMap(PGMap):
             {
                 "length": self.config["exit_length"],
                 "lane_num": self.config["bottle_lane_num"] - self.config["neck_lane_num"]
-            }, parent_node_path, pg_physics_world
+            }, parent_node_path, physics_world
         )
         self.blocks.append(split)
 

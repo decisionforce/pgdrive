@@ -28,7 +28,7 @@ class FirstPGBlock(PGBlock):
         lane_width: float,
         lane_num: int,
         render_root_np: NodePath,
-        pg_physics_world: PhysicsWorld,
+        physics_world: PhysicsWorld,
         length: float = 50
     ):
         place_holder = PGBlockSocket(Road(Decoration.start, Decoration.end), Road(Decoration.start, Decoration.end))
@@ -59,5 +59,5 @@ class FirstPGBlock(PGBlock):
         socket.set_index(self._block_name, 0)
 
         self.add_sockets(socket)
-        self.attach_to_world(render_root_np, pg_physics_world)
+        self.attach_to_world(render_root_np, physics_world)
         self._respawn_roads = [other_v_spawn_road]

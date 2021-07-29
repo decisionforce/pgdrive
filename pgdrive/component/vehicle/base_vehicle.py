@@ -514,7 +514,7 @@ class BaseVehicle(BaseObject):
 
     """-------------------------------------- for vehicle making ------------------------------------------"""
 
-    def _add_chassis(self, pg_physics_world: PhysicsWorld):
+    def _add_chassis(self, physics_world: PhysicsWorld):
         para = self.get_config()
         self.LENGTH = self.vehicle_config["vehicle_length"]
         self.WIDTH = self.vehicle_config["vehicle_width"]
@@ -539,7 +539,7 @@ class BaseVehicle(BaseObject):
         self.chassis_beneath_np = self.chassis_np.attachNewNode(chassis_beneath)
         self.dynamic_nodes.append(chassis_beneath)
 
-        self.system = BulletVehicle(pg_physics_world.dynamic_world, chassis)
+        self.system = BulletVehicle(physics_world.dynamic_world, chassis)
         self.system.setCoordinateSystem(ZUp)
         self.dynamic_nodes.append(self.system)  # detach chassis will also detach system, so a waring will generate
 

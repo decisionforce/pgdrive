@@ -32,7 +32,7 @@ class BIG:
         lane_width: float,
         global_network: RoadNetwork,
         render_node_path: NodePath,
-        pg_physics_world: PhysicsWorld,
+        physics_world: PhysicsWorld,
         block_type_version: str,
         exit_length=50,
         random_seed=None
@@ -46,7 +46,7 @@ class BIG:
         self._lane_width = lane_width
         self.block_num = None
         self._render_node_path = render_node_path
-        self._physics_world = pg_physics_world
+        self._physics_world = physics_world
         self._global_network = global_network
         self.blocks = []
         self._exit_length = exit_length

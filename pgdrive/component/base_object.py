@@ -155,22 +155,22 @@ class BaseObject(RandomEngine):
         """
         raise NotImplementedError
 
-    def attach_to_world(self, parent_node_path: NodePath, pg_physics_world: PhysicsWorld):
+    def attach_to_world(self, parent_node_path: NodePath, physics_world: PhysicsWorld):
         if self.render:
             # double check :-)
             assert isinstance(self.node_path, NodePath), "No render model on node_path in this Element"
             self.node_path.reparentTo(parent_node_path)
-        self.dynamic_nodes.attach_to_physics_world(pg_physics_world.dynamic_world)
-        self.static_nodes.attach_to_physics_world(pg_physics_world.static_world)
+        self.dynamic_nodes.attach_to_physics_world(physics_world.dynamic_world)
+        self.static_nodes.attach_to_physics_world(physics_world.static_world)
 
-    def detach_from_world(self, pg_physics_world: PhysicsWorld):
+    def detach_from_world(self, physics_world: PhysicsWorld):
         """
         It is not fully remove, if this element is useless in the future, call Func delete()
         """
         if self.node_path is not None:
             self.node_path.detachNode()
-        self.dynamic_nodes.detach_from_physics_world(pg_physics_world.dynamic_world)
-        self.static_nodes.detach_from_physics_world(pg_physics_world.static_world)
+        self.dynamic_nodes.detach_from_physics_world(physics_world.dynamic_world)
+        self.static_nodes.detach_from_physics_world(physics_world.static_world)
 
     def destroy(self):
         """

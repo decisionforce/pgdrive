@@ -207,7 +207,7 @@ def test_cutils_lidar():
         self,
         vehicle_position,
         heading_theta,
-        pg_physics_world,
+        physics_world,
         extra_filter_node: set = None,
         detector_mask: np.ndarray = None
     ):
@@ -241,11 +241,11 @@ def test_cutils_lidar():
                 continue
 
             laser_end = self._get_laser_end(laser_index, heading_theta, vehicle_position)
-            result = pg_physics_world.rayTestClosest(pg_start_position, laser_end, mask)
+            result = physics_world.rayTestClosest(pg_start_position, laser_end, mask)
             node = result.getNode()
             if node in extra_filter_node:
                 # Fall back to all tests.
-                results = pg_physics_world.rayTestAll(pg_start_position, laser_end, mask)
+                results = physics_world.rayTestAll(pg_start_position, laser_end, mask)
                 hits = results.getHits()
                 hits = sorted(hits, key=lambda ret: ret.getHitFraction())
                 for result in hits:
@@ -272,7 +272,7 @@ def test_cutils_lidar():
         self,
         vehicle_position,
         heading_theta,
-        pg_physics_world,
+        physics_world,
         extra_filter_node: set = None,
         detector_mask: np.ndarray = None
     ):
@@ -287,7 +287,7 @@ def test_cutils_lidar():
             vehicle_position_y=vehicle_position[1],
             num_lasers=self.num_lasers,
             height=self.height,
-            pg_physics_world=pg_physics_world,
+            physics_world=physics_world,
             extra_filter_node=extra_filter_node if extra_filter_node else set(),
             require_colors=self.cloud_points_vis is not None,
             ANGLE_FACTOR=self.ANGLE_FACTOR,

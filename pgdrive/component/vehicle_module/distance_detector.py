@@ -171,7 +171,7 @@ class DistanceDetector:
         self,
         vehicle_position,
         heading_theta,
-        pg_physics_world,
+        physics_world,
         extra_filter_node: set = None,
         detector_mask: np.ndarray = None
     ):
@@ -187,7 +187,7 @@ class DistanceDetector:
             vehicle_position_y=vehicle_position[1],
             num_lasers=self.num_lasers,
             height=self.height,
-            pg_physics_world=pg_physics_world,
+            physics_world=physics_world,
             extra_filter_node=extra_filter_node if extra_filter_node else set(),
             require_colors=self.cloud_points_vis is not None,
             ANGLE_FACTOR=self.ANGLE_FACTOR,
