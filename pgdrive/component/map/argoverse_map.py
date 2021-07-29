@@ -166,14 +166,13 @@ if __name__ == "__main__":
             "city": "PIT",
             "draw_map_resolution": 1024,
             "center": ArgoverseMap.pgdrive_position([xcenter, ycenter]),
-            "radius": 1000
+            "radius": 100
         }
     )
     engine.map_manager.load_map(map)
-    map.engine.enableMouse()
+    engine.enableMouse()
 
     # argoverse data set is as the same coordinates as panda3d
-    map.engine.cam.setPos(xcenter, ycenter, 800)
-    map.engine.cam.lookAt(xcenter, ycenter, 0)
+    engine.main_camera.set_bird_view_pos(ArgoverseMap.pgdrive_position([xcenter, ycenter]))
     while True:
         map.engine.step()

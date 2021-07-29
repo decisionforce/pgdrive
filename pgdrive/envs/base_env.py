@@ -41,7 +41,6 @@ BASE_DEFAULT_CONFIG = dict(
     cull_scene=True,  # only for debug use
     manual_control=False,
     controller="keyboard",  # "joystick" or "keyboard"
-    use_chase_camera=True,
     use_chase_camera_follow_lane=False,  # If true, then vision would be more stable.
     camera_height=1.8,
     camera_dist=7,
@@ -139,7 +138,6 @@ class BasePGDriveEnv(gym.Env):
 
         # lazy initialization, create the main vehicle in the lazy_init() func
         self.engine: Optional[BaseEngine] = None
-        self.main_camera = None
         self.controller = None
         self.episode_steps = 0
         self.current_seed = None
@@ -305,10 +303,6 @@ class BasePGDriveEnv(gym.Env):
 
     def close(self):
         if self.engine is not None:
-            if self.main_camera is not None:
-                self.main_camera.destroy()
-                del self.main_camera
-                self.main_camera = None
             close_engine()
 
             del self.controller

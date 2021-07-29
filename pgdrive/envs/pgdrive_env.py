@@ -5,18 +5,17 @@ from typing import Union, Dict, AnyStr, Optional, Tuple
 
 import numpy as np
 
-from pgdrive.constants import DEFAULT_AGENT, TerminationState
-from pgdrive.engine.core.chase_camera import ChaseCamera
-from pgdrive.engine.core.manual_controller import KeyboardController, JoystickController
-from pgdrive.envs.base_env import BasePGDriveEnv
-from pgdrive.obs.image_obs import ImageStateObservation
-from pgdrive.obs.state_obs import LidarStateObservation
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod, parse_map_config
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.component.vehicle_module.distance_detector import DetectorMask
+from pgdrive.constants import DEFAULT_AGENT, TerminationState
+from pgdrive.engine.core.manual_controller import KeyboardController, JoystickController
+from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.manager.traffic_manager import TrafficMode
+from pgdrive.obs.image_obs import ImageStateObservation
+from pgdrive.obs.state_obs import LidarStateObservation
 from pgdrive.utils import clip, Config, get_np_random, concat_step_infos
 from pgdrive.utils.engine_utils import engine_initialized
 from pgdrive.utils.engine_utils import set_global_random_seed
@@ -169,8 +168,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 vehicle.remove_display_region()
 
         # for manual_control and main camera type
-        if (self.config["use_render"] or self.config["use_image"]) and self.config["use_chase_camera"]:
-            self.main_camera = ChaseCamera(self.engine.cam, self.config["camera_height"], self.config["camera_dist"])
+        if self.config["use_render"] or self.config["use_image"]:
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.track(self.current_track_vehicle)
             self.engine.accept("b", self.bird_view_camera)
@@ -289,7 +287,7 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH
-                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
@@ -332,7 +330,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -538,6 +536,10 @@ class PGDriveEnv(BasePGDriveEnv):
         # Press t can let expert take over. But this function is still experimental.
         self.engine.accept("t", self.toggle_expert_takeover)
 
+    @property
+    def main_camera(self):
+        return self.engine.main_camera
+
 
 def _auto_termination(vehicle, should_done):
     return {TerminationState.MAX_STEP: True if should_done else False}
@@ -551,6 +553,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:
