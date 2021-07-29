@@ -6,7 +6,6 @@ from pgdrive.constants import LineType, LineColor
 
 import numpy as np
 
-Vector_type = Union[np.ndarray, Sequence[float]]
 
 
 class AbstractLane:

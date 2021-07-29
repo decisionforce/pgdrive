@@ -33,7 +33,7 @@ def panda_position(position, z=0.0) -> Vec3:
     return Vec3(position[0], -position[1], z)
 
 
-def pgdrive_position(position: Vec3) -> "Vector_type":
+def pgdrive_position(position: Vec3) -> "Vector":
     """
     Transform the position in Panda3d to PGDrive world
     :param position: Vec3, position in Panda3d
