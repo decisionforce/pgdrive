@@ -68,8 +68,9 @@ class ArgoverseMap(BaseMap):
             else:
                 logger.error("Unknown XML item encountered.")
                 raise ValueError("Unknown XML item encountered.")
-        lane_ids = ArgoverseMap.AGMap.get_lane_ids_in_xy_bbox(*self.config["center"], self.config["city"],
-                                                              self.config["radius"])
+        lane_ids = ArgoverseMap.AGMap.get_lane_ids_in_xy_bbox(
+            *self.config["center"], self.config["city"], self.config["radius"]
+        )
         self.lane_id_lane = lane_objs
         self._construct_road_network([lane_objs[k] for k in lane_ids])
 
@@ -94,8 +95,8 @@ class ArgoverseMap(BaseMap):
             lane.line_color = (LineColor.YELLOW, LineColor.GREY)
 
     @staticmethod
-    def extract_lane_segment_from_ET_element(child: ET.Element, all_graph_nodes: Mapping[int, Node]
-                                             ) -> Tuple[ArgoverseLane, int]:
+    def extract_lane_segment_from_ET_element(child: ET.Element,
+                                             all_graph_nodes: Mapping[int, Node]) -> Tuple[ArgoverseLane, int]:
         """
         Modified from Argoverse map-api
         """
@@ -146,8 +147,15 @@ if __name__ == "__main__":
 
     default_config = BASE_DEFAULT_CONFIG
     default_config["pg_world_config"].update(
-        {"use_render": True, "use_image": False, "debug": True, "fast_launch_window": True, "debug_static_world": True,
-         "debug_physics_world": False})
+        {
+            "use_render": True,
+            "use_image": False,
+            "debug": True,
+            "fast_launch_window": True,
+            "debug_static_world": True,
+            "debug_physics_world": False
+        }
+    )
     initialize_pgdrive_engine(default_config, None)
     xcenter, ycenter = 2599.5505965123866, 1200.0214763629717
     xmin = xcenter - 80  # 150
