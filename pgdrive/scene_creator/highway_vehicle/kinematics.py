@@ -27,15 +27,14 @@ class Vehicle:
     """ Range for random initial speeds [m/s] """
     MAX_SPEED = 40.
     """ Maximum reachable speed [m/s] """
-
     def __init__(
-            self,
-            traffic_mgr: TrafficManager,
-            position: List,
-            heading: float = 0,
-            speed: float = 0,
-            np_random: np.random.RandomState = None,
-            name: str = None
+        self,
+        traffic_mgr: TrafficManager,
+        position: List,
+        heading: float = 0,
+        speed: float = 0,
+        np_random: np.random.RandomState = None,
+        name: str = None
     ):
 
         deprecation_warning("Vehicle", "Policy Class", error=False)
@@ -88,8 +87,7 @@ class Vehicle:
 
     @classmethod
     def create_random(
-            cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None,
-            random_seed=None
+        cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
     ):
         """
         Create a random vehicle on the road.
