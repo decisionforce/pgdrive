@@ -168,6 +168,7 @@ class IDMPolicy(BasePolicy):
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
 
         self.action = action
+        return self.action
 
     def step(self, dt):
         self.delay_time += dt
@@ -189,7 +190,7 @@ class IDMPolicy(BasePolicy):
 
     def after_step(self, *args, **kwargs):
         engine = get_engine()
-        dir = np.array([math.cos(self.heading), math.sin(self.heading)])
+        dir = np.array([math.cos(self.heading_theta), math.sin(self.heading_theta)])
         lane, lane_index = ray_localization(dir, self.position, engine)
         if lane is not None:
             self.update_lane_index(lane_index, lane)
@@ -215,8 +216,8 @@ class IDMPolicy(BasePolicy):
         return self.vehicle.speed
 
     @property
-    def heading(self):
-        return self.vehicle.heading
+    def heading_theta(self):
+        return self.vehicle.heading_theta
 
     # ============================================+
 
@@ -469,7 +470,7 @@ class IDMPolicy(BasePolicy):
         lane_future_heading = lane.heading_at(lane_next_coords)
         features = np.array(
             [
-                utils.wrap_to_pi(lane_future_heading - self.heading) * self.LENGTH / utils.not_zero(self.speed),
+                utils.wrap_to_pi(lane_future_heading - self.heading_theta) * self.LENGTH / utils.not_zero(self.speed),
                 -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
             ]
         )

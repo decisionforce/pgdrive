@@ -153,8 +153,15 @@ class MinimalObservation(LidarStateObservation):
     def traffic_vehicle_state(self, vehicle):
         s = []
         state = vehicle.to_dict()
-        s.append(state['vx'] / vehicle.MAX_SPEED)
-        s.append(state['vy'] / vehicle.MAX_SPEED)
+
+        # TODO(pzh): This is the workaround!!
+        """ Maximum reachable speed [m/s] """
+        MAX_SPEED = 40.
+        ACC_MAX = 20.0  # [m/s2]
+        """Maximum acceleration."""
+
+        s.append(state['vx'] / MAX_SPEED)
+        s.append(state['vy'] / MAX_SPEED)
         s.append(state["cos_h"])
         s.append(state["sin_h"])
 
@@ -173,13 +180,19 @@ class MinimalObservation(LidarStateObservation):
             s.append(p.destination[0])
             s.append(p.destination[1])
             target_speed = p.target_speed
-            s.append(target_speed / vehicle.MAX_SPEED)
+            s.append(target_speed / MAX_SPEED)
 
-        s.append(vehicle.speed / vehicle.MAX_SPEED)
-        s.append(math.cos(vehicle.heading))
-        s.append(math.sin(vehicle.heading))
-        s.append(vehicle.action["steering"])
-        s.append(vehicle.action["acceleration"] / vehicle.ACC_MAX)
+        s.append(vehicle.speed / MAX_SPEED)
+        s.append(math.cos(vehicle.heading_theta))
+        s.append(math.sin(vehicle.heading_theta))
+
+        # TODO(pzh): This is the workaround!!
+        p = get_engine().policy_manager.get_policy(vehicle.name)
+        action = p.action
+
+
+        s.append(action["steering"])
+        s.append(action["acceleration"] / ACC_MAX)
         ret = []
         for v in s:
             ret.append(self._to_zero_and_one(v))

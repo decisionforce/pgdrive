@@ -48,21 +48,7 @@ BASE_DEFAULT_CONFIG = dict(
     prefer_track_agent=None,
 
     # ===== Vehicle =====
-    vehicle_config=dict(
-        increment_steering=False,
-        show_navi_mark=True,
-        wheel_friction=0.6,
-        max_engine_force=500,
-        max_brake_force=40,
-        max_steering=40,
-        max_speed=120,
-        extra_action_dim=0,
-        enable_reverse=False,
-        random_navi_mark_color=False,
-        show_dest_mark=False,
-        show_line_to_dest=False,
-        am_i_the_special_one=False
-    ),
+    vehicle_config=BaseVehicle.default_config,
 
     # ===== Others =====
     engine_config=dict(

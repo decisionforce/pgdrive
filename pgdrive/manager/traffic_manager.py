@@ -3,14 +3,14 @@ import logging
 from collections import namedtuple, deque
 from typing import Tuple, Dict
 
-from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.road.road import Road
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT
 from pgdrive.manager.base_manager import BaseManager
 from pgdrive.utils import norm, merge_dicts
 from pgdrive.utils.engine_utils import get_engine
-from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
 
@@ -95,7 +95,9 @@ class TrafficManager(BaseManager):
             p = self.engine.policy_manager.get_policy(v.name)
             # TODO(pzh): Why we input None here? Is that correct?
             p.before_step(vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map)
-            v.before_step()
+
+            # TODO(pzh): We remove the before step here, is everything OK?
+            # v.before_step()
 
     def step(self):
         """
@@ -224,23 +226,17 @@ class TrafficManager(BaseManager):
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool, *args, **kwargs):
-        """
-        Create one vehicle on lane and a specific place
-        :param vehicle_type: TrafficVehicle type (s,m,l,xl)
-        :param lane: Straight Lane or Circular Lane
-        :param long: longitude position on lane
-        :param enable_respawn: Respawn or not
-        :return: TrafficVehicle
-        """
-
+    # def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool, *args, **kwargs):
+    def spawn_object(self, vehicle_type, v_config):
         # random_v = vehicle_type.create_random_traffic_vehicle(
         #     len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
         # )
 
-        # TODO(pzh): Help!!!!
         assert vehicle_type == BaseVehicle
-        random_v = BaseVehicle(v_config)
+
+        # TODO(pzh): Is this random seed correct?
+        # FIXME(pzh): This random seed is not correct!
+        random_v = BaseVehicle(v_config, random_seed=0)
 
         self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
@@ -275,8 +271,11 @@ class TrafficManager(BaseManager):
             if self.np_random.rand() > traffic_density and abs(lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
-            vehicle_type = self.random_vehicle_type()
-            self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
+            model_config = self.random_vehicle_type()
+            vehicle_config = {"model": model_config}
+            # self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
+            # self.spawn_object(BaseVehicle, lane, long, is_respawn_lane)
+            self.spawn_object(BaseVehicle, vehicle_config)
         return _traffic_vehicles
 
     def _create_respawn_vehicles(self, map: BaseMap, traffic_density: float):
@@ -353,7 +352,7 @@ class TrafficManager(BaseManager):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -395,9 +394,15 @@ class TrafficManager(BaseManager):
         return v_front, v_rear
 
     def random_vehicle_type(self):
-        from pgdrive.component.vehicle.traffic_vehicle_type import vehicle_type
-        vehicle_type = vehicle_type[self.np_random.choice(list(vehicle_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
-        return vehicle_type
+
+        from pgdrive.component.vehicle.base_vehicle import MODEL_TYPES
+
+        # TODO(pzh: This a workaround only!
+        vehicle_type = [MODEL_TYPES["s"], MODEL_TYPES["m"], MODEL_TYPES["l"], MODEL_TYPES["xl"]]
+        # vehicle_type = vehicle_type[self.np_random.choice(vehicle_type, p=[0.2, 0.3, 0.3, 0.2])]
+        # return vehicle_type
+        model_config = self.np_random.choice(vehicle_type, p=[0.2, 0.3, 0.3, 0.2])
+        return model_config
 
     def destroy(self) -> None:
         """
@@ -430,8 +435,9 @@ class TrafficManager(BaseManager):
 
     @property
     def vehicles(self):
-        return list(self.engine.agent_manager.active_objects.values()) + \
-               [v.vehicle_node.kinematic_model for v in self._spawned_objects.values()]
+        # return list(self.engine.agent_manager.active_objects.values()) + \
+        #        [v.vehicle_node.kinematic_model for v in self._spawned_objects.values()]
+        return list(self.engine.agent_manager.active_objects.values()) + list(self._spawned_objects.values())
 
     @property
     def traffic_vehicles(self):

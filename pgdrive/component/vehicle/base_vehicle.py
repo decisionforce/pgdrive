@@ -9,11 +9,6 @@ import seaborn as sns
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
 from panda3d.core import Material, Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
 
-from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
-from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.engine.core.physics_world import PhysicsWorld
-from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.component.base_object import BaseObject
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.lane.circular_lane import CircularLane
@@ -27,15 +22,101 @@ from pgdrive.component.vehicle_module.distance_detector import SideDetector, Lan
 from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.component.vehicle_module.routing_localization import RoutingLocalizationModule
 from pgdrive.component.vehicle_module.vehicle_panel import VehiclePanel
+from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
+from pgdrive.engine.asset_loader import AssetLoader
+from pgdrive.engine.core.image_buffer import ImageBuffer
+from pgdrive.engine.core.physics_world import PhysicsWorld
+from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.utils import get_np_random, Config, safe_clip_for_small_array, Vector
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.utils.engine_utils import get_engine
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
-from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
+from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
+
+DEFAULT_VEHICLE_CONFIG = dict(
+    increment_steering=False,
+    show_navi_mark=True,
+    wheel_friction=0.6,
+    max_engine_force=500,
+    max_brake_force=40,
+    max_steering=40,
+    max_speed=120,
+    extra_action_dim=0,
+    enable_reverse=False,
+    random_navi_mark_color=False,
+    show_dest_mark=False,
+    show_line_to_dest=False,
+    am_i_the_special_one=False,
+    model_type="ego"
+)
+
+# TODO(pzh): Remove model type to other places! We should have a unify model selection flow.
+
+factor = 1
+
+MODEL_TYPES = dict(
+    ego=dict(
+        length=0,
+        width=0,
+        height=1.9,
+        model=dict(
+            path='models/ferra/scene.gltf',
+            scale=None,
+            offset=None,
+            heading=None,
+        )
+    ),
+    s=dict(
+        length=3.2,
+        width=1.8,
+        height=1.5,
+        model=dict(
+            path='new/beetle/scene.gltf',
+            scale=(factor * .008, factor * .006, factor * .0062),
+            offset=(-0.7, 0, factor * -0.16),
+            heading=-90,
+        )
+    ),
+    m=dict(
+        length=3.9,
+        width=2.0,
+        height=1.3,
+        model=dict(
+            path='new/130/scene.gltf',
+            scale=(factor * .0055, factor * .0046, factor * .0049),
+            offset=(0, 0, factor * 0.33),
+            heading=90,
+        )
+    ),
+    l=dict(
+        length=4.8,
+        width=1.8,
+        height=1.9,
+        model=dict(
+            path='new/lada/scene.gltf',
+            scale=(factor * 1.1, factor * 1.1, factor * 1.1),
+            offset=(1.1, -13.5, factor * -0.046),
+            heading=223,
+        )
+    ),
+    xl=dict(
+        length=7.3,
+        width=2.3,
+        height=2.7,
+        model=dict(
+            path='new/truck/scene.gltf',
+            scale=(factor * 0.031, factor * 0.025, factor * 0.025),
+            offset=(0.35, 0, factor * 0),
+            heading=0,
+        )
+    ),
+)
 
 
 class BaseVehicle(BaseObject):
+    default_config = Config(DEFAULT_VEHICLE_CONFIG)
+
     MODEL = None
     """
     Vehicle chassis and its wheels index
@@ -64,11 +145,11 @@ class BaseVehicle(BaseObject):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-        self,
-        vehicle_config: Union[dict, Config] = None,
-        name: str = None,
-        am_i_the_special_one=False,
-        random_seed=None,
+            self,
+            vehicle_config: Union[dict, Config] = None,
+            name: str = None,
+            am_i_the_special_one=False,
+            random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -77,6 +158,7 @@ class BaseVehicle(BaseObject):
         :param random_seed: int
         """
         super(BaseVehicle, self).__init__(name, random_seed)
+        vehicle_config = self.default_config.update(vehicle_config)
         self.update_config(vehicle_config, allow_add_new_key=True)
         assert vehicle_config is not None, "Please specify the vehicle config."
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
@@ -234,7 +316,7 @@ class BaseVehicle(BaseObject):
         action = safe_clip_for_small_array(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
         return action, {'raw_action': (action[0], action[1])}
 
-    def before_step(self, action):
+    def before_step(self, action, ):
         """
         Save info and make decision before action
         """
@@ -472,8 +554,8 @@ class BaseVehicle(BaseObject):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -784,7 +866,7 @@ class BaseVehicle(BaseObject):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -799,7 +881,7 @@ class BaseVehicle(BaseObject):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -834,12 +916,12 @@ class BaseVehicle(BaseObject):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property
@@ -889,7 +971,31 @@ class BaseVehicle(BaseObject):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-            self.crash_building or self.crash_vehicle or
-            # self.on_white_continuous_line or
-            self.on_yellow_continuous_line
+                self.crash_building or self.crash_vehicle or
+                # self.on_white_continuous_line or
+                self.on_yellow_continuous_line
         )
+
+    def to_dict(self, origin_vehicle: "Vehicle" = None, observe_intentions: bool = True) -> dict:
+        d = {
+            'presence': 1,
+            'x': self.position[0],
+            'y': self.position[1],
+            'vx': self.velocity[0],
+            'vy': self.velocity[1],
+            'cos_h': self.direction[0],
+            'sin_h': self.direction[1],
+            # 'cos_d': self.destination_direction[0],
+            # 'sin_d': self.destination_direction[1]
+        }
+        if not observe_intentions:
+            d["cos_d"] = d["sin_d"] = 0
+        if origin_vehicle:
+            origin_dict = origin_vehicle.to_dict()
+            for key in ['x', 'y', 'vx', 'vy']:
+                d[key] -= origin_dict[key]
+        return d
+
+    @property
+    def direction(self) -> np.ndarray:
+        return np.array([math.cos(self.heading_theta), math.sin(self.heading_theta)])
