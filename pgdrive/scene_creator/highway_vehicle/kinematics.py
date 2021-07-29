@@ -4,9 +4,9 @@ from typing import List
 import numpy as np
 
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
-from pgdrive.scene_creator.static_object.traffic_object import TrafficSign
 from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random, random_string, deprecation_warning
+from pgdrive.utils import get_np_random, random_string
+from pgdrive.utils.utils import deprecation_warning
 
 
 class Vehicle:
@@ -28,14 +28,15 @@ class Vehicle:
     """ Range for random initial speeds [m/s] """
     MAX_SPEED = 40.
     """ Maximum reachable speed [m/s] """
+
     def __init__(
-        self,
-        traffic_mgr: TrafficManager,
-        position: List,
-        heading: float = 0,
-        speed: float = 0,
-        np_random: np.random.RandomState = None,
-        name: str = None
+            self,
+            traffic_mgr: TrafficManager,
+            position: List,
+            heading: float = 0,
+            speed: float = 0,
+            np_random: np.random.RandomState = None,
+            name: str = None
     ):
 
         deprecation_warning("Vehicle", "Policy Class", error=False)
@@ -88,7 +89,8 @@ class Vehicle:
 
     @classmethod
     def create_random(
-        cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
+            cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None,
+            random_seed=None
     ):
         """
         Create a random vehicle on the road.
