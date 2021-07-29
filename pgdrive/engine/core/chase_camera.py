@@ -59,7 +59,8 @@ class ChaseCamera:
             current_pos = self.camera.getPos()
             self.camera.lookAt(current_pos[0], current_pos[1], 0)
             self.engine.task_manager.add(
-                self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
+                self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True
+            )
 
     def set_bird_view_pos(self, position):
         if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
@@ -67,7 +68,8 @@ class ChaseCamera:
             p_pos = panda_position(position)
             self.camera_x, self.camera_y = p_pos[0], p_pos[1]
             self.engine.task_manager.add(
-                self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
+                self.manual_control_camera, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True
+            )
 
     def reset(self):
         self.direction_running_mean.clear()
