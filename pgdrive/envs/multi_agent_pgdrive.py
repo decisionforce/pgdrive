@@ -3,9 +3,9 @@ import logging
 
 from pgdrive.constants import TerminationState
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
-from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
-from pgdrive.scene_creator.road.road import Road
-from pgdrive.scene_managers.spawn_manager import SpawnManager
+from pgdrive.component.blocks.first_block import FirstPGBlock
+from pgdrive.component.road.road import Road
+from pgdrive.manager.spawn_manager import SpawnManager
 from pgdrive.utils import setup_logger, get_np_random, PGConfig
 from pgdrive.utils.pg_config import merge_dicts
 

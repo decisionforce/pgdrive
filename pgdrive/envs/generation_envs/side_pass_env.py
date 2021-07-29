@@ -1,6 +1,6 @@
 from pgdrive import PGDriveEnv
 from pgdrive.constants import TerminationState
-from pgdrive.scene_creator.vehicle.traffic_vehicle_type import LVehicle
+from pgdrive.component.vehicle.traffic_vehicle_type import LVehicle
 
 
 class SidePassEnv(PGDriveEnv):
@@ -62,7 +62,7 @@ class SidePassEnv(PGDriveEnv):
                 "Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0], p[1]
             )
             cone.attach_to_world(self.pgdrive_engine.pbr_worldNP, self.pgdrive_engine.physics_world)
-        from pgdrive.scene_creator.vehicle.traffic_vehicle_type import SVehicle, XLVehicle
+        from pgdrive.component.vehicle.traffic_vehicle_type import SVehicle, XLVehicle
         v_pos = [8, 14]
         v_type = [SVehicle, XLVehicle]
         for v_long, v_t in zip(v_pos, v_type):

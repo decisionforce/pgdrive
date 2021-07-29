@@ -7,12 +7,12 @@ import numpy as np
 import pgdrive.utils.math_utils as utils
 from pgdrive.constants import Route, LaneIndex
 from pgdrive.policy.base_policy import BasePolicy
-from pgdrive.scene_creator.highway_vehicle.controller import ControlledVehicle, Vehicle
-from pgdrive.scene_creator.lane.abs_lane import AbstractLane
-from pgdrive.scene_creator.static_object import BaseStaticObject
-# from pgdrive.scene_creator.highway_vehicle.kinematics import Vehicle
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.scene_managers.traffic_manager import TrafficManager
+from pgdrive.component.highway_vehicle.controller import ControlledVehicle, Vehicle
+from pgdrive.component.lane.abs_lane import AbstractLane
+from pgdrive.component.static_object import BaseStaticObject
+# from pgdrive.component.highway_vehicle.kinematics import Vehicle
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils import norm
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.utils.math_utils import clip

@@ -12,7 +12,7 @@ from pgdrive.constants import Decoration, DEFAULT_AGENT, PG_EDITION
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.obs.top_down_obs_impl import WorldSurface, ObservationWindow, COLOR_BLACK, \
     VehicleGraphics, LaneGraphics
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import import_pygame
 
 pygame = import_pygame()

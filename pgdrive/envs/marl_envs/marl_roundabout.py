@@ -1,6 +1,6 @@
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive
-from pgdrive.scene_creator.blocks.roundabout import Roundabout
-from pgdrive.scene_creator.map.base_map import BaseMap, MapGenerateMethod
+from pgdrive.component.blocks.roundabout import Roundabout
+from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod
 from pgdrive.utils import get_np_random, PGConfig
 
 

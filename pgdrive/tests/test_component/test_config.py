@@ -14,7 +14,7 @@ def test_config_unchangeable():
 
 def test_config_sync():
     """
-    The config in PGDriveEngine should be the same as env.config, if PGDriveEngine exists in process
+    The config in BaseEngine should be the same as env.config, if BaseEngine exists in process
     """
     env = PGDriveEnv({"vehicle_config": dict(
         max_engine_force=500,

@@ -1,6 +1,6 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.map.base_map import BaseMap, MapGenerateMethod
-from pgdrive.scene_creator.vehicle_module.PID_controller import PIDController
+from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod
+from pgdrive.component.vehicle_module.PID_controller import PIDController
 
 
 class TestEnv(PGDriveEnv):

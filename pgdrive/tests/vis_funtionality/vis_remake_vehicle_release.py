@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import setup_logger
 
 setup_logger(debug=True)

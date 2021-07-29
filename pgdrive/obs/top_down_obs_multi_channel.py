@@ -7,7 +7,7 @@ from pgdrive.constants import Decoration, DEFAULT_AGENT
 from pgdrive.obs.top_down_obs import TopDownObservation
 from pgdrive.obs.top_down_obs_impl import WorldSurface, COLOR_BLACK, VehicleGraphics, LaneGraphics, \
     ObservationWindowMultiChannel
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import import_pygame, clip
 
 pygame = import_pygame()

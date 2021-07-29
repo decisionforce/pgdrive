@@ -4,11 +4,11 @@ import numpy as np
 from pgdrive.constants import TerminationState
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive, pygame_replay
 from pgdrive.obs.state_obs import LidarStateObservation, StateObservation
-from pgdrive.scene_creator.blocks.bottleneck import Merge, Split
-from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
-from pgdrive.scene_creator.blocks.tollgate import TollGate
-from pgdrive.scene_creator.map.pg_map import PGMap
-from pgdrive.scene_creator.road.road import Road
+from pgdrive.component.blocks.bottleneck import Merge, Split
+from pgdrive.component.blocks.first_block import FirstPGBlock
+from pgdrive.component.blocks.tollgate import TollGate
+from pgdrive.component.map.pg_map import PGMap
+from pgdrive.component.road.road import Road
 from pgdrive.utils import PGConfig, clip
 
 MATollConfig = dict(

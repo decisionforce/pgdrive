@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 from pgdrive import PGDriveEnv
-from pgdrive.scene_creator.map.city_map import CityMap
+from pgdrive.component.map.city_map import CityMap
 from pgdrive.utils import draw_top_down_map
 from pgdrive.utils.engine_utils import initialize_pgdrive_engine, close_pgdrive_engine, set_global_random_seed
 

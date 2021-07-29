@@ -9,14 +9,14 @@ import numpy as np
 from panda3d.core import PNMImage
 
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
-from pgdrive.engine.pgdrive_engine import PGDriveEngine
+from pgdrive.engine.base_engine import BaseEngine
 from pgdrive.obs.observation_base import ObservationBase
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.scene_managers.agent_manager import AgentManager
-from pgdrive.scene_managers.map_manager import MapManager
-from pgdrive.scene_managers.object_manager import TrafficSignManager
-from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.scene_managers.policy_manager import PolicyManager
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.manager.agent_manager import AgentManager
+from pgdrive.manager.map_manager import MapManager
+from pgdrive.manager.object_manager import TrafficSignManager
+from pgdrive.manager.traffic_manager import TrafficManager
+from pgdrive.manager.policy_manager import PolicyManager
 from pgdrive.utils import PGConfig, merge_dicts, get_np_random
 from pgdrive.utils.engine_utils import get_pgdrive_engine, initialize_pgdrive_engine, close_pgdrive_engine, \
     pgdrive_engine_initialized, set_global_random_seed
@@ -144,7 +144,7 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.pgdrive_engine: Optional[PGDriveEngine] = None
+        self.pgdrive_engine: Optional[BaseEngine] = None
         self.main_camera = None
         self.controller = None
         self.episode_steps = 0
@@ -424,7 +424,7 @@ class BasePGDriveEnv(gym.Env):
         self.pgdrive_engine.accept("escape", sys.exit)
         self.pgdrive_engine.accept("p", self.capture)
 
-        # Add managers to PGDriveEngine
+        # Add managers to BaseEngine
         self.pgdrive_engine.register_manager("traffic_manager", TrafficManager())
         self.pgdrive_engine.register_manager("map_manager", MapManager())
         self.pgdrive_engine.register_manager("object_manager", TrafficSignManager())

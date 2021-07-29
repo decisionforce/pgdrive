@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.scene_creator.map.argoverse_map import ArgoverseMap
+from pgdrive.component.map.argoverse_map import ArgoverseMap
 
 
 class ArgoverseEnv(PGDriveEnv):

@@ -4,12 +4,12 @@ import logging
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.multi_agent_pgdrive import MultiAgentPGDrive, panda_replay
 from pgdrive.obs.observation_base import ObservationBase
-from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
-from pgdrive.scene_creator.blocks.parking_lot import ParkingLot
-from pgdrive.scene_creator.blocks.t_intersection import TInterSection
-from pgdrive.scene_creator.map.pg_map import PGMap
-from pgdrive.scene_creator.road.road import Road
-from pgdrive.scene_managers.spawn_manager import SpawnManager
+from pgdrive.component.blocks.first_block import FirstPGBlock
+from pgdrive.component.blocks.parking_lot import ParkingLot
+from pgdrive.component.blocks.t_intersection import TInterSection
+from pgdrive.component.map.pg_map import PGMap
+from pgdrive.component.road.road import Road
+from pgdrive.manager.spawn_manager import SpawnManager
 from pgdrive.utils import get_np_random, PGConfig
 
 MAParkingLotConfig = dict(

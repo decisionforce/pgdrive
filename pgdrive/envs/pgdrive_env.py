@@ -11,12 +11,12 @@ from pgdrive.engine.core.manual_controller import KeyboardController, JoystickCo
 from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.obs.image_obs import ImageStateObservation
 from pgdrive.obs.state_obs import LidarStateObservation
-from pgdrive.scene_creator.blocks.first_block import FirstPGBlock
-from pgdrive.scene_creator.map.base_map import BaseMap, MapGenerateMethod, parse_map_config
-from pgdrive.scene_creator.map.pg_map import PGMap
-from pgdrive.scene_creator.vehicle.base_vehicle import BaseVehicle
-from pgdrive.scene_creator.vehicle_module.distance_detector import DetectorMask
-from pgdrive.scene_managers.traffic_manager import TrafficMode
+from pgdrive.component.blocks.first_block import FirstPGBlock
+from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod, parse_map_config
+from pgdrive.component.map.pg_map import PGMap
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.component.vehicle_module.distance_detector import DetectorMask
+from pgdrive.manager.traffic_manager import TrafficMode
 from pgdrive.utils import clip, PGConfig, get_np_random, concat_step_infos
 from pgdrive.utils.engine_utils import pgdrive_engine_initialized
 from pgdrive.utils.engine_utils import set_global_random_seed

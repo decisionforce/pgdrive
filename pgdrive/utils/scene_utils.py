@@ -9,15 +9,15 @@ from pgdrive.utils.coordinates_shift import panda_heading
 import numpy as np
 
 from pgdrive.constants import Decoration, BodyName
-from pgdrive.scene_creator.lane.abs_lane import AbstractLane
-from pgdrive.scene_creator.lane.circular_lane import CircularLane
+from pgdrive.component.lane.abs_lane import AbstractLane
+from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.math_utils import get_points_bounding_box
 
 if TYPE_CHECKING:
-    from pgdrive.scene_creator.blocks.pg_block import PGBlockSocket
-    from pgdrive.scene_creator.road.road import Road
-    from pgdrive.scene_creator.road.road_network import RoadNetwork
+    from pgdrive.component.blocks.pg_block import PGBlockSocket
+    from pgdrive.component.road.road import Road
+    from pgdrive.component.road.road_network import RoadNetwork
 
 
 def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List["AbstractLane"]:
