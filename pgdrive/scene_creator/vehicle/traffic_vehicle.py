@@ -1,4 +1,3 @@
-import math
 from typing import Union
 
 import numpy as np
@@ -14,7 +13,6 @@ from pgdrive.scene_managers.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.engine_utils import get_pgdrive_engine
 from pgdrive.utils.object import Object
-from pgdrive.utils.scene_utils import ray_localization
 
 
 class TrafficVehicleNode(BulletRigidBodyNode):
@@ -61,7 +59,7 @@ class PGTrafficVehicle(Object):
         self._initial_state = kinematic_model if enable_respawn else None
         self.dynamic_nodes.append(self.vehicle_node)
         self.node_path = NodePath(self.vehicle_node)
-        self.out_of_road = False
+        # self.out_of_road = False
 
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
         if self.render:
@@ -109,9 +107,19 @@ class PGTrafficVehicle(Object):
         # p = e.policy_manager.get_policy(self.name)
         # p.update_lane_index(lane_index, lane)
         # self.vehicle_node.kinematic_model.update_lane_index(lane_index, lane)
-        self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
-            self.vehicle_node.kinematic_model.position, margin=2
-        )
+
+        # self.out_of_road = not self.vehicle_node.kinematic_model.lane.on_lane(
+        #     self.vehicle_node.kinematic_model.position, margin=2
+        # )
+        # if self.out_of_road:
+        #     print('stop here')
+        pass
+
+    @property
+    def out_of_road(self):
+        p = get_pgdrive_engine().policy_manager.get_policy(self.name)
+        ret = not p.lane.on_lane(self.vehicle_node.kinematic_model.position, margin=2)
+        return ret
 
     def need_remove(self):
         if self._initial_state is not None:
@@ -119,11 +127,12 @@ class PGTrafficVehicle(Object):
         else:
             self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
             self.node_path.removeNode()
+            print("The vehicle is removed!")
             return True
 
     def reset(self):
         self.vehicle_node.reset(self._initial_state)
-        self.out_of_road = False
+        # self.out_of_road = False
 
     def destroy(self):
         self.vehicle_node.kinematic_model.destroy()
@@ -170,14 +179,14 @@ class PGTrafficVehicle(Object):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        random_seed=None,
-        enable_lane_change: bool = True,
-        enable_respawn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            random_seed=None,
+            enable_lane_change: bool = True,
+            enable_respawn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=random_seed)
         v.enable_lane_change = enable_lane_change

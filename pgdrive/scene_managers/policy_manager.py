@@ -14,6 +14,7 @@ class PolicyManager(BaseManager):
         """
         for p in self._spawned_objects.values():
             p.reset()
+        print('222')
 
     def register_new_policy(self, policy_class, vehicle, traffic_manager, *args, **kwargs):
         # e = get_pgdrive_engine()
@@ -25,6 +26,8 @@ class PolicyManager(BaseManager):
         self._vehicle_name_to_policy[vehicle.name] = policy
 
     def get_policy(self, vehicle_name):
+        # TODO 2 (pzh): We should have a remove machanism! The vehicle is always
+        #   stored in the dict creating potential leak!
         # TODO(pzh) I am not sure yet to use object name or agent name here!
         if vehicle_name not in self._vehicle_name_to_policy:
             return None

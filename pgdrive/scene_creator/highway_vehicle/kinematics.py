@@ -1,12 +1,11 @@
 import math
-from collections import deque
-from typing import Union, List
+from typing import List
 
 import numpy as np
 
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_managers.traffic_manager import TrafficManager
-from pgdrive.utils import get_np_random, random_string, norm, deprecation_warning
+from pgdrive.utils import get_np_random, random_string, deprecation_warning
 
 
 class Vehicle:
@@ -28,14 +27,15 @@ class Vehicle:
     """ Range for random initial speeds [m/s] """
     MAX_SPEED = 40.
     """ Maximum reachable speed [m/s] """
+
     def __init__(
-        self,
-        traffic_mgr: TrafficManager,
-        position: List,
-        heading: float = 0,
-        speed: float = 0,
-        np_random: np.random.RandomState = None,
-        name: str = None
+            self,
+            traffic_mgr: TrafficManager,
+            position: List,
+            heading: float = 0,
+            speed: float = 0,
+            np_random: np.random.RandomState = None,
+            name: str = None
     ):
 
         deprecation_warning("Vehicle", "Policy Class", error=False)
@@ -45,10 +45,10 @@ class Vehicle:
         self._position = np.array(position).astype('float')
         self.heading = heading
         self.speed = speed
-        self.lane_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(
-            self.position
-        ) if self.traffic_mgr else (np.nan, np.nan)
-        self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index) if self.traffic_mgr else None
+        # self.lane_index, _ = self.traffic_mgr.current_map.road_network.get_closest_lane_index(
+        #     self.position
+        # ) if self.traffic_mgr else (np.nan, np.nan)
+        # self.lane = self.traffic_mgr.current_map.road_network.get_lane(self.lane_index) if self.traffic_mgr else None
         self.action = {'steering': 0, 'acceleration': 0}
         self.crashed = False
         # self.log = []
@@ -62,7 +62,10 @@ class Vehicle:
 
     @property
     def position(self):
-        return self._position.copy()
+        if self._position is None:
+            return np.array([np.nan, np.nan])
+        else:
+            return self._position.copy()
 
     def set_position(self, pos):
         self._position = np.asarray(pos).copy()
@@ -85,7 +88,8 @@ class Vehicle:
 
     @classmethod
     def create_random(
-        cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None, random_seed=None
+            cls, traffic_mgr: TrafficManager, lane: AbstractLane, longitude: float, speed: float = None,
+            random_seed=None
     ):
         """
         Create a random vehicle on the road.
@@ -243,13 +247,14 @@ class Vehicle:
     #     )
 
     # @property
-    # def destination(self) -> np.ndarray:
-    #     if getattr(self, "route", None):
-    #         last_lane = self.traffic_mgr.current_map.road_network.get_lane(self.route[-1])
-    #         return last_lane.position(last_lane.length, 0)
-    #     else:
-    #         return self.position
-    #
+    def destination(self) -> np.ndarray:
+        if getattr(self, "route", None):
+            last_lane = self.traffic_mgr.current_map.road_network.get_lane(self.route[-1])
+            return last_lane.position(last_lane.length, 0)
+        else:
+            return self.position
+
+    # #
     # @property
     # def destination_direction(self) -> np.ndarray:
     #     if (self.destination != self.position).any():
@@ -274,8 +279,8 @@ class Vehicle:
             'vy': self.velocity[1],
             'cos_h': self.direction[0],
             'sin_h': self.direction[1],
-            'cos_d': self.destination_direction[0],
-            'sin_d': self.destination_direction[1]
+            # 'cos_d': self.destination_direction[0],
+            # 'sin_d': self.destination_direction[1]
         }
         if not observe_intentions:
             d["cos_d"] = d["sin_d"] = 0
