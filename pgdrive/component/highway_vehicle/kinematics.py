@@ -158,18 +158,18 @@ class Vehicle:
         # TODO(pzh): This part is done in the policy. Check!
         # self.on_state_update()
 
-    def clip_actions(self, action) -> None:
-        # TODO(pzh): This part is done in policy. Check!
-        if self.crashed:
-            action['steering'] = 0
-            action['acceleration'] = -1.0 * self.speed
-        action['steering'] = float(action['steering'])
-        action['acceleration'] = float(action['acceleration'])
-        if self.speed > self.MAX_SPEED:
-            action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
-        elif self.speed < -self.MAX_SPEED:
-            action['acceleration'] = max(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
-        return action
+    # def clip_actions(self, action) -> None:
+    #     # TODO(pzh): This part is done in policy. Check!
+    #     if self.crashed:
+    #         action['steering'] = 0
+    #         action['acceleration'] = -1.0 * self.speed
+    #     action['steering'] = float(action['steering'])
+    #     action['acceleration'] = float(action['acceleration'])
+    #     if self.speed > self.MAX_SPEED:
+    #         action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+    #     elif self.speed < -self.MAX_SPEED:
+    #         action['acceleration'] = max(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+    #     return action
 
     @property
     def direction(self) -> np.ndarray:

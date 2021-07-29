@@ -14,6 +14,7 @@ from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils.space import Parameter, BlockParameterSpace
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.coordinates_shift import panda_position
+from pgdrive.utils.engine_utils import get_engine
 
 
 class RoutingLocalizationModule:
@@ -40,11 +41,11 @@ class RoutingLocalizationModule:
         """
         self.map = None
         self.final_road = None
-        self.checkpoints = None
+        self.checkpoints = []
         self.final_lane = None
-        self.current_ref_lanes = None
+        self.current_ref_lanes = []
         self.current_road = None
-        self._target_checkpoints_index = None
+        self._target_checkpoints_index = []
         self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
         self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
 
@@ -169,7 +170,11 @@ class RoutingLocalizationModule:
         long, _ = lane.local_coordinates(position)
         self._update_target_checkpoints(lane_index, long)
 
-        assert len(self.checkpoints) > 2
+        assert len(self.checkpoints) > 2 or len(self.checkpoints) == 0
+        if len(self.checkpoints) == 0:
+            # This vehicle might be a traffic vehicle
+            # TODO(pzh): Check if this is OK.
+            return lane, lane_index
 
         target_road_1_start = self.checkpoints[self._target_checkpoints_index[0]]
         target_road_1_end = self.checkpoints[self._target_checkpoints_index[0] + 1]
@@ -268,6 +273,12 @@ class RoutingLocalizationModule:
         """
         Return should_update: True or False
         """
+
+        # This vehicle might be a traffic vehicle.
+        # TODO(pzh) Check if this is ok.
+        if len(self._target_checkpoints_index) == 0:
+            return
+
         if self._target_checkpoints_index[0] == self._target_checkpoints_index[1]:  # on last road
             return
 
@@ -331,18 +342,36 @@ class RoutingLocalizationModule:
         possible_lanes = ray_localization(
             np.array(ego_vehicle.heading.tolist()), ego_vehicle.position, ego_vehicle.engine, return_all_result=True
         )
-        for lane, index, l_1_dist in possible_lanes:
-            if lane in self.current_ref_lanes:
-                return lane, index
-        nx_ckpt = self._target_checkpoints_index[-1]
-        if nx_ckpt == self.checkpoints[-1]:
-            return possible_lanes[0][:-1] if len(possible_lanes) > 0 else (None, None)
 
-        nx_nx_ckpt = nx_ckpt + 1
-        next_ref_lanes = self.map.road_network.graph[self.checkpoints[nx_ckpt]][self.checkpoints[nx_nx_ckpt]]
+        if not possible_lanes:
+            # We might using BaseVehicle as traffic vehicle.
+            # In that case, it is not successfully registered current lane.
+            # TODO(pzh): We should not maintain such properties in BaseVehicle
+            traffic_manager = get_engine().traffic_manager
+            lane_index, _ = traffic_manager.current_map.road_network.get_closest_lane_index(
+                ego_vehicle.position
+            ) if traffic_manager else (np.nan, np.nan)
+            lane = traffic_manager.current_map.road_network.get_lane(lane_index) if ego_vehicle else None
+            return lane, lane_index
+
+
         for lane, index, l_1_dist in possible_lanes:
-            if lane in next_ref_lanes:
+            # TODO(pzh): Is here possible for self.current_ref_lanes == None?
+            if self.current_ref_lanes and (lane in self.current_ref_lanes):
                 return lane, index
+
+        if len(self._target_checkpoints_index) > 0:
+            nx_ckpt = self._target_checkpoints_index[-1]
+            if nx_ckpt == self.checkpoints[-1]:
+                return possible_lanes[0][:-1] if len(possible_lanes) > 0 else (None, None)
+            else:
+                print('111')
+
+            nx_nx_ckpt = nx_ckpt + 1
+            next_ref_lanes = self.map.road_network.graph[self.checkpoints[nx_ckpt]][self.checkpoints[nx_nx_ckpt]]
+            for lane, index, l_1_dist in possible_lanes:
+                if lane in next_ref_lanes:
+                    return lane, index
         return possible_lanes[0][:-1] if len(possible_lanes) > 0 else (None, None)
 
     def _ray_lateral_range(self, engine, start_position, dir, length=50):

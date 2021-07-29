@@ -352,9 +352,16 @@ class BaseVehicle(BaseObject):
         if self.lane_line_detector is not None:
             self.lane_line_detector.perceive(self.position, self.heading_theta, self.engine.physics_world.static_world)
         self._state_check()
-        self.update_dist_to_left_right()
-        step_energy, episode_energy = self._update_energy_consumption()
-        self.out_of_route = self._out_of_route()
+
+        # TODO(pzh): This is a workaround to discriminate traffic / ego vehicle.
+        if len(self.routing_localization.checkpoints) > 0:
+            self.update_dist_to_left_right()
+            step_energy, episode_energy = self._update_energy_consumption()
+            self.out_of_route = self._out_of_route()
+        else:
+            step_energy = 0.0
+            episode_energy = 0.0
+
         step_info = self._update_overtake_stat()
         step_info.update(
             {
@@ -483,6 +490,7 @@ class BaseVehicle(BaseObject):
         self.dist_to_left_side, self.dist_to_right_side = self._dist_to_route_left_right()
 
     def _dist_to_route_left_right(self):
+        # TODO(pzh): This function is really stupid! Why we maintain such information in BaseVehicle???
         current_reference_lane = self.routing_localization.current_ref_lanes[0]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
         lateral_to_left = lateral_to_reference + self.routing_localization.get_current_lane_width() / 2
@@ -999,3 +1007,25 @@ class BaseVehicle(BaseObject):
     @property
     def direction(self) -> np.ndarray:
         return np.array([math.cos(self.heading_theta), math.sin(self.heading_theta)])
+
+    @property
+    def out_of_road(self):
+        # TODO(pzh): This function is very stupid!
+        p = get_engine().policy_manager.get_policy(self.name)
+        ret = not p.lane.on_lane(self.position, margin=2)
+        return ret
+
+
+    def need_remove(self):
+
+        # TODO(pzh): The following is copied from base vehicle. What should we do if a base vehicle should be removed?
+
+        # if self._initial_state is not None:
+        #     return False
+        # else:
+        #     self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
+        #     self.node_path.removeNode()
+        #     print("The vehicle is removed!")
+        #     return True
+
+        pass

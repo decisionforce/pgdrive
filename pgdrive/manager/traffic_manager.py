@@ -105,12 +105,13 @@ class TrafficManager(BaseManager):
         :param dt: Decision keeping time
         :return: None
         """
-        dt = self.engine.world_config["physics_world_step_size"]
-        dt /= 3.6  # 1m/s = 3.6km/h
-        for v in self._traffic_vehicles:
-            p = self.engine.policy_manager.get_policy(v.name)
-            action = p.step(dt)
-            v.step(dt, action)
+        pass
+        # dt = self.engine.world_config["physics_world_step_size"]
+        # dt /= 3.6  # 1m/s = 3.6km/h
+        # for v in self._traffic_vehicles:
+            # p = self.engine.policy_manager.get_policy(v.name)
+            # action = p.step(dt)
+            # v.step(dt, action)
 
     def after_step(self):
         """
@@ -125,7 +126,7 @@ class TrafficManager(BaseManager):
                 if remove:
                     vehicles_to_remove.append(v)
                 else:
-                    v.reset()
+                    v.reset(self.current_map)
             else:
                 v.after_step()
 

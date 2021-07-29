@@ -28,14 +28,14 @@ def test_pgdrive_env_v2_minimal():
     _test(PGDriveEnvV2Minimal({"num_others": 0, "use_extra_state": False, "traffic_density": 0.5}))
 
 
-def test_pgdrive_env_v2_minimal_long_run():
+def test_pgdrive_env_v2_minimal_long_run(render=False):
     try:
         for m in ["X", "O", "C", "S", "R", "r", "T"]:
             env = PGDriveEnvV2Minimal(
                 {
                     "map": m,
-                    "fast": True,
-                    "use_render": False,
+                    "fast": render,
+                    "use_render": render,
                     "debug": True,
                     "camera_height": 100,
                     "vehicle_config": {
@@ -57,5 +57,5 @@ def test_pgdrive_env_v2_minimal_long_run():
 
 
 if __name__ == '__main__':
-    test_pgdrive_env_v2_minimal()
-    test_pgdrive_env_v2_minimal_long_run()
+    # test_pgdrive_env_v2_minimal()
+    test_pgdrive_env_v2_minimal_long_run(render=True)

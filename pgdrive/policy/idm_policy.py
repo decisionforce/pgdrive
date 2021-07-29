@@ -1,18 +1,17 @@
-import copy
 import math
 from typing import Tuple
 
 import numpy as np
 
 import pgdrive.utils.math_utils as utils
-from pgdrive.constants import Route, LaneIndex
-from pgdrive.policy.base_policy import BasePolicy
 from pgdrive.component.highway_vehicle.controller import ControlledVehicle, Vehicle
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.static_object import BaseStaticObject
 # from pgdrive.component.highway_vehicle.kinematics import Vehicle
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.constants import Route, LaneIndex
 from pgdrive.manager.traffic_manager import TrafficManager
+from pgdrive.policy.base_policy import BasePolicy
 from pgdrive.utils import norm
 from pgdrive.utils.engine_utils import get_engine
 from pgdrive.utils.math_utils import clip
@@ -82,19 +81,19 @@ class IDMPolicy(BasePolicy):
     DELTA_SPEED = 5  # [m/s]
 
     def __init__(
-        self,
-        vehicle: BaseVehicle,
-        traffic_manager: TrafficManager,
-        # position: List,
-        delay_time: float,
-        # heading: float = 0,
-        # speed: float = 0,
-        target_lane_index: int = None,
-        target_speed: float = 0.01,
-        route: Route = None,
-        enable_lane_change: bool = True,
-        random_seed=None
-        # np_random: np.random.RandomState = None,
+            self,
+            vehicle: BaseVehicle,
+            traffic_manager: TrafficManager,
+            # position: List,
+            delay_time: float,
+            # heading: float = 0,
+            # speed: float = 0,
+            target_lane_index: int = None,
+            target_speed: float = 0.01,
+            route: Route = None,
+            enable_lane_change: bool = True,
+            random_seed=None
+            # np_random: np.random.RandomState = None,
     ):
         super().__init__(random_seed=random_seed)
         self.enable_lane_change = enable_lane_change
@@ -167,18 +166,57 @@ class IDMPolicy(BasePolicy):
 
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
 
+        # TODO(pzh): This is a workaround.
+        engine = get_engine()
+        dt = engine.world_config["physics_world_step_size"]
+        dt /= 3.6  # 1m/s = 3.6km/h
+        self.delay_time += dt
+        if action['acceleration'] < 0 and self.speed <= 0:
+            action['acceleration'] = -self.speed / dt
+        # TODO(pzh): This part is done in policy. Check!
+        if self.crashed:
+            action['steering'] = 0
+            action['acceleration'] = -1.0 * self.speed
+        action['steering'] = float(action['steering'])
+        action['acceleration'] = float(action['acceleration'])
+        if self.speed > self.MAX_SPEED:
+            action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+        elif self.speed < -self.MAX_SPEED:
+            action['acceleration'] = max(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+
         self.action = action
+
+        norm_action = [
+            self.action['steering'] / vehicle.max_steering,
+            # TODO(pzh) In original IDM, the output is acceleration. But the input to the BaseVehicle is the
+            #  engine force. Is that correct for us to say acceleration = engine force? What about the
+            #  brake force?
+            self.action['acceleration'] / max(vehicle.config["max_engine_force"], vehicle.config["max_brake_force"])
+        ]
+        vehicle.before_step(norm_action)
         return self.action
 
     def step(self, dt):
-        self.delay_time += dt
-        if self.action['acceleration'] < 0 and self.speed <= 0:
-            self.action['acceleration'] = -self.speed / dt
+        pass
+
+        if self.break_down:
+            return
+
+        # TODO: We ignore this part here! Because the code is in IDM policy right now!
+        #  Is that OK now?
+        if action is None:
+            action = {"steering": 0, "acceleration": 0}
+        self.vehicle_node.kinematic_model.step(dt, action)
+
+        position = panda_position(self.vehicle_node.kinematic_model.position, 0)
+        self.node_path.setPos(position)
+        heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
+        self.node_path.setH(heading)
 
         # TODO: This is a workaround.
         # self.vehicle.vehicle_node.kinematic_model.step(dt, action=self.action)
         # self.vehicle.step(dt, self.action)
-        return copy.copy(self.action)
+        # return copy.copy(self.action)
 
         # self.clip_actions()
         # delta_f = self.action['steering']
@@ -252,10 +290,10 @@ class IDMPolicy(BasePolicy):
         return ret
 
     def acceleration(
-        # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
-        self,
-        ego_vehicle,
-        front_vehicle
+            # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
+            self,
+            ego_vehicle,
+            front_vehicle
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -335,7 +373,7 @@ class IDMPolicy(BasePolicy):
         tau = self.TIME_WANTED
         d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.LENGTH / 2 - d0, 0)
         v1_0 = front_vehicle.speed
-        delta = 4 * (a0 * a1 * tau)**2 + 8 * a0 * (a1**2) * d + 4 * a0 * a1 * v1_0**2
+        delta = 4 * (a0 * a1 * tau) ** 2 + 8 * a0 * (a1 ** 2) * d + 4 * a0 * a1 * v1_0 ** 2
         v_max = -a0 * tau + np.sqrt(delta) / (2 * a1)
 
         # Speed control
@@ -426,7 +464,7 @@ class IDMPolicy(BasePolicy):
             old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (
-                new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
+                    new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
             )
             if jerk < self.LANE_CHANGE_MIN_ACC_GAIN:
                 return False
@@ -471,7 +509,7 @@ class IDMPolicy(BasePolicy):
         features = np.array(
             [
                 utils.wrap_to_pi(lane_future_heading - self.heading_theta) * self.LENGTH / utils.not_zero(self.speed),
-                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed) ** 2)
             ]
         )
         return features
@@ -490,7 +528,7 @@ class IDMPolicy(BasePolicy):
         if (self.destination != self.position).any():
             return (self.destination - self.position) / norm(*(self.destination - self.position))
         else:
-            return np.zeros((2, ))
+            return np.zeros((2,))
 
     def reset(self):
         # self.vehicle_node.reset(self._initial_state)
