@@ -1,5 +1,5 @@
 import math
-from pgdrive.engine.core.pg_world import PGWorld
+from pgdrive.engine.core.engine_core import EngineCore
 from typing import List, TYPE_CHECKING, Tuple, Union
 from panda3d.bullet import BulletBoxShape
 from panda3d.core import TransformState
@@ -129,7 +129,7 @@ def get_all_lanes(roadnet: "RoadNetwork"):
 
 def ray_localization(heading: np.ndarray,
                      position: np.ndarray,
-                     engine: PGWorld,
+                     engine: EngineCore,
                      return_all_result=False) -> Union[List[Tuple], Tuple]:
     """
     Get the index of the lane closest to a physx_world position.
@@ -171,7 +171,7 @@ def ray_localization(heading: np.ndarray,
 
 
 def rect_region_detection(
-    engine: PGWorld,
+    engine: EngineCore,
     position: Tuple,
     heading: float,
     heading_direction_length: float,

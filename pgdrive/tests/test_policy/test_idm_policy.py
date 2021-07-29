@@ -15,7 +15,7 @@ def _create_vehicle():
     config = PGConfig(BASE_DEFAULT_CONFIG)
     config.update(
         {
-            "pg_world_config": {
+            "engine_config": {
                 "use_render": False,
                 "pstats": False,
                 "use_image": False,

@@ -283,7 +283,7 @@ def _expert():
                 "use_saver": True,
                 "save_level": 1.
             },
-            "pg_world_config": {
+            "engine_config": {
                 "debug_physics_world": True
             },
             "fast": True,
@@ -329,7 +329,7 @@ def _vis_debug_respawn():
                 },
                 "show_lidar": False,
             },
-            "pg_world_config": {
+            "engine_config": {
                 "debug_physics_world": True
             },
             "fast": True,
@@ -384,7 +384,7 @@ def _vis():
                 },
                 "show_lidar": False,
             },
-            "pg_world_config": {
+            "engine_config": {
                 "debug_static_world": True,
                 "global_light": True
             },
@@ -552,7 +552,7 @@ if __name__ == "__main__":
         MultiAgentParkingLotEnv,
         False,
         other_traj="metasvodist_parking_best.json",
-        extra_config={"pg_world_config": {
+        extra_config={"engine_config": {
             "global_light": True
         }}
     )

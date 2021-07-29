@@ -35,7 +35,7 @@ def _free_warning():
     loadPrcFileData("", "notify-level-thread debug")
 
 
-class PGWorld(ShowBase.ShowBase):
+class EngineCore(ShowBase.ShowBase):
     DEBUG = False
     loadPrcFileData("", "window-title {}".format(PG_EDITION))
     loadPrcFileData("", "framebuffer-multisample 1")
@@ -87,7 +87,7 @@ class PGWorld(ShowBase.ShowBase):
             loadPrcFileData("", "load-display  pandagles2")
         if self.world_config["debug"]:
             # debug setting
-            PGWorld.DEBUG = True
+            EngineCore.DEBUG = True
             _free_warning()
             setup_logger(debug=True)
             self.accept('1', self.toggleDebug)
@@ -102,7 +102,7 @@ class PGWorld(ShowBase.ShowBase):
                 self.accept('1', self.toggleDebug)
                 self.accept('4', self.toggleAnalyze)
 
-        super(PGWorld, self).__init__(windowType=self.mode)
+        super(EngineCore, self).__init__(windowType=self.mode)
 
         # Change window size at runtime if screen too small
         # assert int(self.world_config["use_topdown"]) + int(self.world_config["use_image"]) <= 1, (
@@ -375,5 +375,5 @@ class PGWorld(ShowBase.ShowBase):
 
 
 if __name__ == "__main__":
-    world = PGWorld({"debug": True})
+    world = EngineCore({"debug": True})
     world.run()

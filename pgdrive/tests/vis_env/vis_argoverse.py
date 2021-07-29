@@ -29,7 +29,7 @@ class TestEnv(ArgoverseEnv):
         super(TestEnv, self).__init__(
             {
                 "traffic_density": 0.,
-                "pg_world_config": {
+                "engine_config": {
                     "onscreen_message": True,
                     # "debug_physics_world": True,
                     "pstats": True,

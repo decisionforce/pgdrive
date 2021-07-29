@@ -28,7 +28,7 @@ class RoutingLocalizationModule:
 
     def __init__(
         self,
-        pg_world,
+        engine,
         show_navi_mark: bool = False,
         random_navi_mark_color=False,
         show_dest_mark=False,
@@ -51,7 +51,7 @@ class RoutingLocalizationModule:
         # Vis
         self._is_showing = True  # store the state of navigation mark
         self._show_navi_info = (
-            pg_world.mode == RENDER_MODE_ONSCREEN and not pg_world.world_config["debug_physics_world"]
+            engine.mode == RENDER_MODE_ONSCREEN and not engine.world_config["debug_physics_world"]
         )
         self._dest_node_path = None
         self._goal_node_path = None
@@ -60,10 +60,10 @@ class RoutingLocalizationModule:
         self._show_line_to_dest = show_line_to_dest
         if self._show_navi_info:
             # nodepath
-            self._line_to_dest = pg_world.render.attachNewNode("line")
-            self._goal_node_path = pg_world.render.attachNewNode("target")
-            self._dest_node_path = pg_world.render.attachNewNode("dest")
-            self._arrow_node_path = pg_world.aspect2d.attachNewNode("arrow")
+            self._line_to_dest = engine.render.attachNewNode("line")
+            self._goal_node_path = engine.render.attachNewNode("target")
+            self._dest_node_path = engine.render.attachNewNode("dest")
+            self._arrow_node_path = engine.aspect2d.attachNewNode("arrow")
 
             navi_arrow_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "navi_arrow.gltf"))
             navi_arrow_model.setScale(0.1, 0.12, 0.2)
@@ -93,7 +93,7 @@ class RoutingLocalizationModule:
                 line_seg.setColor(self.navi_mark_color[0], self.navi_mark_color[1], self.navi_mark_color[2], 0.7)
                 line_seg.setThickness(2)
                 self._dynamic_line_np = NodePath(line_seg.create(True))
-                self._dynamic_line_np.reparentTo(pg_world.render)
+                self._dynamic_line_np.reparentTo(engine.render)
                 self._line_to_dest = line_seg
 
             self._goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
@@ -307,7 +307,7 @@ class RoutingLocalizationModule:
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 
-    def get_current_lateral_range(self, current_position, pg_world) -> float:
+    def get_current_lateral_range(self, current_position, engine) -> float:
         """Return the maximum lateral distance from left to right."""
         # special process for special block
         try:
@@ -319,7 +319,7 @@ class RoutingLocalizationModule:
             assert isinstance(left_lane, StraightLane), "Reference lane should be straight lane here"
             long, lat = left_lane.local_coordinates(current_position)
             current_position = left_lane.position(long, -left_lane.width / 2)
-            return self._ray_lateral_range(pg_world, current_position, self.current_ref_lanes[0].direction_lateral)
+            return self._ray_lateral_range(engine, current_position, self.current_ref_lanes[0].direction_lateral)
         else:
             return self.get_current_lane_width() * self.get_current_lane_num()
 
@@ -350,7 +350,7 @@ class RoutingLocalizationModule:
                 return lane, index
         return possible_lanes[0][:-1] if len(possible_lanes) > 0 else (None, None)
 
-    def _ray_lateral_range(self, pg_world, start_position, dir, length=50):
+    def _ray_lateral_range(self, engine, start_position, dir, length=50):
         """
         It is used to measure the lateral range of special blocks
         :param start_position: start_point
@@ -362,7 +362,7 @@ class RoutingLocalizationModule:
         start_position = panda_position(start_position, z=0.15)
         end_position = panda_position(end_position, z=0.15)
         mask = BitMask32.bit(FirstPGBlock.CONTINUOUS_COLLISION_MASK)
-        res = pg_world.physics_world.static_world.rayTestClosest(start_position, end_position, mask=mask)
+        res = engine.physics_world.static_world.rayTestClosest(start_position, end_position, mask=mask)
         if not res.hasHit():
             return length
         else:

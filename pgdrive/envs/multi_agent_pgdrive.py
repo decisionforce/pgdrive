@@ -319,7 +319,7 @@ def _test():
             "debug": False,
             "fast": True,
             "manual_control": True,
-            "pg_world_config": {
+            "engine_config": {
                 "pstats": False
             },
         }
@@ -351,7 +351,7 @@ def _vis():
             "num_agents": 12,
             "allow_respawn": False,
             "manual_control": True,
-            "pg_world_config": {
+            "engine_config": {
                 "pstats": False
             },
         }

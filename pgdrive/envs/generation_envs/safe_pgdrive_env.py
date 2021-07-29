@@ -111,7 +111,7 @@ if __name__ == "__main__":
             "out_of_road_cost": 1,
             "debug": True,
             "cull_scene": True,
-            "pg_world_config": {
+            "engine_config": {
                 "pstats": True
             },
             "vehicle_config": {

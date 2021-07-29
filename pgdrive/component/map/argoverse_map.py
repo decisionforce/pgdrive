@@ -140,7 +140,7 @@ if __name__ == "__main__":
     from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 
     default_config = BASE_DEFAULT_CONFIG
-    default_config["pg_world_config"].update(
+    default_config["engine_config"].update(
         {
             "use_render": True,
             "use_image": False,

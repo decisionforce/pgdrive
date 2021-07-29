@@ -15,7 +15,7 @@ class TestEnv(PGDriveEnv):
                 # "traffic_density": 1.0,
                 "traffic_mode": "hybrid",
                 "start_seed": 82,
-                "pg_world_config": {
+                "engine_config": {
                     "onscreen_message": True,
                     # "debug_physics_world": True,
                     # "pstats": True,
@@ -57,13 +57,13 @@ if __name__ == "__main__":
     o = env.reset()
 
     depth_cam = env.config["vehicle_config"]["depth_cam"]
-    depth_cam = DepthCamera(*depth_cam, chassis_np=env.vehicle.chassis_np, pg_world=env.pg_world)
+    depth_cam = DepthCamera(*depth_cam, chassis_np=env.vehicle.chassis_np, engine=env.engine)
     env.vehicle.add_image_sensor("depth_cam", depth_cam)
-    depth_cam.remove_display_region(env.pg_world)
+    depth_cam.remove_display_region(env.engine)
 
     # for sensor in env.vehicle.image_sensors.values():
-    #     sensor.remove_display_region(env.pg_world)
-    # env.vehicle.vehicle_panel.remove_display_region(env.pg_world)
+    #     sensor.remove_display_region(env.engine)
+    # env.vehicle.vehicle_panel.remove_display_region(env.engine)
     # env.vehicle.collision_info_np.detachNode()
     # env.vehicle.routing_localization._right_arrow.detachNode()
 

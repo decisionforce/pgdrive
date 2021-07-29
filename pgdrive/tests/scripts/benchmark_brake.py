@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 "environment_num": 1,
                 "traffic_density": 0.0,
                 "start_seed": 4,
-                # "pg_world_config": {
+                # "engine_config": {
                 #     "debug": False,
                 # },
                 # "manual_control": True,

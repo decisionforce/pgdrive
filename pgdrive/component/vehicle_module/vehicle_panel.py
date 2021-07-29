@@ -2,7 +2,7 @@ from panda3d.core import NodePath, PGTop, TextNode, Vec3, CardMaker
 
 from pgdrive.constants import CamMask
 from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.engine.core.pg_world import PGWorld
+from pgdrive.engine.core.engine_core import EngineCore
 
 
 class VehiclePanel(ImageBuffer):
@@ -16,13 +16,13 @@ class VehiclePanel(ImageBuffer):
     TASK_NAME = "update panel"
     default_region = [2 / 3, 1, ImageBuffer.display_bottom, ImageBuffer.display_top]
 
-    def __init__(self, pg_world: PGWorld):
-        if pg_world.win is None:
+    def __init__(self, engine: EngineCore):
+        if engine.win is None:
             return
         self.aspect2d_np = NodePath(PGTop("aspect2d"))
         self.aspect2d_np.show(self.CAM_MASK)
         self.para_vis_np = {}
-        # make_buffer_func, make_camera_func = pg_world.win.makeTextureBuffer, pg_world.makeCamera
+        # make_buffer_func, make_camera_func = engine.win.makeTextureBuffer, engine.makeCamera
 
         # don't delete the space in word, it is used to set a proper position
         for i, np_name in enumerate(["Steering", " Throttle", "     Brake", "    Speed"]):

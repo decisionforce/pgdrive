@@ -8,7 +8,7 @@ from pgdrive.utils.engine_utils import initialize_engine, close_engine, set_glob
 
 def _t(num_blocks):
     default_config = PGDriveEnv.default_config()
-    default_config["pg_world_config"].update({"use_render": False, "use_image": False, "debug": False})
+    default_config["engine_config"].update({"use_render": False, "use_image": False, "debug": False})
     initialize_engine(default_config, None)
     set_global_random_seed(0)
     try:

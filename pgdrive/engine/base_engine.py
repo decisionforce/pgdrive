@@ -3,14 +3,14 @@ from typing import Dict, AnyStr
 
 import numpy as np
 
-from pgdrive.engine.core.pg_world import PGWorld
+from pgdrive.engine.core.engine_core import EngineCore
 from pgdrive.engine.scene_cull import PGDriveSceneCull
 from pgdrive.manager.base_manager import BaseManager
 
 logger = logging.getLogger(__name__)
 
 
-class BaseEngine(PGWorld):
+class BaseEngine(EngineCore):
     """
     Due to the feature of Panda3D, BaseEngine should only be created once(Singleton Pattern)
     PGWorld is a pure game engine, which is not task-specific, while BaseEngine connects the
@@ -28,7 +28,7 @@ class BaseEngine(PGWorld):
         agent_manager,
     ):
         self.global_config = global_config
-        super(BaseEngine, self).__init__(self.global_config["pg_world_config"])
+        super(BaseEngine, self).__init__(self.global_config["engine_config"])
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
         self._managers = dict(agent_manager=agent_manager)
 
@@ -79,8 +79,8 @@ class BaseEngine(PGWorld):
             self.IN_REPLAY = True
 
         # TODO recorder
-        # if pg_world.highway_render is not None:
-        #     pg_world.highway_render.set_scene_manager(self)
+        # if engine.highway_render is not None:
+        #     engine.highway_render.set_scene_manager(self)
         # if self.record_episode:
         #     if episode_data is None:
         #         init_states = self.traffic_manager.get_global_init_states()
@@ -110,7 +110,7 @@ class BaseEngine(PGWorld):
         Step the dynamics of each entity on the road.
         :param step_num: Decision of all entities will repeat *step_num* times
         """
-        pg_world = self
+        engine = self
         for i in range(step_num):
             # simulate or replay
             if self.replay_system is None:
@@ -118,7 +118,7 @@ class BaseEngine(PGWorld):
                 for manager in self._managers.values():
                     if isinstance(manager, BaseManager):
                         manager.step()
-                pg_world.step_physics_world()
+                engine.step_physics_world()
             else:
                 if not self.STOP_REPLAY:
                     self.replay_system.replay_frame(self.target_vehicles, i == step_num - 1)
@@ -128,11 +128,11 @@ class BaseEngine(PGWorld):
             #     frame_state = self.traffic_manager.get_global_states()
             #     self.record_system.record_frame(frame_state)
 
-            if pg_world.force_fps.real_time_simulation and i < step_num - 1:
+            if engine.force_fps.real_time_simulation and i < step_num - 1:
                 # insert frame to render in min step_size
-                pg_world.task_manager.step()
+                engine.task_manager.step()
         #  panda3d render and garbage collecting loop
-        pg_world.task_manager.step()
+        engine.task_manager.step()
 
     def after_step(self) -> Dict:
         """

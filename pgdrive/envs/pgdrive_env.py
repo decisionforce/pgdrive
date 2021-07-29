@@ -130,7 +130,7 @@ class PGDriveEnv(BasePGDriveEnv):
         """Check, update, sync and overwrite some config."""
         config = self.default_config().update(config, allow_overwrite=False)
         if config["vehicle_config"]["lidar"]["distance"] > 50:
-            config["pg_world_config"]["max_distance"] = config["vehicle_config"]["lidar"]["distance"]
+            config["engine_config"]["max_distance"] = config["vehicle_config"]["lidar"]["distance"]
         return config
 
     def _post_process_config(self, config):
@@ -142,7 +142,7 @@ class PGDriveEnv(BasePGDriveEnv):
         config["map_config"] = parse_map_config(
             easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
-        config["pg_world_config"].update(
+        config["engine_config"].update(
             {
                 "use_render": config["use_render"],
                 "use_image": config["use_image"],

@@ -14,7 +14,7 @@ class TestEnv(PGDriveEnv):
                 "traffic_density": 0.1,
                 "traffic_mode": "hybrid",
                 "start_seed": 5,
-                "pg_world_config": {
+                "engine_config": {
                     "onscreen_message": True,
                     # "debug_physics_world": True,
                     "pstats": True

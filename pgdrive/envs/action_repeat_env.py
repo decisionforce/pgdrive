@@ -47,7 +47,7 @@ class ActionRepeat(PGDriveEnv):
         self.action_repeat_low = self.config["min_action_repeat"]
         self.action_repeat_high = self.config["max_action_repeat"]
 
-        self.interval = 2e-2  # This is determined by the default config of pg_world.
+        self.interval = 2e-2  # This is determined by the default config of engine.
         self.primitive_steps_count = 0
 
         assert self.action_repeat_low > 0

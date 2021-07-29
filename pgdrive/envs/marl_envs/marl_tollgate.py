@@ -298,7 +298,7 @@ def _expert():
                 "use_saver": True,
                 "save_level": 1.
             },
-            "pg_world_config": {
+            "engine_config": {
                 "debug_physics_world": True
             },
             "fast": True,
@@ -344,7 +344,7 @@ def _vis_debug_respawn():
                 },
                 "show_lidar": False,
             },
-            "pg_world_config": {
+            "engine_config": {
                 "debug_physics_world": True
             },
             "fast": True,

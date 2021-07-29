@@ -149,7 +149,7 @@ if __name__ == '__main__':
             },
             traffic_density=0.5,
             use_image=True,
-            pg_world_config=dict(headless_image=headless)
+            engine_config=dict(headless_image=headless)
         )
     )
     start = time.time()
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     for num_frames in range(30):
         o, r, d, info = env.step([0, 1])
         img = PNMImage()
-        env.pg_world.win.getScreenshot(img)
+        env.engine.win.getScreenshot(img)
         frame = np.zeros([1200, 900, 4], dtype=np.uint8)
         for i in range(1200):
             for j in range(900):

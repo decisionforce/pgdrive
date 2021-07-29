@@ -44,7 +44,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         super(MultiAgentRoundaboutEnv, self)._after_lazy_init()
         if hasattr(self, "main_camera") and self.main_camera is not None:
             self.main_camera.camera.setPos(0, 0, 100)
-            self.main_camera.stop_chase(self.pg_world)
+            self.main_camera.stop_chase(self.engine)
             self.main_camera.camera_x += 60
 
     def _process_extra_config(self, config):
@@ -103,7 +103,7 @@ if __name__ == "__main__":
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "pg_world_config": {
+            "engine_config": {
                 "pstats": True
             },
             "crash_done": False,

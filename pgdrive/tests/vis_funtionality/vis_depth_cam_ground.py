@@ -14,7 +14,7 @@ class TestEnv(PGDriveEnv):
                 "use_image": True,
                 "rgb_clip": True,
                 "vehicle_config": dict(depth_cam=(200, 88, True), image_source="depth_cam"),
-                "pg_world_config": {
+                "engine_config": {
                     "headless_image": False,
                 },
                 "map_config": {
@@ -31,11 +31,11 @@ if __name__ == "__main__":
 
     def get_image(env):
         env.vehicle.image_sensors[env.vehicle.vehicle_config["image_source"]].save_image()
-        env.pg_world.screenshot()
+        env.engine.screenshot()
 
     env = TestEnv()
     env.reset()
-    env.pg_world.accept("m", get_image, extraArgs=[env])
+    env.engine.accept("m", get_image, extraArgs=[env])
 
     for i in range(1, 100000):
         o, r, d, info = env.step([0, 1])
