@@ -75,11 +75,7 @@ class ArgoverseMap(BaseMap):
         self._construct_road_network([lane_objs[k] for k in lane_ids])
 
     def _construct_road_network(self, lanes: list):
-        # num = int(len(lanes) / self.BLOCK_LANE_NUM)
-        # for i in range(1):
-        # end = (i + 1) * self.BLOCK_LANE_NUM if i < num else len(lanes)
-        # chosen_lanes = lanes[i * self.BLOCK_LANE_NUM:end]
-        # TODO Argoverse Block need refine
+        # TODO split the blocks in the future, if we need the whole map
         chosen_lanes = lanes
         for lane in lanes:
             self._post_process_lane(lane)
