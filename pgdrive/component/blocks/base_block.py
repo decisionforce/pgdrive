@@ -359,13 +359,12 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
     def _add_sidewalk2bullet(self, lane_start, lane_end, middle, radius=0.0, direction=0):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         body_node = BulletRigidBodyNode(BodyName.Sidewalk)
-        body_node.set_active(True)
         body_node.setKinematic(False)
         body_node.setStatic(True)
         side_np = self.sidewalk_node_path.attachNewNode(body_node)
         shape = BulletBoxShape(Vec3(1 / 2, 1 / 2, 1 / 2))
         body_node.addShape(shape)
-        body_node.setIntoCollideMask(BitMask32.bit(self.CONTINUOUS_COLLISION_MASK))
+        body_node.setIntoCollideMask(BitMask32.bit(self.SIDEWALK_COLLISION_MASK))
         self.dynamic_nodes.append(body_node)
 
         if radius == 0:

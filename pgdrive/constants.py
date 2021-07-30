@@ -109,13 +109,14 @@ class CamMask:
 
 
 class CollisionGroup:
-    Terrain = 2
     EgoVehicle = 1
+    Terrain = 2
     BrokenLaneLine = 3
-    ContinuousLaneLine = 7
-    InvisibleWall = 8
     TrafficVehicle = 4
     LaneSurface = 5  # useless now, since it is in another physics world
+    Sidewalk = 6
+    ContinuousLaneLine = 7
+    InvisibleWall = 8
 
     @classmethod
     def collision_rules(cls):
@@ -128,6 +129,7 @@ class CollisionGroup:
             (cls.Terrain, cls.TrafficVehicle, False),
             (cls.Terrain, cls.ContinuousLaneLine, False),
             (cls.Terrain, cls.InvisibleWall, False),
+            (cls.Terrain, cls.Sidewalk, True),
 
             # block collision
             (cls.BrokenLaneLine, cls.BrokenLaneLine, False),
@@ -137,6 +139,7 @@ class CollisionGroup:
             (cls.BrokenLaneLine, cls.TrafficVehicle, False),
             (cls.BrokenLaneLine, cls.ContinuousLaneLine, False),
             (cls.BrokenLaneLine, cls.InvisibleWall, False),
+            (cls.BrokenLaneLine, cls.Sidewalk, False),
 
             # traffic vehicles collision
             (cls.TrafficVehicle, cls.TrafficVehicle, False),
@@ -144,24 +147,32 @@ class CollisionGroup:
             (cls.TrafficVehicle, cls.EgoVehicle, True),
             (cls.TrafficVehicle, cls.ContinuousLaneLine, False),
             (cls.TrafficVehicle, cls.InvisibleWall, True),
+            (cls.TrafficVehicle, cls.Sidewalk, False),
 
             # ego vehicle collision
             (cls.EgoVehicle, cls.EgoVehicle, True),
             (cls.EgoVehicle, cls.LaneSurface, True),
             (cls.EgoVehicle, cls.ContinuousLaneLine, True),
             (cls.EgoVehicle, cls.InvisibleWall, True),
+            (cls.EgoVehicle, cls.Sidewalk, True),
 
             # lane surface
             (cls.LaneSurface, cls.LaneSurface, False),
             (cls.LaneSurface, cls.ContinuousLaneLine, False),
             (cls.LaneSurface, cls.InvisibleWall, False),
+            (cls.LaneSurface, cls.Sidewalk, False),
 
             # continuous lane line
             (cls.ContinuousLaneLine, cls.ContinuousLaneLine, False),
             (cls.ContinuousLaneLine, cls.InvisibleWall, False),
+            (cls.ContinuousLaneLine, cls.Sidewalk, False),
 
             # invisible wall
             (cls.InvisibleWall, cls.InvisibleWall, False),
+            (cls.InvisibleWall, cls.Sidewalk, False),
+
+            # side walk
+            (cls.Sidewalk, cls.Sidewalk, False),
         ]
 
     @classmethod
@@ -228,6 +239,7 @@ class DrivableAreaProperty:
     # lane line collision group
     CONTINUOUS_COLLISION_MASK = CollisionGroup.ContinuousLaneLine
     BROKEN_COLLISION_MASK = CollisionGroup.BrokenLaneLine
+    SIDEWALK_COLLISION_MASK = CollisionGroup.Sidewalk
 
     # for creating complex block, for example Intersection and roundabout consist of 4 part, which contain several road
     PART_IDX = 0

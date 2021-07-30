@@ -18,7 +18,7 @@ class TestEnv(PGDriveEnv):
                 "pstats": True,
                 "global_light": True,
                 # "debug_static_world":True,
-                "cull_scene": True,
+                "cull_scene": False,
                 # "controller":"joystick",
                 "manual_control": True,
                 "use_render": True,
@@ -70,6 +70,6 @@ if __name__ == "__main__":
         # if d:
         #     print("Reset")
         #     env.reset()
-        if env.vehicle.crash_sidewalk:
-            env.close()
+        # if env.vehicle.crash_sidewalk:
+        #     env.close()
     env.close()
