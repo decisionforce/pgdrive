@@ -1,4 +1,4 @@
-from panda3d.bullet import BulletWorld
+from panda3d.bullet import BulletWorld, BulletBodyNode
 from panda3d.core import NodePath
 
 from pgdrive.component.base_class.base_runable import BaseRunnable
@@ -46,21 +46,21 @@ class BaseObject(BaseRunnable):
     calling __init__().
     """
 
-    def __init__(self, name=None, random_seed=None, physics_body=None):
+    def __init__(self, name=None, random_seed=None, config=None):
         """
         Config is a static conception, which specified the parameters of one element.
         There parameters doesn't change, such as length of straight road, max speed of one vehicle, etc.
         """
-        super(BaseObject, self).__init__(name, random_seed)
+        super(BaseObject, self).__init__(name, random_seed, config)
         assert random_seed is not None, "Please assign a random seed for {} class in super().__init__()".format(
             self.class_name
         )
 
         # Following properties are available when this object needs visualization and physics property
-        self.body = physics_body
+        self.body = None
 
         # each element has its node_path to render, physics node are child nodes of it
-        self.origin = NodePath(self.body) if physics_body is not None else NodePath(self.name)
+        self.origin = NodePath(self.name)
 
         # Temporally store bullet nodes that have to place in bullet world (not NodePath)
         self.dynamic_nodes = PhysicsNodeList()
@@ -76,6 +76,19 @@ class BaseObject(BaseRunnable):
             if not hasattr(self.loader, "loader"):
                 # It is closed before!
                 self.loader.__init__()
+
+    def add_physics_body(self, physics_body):
+        if self.body is None:
+            # add it to physics world, in which this object will interact with other object (like collision)
+            if not isinstance(physics_body, BulletBodyNode):
+                raise ValueError("The physics body is not BulletBodyNode type")
+            self.body = physics_body
+            new_origin = NodePath(self.body)
+            self.origin.getChildren().reparentTo(new_origin)
+            self.origin = new_origin
+            self.dynamic_nodes.append(physics_body)
+        else:
+            raise AttributeError("You can not set the object body for twice")
 
     def attach_to_world(self, parent_node_path: NodePath, physics_world: PhysicsWorld):
         if self.render:

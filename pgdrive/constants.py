@@ -57,7 +57,7 @@ class BodyName:
     Ground = "Ground"
     InvisibleWall = "InvisibleWall"
     Base_vehicle = "Target Vehicle"
-    Base_vehicle_beneath = "Target Vehicle Beneath"
+    Base_vehicle_beneath = "Target Vehicle"
     Traffic_vehicle = "Traffic Vehicle"
     Lane = "Lane"
     Traffic_cone = "Traffic Cone"
