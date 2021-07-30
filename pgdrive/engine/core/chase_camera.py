@@ -1,13 +1,15 @@
+import math
 import queue
-from pgdrive.utils.engine_utils import get_engine
 from collections import deque
 from typing import Tuple
-import math
+
 import numpy as np
 from direct.controls.InputState import InputState
-from panda3d.core import Vec3, Camera, Point3, BitMask32
+from panda3d.core import Vec3, Point3, BitMask32
+
 from pgdrive.constants import CollisionGroup
 from pgdrive.utils.coordinates_shift import panda_heading, panda_position
+from pgdrive.utils.engine_utils import get_engine
 
 
 class ChaseCamera:

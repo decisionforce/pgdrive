@@ -3,6 +3,7 @@ from typing import Union, List
 
 import numpy as np
 from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
+
 from pgdrive.constants import RENDER_MODE_ONSCREEN, BKG_COLOR
 
 
@@ -51,15 +52,15 @@ class ImageBuffer:
             self.buffer = self.engine.win.makeTextureBuffer("camera", length, width, fbp=frame_buffer_property)
             # now we have to setup a new scene graph to make this scene
 
-        self.coordinate = NodePath("new render")
+        self.origin = NodePath("new render")
         self.line_borders = []
         # this takes care of setting up their camera properly
         self.cam = self.engine.makeCamera(self.buffer, clearColor=bkg_color)
-        self.cam.reparentTo(self.coordinate)
+        self.cam.reparentTo(self.origin)
         self.cam.setPos(pos)
         self.lens = self.cam.node().getLens()
         self.cam.node().setCameraMask(self.CAM_MASK)
-        self.coordinate.reparentTo(parent_node)
+        self.origin.reparentTo(parent_node)
         logging.debug("Load Image Buffer: {}".format(self.__class__.__name__))
 
     def get_image(self):
@@ -136,7 +137,7 @@ class ImageBuffer:
                 if line_np:
                     line_np.removeNode()
         self.line_borders = None
-        self.coordinate.removeNode()
+        self.origin.removeNode()
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))

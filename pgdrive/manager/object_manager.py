@@ -4,11 +4,10 @@ from pgdrive.component.blocks.curve import Curve
 from pgdrive.component.blocks.ramp import InRampOnStraight, OutRampOnStraight
 from pgdrive.component.blocks.straight import Straight
 from pgdrive.component.lane.abs_lane import AbstractLane
-from pgdrive.component.map.base_map import BaseMap
-from pgdrive.component.static_object.base_static_object import BaseStaticObject
-from pgdrive.component.static_object.traffic_object import TrafficSign
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import LaneIndex
+from pgdrive.component.static_object.base_static_object import BaseStaticObject
+from pgdrive.component.static_object.traffic_object import TrafficSign
 from pgdrive.manager.base_manager import BaseManager
 from pgdrive.utils.engine_utils import get_engine
 
@@ -51,12 +50,12 @@ class TrafficSignManager(BaseManager):
     def clear_objects(self, filter_func: Optional[Callable] = None):
         super(TrafficSignManager, self).clear_objects()
         for block_object in self._block_objects.values():
-            block_object.coordinate.detachNode()
+            block_object.origin.detachNode()
         self._block_objects = {}
 
     def add_block_buildings(self, building: BaseStaticObject, render_node):
         self._block_objects[building.id] = building
-        building.coordinate.reparentTo(render_node)
+        building.origin.reparentTo(render_node)
 
     def spawn_object(
         self,

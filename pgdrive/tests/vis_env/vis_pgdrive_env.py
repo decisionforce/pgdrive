@@ -1,5 +1,4 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod
 from pgdrive.utils import setup_logger
 
 
@@ -26,7 +25,7 @@ class TestEnv(PGDriveEnv):
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "debug": True,
-                "fast": False,
+                "fast": True,
                 # "map_config": {
                 #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                 #     Map.GENERATE_CONFIG: "SXO",

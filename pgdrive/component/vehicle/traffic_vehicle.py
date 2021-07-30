@@ -2,15 +2,15 @@ from typing import Union
 
 import numpy as np
 from panda3d.bullet import BulletBoxShape
-from panda3d.core import BitMask32, TransformState, Point3, NodePath, Vec3
+from panda3d.core import BitMask32, TransformState, Point3, Vec3
 
-from pgdrive.constants import BodyName, CollisionGroup
-from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.physics_node import TrafficVehicleNode
-from pgdrive.component.base_object import BaseObject
+from pgdrive.component.base_class.base_object import BaseObject
 from pgdrive.component.highway_vehicle.behavior import IDMVehicle
 from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
+from pgdrive.constants import BodyName, CollisionGroup
+from pgdrive.engine.asset_loader import AssetLoader
+from pgdrive.engine.physics_node import TrafficVehicleNode
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.engine_utils import get_engine
@@ -35,8 +35,10 @@ class TrafficVehicle(BaseObject):
         """
         kinematic_model.LENGTH = self.LENGTH
         kinematic_model.WIDTH = self.WIDTH
-        super(TrafficVehicle, self).__init__(random_seed=random_seed)
-        self.vehicle_node = TrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model))
+        super(TrafficVehicle, self).__init__(random_seed=random_seed,
+                                             physics_body=TrafficVehicleNode(BodyName.Traffic_vehicle,
+                                                                             IDMVehicle.create_from(kinematic_model)))
+        self.vehicle_node = self.body
         chassis_shape = BulletBoxShape(Vec3(self.LENGTH / 2, self.WIDTH / 2, self.HEIGHT / 2))
         self.index = index
         self.vehicle_node.addShape(chassis_shape, TransformState.makePos(Point3(0, 0, self.HEIGHT / 2)))
@@ -47,7 +49,6 @@ class TrafficVehicle(BaseObject):
         self.enable_respawn = enable_respawn
         self._initial_state = kinematic_model if enable_respawn else None
         self.dynamic_nodes.append(self.vehicle_node)
-        self.coordinate = NodePath(self.vehicle_node)
         # self.out_of_road = False
 
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
@@ -61,7 +62,7 @@ class TrafficVehicle(BaseObject):
             carNP.setH(H)
             carNP.setPos(x_y_z_offset)
 
-            carNP.instanceTo(self.coordinate)
+            carNP.instanceTo(self.origin)
         self.step(1e-1, None)
         # self.carNP.setQuat(LQuaternionf(math.cos(-1 * np.pi / 4), 0, 0, math.sin(-1 * np.pi / 4)))
 
@@ -83,9 +84,9 @@ class TrafficVehicle(BaseObject):
         self.vehicle_node.kinematic_model.step(dt, action)
 
         position = panda_position(self.vehicle_node.kinematic_model.position, 0)
-        self.coordinate.setPos(position)
+        self.origin.setPos(position)
         heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
-        self.coordinate.setH(heading)
+        self.origin.setH(heading)
 
     def after_step(self):
         # engine = get_engine()
@@ -115,7 +116,7 @@ class TrafficVehicle(BaseObject):
             return False
         else:
             self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
-            self.coordinate.removeNode()
+            self.origin.removeNode()
             print("The vehicle is removed!")
             return True
 
@@ -137,7 +138,7 @@ class TrafficVehicle(BaseObject):
         :param position: 2d array or list
         :return: None
         """
-        self.coordinate.setPos(panda_position(position, 0))
+        self.origin.setPos(panda_position(position, 0))
 
     def set_heading(self, heading_theta) -> None:
         """
@@ -145,7 +146,7 @@ class TrafficVehicle(BaseObject):
         :param heading_theta: float in rad
         :return: None
         """
-        self.coordinate.setH(panda_heading(heading_theta * 180 / np.pi))
+        self.origin.setH(panda_heading(heading_theta * 180 / np.pi))
 
     def get_state(self):
         return {"heading": self.heading, "position": self.position, "done": self.out_of_road}
@@ -168,14 +169,14 @@ class TrafficVehicle(BaseObject):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        random_seed=None,
-        enable_lane_change: bool = True,
-        enable_respawn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            random_seed=None,
+            enable_lane_change: bool = True,
+            enable_respawn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=random_seed)
         v.enable_lane_change = enable_lane_change

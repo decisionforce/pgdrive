@@ -1,10 +1,10 @@
 import numpy as np
 
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.envs import PGDriveEnvV2
 from pgdrive.envs.base_env import BASE_DEFAULT_CONFIG
 from pgdrive.envs.pgdrive_env import PGDriveEnvV1_DEFAULT_CONFIG
 from pgdrive.policy.idm_policy import IDMPolicy
-from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.utils import Config
 from pgdrive.utils.engine_utils import initialize_engine
 

@@ -1,8 +1,9 @@
 from typing import Callable, Optional
-from pgdrive.utils.random import RandomEngine
+
+from pgdrive.component.base_class.randomizable import Randomizable
 
 
-class BaseManager(RandomEngine):
+class BaseManager(Randomizable):
     """
     Managers should be created and registered after launching BaseEngine
     """
@@ -10,7 +11,7 @@ class BaseManager(RandomEngine):
         from pgdrive.utils.engine_utils import get_engine, engine_initialized
         assert engine_initialized(), "You should not create manager before the initialization of BaseEngine"
         self.engine = get_engine()
-        super(BaseManager, self).__init__(self.engine.global_random_seed)
+        Randomizable.__init__(self, self.engine.global_random_seed)
         self._spawned_objects = dict()
 
     def spawn_object(self, object_class, *args, **kwargs):

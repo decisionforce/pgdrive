@@ -16,7 +16,8 @@ from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.manager.traffic_manager import TrafficMode
 from pgdrive.obs.image_obs import ImageStateObservation
 from pgdrive.obs.state_obs import LidarStateObservation
-from pgdrive.utils import clip, Config, get_np_random, concat_step_infos
+from pgdrive.utils.random import get_np_random
+from pgdrive.utils import clip, Config, concat_step_infos
 from pgdrive.utils.engine_utils import engine_initialized
 from pgdrive.utils.engine_utils import set_global_random_seed
 

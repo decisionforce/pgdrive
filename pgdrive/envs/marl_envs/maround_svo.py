@@ -6,7 +6,7 @@ from gym.spaces import Box
 
 from pgdrive.envs.marl_envs.marl_inout_roundabout import MultiAgentRoundaboutEnv as MARound, \
     LidarStateObservationMARound
-from pgdrive.utils import get_np_random, norm
+from pgdrive.utils.random import get_np_random, norm
 
 
 class SVOObs(LidarStateObservationMARound):
