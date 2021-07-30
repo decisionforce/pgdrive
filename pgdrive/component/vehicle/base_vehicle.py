@@ -1,5 +1,4 @@
 import math
-from pgdrive.utils.scene_utils import rect_region_detection
 import time
 from collections import deque
 from typing import Union, Optional
@@ -7,7 +6,7 @@ from typing import Union, Optional
 import gym
 import numpy as np
 import seaborn as sns
-from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp, BulletGhostNode
+from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp
 from panda3d.core import Material, Vec3, TransformState, NodePath, LQuaternionf, BitMask32, TextNode
 
 from pgdrive.component.base_class.base_object import BaseObject
@@ -26,14 +25,14 @@ from pgdrive.component.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.engine.physics_node import BaseVehicleNode
-from pgdrive.utils.random import get_np_random
 from pgdrive.utils import Config, safe_clip_for_small_array, Vector
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.utils.engine_utils import get_engine, engine_initialized
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.utils.random import get_np_random
 from pgdrive.utils.scene_utils import ray_localization
+from pgdrive.utils.scene_utils import rect_region_detection
 from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
 
 
@@ -78,35 +77,36 @@ class BaseVehicle(BaseObject):
         :param vehicle_config: mostly, vehicle module config
         :param random_seed: int
         """
+        # check
+        assert vehicle_config is not None, "Please specify the vehicle config."
+        assert engine_initialized(), "Please make sure game engine is successfully initialized!"
+
+        # NOTE: it is the game engine, not vehicle drivetrain
         self.engine = get_engine()
         super(BaseVehicle, self).__init__(name, random_seed, vehicle_config)
-        vehicle_chassis = self._get_vehicle_chassis()
+
+        # build vehicle physics model
+        vehicle_chassis = self._create_vehicle_chassis()
         self.add_physics_body(vehicle_chassis.getChassis())
         self.system = vehicle_chassis
+        self.chassis = self.origin
+        self.wheels = self._create_wheel()
 
-        self.chassis_np = self.origin
-        assert vehicle_config is not None, "Please specify the vehicle config."
-        self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
-
+        # powertrain config
         self.increment_steering = self.config["increment_steering"]
         self.enable_reverse = self.config["enable_reverse"]
         self.max_speed = self.config["max_speed"]
         self.max_steering = self.config["max_steering"]
 
-        assert self.engine is not None, "Please make sure PGDrive engine is successfully initialized!"
-
-        # color
+        # visualization
         color = sns.color_palette("colorblind")
         idx = get_np_random().randint(len(color))
         rand_c = color[idx]
+        if am_i_the_special_one:
+            rand_c = color[2]  # A pretty green
         self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
         self.panda_color = rand_c
-
-        # create
-        self.spawn_place = (0, 0)
-        self._physics_body_steup()
         self._add_visualization()
-        self.wheels = self._create_wheel()
 
         # modules
         self.image_sensors = {}
@@ -122,7 +122,7 @@ class BaseVehicle(BaseObject):
         self.throttle_brake = 0.0
         self.steering = 0
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
-        self.last_position = self.spawn_place
+        self.last_position = (0,0)
         self.last_heading_dir = self.heading
         self.dist_to_left_side = None
         self.dist_to_right_side = None
@@ -136,7 +136,7 @@ class BaseVehicle(BaseObject):
         # step info
         self.out_of_route = None
         self.on_lane = None
-        # self.step_info = None
+        self.spawn_place = (0, 0)
         self._init_step_info()
 
         # others
@@ -144,18 +144,11 @@ class BaseVehicle(BaseObject):
         self.takeover = False
         self._expert_takeover = False
         self.energy_consumption = 0
+        self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
 
         # overtake_stat
         self.front_vehicles = set()
         self.back_vehicles = set()
-
-        # color
-        color = sns.color_palette("colorblind")
-        idx = get_np_random().randint(len(color))
-        rand_c = color[idx]
-        if am_i_the_special_one:
-            rand_c = color[2]  # A pretty green
-        self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
@@ -227,7 +220,6 @@ class BaseVehicle(BaseObject):
         self.origin.node().getPythonTag(BodyName.Base_vehicle).init_collision_info()
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
-        # self.step_info = {"reward": 0, "cost": 0}
 
     def _preprocess_action(self, action):
         if self.config["action_check"]:
@@ -512,7 +504,7 @@ class BaseVehicle(BaseObject):
 
     """-------------------------------------- for vehicle making ------------------------------------------"""
 
-    def _get_vehicle_chassis(self):
+    def _create_vehicle_chassis(self):
         para = self.get_config()
         self.LENGTH = self.config["vehicle_length"]
         self.WIDTH = self.config["vehicle_width"]
@@ -522,20 +514,14 @@ class BaseVehicle(BaseObject):
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)
         chassis.setMass(para[Parameter.mass])
+        chassis.setDeactivationEnabled(False)
+        chassis.notifyCollisions(True)  # advance collision check, do callback in pg_collision_callback
+
         physics_world = get_engine().physics_world
         vehicle_chassis = BulletVehicle(physics_world.dynamic_world, chassis)
         vehicle_chassis.setCoordinateSystem(ZUp)
         self.dynamic_nodes.append(vehicle_chassis)
         return vehicle_chassis
-
-    def _physics_body_steup(self):
-        para = self.get_config()
-        # not random spawn now
-        heading = np.deg2rad(-para[Parameter.heading] - 90)
-        self.origin.setPos(Vec3(*self.spawn_place, 1))
-        self.origin.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
-        self.body.setDeactivationEnabled(False)
-        self.body.notifyCollisions(True)  # advance collision check, do callback in pg_collision_callback
 
     def _add_visualization(self):
         para = self.config
@@ -594,7 +580,6 @@ class BaseVehicle(BaseObject):
         wheel.setWheelDirectionCs(Vec3(0, 0, -1))
         wheel.setWheelAxleCs(Vec3(1, 0, 0))
 
-        # TODO add them to Config in the future
         wheel.setWheelRadius(radius)
         wheel.setMaxSuspensionTravelCm(40)
         wheel.setSuspensionStiffness(30)
@@ -650,8 +635,8 @@ class BaseVehicle(BaseObject):
         """
         Check States and filter to update info
         """
-        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis_np.node(), True)
-        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis_np.node(), True)
+        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis.node(), True)
+        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis.node(), True)
         contacts = set()
         for contact in result_1.getContacts() + result_2.getContacts():
             node0 = contact.getNode0()

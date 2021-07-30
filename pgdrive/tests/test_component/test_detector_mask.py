@@ -151,7 +151,7 @@ def test_detector_mask_in_lidar():
                 v.position,
                 v.heading_theta,
                 v.engine.physics_world.dynamic_world,
-                extra_filter_node={v.chassis_np.node()},
+                extra_filter_node={v.chassis.node()},
                 detector_mask=None
             )
             old_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
@@ -188,7 +188,7 @@ def test_detector_mask_in_lidar():
                 v.position,
                 v.heading_theta,
                 v.engine.physics_world.dynamic_world,
-                extra_filter_node={v.chassis_np.node()},
+                extra_filter_node={v.chassis.node()},
                 detector_mask=mask
             )
             new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
@@ -311,12 +311,12 @@ def test_cutils_lidar():
                     v.position,
                     v.heading_theta,
                     v.engine.physics_world.dynamic_world,
-                    extra_filter_node={v.chassis_np.node()},
+                    extra_filter_node={v.chassis.node()},
                     detector_mask=None
                 )
                 new_cloud_points = np.array(copy.deepcopy(new_cloud_points))
                 old_cloud_points = _old_perceive(
-                    v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis_np.node()},
+                    v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis.node()},
                     None
                 )
                 np.testing.assert_almost_equal(new_cloud_points, old_cloud_points)
@@ -326,7 +326,7 @@ def test_cutils_lidar():
                     v.position,
                     v.heading_theta,
                     v.engine.physics_world.dynamic_world,
-                    extra_filter_node={v.chassis_np.node()},
+                    extra_filter_node={v.chassis.node()},
                     detector_mask=None
                 )
                 np.testing.assert_almost_equal(new_cloud_points, fake_cutils_cloud_points)
@@ -337,7 +337,7 @@ def test_cutils_lidar():
                     v.position,
                     v.heading_theta,
                     v.engine.physics_world.dynamic_world,
-                    extra_filter_node={v.chassis_np.node()},
+                    extra_filter_node={v.chassis.node()},
                     detector_mask=env.engine.detector_mask.get_mask(v.name)
                 )
                 new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
