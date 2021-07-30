@@ -99,4 +99,4 @@ class TollGate(PGBlock):
         for building in self._block_objects:
             object_manager.add_block_buildings(building, engine.pbr_worldNP)
             # for performance reason
-            building.node_path.hide(CamMask.Shadow)
+            building.coordinate.hide(CamMask.Shadow)

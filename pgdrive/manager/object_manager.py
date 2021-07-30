@@ -51,12 +51,12 @@ class TrafficSignManager(BaseManager):
     def clear_objects(self, filter_func: Optional[Callable] = None):
         super(TrafficSignManager, self).clear_objects()
         for block_object in self._block_objects.values():
-            block_object.node_path.detachNode()
+            block_object.coordinate.detachNode()
         self._block_objects = {}
 
     def add_block_buildings(self, building: BaseStaticObject, render_node):
         self._block_objects[building.id] = building
-        building.node_path.reparentTo(render_node)
+        building.coordinate.reparentTo(render_node)
 
     def spawn_object(
         self,

@@ -76,7 +76,7 @@ class BaseObject(RandomEngine):
         self.sample_parameters()
 
         # each element has its node_path to render, physics node are child nodes of it
-        self.node_path = None
+        self.coordinate = None
 
         # Temporally store bullet nodes that have to place in bullet world (not NodePath)
         self.dynamic_nodes = PhysicsNodeList()
@@ -158,8 +158,8 @@ class BaseObject(RandomEngine):
     def attach_to_world(self, parent_node_path: NodePath, physics_world: PhysicsWorld):
         if self.render:
             # double check :-)
-            assert isinstance(self.node_path, NodePath), "No render model on node_path in this Element"
-            self.node_path.reparentTo(parent_node_path)
+            assert isinstance(self.coordinate, NodePath), "No render model on node_path in this Element"
+            self.coordinate.reparentTo(parent_node_path)
         self.dynamic_nodes.attach_to_physics_world(physics_world.dynamic_world)
         self.static_nodes.attach_to_physics_world(physics_world.static_world)
 
@@ -167,8 +167,8 @@ class BaseObject(RandomEngine):
         """
         It is not fully remove, if this element is useless in the future, call Func delete()
         """
-        if self.node_path is not None:
-            self.node_path.detachNode()
+        if self.coordinate is not None:
+            self.coordinate.detachNode()
         self.dynamic_nodes.detach_from_physics_world(physics_world.dynamic_world)
         self.static_nodes.detach_from_physics_world(physics_world.static_world)
 
@@ -179,8 +179,8 @@ class BaseObject(RandomEngine):
         from pgdrive.utils.engine_utils import get_engine
         engine = get_engine()
         self.detach_from_world(engine.physics_world)
-        if self.node_path is not None:
-            self.node_path.removeNode()
+        if self.coordinate is not None:
+            self.coordinate.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()
         self._config.clear()

@@ -11,7 +11,7 @@ class Light(BaseObject):
     def __init__(self, config):
         super(Light, self).__init__(random_seed=0)
         self.global_light = config["global_light"]
-        self.node_path = NodePath("Light")
+        self.coordinate = NodePath("Light")
         self.direction_np = NodePath(DirectionalLight("direction light"))
         # self.light.node().setScene(self.render)
 
@@ -40,11 +40,11 @@ class Light(BaseObject):
         # dlens.setNear(3)
 
         self.direction_np.node().setColorTemperature(4000)
-        self.direction_np.reparentTo(self.node_path)
+        self.direction_np.reparentTo(self.coordinate)
 
         self.ambient_np = NodePath(AmbientLight("Ambient"))
         self.ambient_np.node().setColor(LVector4(0.8, 0.8, 0.8, 1))
-        self.ambient_np.reparentTo(self.node_path)
+        self.ambient_np.reparentTo(self.coordinate)
 
     def step(self, pos):
         if not self.global_light:

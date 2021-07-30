@@ -80,7 +80,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         Randomly Construct a block, if overlap return False
         """
         self.sample_parameters()
-        self.node_path = NodePath(self._block_name)
+        self.coordinate = NodePath(self._block_name)
         self._block_objects = []
         if extra_config:
             assert set(extra_config.keys()).issubset(self.PARAMETER_SPACE.parameters), \
@@ -98,7 +98,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
     def destruct_block(self, physics_world: PhysicsWorld):
         self._clear_topology()
         self.detach_from_world(physics_world)
-        self.node_path.removeNode()
+        self.coordinate.removeNode()
         self.dynamic_nodes.clear()
         self.static_nodes.clear()
         for obj in self._block_objects:
@@ -165,12 +165,12 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         self.lane_vis_node_path.node().collect()
         self.lane_vis_node_path.hide(CamMask.DepthCam | CamMask.ScreenshotCam)
 
-        self.node_path.hide(CamMask.Shadow)
+        self.coordinate.hide(CamMask.Shadow)
 
-        self.sidewalk_node_path.reparentTo(self.node_path)
-        self.lane_line_node_path.reparentTo(self.node_path)
-        self.lane_node_path.reparentTo(self.node_path)
-        self.lane_vis_node_path.reparentTo(self.node_path)
+        self.sidewalk_node_path.reparentTo(self.coordinate)
+        self.lane_line_node_path.reparentTo(self.coordinate)
+        self.lane_node_path.reparentTo(self.coordinate)
+        self.lane_vis_node_path.reparentTo(self.coordinate)
 
         self.bounding_box = self.block_network.get_bounding_box()
 

@@ -47,7 +47,7 @@ class TrafficVehicle(BaseObject):
         self.enable_respawn = enable_respawn
         self._initial_state = kinematic_model if enable_respawn else None
         self.dynamic_nodes.append(self.vehicle_node)
-        self.node_path = NodePath(self.vehicle_node)
+        self.coordinate = NodePath(self.vehicle_node)
         # self.out_of_road = False
 
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
@@ -61,7 +61,7 @@ class TrafficVehicle(BaseObject):
             carNP.setH(H)
             carNP.setPos(x_y_z_offset)
 
-            carNP.instanceTo(self.node_path)
+            carNP.instanceTo(self.coordinate)
         self.step(1e-1, None)
         # self.carNP.setQuat(LQuaternionf(math.cos(-1 * np.pi / 4), 0, 0, math.sin(-1 * np.pi / 4)))
 
@@ -83,9 +83,9 @@ class TrafficVehicle(BaseObject):
         self.vehicle_node.kinematic_model.step(dt, action)
 
         position = panda_position(self.vehicle_node.kinematic_model.position, 0)
-        self.node_path.setPos(position)
+        self.coordinate.setPos(position)
         heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
-        self.node_path.setH(heading)
+        self.coordinate.setH(heading)
 
     def after_step(self):
         # engine = get_engine()
@@ -115,7 +115,7 @@ class TrafficVehicle(BaseObject):
             return False
         else:
             self.vehicle_node.clearTag(BodyName.Traffic_vehicle)
-            self.node_path.removeNode()
+            self.coordinate.removeNode()
             print("The vehicle is removed!")
             return True
 
@@ -137,7 +137,7 @@ class TrafficVehicle(BaseObject):
         :param position: 2d array or list
         :return: None
         """
-        self.node_path.setPos(panda_position(position, 0))
+        self.coordinate.setPos(panda_position(position, 0))
 
     def set_heading(self, heading_theta) -> None:
         """
@@ -145,7 +145,7 @@ class TrafficVehicle(BaseObject):
         :param heading_theta: float in rad
         :return: None
         """
-        self.node_path.setH(panda_heading(heading_theta * 180 / np.pi))
+        self.coordinate.setH(panda_heading(heading_theta * 180 / np.pi))
 
     def get_state(self):
         return {"heading": self.heading, "position": self.position, "done": self.out_of_road}

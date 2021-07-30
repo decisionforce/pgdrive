@@ -51,15 +51,15 @@ class ImageBuffer:
             self.buffer = self.engine.win.makeTextureBuffer("camera", length, width, fbp=frame_buffer_property)
             # now we have to setup a new scene graph to make this scene
 
-        self.node_path = NodePath("new render")
+        self.coordinate = NodePath("new render")
         self.line_borders = []
         # this takes care of setting up their camera properly
         self.cam = self.engine.makeCamera(self.buffer, clearColor=bkg_color)
-        self.cam.reparentTo(self.node_path)
+        self.cam.reparentTo(self.coordinate)
         self.cam.setPos(pos)
         self.lens = self.cam.node().getLens()
         self.cam.node().setCameraMask(self.CAM_MASK)
-        self.node_path.reparentTo(parent_node)
+        self.coordinate.reparentTo(parent_node)
         logging.debug("Load Image Buffer: {}".format(self.__class__.__name__))
 
     def get_image(self):
@@ -136,7 +136,7 @@ class ImageBuffer:
                 if line_np:
                     line_np.removeNode()
         self.line_borders = None
-        self.node_path.removeNode()
+        self.coordinate.removeNode()
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))

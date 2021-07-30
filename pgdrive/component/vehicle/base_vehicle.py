@@ -89,7 +89,7 @@ class BaseVehicle(BaseObject):
         self.engine = get_engine()
         assert self.engine is not None, "Please make sure PGDrive engine is successfully initialized!"
 
-        self.node_path = NodePath("vehicle")
+        self.coordinate = NodePath("vehicle")
 
         # color
         color = sns.color_palette("colorblind")
@@ -351,7 +351,7 @@ class BaseVehicle(BaseObject):
 
         if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
             for block in map.blocks:
-                block.node_path.hide(CamMask.DepthCam)
+                block.coordinate.hide(CamMask.DepthCam)
 
         assert self.routing_localization
         # Please note that if you respawn agent to some new place and might have a new destination,
@@ -518,7 +518,7 @@ class BaseVehicle(BaseObject):
         chassis.addShape(chassis_shape, ts)
         heading = np.deg2rad(-para[Parameter.heading] - 90)
         chassis.setMass(para[Parameter.mass])
-        self.chassis_np = self.node_path.attachNewNode(chassis)
+        self.chassis_np = self.coordinate.attachNewNode(chassis)
         # not random spawn now
         self.chassis_np.setPos(Vec3(*self.spawn_place, 1))
         self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
@@ -577,7 +577,7 @@ class BaseVehicle(BaseObject):
         return wheels
 
     def _add_wheel(self, pos: Vec3, radius: float, front: bool, left):
-        wheel_np = self.node_path.attachNewNode("wheel")
+        wheel_np = self.coordinate.attachNewNode("wheel")
         if self.render:
             # TODO something wrong with the wheel render
             model_path = 'models/yugo/yugotireR.egg' if left else 'models/yugo/yugotireL.egg'
