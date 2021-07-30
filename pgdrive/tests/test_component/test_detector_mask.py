@@ -316,8 +316,7 @@ def test_cutils_lidar():
                 )
                 new_cloud_points = np.array(copy.deepcopy(new_cloud_points))
                 old_cloud_points = _old_perceive(
-                    v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis.node()},
-                    None
+                    v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis.node()}, None
                 )
                 np.testing.assert_almost_equal(new_cloud_points, old_cloud_points)
 

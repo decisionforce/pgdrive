@@ -7,7 +7,6 @@ class Configurable:
     """
     Instances of this class will maintain a config system, which is protected from unexpected modification
     """
-
     def __init__(self, config: Union[Dict, Config] = None):
         # initialize and specify the value in config
         self._config = Config(config if config is not None else {})

@@ -65,11 +65,11 @@ class BaseVehicle(BaseObject):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-            self,
-            vehicle_config: Union[dict, Config] = None,
-            name: str = None,
-            am_i_the_special_one=False,
-            random_seed=None,
+        self,
+        vehicle_config: Union[dict, Config] = None,
+        name: str = None,
+        am_i_the_special_one=False,
+        random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -122,7 +122,7 @@ class BaseVehicle(BaseObject):
         self.throttle_brake = 0.0
         self.steering = 0
         self.last_current_action = deque([(0.0, 0.0), (0.0, 0.0)], maxlen=2)
-        self.last_position = (0,0)
+        self.last_position = (0, 0)
         self.last_heading_dir = self.heading
         self.dist_to_left_side = None
         self.dist_to_right_side = None
@@ -469,8 +469,8 @@ class BaseVehicle(BaseObject):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-                (lateral_norm * forward_direction_norm)
+            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+            (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -653,8 +653,9 @@ class BaseVehicle(BaseObject):
                 self.origin.node().getPythonTag(BodyName.Base_vehicle).on_broken_line = True
             contacts.add(name[0])
 
-        res = rect_region_detection(self.engine, self.position, self.heading_theta, self.LENGTH, self.WIDTH,
-                                    CollisionGroup.Sidewalk)
+        res = rect_region_detection(
+            self.engine, self.position, self.heading_theta, self.LENGTH, self.WIDTH, CollisionGroup.Sidewalk
+        )
         if res.hasHit():
             self.origin.node().getPythonTag(BodyName.Base_vehicle).crash_sidewalk = True
             contacts.add(BodyName.Sidewalk)
@@ -776,7 +777,7 @@ class BaseVehicle(BaseObject):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                ]):
+                                                                                                           ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -791,7 +792,7 @@ class BaseVehicle(BaseObject):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -826,12 +827,12 @@ class BaseVehicle(BaseObject):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-               ) and (
-                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
-                       (0.5 - self.routing_localization.get_current_lane_num()) *
-                       self.routing_localization.get_current_lane_width()
-               )
+            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+        ) and (
+            self.routing_localization.get_current_lane_width() / 2 >= lat >=
+            (0.5 - self.routing_localization.get_current_lane_num()) *
+            self.routing_localization.get_current_lane_width()
+        )
         return flag
 
     @property
@@ -881,7 +882,7 @@ class BaseVehicle(BaseObject):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-                self.crash_building or self.crash_vehicle or
-                # self.on_white_continuous_line or
-                self.on_yellow_continuous_line
+            self.crash_building or self.crash_vehicle or
+            # self.on_white_continuous_line or
+            self.on_yellow_continuous_line
         )
