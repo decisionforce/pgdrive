@@ -8,7 +8,7 @@ from pgdrive.component.road.road import Road
 from pgdrive.envs.marl_envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.obs.state_obs import StateObservation
-from pgdrive.utils.random import get_np_random, norm, Config
+from pgdrive.utils import get_np_random, norm, Config
 
 MARoundaboutConfig = dict(
     map_config=dict(exit_length=60, lane_num=2),

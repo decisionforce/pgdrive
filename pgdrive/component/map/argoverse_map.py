@@ -146,7 +146,7 @@ class ArgoverseMap(BaseMap):
 
 
 if __name__ == "__main__":
-    from pgdrive.utils.engine_utils import initialize_engine
+    from pgdrive.engine.engine_utils import initialize_engine
     from pgdrive.envs.pgdrive_env import PGDriveEnv
 
     default_config = PGDriveEnv.default_config()

@@ -110,7 +110,7 @@ class BaseObject(BaseRunnable):
         """
         Fully delete this element and release the memory
         """
-        from pgdrive.utils.engine_utils import get_engine
+        from pgdrive.engine.engine_utils import get_engine
         engine = get_engine()
         self.detach_from_world(engine.physics_world)
         if self.origin is not None:

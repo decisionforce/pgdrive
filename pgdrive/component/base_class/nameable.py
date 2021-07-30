@@ -1,6 +1,6 @@
 import logging
 
-from pgdrive.utils.random import random_string
+from pgdrive.utils import random_string
 
 
 class Nameable:

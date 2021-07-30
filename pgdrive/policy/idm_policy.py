@@ -14,7 +14,7 @@ from pgdrive.constants import Route, LaneIndex
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.policy.base_policy import BasePolicy
 from pgdrive.utils import norm
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.engine.engine_utils import get_engine
 from pgdrive.utils.math_utils import clip
 from pgdrive.utils.scene_utils import ray_localization
 

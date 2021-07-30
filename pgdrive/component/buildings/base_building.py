@@ -1,5 +1,5 @@
 from pgdrive.component.static_object.base_static_object import BaseStaticObject
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.engine.engine_utils import get_engine
 
 
 class BaseBuilding(BaseStaticObject):

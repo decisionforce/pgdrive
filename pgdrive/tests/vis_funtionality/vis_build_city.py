@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from pgdrive import PGDriveEnv
 from pgdrive.component.map.city_map import CityMap
 from pgdrive.utils.draw_top_down_map import draw_top_down_map
-from pgdrive.utils.engine_utils import initialize_engine, close_engine, set_global_random_seed
+from pgdrive.engine.engine_utils import initialize_engine, close_engine, set_global_random_seed
 
 
 def _t(num_blocks):

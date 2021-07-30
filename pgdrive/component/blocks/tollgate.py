@@ -8,7 +8,7 @@ from pgdrive.component.road.road import Road
 from pgdrive.constants import BodyName
 from pgdrive.constants import CamMask, LineType, LineColor
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.engine.engine_utils import get_engine
 from pgdrive.utils.space import ParameterSpace, Parameter, BlockParameterSpace
 
 TollGateBuilding = BaseBuilding

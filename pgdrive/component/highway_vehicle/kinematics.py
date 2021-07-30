@@ -5,7 +5,7 @@ import numpy as np
 
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.manager.traffic_manager import TrafficManager
-from pgdrive.utils.random import get_np_random, random_string
+from pgdrive.utils import get_np_random, random_string
 from pgdrive.utils.utils import deprecation_warning
 
 
