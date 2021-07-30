@@ -8,8 +8,12 @@ from pgdrive.utils.space import ParameterSpace
 
 class BaseRunnable(Configurable, Nameable, Randomizable):
     """
-    Abstract class, all sub class must implement all methods to participate in the program running loop
+    Abstract class, all sub class must implement all methods to participate in the program running loop.
+    The BaseRunnable instance can be everything which don't interact with game engine.
+    If you need an element have visualization property or physics property, using BaseObject() instead
     """
+
+    # TODO in the future, the parameter space will be a __init__ parameter, so we don't have to specify it when coding
     PARAMETER_SPACE = ParameterSpace({})
 
     def __init__(self, name=None, random_seed=None, config=None):
