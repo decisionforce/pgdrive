@@ -28,9 +28,9 @@ from pgdrive.engine.core.image_buffer import ImageBuffer
 from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.utils import Config, safe_clip_for_small_array, Vector
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
-from pgdrive.utils.engine_utils import get_engine, engine_initialized
+from pgdrive.engine.engine_utils import get_engine, engine_initialized
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
-from pgdrive.utils.random import get_np_random
+from pgdrive.utils import get_np_random
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.scene_utils import rect_region_detection
 from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace

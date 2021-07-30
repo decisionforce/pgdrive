@@ -7,7 +7,7 @@ from pgdrive.component.road.road import Road
 from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMARound
 from pgdrive.envs.marl_envs.multi_agent_pgdrive import MultiAgentPGDrive
 from pgdrive.obs.observation_base import ObservationBase
-from pgdrive.utils.random import get_np_random, Config
+from pgdrive.utils import get_np_random, Config
 
 MAIntersectionConfig = dict(
     num_agents=30,

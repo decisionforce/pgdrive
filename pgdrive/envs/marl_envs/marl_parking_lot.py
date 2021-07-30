@@ -10,7 +10,7 @@ from pgdrive.envs.marl_envs.marl_inout_roundabout import LidarStateObservationMA
 from pgdrive.envs.marl_envs.multi_agent_pgdrive import MultiAgentPGDrive, panda_replay
 from pgdrive.manager.spawn_manager import SpawnManager
 from pgdrive.obs.observation_base import ObservationBase
-from pgdrive.utils.random import get_np_random, Config
+from pgdrive.utils import get_np_random, Config
 
 MAParkingLotConfig = dict(
     num_agents=10,

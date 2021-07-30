@@ -13,7 +13,7 @@ from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.physics_node import TrafficVehicleNode
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.engine.engine_utils import get_engine
 
 
 class TrafficVehicle(BaseObject):

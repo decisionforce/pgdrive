@@ -9,7 +9,7 @@ from panda3d.core import Vec3, Point3, BitMask32
 
 from pgdrive.constants import CollisionGroup
 from pgdrive.utils.coordinates_shift import panda_heading, panda_position
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.engine.engine_utils import get_engine
 
 
 class ChaseCamera:

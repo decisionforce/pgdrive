@@ -14,8 +14,8 @@ from pgdrive.engine.base_engine import BaseEngine
 from pgdrive.manager.agent_manager import AgentManager
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils import Config, merge_dicts
-from pgdrive.utils.random import get_np_random
-from pgdrive.utils.engine_utils import initialize_engine, close_engine, \
+from pgdrive.utils import get_np_random
+from pgdrive.engine.engine_utils import initialize_engine, close_engine, \
     engine_initialized, set_global_random_seed
 
 pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")

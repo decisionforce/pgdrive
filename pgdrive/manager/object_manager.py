@@ -9,7 +9,7 @@ from pgdrive.component.road.road_network import LaneIndex
 from pgdrive.component.static_object.base_static_object import BaseStaticObject
 from pgdrive.component.static_object.traffic_object import TrafficSign
 from pgdrive.manager.base_manager import BaseManager
-from pgdrive.utils.engine_utils import get_engine
+from pgdrive.engine.engine_utils import get_engine
 
 
 class TrafficSignManager(BaseManager):

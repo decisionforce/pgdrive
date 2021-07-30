@@ -13,7 +13,7 @@ from pgdrive.component.road.road import Road
 from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils import clip, norm
-from pgdrive.utils.random import get_np_random
+from pgdrive.utils import get_np_random
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.space import Parameter, BlockParameterSpace

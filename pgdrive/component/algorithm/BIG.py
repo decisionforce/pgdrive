@@ -8,7 +8,7 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.blocks.pg_block import PGBlock
 from pgdrive.component.road.road_network import RoadNetwork
 from pgdrive.engine.core.physics_world import PhysicsWorld
-from pgdrive.utils.random import get_np_random
+from pgdrive.utils import get_np_random
 
 
 class NextStep:
