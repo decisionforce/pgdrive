@@ -56,7 +56,7 @@ if __name__ == "__main__":
     for i in range(1, 100000):
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption
-        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
+        # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
         # # env.render(
         # #     text={
         # #         "reward": r,
@@ -70,4 +70,6 @@ if __name__ == "__main__":
         # if d:
         #     print("Reset")
         #     env.reset()
+        if env.vehicle.crash_sidewalk:
+            env.close()
     env.close()

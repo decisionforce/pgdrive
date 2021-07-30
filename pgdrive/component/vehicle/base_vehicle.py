@@ -656,7 +656,7 @@ class BaseVehicle(BaseObject):
             node0 = contact.getNode0()
             node1 = contact.getNode1()
             name = [node0.getName(), node1.getName()]
-            name.remove(BodyName.Base_vehicle_beneath)
+            name.remove(BodyName.Base_vehicle)
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
             if name[0] == BodyName.Sidewalk:
@@ -687,7 +687,7 @@ class BaseVehicle(BaseObject):
             text = "Normal" if time.time() - self.engine._episode_start_time > 10 else "Press H to see help message"
             self.render_banner(text, COLLISION_INFO_COLOR["green"][1])
         else:
-            if text == BodyName.Base_vehicle_beneath:
+            if text == BodyName.Base_vehicle:
                 text = BodyName.Traffic_vehicle
             self.render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
