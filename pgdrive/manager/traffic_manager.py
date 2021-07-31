@@ -36,7 +36,7 @@ class TrafficManager(BaseManager):
         super(TrafficManager, self).__init__()
         self.current_map = None
 
-        self._traffic_vehicles = None
+        self._traffic_vehicles = []
         self.block_triggered_vehicles = None
         self.is_target_vehicle_dict = {}
 
@@ -105,13 +105,13 @@ class TrafficManager(BaseManager):
         :param dt: Decision keeping time
         :return: None
         """
-        pass
-        # dt = self.engine.world_config["physics_world_step_size"]
+        # dt = self.engine.global_config["physics_world_step_size"]
         # dt /= 3.6  # 1m/s = 3.6km/h
         # for v in self._traffic_vehicles:
-            # p = self.engine.policy_manager.get_policy(v.name)
-            # action = p.step(dt)
-            # v.step(dt, action)
+        #     p = self.engine.policy_manager.get_policy(v.name)
+        #     action = p.step(dt)
+        #     v.step(dt, action)
+        pass
 
     def after_step(self):
         """
