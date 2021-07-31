@@ -652,9 +652,9 @@ class BaseVehicle(BaseObject):
             elif name[0] == BodyName.Broken_line:
                 self.origin.node().getPythonTag(BodyName.Base_vehicle).on_broken_line = True
             contacts.add(name[0])
-
+        # side walk detect
         res = rect_region_detection(
-            self.engine, self.position, self.heading_theta, self.LENGTH, self.WIDTH, CollisionGroup.Sidewalk
+            self.engine, self.position, np.rad2deg(self.heading_theta), self.LENGTH, self.WIDTH, CollisionGroup.Sidewalk
         )
         if res.hasHit():
             self.origin.node().getPythonTag(BodyName.Base_vehicle).crash_sidewalk = True

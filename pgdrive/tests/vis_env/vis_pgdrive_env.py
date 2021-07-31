@@ -57,16 +57,18 @@ if __name__ == "__main__":
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption
         # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
-        # # env.render(
-        # #     text={
-        # #         "reward": r,
-        # #         "lane_index": env.vehicle.lane_index,
-        # #         "dist_to_left": env.vehicle.dist_to_left_side,
-        # #         "dist_to_right": env.vehicle.dist_to_right_side,
-        # #         "out_of_route": env.vehicle.out_of_route,
-        # #         "current_seed":env.current_seed
-        # #     }
-        # )
+        env.render(
+            text={
+                "reward": r,
+                "lane_index": env.vehicle.lane_index,
+                "dist_to_left": env.vehicle.dist_to_left_side,
+                "dist_to_right": env.vehicle.dist_to_right_side,
+                "out_of_route": env.vehicle.out_of_route,
+                "current_seed": env.current_seed,
+                "car_heading": env.vehicle.heading_theta,
+                "lane_heading": env.vehicle.lane.heading_at(0)
+            }
+        )
         # if d:
         #     print("Reset")
         #     env.reset()
