@@ -182,7 +182,7 @@ class PGDriveEnv(BasePGDriveEnv):
             self.engine.detector_mask = DetectorMask(
                 num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
                 max_distance=self.config["vehicle_config"]["lidar"]["distance"],
-                max_span=v.WIDTH + v.LENGTH
+                max_span=v.width + v.length
             )
 
     def _get_observations(self):

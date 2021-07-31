@@ -133,7 +133,7 @@ def test_detector_mask_in_lidar():
     env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSSSS", "random_traffic": False})
     try:
         env.reset()
-        span = 2 * max(env.vehicle.WIDTH, env.vehicle.LENGTH)
+        span = 2 * max(env.vehicle.width, env.vehicle.length)
         detector_mask = DetectorMask(
             env.vehicle.config.lidar.num_lasers, span, max_distance=env.vehicle.config.lidar.distance
         )

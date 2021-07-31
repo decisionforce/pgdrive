@@ -416,7 +416,7 @@ class IDMPolicy(BasePolicy):
         a0 = self.COMFORT_ACC_MIN
         a1 = self.COMFORT_ACC_MIN
         tau = self.TIME_WANTED
-        d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.LENGTH / 2 - d0, 0)
+        d = max(self.lane_distance_to(front_vehicle) - self.LENGTH / 2 - front_vehicle.length / 2 - d0, 0)
         v1_0 = front_vehicle.speed
         delta = 4 * (a0 * a1 * tau)**2 + 8 * a0 * (a1**2) * d + 4 * a0 * a1 * v1_0**2
         v_max = -a0 * tau + np.sqrt(delta) / (2 * a1)

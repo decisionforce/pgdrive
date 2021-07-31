@@ -18,7 +18,7 @@ def test_out_of_road():
             )
             try:
                 obs = env.reset()
-                tolerance = math.sqrt(env.vehicle.WIDTH**2 + env.vehicle.LENGTH**2) / distance
+                tolerance = math.sqrt(env.vehicle.width**2 + env.vehicle.length**2) / distance
                 for _ in range(100000000):
                     o, r, d, i = env.step([steering, 1])
                     if d:

@@ -210,8 +210,8 @@ class TopDownRenderer:
                 history_vehicle(
                     name=name,
                     heading_theta=v.heading_theta,
-                    WIDTH=v.WIDTH,
-                    LENGTH=v.LENGTH,
+                    WIDTH=v.width,
+                    LENGTH=v.length,
                     position=v.position,
                     color=v.top_down_color,
                     done=False
@@ -224,8 +224,8 @@ class TopDownRenderer:
                 history_vehicle(
                     name=name,
                     heading_theta=v.heading_theta,
-                    WIDTH=v.WIDTH,
-                    LENGTH=v.LENGTH,
+                    WIDTH=v.width,
+                    LENGTH=v.length,
                     position=v.position,
                     color=v.top_down_color,
                     done=True
@@ -281,7 +281,7 @@ class TopDownRenderer:
                 self._runtime,
                 (255, 0, 0),
                 self._runtime.pos2pix(v.position[0], v.position[1]),
-                # self._runtime.pix(v.WIDTH)
+                # self._runtime.pix(v.width)
                 5
             )
 
@@ -291,7 +291,7 @@ class TopDownRenderer:
                     self._runtime,
                     (255, 0, 0),
                     self._runtime.pos2pix(v.position[0], v.position[1]),
-                    # self._runtime.pix(v.WIDTH)
+                    # self._runtime.pix(v.width)
                     5
                 )
                 self._deads.append(v)

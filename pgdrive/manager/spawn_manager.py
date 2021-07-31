@@ -39,8 +39,8 @@ class SpawnManager:
         self.initialized = False
         self.target_vehicle_configs = target_vehicle_configs
         self.spawn_places_used = []
-        self.vehicle_length = vehicle_config["vehicle_length"]
-        self.vehicle_width = vehicle_config["vehicle_width"]
+        self.vehicle_length = vehicle_config["length"]
+        self.vehicle_width = vehicle_config["width"]
         self.custom_target_vehicle_config = True if target_vehicle_configs is not None and len(
             target_vehicle_configs
         ) > 0 else False
