@@ -137,10 +137,12 @@ class TrafficManager(BaseManager):
             self._spawned_objects.pop(v.id)
 
             if self.mode == TrafficMode.Hybrid:
+                raise ValueError()
+                # TODO(pzh): Fucking this section!!!
                 # create a new one
-                lane = self.np_random.choice(self.respawn_lanes)
-                vehicle_type = self.random_vehicle_type()
-                self.spawn_object(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
+                # lane = self.np_random.choice(self.respawn_lanes)
+                # vehicle_type = self.random_vehicle_type()
+                # self.spawn_object(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
 
     def clear_objects(self, filter_func=None):
         super(TrafficManager, self).clear_objects()
@@ -281,12 +283,13 @@ class TrafficManager(BaseManager):
             if self.np_random.rand() > traffic_density and abs(lane.length - InRampOnStraight.RAMP_LEN) > 0.1:
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
-            model_config = self.random_vehicle_type()
+            model_type = self.random_vehicle_type()
 
             # TODO(pzh): should we set spawn_lateral?
             # TODO(pzh): We should set spawn_lane_index too!!!!!!!!!!!!!!!!!! Ask traffic manager to give you a lane!!
             lane_index = self.current_map.road_network.get_lane_index(lane)
-            vehicle_config = {"model_details": model_config, "spawn_longitude": long, "spawn_lane_index": lane_index}
+            # vehicle_config = {"model_details": model_config, "spawn_longitude": long, "spawn_lane_index": lane_index}
+            vehicle_config = {"model_type": model_type, "spawn_longitude": long, "spawn_lane_index": lane_index}
             # vehicle_config = {"model_details": model_config}
 
             # self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
@@ -416,10 +419,15 @@ class TrafficManager(BaseManager):
 
     def random_vehicle_type(self):
 
-        from pgdrive.component.vehicle.base_vehicle import MODEL_TYPES
+        from pgdrive.component.vehicle.render_model import MODEL_TYPES
 
         # TODO(pzh: This a workaround only!
-        vehicle_type = [MODEL_TYPES["s"], MODEL_TYPES["m"], MODEL_TYPES["l"], MODEL_TYPES["xl"]]
+        # vehicle_type = [MODEL_TYPES["s"], MODEL_TYPES["m"], MODEL_TYPES["l"], MODEL_TYPES["xl"]]
+
+        # TODO(pzh): We should add little red car into here! Besides, we should also add some little car with different
+        #  color!!!
+        # vehicle_type = list(MODEL_TYPES.keys())
+        vehicle_type = ["s", "m", "l", "xl"]
         # vehicle_type = vehicle_type[self.np_random.choice(vehicle_type, p=[0.2, 0.3, 0.3, 0.2])]
         # return vehicle_type
         model_config = self.np_random.choice(vehicle_type, p=[0.2, 0.3, 0.3, 0.2])

@@ -22,6 +22,9 @@ class PhysicsNodeList(list):
         :param bullet_world: BulletWorld()
         :return: None
         """
+
+        print("Oh!!! I am attaching to the bullet world!!!")
+
         if self.attached:
             return
         for node in self:
@@ -100,6 +103,7 @@ class BaseObject(RandomEngine):
         :return: a copy of config dict
         """
         # TODO(pzh): This function is really stupid! We should remove it!!!!!
+        #  we already have a self.config function!!!
         if copy:
             return self._config.copy()
         return self._config
@@ -157,6 +161,9 @@ class BaseObject(RandomEngine):
         raise NotImplementedError
 
     def attach_to_world(self, parent_node_path: NodePath, physics_world: PhysicsWorld):
+
+        print("Attach to the world!!")
+
         if self.render:
             # double check :-)
             assert isinstance(self.node_path, NodePath), "No render model on node_path in this Element"

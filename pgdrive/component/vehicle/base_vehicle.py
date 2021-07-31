@@ -16,6 +16,7 @@ from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.lane.waypoint_lane import WayPointLane
 from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.road.road import Road
+from pgdrive.component.vehicle.render_model import ModelBuffer
 from pgdrive.component.vehicle_module import Lidar, MiniMap
 from pgdrive.component.vehicle_module.depth_camera import DepthCamera
 from pgdrive.component.vehicle_module.distance_detector import SideDetector, LaneLineDetector
@@ -51,7 +52,7 @@ DEFAULT_VEHICLE_CONFIG = dict(
 
     # Render related
     model_type="ego",
-    model_details={},
+    # model_details={},
     am_i_the_special_one=False,  # A flag used to paint specified color to the special vehicles.
     random_navi_mark_color=False,
     show_dest_mark=False,
@@ -63,73 +64,12 @@ DEFAULT_VEHICLE_CONFIG = dict(
     spawn_lateral=0.0,
 )
 
-# TODO(pzh): Remove model type to other places! We should have a unify model selection flow.
-
-factor = 1
-
-MODEL_TYPES = dict(
-    ego=dict(
-        length=4,
-        width=1.5,
-        height=1,
-        model=dict(
-            path='models/ferra/scene.gltf',
-            scale=None,
-            offset=None,
-            heading=None,
-        )
-    ),
-    s=dict(
-        length=3.2,
-        width=1.8,
-        height=1.5,
-        model=dict(
-            path='models/new/beetle/scene.gltf',
-            scale=(factor * .008, factor * .006, factor * .0062),
-            offset=(-0.7, 0, factor * -0.16),
-            heading=-90,
-        )
-    ),
-    m=dict(
-        length=3.9,
-        width=2.0,
-        height=1.3,
-        model=dict(
-            path='models/new/130/scene.gltf',
-            scale=(factor * .0055, factor * .0046, factor * .0049),
-            offset=(0, 0, factor * 0.33),
-            heading=90,
-        )
-    ),
-    l=dict(
-        length=4.8,
-        width=1.8,
-        height=1.9,
-        model=dict(
-            path='models/new/lada/scene.gltf',
-            scale=(factor * 1.1, factor * 1.1, factor * 1.1),
-            offset=(1.1, -13.5, factor * -0.046),
-            heading=223,
-        )
-    ),
-    xl=dict(
-        length=7.3,
-        width=2.3,
-        height=2.7,
-        model=dict(
-            path='models/new/truck/scene.gltf',
-            scale=(factor * 0.031, factor * 0.025, factor * 0.025),
-            offset=(0.35, 0, factor * 0),
-            heading=0,
-        )
-    ),
-)
-
 
 class BaseVehicle(BaseObject):
     default_config = Config(DEFAULT_VEHICLE_CONFIG)
 
-    MODEL = None
+    # MODEL = None
+
     """
     Vehicle chassis and its wheels index
                     0       1
@@ -144,10 +84,11 @@ class BaseVehicle(BaseObject):
         VehicleParameterSpace.BASE_VEHICLE
     )  # it will not sample config from parameter space
     COLLISION_MASK = CollisionGroup.EgoVehicle
+
     STEERING_INCREMENT = 0.05
 
-    LENGTH = None
-    WIDTH = None
+    # LENGTH = None
+    # WIDTH = None
 
     # for random color
     MATERIAL_COLOR_COEFF = 10  # to resist other factors, since other setting may make color dark
@@ -157,12 +98,12 @@ class BaseVehicle(BaseObject):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-        self,
-        vehicle_config: Union[dict, Config] = None,
-        name: str = None,
-        am_i_the_special_one=False,
-        random_seed=None,
-        _am_i_a_traffic_vehicle=False
+            self,
+            vehicle_config: Union[dict, Config] = None,
+            name: str = None,
+            am_i_the_special_one=False,
+            random_seed=None,
+            _am_i_a_traffic_vehicle=False
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -170,6 +111,9 @@ class BaseVehicle(BaseObject):
         :param vehicle_config: mostly, vehicle module config
         :param random_seed: int
         """
+
+        print("We are creating a new BaseVehicle!!")
+
         super(BaseVehicle, self).__init__(name, random_seed)
         vehicle_config = self.default_config.update(vehicle_config)
         self.update_config(vehicle_config, allow_add_new_key=True)
@@ -213,7 +157,11 @@ class BaseVehicle(BaseObject):
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-        self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
+
+        if self._am_i_a_traffic_vehicle:
+            self.vehicle_panel = None
+        else:
+            self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
 
         # state info
         self.throttle_brake = 0.0
@@ -258,8 +206,15 @@ class BaseVehicle(BaseObject):
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
+        if self._am_i_a_traffic_vehicle:
+            assert not use_render
+            assert not self.config["use_render"]
+
         vehicle_config = self.config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
+
+        if self._am_i_a_traffic_vehicle:
+            return
 
         if self.config["side_detector"]["num_lasers"] > 0:
             self.side_detector = SideDetector(
@@ -341,8 +296,8 @@ class BaseVehicle(BaseObject):
         return action, {'raw_action': (action[0], action[1])}
 
     def before_step(
-        self,
-        action,
+            self,
+            action,
     ):
         """
         Save info and make decision before action
@@ -384,7 +339,7 @@ class BaseVehicle(BaseObject):
         self._state_check()
 
         # TODO(pzh): This is a workaround to discriminate traffic / ego vehicle.
-        if len(self.routing_localization.checkpoints) > 0:
+        if self.routing_localization and len(self.routing_localization.checkpoints) > 0:
             self.update_dist_to_left_right()
             step_energy, episode_energy = self._update_energy_consumption()
             self.out_of_route = self._out_of_route()
@@ -479,7 +434,10 @@ class BaseVehicle(BaseObject):
             for block in map.blocks:
                 block.node_path.hide(CamMask.DepthCam)
 
-        assert self.routing_localization
+        # TODO(pzh): In old code, we assert routing_localization must exist! But we remove this assertion right now.
+        #  is that OK?
+        # assert self.routing_localization
+
         # Please note that if you respawn agent to some new place and might have a new destination,
         # you should reset the routing localization too! Via: vehicle.routing_localization.set_route or
         # vehicle.update
@@ -530,7 +488,7 @@ class BaseVehicle(BaseObject):
 
     def _dist_to_route_left_right(self):
         # TODO(pzh): This function is really stupid! Why we maintain such information in BaseVehicle???
-        if not self.routing_localization.current_ref_lanes:
+        if (self.routing_localization is None) or (not self.routing_localization.current_ref_lanes):
             # TODO(pzh): This is a workaround! It looks like this vehicle is a traffic vehicle!! So we don't maintain
             #  this information!
             return np.nan, np.nan
@@ -605,8 +563,8 @@ class BaseVehicle(BaseObject):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -644,12 +602,15 @@ class BaseVehicle(BaseObject):
         para = self.get_config()
 
         # TODO(pzh): This part access many config!!! Would this part affect the creation of traffic vehicle???
-        self.LENGTH = self.config["vehicle_length"]
-        self.WIDTH = self.config["vehicle_width"]
+        # self.LENGTH = self.config["vehicle_length"]
+        # self.WIDTH = self.config["vehicle_width"]
+
+        width = self.config["width"]
+        length = self.config["length"]
 
         chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
-        chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, para[Parameter.vehicle_height] / 2))
+        chassis_shape = BulletBoxShape(Vec3(width / 2, length / 2, para[Parameter.vehicle_height] / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)
         heading = np.deg2rad(-para[Parameter.heading] - 90)  # pzh: like this one!
@@ -673,37 +634,41 @@ class BaseVehicle(BaseObject):
         self.system.setCoordinateSystem(ZUp)
         self.dynamic_nodes.append(self.system)  # detach chassis will also detach system, so a waring will generate
 
+        self.model = None
+
         if self.render:
-            if self.MODEL is None:
+            if self.model is None:
+                # model_type = "ego" if not self.config["model_details"] else self.config["model_details"]["model_type"]
+                self.model = ModelBuffer.get_model(model_type=self.config['model_type'], config=self.config)
 
-                # TODO(pzh): We should put ego into default config!
-                model_details = self.config["model_details"] or MODEL_TYPES["ego"]
-
-                model_path = model_details["model"]["path"]
-                self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
-
-                # Set heading
-                if model_details["model"].get("heading", None) is not None:
-                    # TODO(pzh): This is a workaround! We should change all +90, -pi/2 ... after refactoring coord.sys.
-                    self.MODEL.setH(model_details["model"]["heading"] + 90)
-                else:
-                    self.MODEL.setH(para[Parameter.vehicle_vis_h])
-
-                # Set scale
-                if model_details["model"].get("scale", None) is not None:
-                    self.MODEL.set_scale(model_details["model"]["scale"])
-                else:
-                    self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
-
-                # Set offset (only applicable to traffic vehicle)
-                if model_details["model"].get("offset", None) is not None:
-                    self.MODEL.setPos(model_details["model"]["offset"])
-                else:
-                    # TODO(pzh): What the hell is this? Should we add this config into traffic vehicles too?
-                    self.MODEL.setZ(para[Parameter.vehicle_vis_z])
-                    self.MODEL.setY(para[Parameter.vehicle_vis_y])
-
-            self.MODEL.instanceTo(self.chassis_np)
+                # # TODO(pzh): We should put ego into default config!
+                # model_details = self.config["model_details"] or MODEL_TYPES["ego"]
+                #
+                # model_path = model_details["model"]["path"]
+                # self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
+                #
+                # # Set heading
+                # if model_details["model"].get("heading", None) is not None:
+                #     # TODO(pzh): This is a workaround! We should change all +90, -pi/2 ... after refactoring coord.sys.
+                #     self.MODEL.setH(model_details["model"]["heading"] + 90)
+                # else:
+                #     self.MODEL.setH(para[Parameter.vehicle_vis_h])
+                #
+                # # Set scale
+                # if model_details["model"].get("scale", None) is not None:
+                #     self.MODEL.set_scale(model_details["model"]["scale"])
+                # else:
+                #     self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
+                #
+                # # Set offset (only applicable to traffic vehicle)
+                # if model_details["model"].get("offset", None) is not None:
+                #     self.MODEL.setPos(model_details["model"]["offset"])
+                # else:
+                #     # TODO(pzh): What the hell is this? Should we add this config into traffic vehicles too?
+                #     self.MODEL.setZ(para[Parameter.vehicle_vis_z])
+                #     self.MODEL.setY(para[Parameter.vehicle_vis_y])
+            # self.MODEL.instanceTo(self.chassis_np)
+            self.model.instanceTo(self.chassis_np)
 
             if self.config["random_color"]:
                 # TODO(pzh): We can randomized the color of traffic vehicle!
@@ -742,6 +707,11 @@ class BaseVehicle(BaseObject):
         if self.render:
             # TODO something wrong with the wheel render
             model_path = 'models/yugo/yugotireR.egg' if left else 'models/yugo/yugotireL.egg'
+
+            # TODO(pzh) Ugly!
+            if not hasattr(self, "loader"):
+                self.loader = AssetLoader.get_loader()
+
             wheel_model = self.loader.loadModel(AssetLoader.file_path(model_path))
             wheel_model.reparentTo(wheel_np)
             wheel_model.set_scale(1.4, radius / 0.25, radius / 0.25)
@@ -768,6 +738,12 @@ class BaseVehicle(BaseObject):
     def add_lidar(self, num_lasers=240, distance=50, show_lidar_point=False):
         assert num_lasers > 0
         assert distance > 0
+
+        # TODO(pzh): workaround
+        if self._am_i_a_traffic_vehicle:
+            self.lidar = None
+            return
+
         self.lidar = Lidar(self.engine.render, num_lasers, distance, show_lidar_point)
 
     def add_routing_localization(self, show_navi_mark: bool = False):
@@ -827,7 +803,8 @@ class BaseVehicle(BaseObject):
             elif name[0] == BodyName.Broken_line:
                 self.chassis_np.node().getPythonTag(BodyName.Base_vehicle).on_broken_line = True
             contacts.add(name[0])
-        if self.render:
+        if self.render and (not self._am_i_a_traffic_vehicle):
+            assert not self._am_i_a_traffic_vehicle
             self.render_collision_info(contacts)
 
     @staticmethod
@@ -882,8 +859,10 @@ class BaseVehicle(BaseObject):
             self.dynamic_nodes.remove(self.chassis_np.node())
         super(BaseVehicle, self).destroy()
         self.engine.physics_world.dynamic_world.clearContactAddedCallback()
-        self.routing_localization.destroy()
-        self.routing_localization = None
+
+        if self.routing_localization:
+            self.routing_localization.destroy()
+            self.routing_localization = None
 
         if self.side_detector is not None:
             self.side_detector.destroy()
@@ -944,7 +923,7 @@ class BaseVehicle(BaseObject):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -959,7 +938,7 @@ class BaseVehicle(BaseObject):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -993,12 +972,12 @@ class BaseVehicle(BaseObject):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property
@@ -1048,9 +1027,9 @@ class BaseVehicle(BaseObject):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-            self.crash_building or self.crash_vehicle or
-            # self.on_white_continuous_line or
-            self.on_yellow_continuous_line
+                self.crash_building or self.crash_vehicle or
+                # self.on_white_continuous_line or
+                self.on_yellow_continuous_line
         )
 
     def to_dict(self, origin_vehicle: "Vehicle" = None, observe_intentions: bool = True) -> dict:

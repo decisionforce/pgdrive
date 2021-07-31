@@ -17,6 +17,9 @@ class VehiclePanel(ImageBuffer):
     default_region = [2 / 3, 1, ImageBuffer.display_bottom, ImageBuffer.display_top]
 
     def __init__(self, engine: EngineCore):
+
+        print('Panel is initialized!!!')
+
         if engine.win is None:
             return
         self.aspect2d_np = NodePath(PGTop("aspect2d"))

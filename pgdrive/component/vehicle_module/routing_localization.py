@@ -39,6 +39,9 @@ class RoutingLocalizationModule:
         This class define a helper for localizing vehicles and retrieving navigation information.
         It now only support from first block start to the end node, but can be extended easily.
         """
+
+        print("FUCK YOU!!! THIS IS THE MODULE!!!")
+
         self.map = None
         self.final_road = None
         self.checkpoints = []
