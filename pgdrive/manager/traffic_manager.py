@@ -237,10 +237,14 @@ class TrafficManager(BaseManager):
 
         # TODO(pzh): Is this random seed correct?
         # FIXME(pzh): This random seed is not correct!
-        random_v = BaseVehicle(v_config, random_seed=0)
+        random_v = BaseVehicle(v_config, random_seed=0, _am_i_a_traffic_vehicle=True)
 
         # TODO(pzh): Is this correct?
         random_v.reset(map=self.current_map)
+
+        print("We are creating a new traffic vehicle. It's name {}, position {}, speed {}, lane {}".format(
+            str(random_v.name)[:4], random_v.position, random_v.speed, random_v.lane
+        ))
 
         self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
@@ -404,6 +408,8 @@ class TrafficManager(BaseManager):
                 if s_v < s and (s_rear is None or s_v > s_rear):
                     s_rear = s_v
                     v_rear = v
+        assert vehicle != v_front
+        assert vehicle != v_rear
         return v_front, v_rear
 
     def random_vehicle_type(self):

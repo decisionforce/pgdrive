@@ -178,7 +178,8 @@ class IDMPolicy(BasePolicy):
         # ===== Determine the steering signal =====
         action['steering'] = self.steering_control(self.target_lane_index)
         if abs(action['steering']) > self.MAX_STEERING_ANGLE:
-            print("Current steering angle is: {} > {}. Is that OK?".format(action['steering'], self.MAX_STEERING_ANGLE))
+            print("Current steering angle is: {} > {}. Is that OK? Current speed {}".format(
+                action['steering'], self.MAX_STEERING_ANGLE, self.vehicle.speed))
         action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
         if self.crashed:
             action['steering'] = 0
@@ -196,16 +197,16 @@ class IDMPolicy(BasePolicy):
         dt = engine.global_config["physics_world_step_size"]
         dt /= 3.6  # 1m/s = 3.6km/h
         self.delay_time += dt
-        if action['acceleration'] < 0 and self.speed <= 0:
-            action['acceleration'] = -self.speed / dt
+        if action['acceleration'] < 0 and self.vehicle.speed <= 0:
+            action['acceleration'] = -self.vehicle.speed / dt
         # TODO(pzh): This part is done in policy. Check!
         if self.crashed:
-            action['acceleration'] = -1.0 * self.speed
+            action['acceleration'] = -1.0 * self.vehicle.speed
         action['acceleration'] = float(action['acceleration'])
-        if self.speed > self.MAX_SPEED:
-            action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
-        elif self.speed < -self.MAX_SPEED:
-            action['acceleration'] = max(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
+        if self.vehicle.speed > self.MAX_SPEED:
+            action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.vehicle.speed))
+        elif self.vehicle.speed < -self.MAX_SPEED:
+            action['acceleration'] = max(action['acceleration'], 1.0 * (self.MAX_SPEED - self.vehicle.speed))
 
         self.action = action
 
@@ -219,6 +220,7 @@ class IDMPolicy(BasePolicy):
                 max(vehicle.config["max_engine_force"], vehicle.config["max_brake_force"]), -1, 1
             )
         ]
+        print('Current norm action: ', self.action, norm_action)
         vehicle.before_step(norm_action)  # Apply the action to vehicle directly here!
         return self.action
 
@@ -257,7 +259,7 @@ class IDMPolicy(BasePolicy):
     def after_step(self, *args, **kwargs):
         engine = get_engine()
         dir = np.array([math.cos(self.heading_theta), math.sin(self.heading_theta)])
-        lane, lane_index = ray_localization(dir, self.position, engine)
+        lane, lane_index = ray_localization(dir, self.vehicle.position, engine)
         if lane is not None:
             self.update_lane_index(lane_index, lane)
         # self.lane_index = lane_index
@@ -266,21 +268,21 @@ class IDMPolicy(BasePolicy):
 
     def follow_road(self, current_map):
         """At the end of a lane, automatically switch to a next one."""
-        if current_map.road_network.get_lane(self.target_lane_index).after_end(self.position):
+        if current_map.road_network.get_lane(self.target_lane_index).after_end(self.vehicle.position):
             self.target_lane_index = current_map.road_network.next_lane(
-                self.target_lane_index, route=self.route, position=self.position, np_random=self.np_random
+                self.target_lane_index, route=self.route, position=self.vehicle.position, np_random=self.np_random
             )
 
     # ============================================+
     # TODO(pzh): Currently, this is the _position of the kinematics vehicle!
     #  This is a workaround! I don't think a policy should holds those properties!!!!!!!
-    @property
-    def position(self):
-        return self.vehicle.position
+    # @property
+    # def position(self):
+    #     return self.vehicle.position
 
-    @property
-    def speed(self):
-        return self.vehicle.speed
+    # @property
+    # def speed(self):
+    #     return self.vehicle.speed
 
     @property
     def heading_theta(self):
@@ -297,7 +299,10 @@ class IDMPolicy(BasePolicy):
         :param target_lane_index: index of the lane to follow
         :return: a steering wheel angle command [rad]
         """
-        return float(np.dot(np.array(self.STEERING_PARAMETERS), self.steering_features(target_lane_index)))
+        ret = float(np.dot(np.array(self.STEERING_PARAMETERS), self.steering_features(target_lane_index)))
+        # Note: It is possible for the steering signal to be extremely large!
+        # For example, when speed is equal to zero, then steering should be infinity.
+        return ret
 
     def lane_distance_to(self, vehicle: "Vehicle", lane: AbstractLane = None) -> float:
         # TODO(pzh): This should be a utility function! Instead of a function inside policy!
@@ -313,7 +318,7 @@ class IDMPolicy(BasePolicy):
             return np.nan
         if not lane:
             lane = self.lane
-        ret = lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
+        ret = lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.vehicle.position)[0]
         if ret == 0:
             print('Fuck you!')
         return ret
@@ -344,16 +349,22 @@ class IDMPolicy(BasePolicy):
         if ego_vehicle == front_vehicle:
             print("The front vehicle is identical to the ego vehicle. Is that correct?")
 
-        ego_target_speed = utils.not_zero(self.target_speed)
 
-        # TODO(pzh): We should not required the self.speed! We should get the speed from the vehicle.
-        acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(self.speed, 0) / ego_target_speed, self.DELTA))
+        p = self.engine.policy_manager.get_policy(ego_vehicle)
+        if p is None:
+            target_speed = 0
+        else:
+            target_speed = p.target_speed
+        ego_target_speed = utils.not_zero(target_speed)
+
+        acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(ego_vehicle.speed, 0) / ego_target_speed, self.DELTA))
 
         if front_vehicle:
             # if isinstance(ego_vehicle, TrafficVehicle):
-            d = self.lane_distance_to(front_vehicle)
 
-            if d < 0.1:
+            d = ego_vehicle.lane_distance_to(front_vehicle)
+
+            if d < 0.02:
                 print("This vehicle's distance to front vehicle is {}. Is it too small?".format(d))
 
             # else:
@@ -361,8 +372,8 @@ class IDMPolicy(BasePolicy):
 
             acceleration -= self.COMFORT_ACC_MAX * \
                             np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
-        if acceleration < 0 and self.speed < 0:
-            acceleration = -self.speed / 0.2
+        if acceleration < 0 and self.vehicle.speed < 0:
+            acceleration = -self.vehicle.speed / 0.2
 
         if abs(acceleration) > 10_0000:
             print("Your acceleration {} is too large?".format(acceleration))
@@ -458,7 +469,7 @@ class IDMPolicy(BasePolicy):
         # decide to make a lane change
         for lane_index in self.traffic_manager.current_map.road_network.side_lanes(self.lane_index):
             # Is the candidate lane close enough?
-            if not self.traffic_manager.current_map.road_network.get_lane(lane_index).is_reachable_from(self.position):
+            if not self.traffic_manager.current_map.road_network.get_lane(lane_index).is_reachable_from(self.vehicle.position):
                 continue
             # Does the MOBIL model recommend a lane change?
             if self.mobil(lane_index):
@@ -519,7 +530,7 @@ class IDMPolicy(BasePolicy):
         stopped_speed = 5
         safe_distance = 200
         # Is the vehicle stopped on the wrong lane?
-        if self.target_lane_index != self.lane_index and self.speed < stopped_speed:
+        if self.target_lane_index != self.lane_index and self.vehicle.speed < stopped_speed:
             _, rear = self.traffic_manager.neighbour_vehicles(self.vehicle)
             _, new_rear = self.traffic_manager.neighbour_vehicles(
                 self.vehicle, self.traffic_manager.current_map.road_network.get_lane(self.target_lane_index)
@@ -539,13 +550,13 @@ class IDMPolicy(BasePolicy):
         :return: a array of features
         """
         lane = self.traffic_manager.current_map.road_network.get_lane(target_lane_index)
-        lane_coords = lane.local_coordinates(self.position)
-        lane_next_coords = lane_coords[0] + self.speed * self.PURSUIT_TAU
+        lane_coords = lane.local_coordinates(self.vehicle.position)
+        lane_next_coords = lane_coords[0] + self.vehicle.speed * self.PURSUIT_TAU
         lane_future_heading = lane.heading_at(lane_next_coords)
         features = np.array(
             [
-                utils.wrap_to_pi(lane_future_heading - self.heading_theta) * self.LENGTH / utils.not_zero(self.speed),
-                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.speed)**2)
+                utils.wrap_to_pi(lane_future_heading - self.heading_theta) * self.LENGTH / utils.not_zero(self.vehicle.speed),
+                -lane_coords[1] * self.LENGTH / (utils.not_zero(self.vehicle.speed)**2)
             ]
         )
         return features
@@ -557,12 +568,12 @@ class IDMPolicy(BasePolicy):
             last_lane = self.traffic_manager.current_map.road_network.get_lane(self.route[-1])
             return last_lane.position(last_lane.length, 0)
         else:
-            return self.position
+            return self.vehicle.position
 
     @property
     def destination_direction(self) -> np.ndarray:
-        if (self.destination != self.position).any():
-            return (self.destination - self.position) / norm(*(self.destination - self.position))
+        if (self.destination != self.vehicle.position).any():
+            return (self.destination - self.vehicle.position) / norm(*(self.destination - self.vehicle.position))
         else:
             return np.zeros((2, ))
 

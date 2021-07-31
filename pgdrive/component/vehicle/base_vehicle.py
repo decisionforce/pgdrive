@@ -1,7 +1,7 @@
 import math
 import time
 from collections import deque
-from typing import Union, Optional, Dict
+from typing import Union, Optional
 
 import gym
 import numpy as np
@@ -162,6 +162,7 @@ class BaseVehicle(BaseObject):
             name: str = None,
             am_i_the_special_one=False,
             random_seed=None,
+            _am_i_a_traffic_vehicle=False
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -174,6 +175,14 @@ class BaseVehicle(BaseObject):
         self.update_config(vehicle_config, allow_add_new_key=True)
         assert vehicle_config is not None, "Please specify the vehicle config."
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
+
+        # TODO(pzh): This is a stupid workaround!!!
+        self._am_i_a_traffic_vehicle = _am_i_a_traffic_vehicle
+        if self._am_i_a_traffic_vehicle:
+            self._config["use_render"] = False
+            self._config["use_image"] = False
+        if self._am_i_a_traffic_vehicle:
+            assert not self.config["use_render"]
 
         self.increment_steering = self.config["increment_steering"]
         self.enable_reverse = self.config["enable_reverse"]
@@ -279,6 +288,7 @@ class BaseVehicle(BaseObject):
 
             if use_render:
                 rgb_cam_config = vehicle_config["rgb_cam"]
+                assert not self._am_i_a_traffic_vehicle
                 rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.chassis_np)
                 self.add_image_sensor("rgb_cam", rgb_cam)
 
@@ -287,6 +297,7 @@ class BaseVehicle(BaseObject):
             return
 
         if vehicle_config["use_image"]:
+            assert not self._am_i_a_traffic_vehicle
             # 3 types image observation
             if vehicle_config["image_source"] == "rgb_cam":
                 rgb_cam_config = vehicle_config["rgb_cam"]
@@ -429,7 +440,11 @@ class BaseVehicle(BaseObject):
         self.set_static(False)
         self.chassis_np.setPos(panda_position(Vec3(*pos, 1)))
         self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
-        self.update_map_info(map)
+
+        # TODO(pzh): This is a extremely stupid workaround!! Remove this!
+        if not self._am_i_a_traffic_vehicle:
+            self.update_map_info(map)
+
         self.chassis_np.node().clearForces()
         self.chassis_np.node().setLinearVelocity(Vec3(0, 0, 0))
         self.chassis_np.node().setAngularVelocity(Vec3(0, 0, 0))
@@ -515,6 +530,10 @@ class BaseVehicle(BaseObject):
 
     def _dist_to_route_left_right(self):
         # TODO(pzh): This function is really stupid! Why we maintain such information in BaseVehicle???
+        if not self.routing_localization.current_ref_lanes:
+            # TODO(pzh): This is a workaround! It looks like this vehicle is a traffic vehicle!! So we don't maintain
+            #  this information!
+            return np.nan, np.nan
         current_reference_lane = self.routing_localization.current_ref_lanes[0]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
         lateral_to_left = lateral_to_reference + self.routing_localization.get_current_lane_width() / 2
@@ -663,10 +682,6 @@ class BaseVehicle(BaseObject):
                 model_path = model_details["model"]["path"]
                 self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
 
-                # TODO(pzh): What the hell is this? Should we add this config into traffic vehicles too?
-                self.MODEL.setZ(para[Parameter.vehicle_vis_z])
-                self.MODEL.setY(para[Parameter.vehicle_vis_y])
-
                 # Set heading
                 if model_details["model"].get("heading", None) is not None:
                     # TODO(pzh): This is a workaround! We should change all +90, -pi/2 ... after refactoring coord.sys.
@@ -683,6 +698,10 @@ class BaseVehicle(BaseObject):
                 # Set offset (only applicable to traffic vehicle)
                 if model_details["model"].get("offset", None) is not None:
                     self.MODEL.setPos(model_details["model"]["offset"])
+                else:
+                    # TODO(pzh): What the hell is this? Should we add this config into traffic vehicles too?
+                    self.MODEL.setZ(para[Parameter.vehicle_vis_z])
+                    self.MODEL.setY(para[Parameter.vehicle_vis_y])
 
             self.MODEL.instanceTo(self.chassis_np)
 

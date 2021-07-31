@@ -206,4 +206,5 @@ class BaseObject(RandomEngine):
 
     @property
     def config(self):
+        # TODO(pzh): Remove the copy operation here!! It is too time-consuming.
         return self.get_config(True)

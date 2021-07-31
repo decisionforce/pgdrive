@@ -141,7 +141,11 @@ class RoutingLocalizationModule:
         :return: None
         """
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
-        assert len(self.checkpoints) > 2, "Can not find a route from {} to {}".format(start_road_node, end_road_node)
+        if len(self.checkpoints) <= 2:
+            # TODO(pzh): This is a workaround, when using basevehicle as traffic vehicle. At that time
+            #  we don't set the route of the vehicle since it is handled by the IDM Policy.
+            print("Can not find a route from {} to {}".format(start_road_node, end_road_node))
+            return
         # update routing info
         self.final_road = Road(self.checkpoints[-2], end_road_node)
         final_lanes = self.final_road.get_lanes(self.map.road_network)
@@ -361,10 +365,13 @@ class RoutingLocalizationModule:
 
         if len(self._target_checkpoints_index) > 0:
             nx_ckpt = self._target_checkpoints_index[-1]
-            if nx_ckpt == self.checkpoints[-1]:
+
+            # FIXME(pzh): Is this correct?
+            # if nx_ckpt == self.checkpoints[-1]:  # Old code
+            if self.checkpoints[nx_ckpt] == self.checkpoints[-1]:  # New code
                 return possible_lanes[0][:-1] if len(possible_lanes) > 0 else (None, None)
-            else:
-                print('111')
+            # else:
+            #     print('111')
 
             nx_nx_ckpt = nx_ckpt + 1
             next_ref_lanes = self.map.road_network.graph[self.checkpoints[nx_ckpt]][self.checkpoints[nx_nx_ckpt]]
