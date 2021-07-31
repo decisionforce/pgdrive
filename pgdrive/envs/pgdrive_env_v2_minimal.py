@@ -190,7 +190,6 @@ class MinimalObservation(LidarStateObservation):
         p = get_engine().policy_manager.get_policy(vehicle.name)
         action = p.action
 
-
         s.append(action["steering"])
         s.append(action["acceleration"] / ACC_MAX)
         ret = []

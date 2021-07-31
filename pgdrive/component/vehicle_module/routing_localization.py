@@ -354,7 +354,6 @@ class RoutingLocalizationModule:
             lane = traffic_manager.current_map.road_network.get_lane(lane_index) if ego_vehicle else None
             return lane, lane_index
 
-
         for lane, index, l_1_dist in possible_lanes:
             # TODO(pzh): Is here possible for self.current_ref_lanes == None?
             if self.current_ref_lanes and (lane in self.current_ref_lanes):
