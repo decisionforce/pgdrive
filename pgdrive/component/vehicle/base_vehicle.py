@@ -643,20 +643,20 @@ class BaseVehicle(BaseObject):
                 self.MODEL.setY(para[Parameter.vehicle_vis_y])
 
                 # Set heading
-                if model_details.get("heading", False):
-                    self.MODEL.setH(model_details["heading"])
+                if model_details["model"].get("heading", None) is not None:
+                    self.MODEL.setH(model_details["model"]["heading"])
                 else:
                     self.MODEL.setH(para[Parameter.vehicle_vis_h])
 
                 # Set scale
-                if model_details.get("scale", False):
-                    self.MODEL.set_scale(model_details["scale"])
+                if model_details["model"].get("scale", None) is not None:
+                    self.MODEL.set_scale(model_details["model"]["scale"])
                 else:
                     self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
 
                 # Set offset (only applicable to traffic vehicle)
-                if model_details.get("offset", False):
-                    self.MODEL.setPos(model_details["offset"])
+                if model_details["model"].get("offset", None) is not None:
+                    self.MODEL.setPos(model_details["model"]["offset"])
 
             self.MODEL.instanceTo(self.chassis_np)
 
