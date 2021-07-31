@@ -7,8 +7,8 @@ from panda3d.core import NodePath
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.physics_world import PhysicsWorld
 from pgdrive.utils.config import Config
-from pgdrive.utils.space import ParameterSpace
 from pgdrive.utils.random import random_string, RandomEngine
+from pgdrive.utils.space import ParameterSpace
 
 
 class PhysicsNodeList(list):

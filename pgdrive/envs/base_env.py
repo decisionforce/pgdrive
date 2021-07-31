@@ -8,11 +8,11 @@ import gym
 import numpy as np
 from panda3d.core import PNMImage
 
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.engine.base_engine import BaseEngine
-from pgdrive.obs.observation_base import ObservationBase
-from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.manager.agent_manager import AgentManager
+from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils import Config, merge_dicts, get_np_random
 from pgdrive.utils.engine_utils import get_engine, initialize_engine, close_engine, \
     engine_initialized, set_global_random_seed
@@ -123,7 +123,6 @@ class BasePGDriveEnv(gym.Env):
         self.env_num = self.config["environment_num"]
 
         # lazy initialization, create the main vehicle in the lazy_init() func
-        self.engine: Optional[BaseEngine] = None
         self.controller = None
         self.episode_steps = 0
         self.current_seed = None
@@ -161,7 +160,7 @@ class BasePGDriveEnv(gym.Env):
         # It is the true init() func to create the main vehicle and its module, to avoid incompatible with ray
         if engine_initialized():
             return
-        self.engine = initialize_engine(self.config, self.agent_manager)
+        initialize_engine(self.config, self.agent_manager)
 
         # engine setup
         self.setup_engine()
@@ -409,3 +408,7 @@ class BasePGDriveEnv(gym.Env):
     @property
     def maps(self):
         return self.engine.map_manager.pg_maps
+
+    @property
+    def engine(self):
+        return get_engine()

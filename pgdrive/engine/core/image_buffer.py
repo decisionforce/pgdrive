@@ -26,8 +26,6 @@ class ImageBuffer:
         parent_node: NodePath,
         frame_buffer_property=None,
     ):
-        from pgdrive.utils.engine_utils import get_engine
-        self.engine = get_engine()
         try:
             assert self.engine.win is not None, "{} cannot be made without use_render or use_image".format(
                 self.__class__.__name__

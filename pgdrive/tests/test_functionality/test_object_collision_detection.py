@@ -1,5 +1,5 @@
 from pgdrive.constants import BodyName, TerminationState
-from pgdrive.component.vehicle.traffic_vehicle_type import LVehicle
+# from pgdrive.component.vehicle.traffic_vehicle_type import LVehicle
 from pgdrive.envs import PGDriveEnv
 
 
@@ -24,6 +24,12 @@ class TestEnv(PGDriveEnv):
         return config
 
     def __init__(self, config=None):
+
+        # TODO(pzh): Fix this test!
+        raise ValueError(
+            "PZH: The tests in test_object_collision_detection.py are completely broken down! Please revisit this file!"
+        )
+
         super(TestEnv, self).__init__(config)
         self.breakdown_vehicle = None
         self.alert = None
@@ -56,7 +62,7 @@ class TestEnv(PGDriveEnv):
         for p in pos:
             cone = self.engine.object_manager.spawn_object("Traffic Cone", lane, ("1C0_1_", "2S0_0_", 2), p[0], p[1])
             cone.attach_to_world(self.engine.pbr_worldNP, self.engine.physics_world)
-        from pgdrive.component.vehicle.traffic_vehicle_type import SVehicle, XLVehicle
+        from pgdrive.component.vehicle._deprecated_traffic_vehicle_type import SVehicle, XLVehicle
         v_pos = [8, 14]
         v_type = [SVehicle, XLVehicle]
         for v_long, v_t in zip(v_pos, v_type):

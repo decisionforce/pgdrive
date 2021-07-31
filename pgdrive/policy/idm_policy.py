@@ -174,15 +174,20 @@ class IDMPolicy(BasePolicy):
         if self.enable_lane_change:
             self.change_lane_policy()
 
+        # ===== Determine the steering signal =====
         action['steering'] = self.steering_control(self.target_lane_index)
+        if abs(action['steering']) > self.MAX_STEERING_ANGLE:
+            print("Current steering angle is: {} > {}. Is that OK?".format(action['steering'], self.MAX_STEERING_ANGLE))
         action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
+        if self.crashed:
+            action['steering'] = 0
+        action['steering'] = float(action['steering'])
 
+        # ===== Determine the acceleration signal =====
         # Longitudinal: IDM
         action['acceleration'] = self.acceleration(ego_vehicle=vehicle, front_vehicle=front_vehicle)
-
         # TODO(pzh): @LQY why we remove this line?
         # action['acceleration'] = self.recover_from_stop(action['acceleration'])
-
         action['acceleration'] = clip(action['acceleration'], -self.ACC_MAX, self.ACC_MAX)
 
         # TODO(pzh): This is a workaround.
@@ -194,9 +199,7 @@ class IDMPolicy(BasePolicy):
             action['acceleration'] = -self.speed / dt
         # TODO(pzh): This part is done in policy. Check!
         if self.crashed:
-            action['steering'] = 0
             action['acceleration'] = -1.0 * self.speed
-        action['steering'] = float(action['steering'])
         action['acceleration'] = float(action['acceleration'])
         if self.speed > self.MAX_SPEED:
             action['acceleration'] = min(action['acceleration'], 1.0 * (self.MAX_SPEED - self.speed))
@@ -212,7 +215,7 @@ class IDMPolicy(BasePolicy):
             #  brake force?
             self.action['acceleration'] / max(vehicle.config["max_engine_force"], vehicle.config["max_brake_force"])
         ]
-        vehicle.before_step(norm_action)
+        vehicle.before_step(norm_action)  # Apply the action to vehicle directly here!
         return self.action
 
     def step(self, dt):

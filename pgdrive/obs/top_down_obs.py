@@ -49,7 +49,6 @@ class TopDownObservation(ObservationBase):
 
         # scene
         self.road_network = None
-        self.engine = None
 
         # initialize
         pygame.init()

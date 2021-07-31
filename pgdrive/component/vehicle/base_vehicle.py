@@ -169,7 +169,6 @@ class BaseVehicle(BaseObject):
         self.max_speed = self.config["max_speed"]
         self.max_steering = self.config["max_steering"]
 
-        self.engine = get_engine()
         assert self.engine is not None, "Please make sure PGDrive engine is successfully initialized!"
 
         self.node_path = NodePath("vehicle")
@@ -859,7 +858,6 @@ class BaseVehicle(BaseObject):
         self.image_sensors = None
         if self.vehicle_panel is not None:
             self.vehicle_panel.destroy()
-        self.engine = None
 
     def set_position(self, position, height=0.4):
         """
@@ -940,7 +938,6 @@ class BaseVehicle(BaseObject):
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
-        self.engine = None
         self.lidar = None
         self.mini_map = None
         self.rgb_cam = None
