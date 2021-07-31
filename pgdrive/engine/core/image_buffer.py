@@ -3,10 +3,12 @@ from typing import Union, List
 
 import numpy as np
 from panda3d.core import NodePath, Vec3, Vec4, Camera, PNMImage
+
 from pgdrive.constants import RENDER_MODE_ONSCREEN, BKG_COLOR
+from pgdrive.utils.random import RandomEngine
 
 
-class ImageBuffer:
+class ImageBuffer(RandomEngine):
     LINE_FRAME_COLOR = (0.8, 0.8, 0.8, 0)
     CAM_MASK = None
     BUFFER_W = 84  # left to right

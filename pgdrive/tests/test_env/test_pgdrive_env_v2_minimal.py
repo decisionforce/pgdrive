@@ -57,5 +57,5 @@ def test_pgdrive_env_v2_minimal_long_run(render=False):
 
 
 if __name__ == '__main__':
-    test_pgdrive_env_v2_minimal()
-    # test_pgdrive_env_v2_minimal_long_run(render=True)
+    # test_pgdrive_env_v2_minimal()
+    test_pgdrive_env_v2_minimal_long_run(render=True)

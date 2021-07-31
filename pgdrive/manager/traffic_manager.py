@@ -249,7 +249,7 @@ class TrafficManager(BaseManager):
         from pgdrive.policy.idm_policy import IDMPolicy
         e = get_engine()
         e.policy_manager.register_new_policy(
-            IDMPolicy, vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1, target_speed=random_v.speed
+            IDMPolicy, vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1, target_speed=None
         )
 
         return random_v
@@ -361,7 +361,7 @@ class TrafficManager(BaseManager):
             vehicles = vehicles[:count]
         return vehicles
 
-    def neighbour_vehicles(self, vehicle, lane_index: Tuple = None) -> Tuple:
+    def neighbour_vehicles(self, vehicle: BaseVehicle, lane_index: Tuple = None) -> Tuple:
         """
         Find the preceding and following vehicles of a given vehicle.
 
@@ -371,6 +371,9 @@ class TrafficManager(BaseManager):
                      vehicle is projected on it considering its local coordinates in the lane.
         :return: its preceding vehicle, its following vehicle
         """
+
+        assert isinstance(vehicle, BaseVehicle), type(vehicle)
+
         lane_index = lane_index or vehicle.lane_index
         if not lane_index:
             return None, None

@@ -7,7 +7,6 @@ class BaseManager(RandomEngine):
     """
     Managers should be created and registered after launching BaseEngine
     """
-
     def __init__(self):
         from pgdrive.utils.engine_utils import engine_initialized
         assert engine_initialized(), "You should not create manager before the initialization of BaseEngine"

@@ -47,7 +47,6 @@ class IDMPolicy(BasePolicy):
     COMFORT_ACC_MIN = -10.0  # [m/s2]
     """Desired maximum deceleration."""
 
-
     LENGTH = 5.0
     """ Vehicle length [m] """
     WIDTH = 2.0
@@ -108,7 +107,7 @@ class IDMPolicy(BasePolicy):
         # heading: float = 0,
         # speed: float = 0,
         target_lane_index: int = None,
-        target_speed: float = 0.01,
+        target_speed: float = None,
         route: Route = None,
         enable_lane_change: bool = True,
         random_seed=None
@@ -122,7 +121,9 @@ class IDMPolicy(BasePolicy):
         # self._position = np.array(position).astype('float')
         # self.heading = heading
         # self.speed = speed
-        self.target_speed = target_speed
+        self.target_speed = target_speed or self.np_random.uniform(self.DEFAULT_SPEEDS[0], self.DEFAULT_SPEEDS[1])
+        if self.target_speed < 0.1:
+            print("Your target speed is: {}, is it too small?".format(self.target_speed))
 
         self.vehicle = vehicle
         self.lane_index, _ = self.traffic_manager.current_map.road_network.get_closest_lane_index(
@@ -209,11 +210,14 @@ class IDMPolicy(BasePolicy):
         self.action = action
 
         norm_action = [
-            self.action['steering'] / vehicle.max_steering,
+            clip(self.action['steering'] / vehicle.max_steering, -1, 1),
             # TODO(pzh) In original IDM, the output is acceleration. But the input to the BaseVehicle is the
             #  engine force. Is that correct for us to say acceleration = engine force? What about the
             #  brake force?
-            self.action['acceleration'] / max(vehicle.config["max_engine_force"], vehicle.config["max_brake_force"])
+            clip(
+                self.action['acceleration'] /
+                max(vehicle.config["max_engine_force"], vehicle.config["max_brake_force"]), -1, 1
+            )
         ]
         vehicle.before_step(norm_action)  # Apply the action to vehicle directly here!
         return self.action
@@ -269,6 +273,7 @@ class IDMPolicy(BasePolicy):
 
     # ============================================+
     # TODO(pzh): Currently, this is the _position of the kinematics vehicle!
+    #  This is a workaround! I don't think a policy should holds those properties!!!!!!!
     @property
     def position(self):
         return self.vehicle.position
@@ -316,8 +321,8 @@ class IDMPolicy(BasePolicy):
     def acceleration(
         # self, ego_vehicle: ControlledVehicle, front_vehicle: Vehicle = None, rear_vehicle: Vehicle = None
         self,
-        ego_vehicle,
-        front_vehicle
+        ego_vehicle: BaseVehicle,
+        front_vehicle: BaseVehicle
     ) -> float:
         """
         Compute an acceleration command with the Intelligent Driver Model.
@@ -336,6 +341,9 @@ class IDMPolicy(BasePolicy):
         if not ego_vehicle or isinstance(ego_vehicle, BaseStaticObject):
             return 0
 
+        if ego_vehicle == front_vehicle:
+            print("The front vehicle is identical to the ego vehicle. Is that correct?")
+
         ego_target_speed = utils.not_zero(self.target_speed)
 
         # TODO(pzh): We should not required the self.speed! We should get the speed from the vehicle.
@@ -345,8 +353,8 @@ class IDMPolicy(BasePolicy):
             # if isinstance(ego_vehicle, TrafficVehicle):
             d = self.lane_distance_to(front_vehicle)
 
-            if d > 0:
-                print('1111111111111')
+            if d < 0.1:
+                print("This vehicle's distance to front vehicle is {}. Is it too small?".format(d))
 
             # else:
             #     d = ego_vehicle.lane_distance_to(front_vehicle)
@@ -468,14 +476,14 @@ class IDMPolicy(BasePolicy):
         :return: whether the lane change should be performed
         """
         # Is the maneuver unsafe for the new following vehicle?
-        new_preceding, new_following = self.traffic_manager.neighbour_vehicles(self, lane_index)
+        new_preceding, new_following = self.traffic_manager.neighbour_vehicles(self.vehicle, lane_index)
         new_following_a = self.acceleration(ego_vehicle=new_following, front_vehicle=new_preceding)
-        new_following_pred_a = self.acceleration(ego_vehicle=new_following, front_vehicle=self)
+        new_following_pred_a = self.acceleration(ego_vehicle=new_following, front_vehicle=self.vehicle)
         if new_following_pred_a < -self.LANE_CHANGE_MAX_BRAKING_IMPOSED:
             return False
 
         # Do I have a planned route for a specific lane which is safe for me to access?
-        old_preceding, old_following = self.traffic_manager.neighbour_vehicles(self)
+        old_preceding, old_following = self.traffic_manager.neighbour_vehicles(self.vehicle)
         self_pred_a = self.acceleration(ego_vehicle=self.vehicle, front_vehicle=new_preceding)
         if self.route and self.route[0][2]:
             # Wrong direction
@@ -489,7 +497,7 @@ class IDMPolicy(BasePolicy):
         # Is there an acceleration advantage for me and/or my followers to change lane?
         else:
             self_a = self.acceleration(ego_vehicle=self.vehicle, front_vehicle=old_preceding)
-            old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self)
+            old_following_a = self.acceleration(ego_vehicle=old_following, front_vehicle=self.vehicle)
             old_following_pred_a = self.acceleration(ego_vehicle=old_following, front_vehicle=old_preceding)
             jerk = self_pred_a - self_a + self.POLITENESS * (
                 new_following_pred_a - new_following_a + old_following_pred_a - old_following_a
@@ -512,9 +520,9 @@ class IDMPolicy(BasePolicy):
         safe_distance = 200
         # Is the vehicle stopped on the wrong lane?
         if self.target_lane_index != self.lane_index and self.speed < stopped_speed:
-            _, rear = self.traffic_manager.neighbour_vehicles(self)
+            _, rear = self.traffic_manager.neighbour_vehicles(self.vehicle)
             _, new_rear = self.traffic_manager.neighbour_vehicles(
-                self, self.traffic_manager.current_map.road_network.get_lane(self.target_lane_index)
+                self.vehicle, self.traffic_manager.current_map.road_network.get_lane(self.target_lane_index)
             )
             # Check for free room behind on both lanes
             if (not rear or rear.lane_distance_to(self) > safe_distance) and \
