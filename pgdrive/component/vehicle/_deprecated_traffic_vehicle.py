@@ -22,7 +22,8 @@ TrafficVehicleMask = CollisionGroup.TrafficVehicle
 
 
 class TrafficVehicle(BaseVehicle):
-    pass
+    def __init__(self):
+        deprecation_warning("traffic vehicle", "base vehicle", error=True)
 
 
 class TrafficVehicleDeprecated(BaseObject):
@@ -181,14 +182,14 @@ class TrafficVehicleDeprecated(BaseObject):
 
     @classmethod
     def create_random_traffic_vehicle(
-        cls,
-        index: int,
-        traffic_mgr: TrafficManager,
-        lane: Union[StraightLane, CircularLane],
-        longitude: float,
-        random_seed=None,
-        enable_lane_change: bool = True,
-        enable_respawn=False
+            cls,
+            index: int,
+            traffic_mgr: TrafficManager,
+            lane: Union[StraightLane, CircularLane],
+            longitude: float,
+            random_seed=None,
+            enable_lane_change: bool = True,
+            enable_respawn=False
     ):
         v = IDMVehicle.create_random(traffic_mgr, lane, longitude, random_seed=random_seed)
         v.enable_lane_change = enable_lane_change

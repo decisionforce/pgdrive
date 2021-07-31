@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 import pgdrive.utils.math_utils as utils
-from pgdrive.component.highway_vehicle.controller import ControlledVehicle, Vehicle
+# from pgdrive.component.highway_vehicle.controller import ControlledVehicle, Vehicle
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.static_object import BaseStaticObject
 # from pgdrive.component.highway_vehicle.kinematics import Vehicle
@@ -26,7 +26,16 @@ class IDMPolicy(BasePolicy):
     - Lateral: the MOBIL model decides when to change lane by maximizing the acceleration of nearby vehicles.
     """
 
-    STEERING_PARAMETERS = [ControlledVehicle.KP_HEADING, ControlledVehicle.KP_HEADING * ControlledVehicle.KP_LATERAL]
+    TAU_A = 0.6  # [s]
+    TAU_DS = 0.2  # [s]
+    PURSUIT_TAU = 1.5 * TAU_DS  # [s]
+    KP_A = 1 / TAU_A
+    KP_HEADING = 1 / TAU_DS
+    KP_LATERAL = 1 / 3 * KP_HEADING  # [1/s]
+    MAX_STEERING_ANGLE = np.pi / 3  # [rad]
+    DELTA_SPEED = 5  # [m/s]
+
+    STEERING_PARAMETERS = [KP_HEADING, KP_HEADING * KP_LATERAL]
 
     # Longitudinal policy parameters
     ACC_MAX = 20.0  # [m/s2]
@@ -38,7 +47,17 @@ class IDMPolicy(BasePolicy):
     COMFORT_ACC_MIN = -10.0  # [m/s2]
     """Desired maximum deceleration."""
 
-    DISTANCE_WANTED = 5.0 + ControlledVehicle.LENGTH  # [m]
+
+    LENGTH = 5.0
+    """ Vehicle length [m] """
+    WIDTH = 2.0
+    """ Vehicle width [m] """
+    DEFAULT_SPEEDS = [23, 25]
+    """ Range for random initial speeds [m/s] """
+    MAX_SPEED = 40.
+    """ Maximum reachable speed [m/s] """
+
+    DISTANCE_WANTED = 5.0 + LENGTH  # [m]
     """Desired jam distance to the front vehicle."""
 
     TIME_WANTED = 1.5  # [s]
@@ -199,19 +218,21 @@ class IDMPolicy(BasePolicy):
     def step(self, dt):
         pass
 
-        if self.break_down:
-            return
+        # TODO(pzh): We remove everything here! Is that OK????s
+
+        # if self.break_down:
+        #     return
 
         # TODO: We ignore this part here! Because the code is in IDM policy right now!
         #  Is that OK now?
-        if action is None:
-            action = {"steering": 0, "acceleration": 0}
-        self.vehicle_node.kinematic_model.step(dt, action)
-
-        position = panda_position(self.vehicle_node.kinematic_model.position, 0)
-        self.node_path.setPos(position)
-        heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
-        self.node_path.setH(heading)
+        # if action is None:
+        #     action = {"steering": 0, "acceleration": 0}
+        # self.vehicle_node.kinematic_model.step(dt, action)
+        #
+        # position = panda_position(self.vehicle_node.kinematic_model.position, 0)
+        # self.node_path.setPos(position)
+        # heading = np.rad2deg(panda_heading(self.vehicle_node.kinematic_model.heading))
+        # self.node_path.setH(heading)
 
         # TODO: This is a workaround.
         # self.vehicle.vehicle_node.kinematic_model.step(dt, action=self.action)
@@ -403,9 +424,13 @@ class IDMPolicy(BasePolicy):
                         continue
                     v_target_lane = p.target_lane_index
 
+                    # TODO(pzh): We remove the judge of whether traffic vehicle is! Is that correct?
+                    # if v is not self \
+                    #         and v.lane_index != self.target_lane_index \
+                    #         and isinstance(v, ControlledVehicle) \
+                    #         and v_target_lane == self.target_lane_index:
                     if v is not self \
                             and v.lane_index != self.target_lane_index \
-                            and isinstance(v, ControlledVehicle) \
                             and v_target_lane == self.target_lane_index:
                         d = self.lane_distance_to(v)
                         d_star = self.desired_gap(self, v)
