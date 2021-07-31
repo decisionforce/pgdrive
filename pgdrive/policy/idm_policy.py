@@ -178,8 +178,11 @@ class IDMPolicy(BasePolicy):
         # ===== Determine the steering signal =====
         action['steering'] = self.steering_control(self.target_lane_index)
         if abs(action['steering']) > self.MAX_STEERING_ANGLE:
-            print("Current steering angle is: {} > {}. Is that OK? Current speed {}".format(
-                action['steering'], self.MAX_STEERING_ANGLE, self.vehicle.speed))
+            print(
+                "Current steering angle is: {} > {}. Is that OK? Current speed {}".format(
+                    action['steering'], self.MAX_STEERING_ANGLE, self.vehicle.speed
+                )
+            )
         action['steering'] = clip(action['steering'], -self.MAX_STEERING_ANGLE, self.MAX_STEERING_ANGLE)
         if self.crashed:
             action['steering'] = 0
@@ -349,7 +352,6 @@ class IDMPolicy(BasePolicy):
         if ego_vehicle == front_vehicle:
             print("The front vehicle is identical to the ego vehicle. Is that correct?")
 
-
         p = self.engine.policy_manager.get_policy(ego_vehicle)
         if p is None:
             target_speed = 0
@@ -469,7 +471,8 @@ class IDMPolicy(BasePolicy):
         # decide to make a lane change
         for lane_index in self.traffic_manager.current_map.road_network.side_lanes(self.lane_index):
             # Is the candidate lane close enough?
-            if not self.traffic_manager.current_map.road_network.get_lane(lane_index).is_reachable_from(self.vehicle.position):
+            if not self.traffic_manager.current_map.road_network.get_lane(lane_index).is_reachable_from(
+                    self.vehicle.position):
                 continue
             # Does the MOBIL model recommend a lane change?
             if self.mobil(lane_index):
@@ -555,7 +558,8 @@ class IDMPolicy(BasePolicy):
         lane_future_heading = lane.heading_at(lane_next_coords)
         features = np.array(
             [
-                utils.wrap_to_pi(lane_future_heading - self.heading_theta) * self.LENGTH / utils.not_zero(self.vehicle.speed),
+                utils.wrap_to_pi(lane_future_heading - self.heading_theta) * self.LENGTH /
+                utils.not_zero(self.vehicle.speed),
                 -lane_coords[1] * self.LENGTH / (utils.not_zero(self.vehicle.speed)**2)
             ]
         )

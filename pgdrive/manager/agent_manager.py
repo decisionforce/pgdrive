@@ -69,9 +69,12 @@ class AgentManager(BaseManager):
             for key, v_config in config_dict.items()
         }
 
-        print("In AgentManager, we are creating new vehicles: {}".format(
-            {k: (str(v.name)[:4], v.position, v.lane) for k, v in ret.items()}
-        ))
+        print(
+            "In AgentManager, we are creating new vehicles: {}".format(
+                {k: (str(v.name)[:4], v.position, v.lane)
+                 for k, v in ret.items()}
+            )
+        )
 
         return ret
 

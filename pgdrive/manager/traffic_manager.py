@@ -242,9 +242,11 @@ class TrafficManager(BaseManager):
         # TODO(pzh): Is this correct?
         random_v.reset(map=self.current_map)
 
-        print("We are creating a new traffic vehicle. It's name {}, position {}, speed {}, lane {}".format(
-            str(random_v.name)[:4], random_v.position, random_v.speed, random_v.lane
-        ))
+        print(
+            "We are creating a new traffic vehicle. It's name {}, position {}, speed {}, lane {}".format(
+                str(random_v.name)[:4], random_v.position, random_v.speed, random_v.lane
+            )
+        )
 
         self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
