@@ -168,7 +168,7 @@ class IDMPolicy(BasePolicy):
 
         # TODO(pzh): This is a workaround.
         engine = get_engine()
-        dt = engine.world_config["physics_world_step_size"]
+        dt = engine.global_config["physics_world_step_size"]
         dt /= 3.6  # 1m/s = 3.6km/h
         self.delay_time += dt
         if action['acceleration'] < 0 and self.speed <= 0:

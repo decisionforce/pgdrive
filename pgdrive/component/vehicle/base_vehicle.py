@@ -73,7 +73,7 @@ MODEL_TYPES = dict(
         width=1.8,
         height=1.5,
         model=dict(
-            path='new/beetle/scene.gltf',
+            path='models/new/beetle/scene.gltf',
             scale=(factor * .008, factor * .006, factor * .0062),
             offset=(-0.7, 0, factor * -0.16),
             heading=-90,
@@ -84,7 +84,7 @@ MODEL_TYPES = dict(
         width=2.0,
         height=1.3,
         model=dict(
-            path='new/130/scene.gltf',
+            path='models/new/130/scene.gltf',
             scale=(factor * .0055, factor * .0046, factor * .0049),
             offset=(0, 0, factor * 0.33),
             heading=90,
@@ -95,7 +95,7 @@ MODEL_TYPES = dict(
         width=1.8,
         height=1.9,
         model=dict(
-            path='new/lada/scene.gltf',
+            path='models/new/lada/scene.gltf',
             scale=(factor * 1.1, factor * 1.1, factor * 1.1),
             offset=(1.1, -13.5, factor * -0.046),
             heading=223,
@@ -106,7 +106,7 @@ MODEL_TYPES = dict(
         width=2.3,
         height=2.7,
         model=dict(
-            path='new/truck/scene.gltf',
+            path='models/new/truck/scene.gltf',
             scale=(factor * 0.031, factor * 0.025, factor * 0.025),
             offset=(0.35, 0, factor * 0),
             heading=0,
@@ -638,12 +638,26 @@ class BaseVehicle(BaseObject):
 
                 model_path = model_details["model"]["path"]
                 self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
+
+                # TODO(pzh): What the hell is this? Should we add this config into traffic vehicles too?
                 self.MODEL.setZ(para[Parameter.vehicle_vis_z])
                 self.MODEL.setY(para[Parameter.vehicle_vis_y])
-                self.MODEL.setH(para[Parameter.vehicle_vis_h])
 
-                # !!!!!!!!!!!!!!! DO THIS RIGHT NOW !!!!!!!!!!!
-                self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
+                # Set heading
+                if model_details.get("heading", False):
+                    self.MODEL.setH(model_details["heading"])
+                else:
+                    self.MODEL.setH(para[Parameter.vehicle_vis_h])
+
+                # Set scale
+                if model_details.get("scale", False):
+                    self.MODEL.set_scale(model_details["scale"])
+                else:
+                    self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
+
+                # Set offset (only applicable to traffic vehicle)
+                if model_details.get("offset", False):
+                    self.MODEL.setPos(model_details["offset"])
 
             self.MODEL.instanceTo(self.chassis_np)
 
