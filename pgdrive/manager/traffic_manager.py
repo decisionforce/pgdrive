@@ -239,6 +239,9 @@ class TrafficManager(BaseManager):
         # FIXME(pzh): This random seed is not correct!
         random_v = BaseVehicle(v_config, random_seed=0)
 
+        # TODO(pzh): Is this correct?
+        random_v.reset(map=self.current_map)
+
         self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
 
@@ -273,7 +276,13 @@ class TrafficManager(BaseManager):
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             model_config = self.random_vehicle_type()
-            vehicle_config = {"model_details": model_config}
+
+            # TODO(pzh): should we set spawn_lateral?
+            # TODO(pzh): We should set spawn_lane_index too!!!!!!!!!!!!!!!!!! Ask traffic manager to give you a lane!!
+            lane_index = self.current_map.road_network.get_lane_index(lane)
+            vehicle_config = {"model_details": model_config, "spawn_longitude": long, "spawn_lane_index": lane_index}
+            # vehicle_config = {"model_details": model_config}
+
             # self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
             # self.spawn_object(BaseVehicle, lane, long, is_respawn_lane)
             self.spawn_object(BaseVehicle, vehicle_config)

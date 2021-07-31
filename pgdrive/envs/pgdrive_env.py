@@ -59,6 +59,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     auto_termination=True,  # Whether to done the environment after 250*(num_blocks+1) steps.
 
     # ===== Single-agent vehicle config =====
+    # TODO(pzh): We should put this into the default config of vehicle!
     vehicle_config=dict(
         # ===== vehicle module config =====
         # laser num, distance, other vehicle info num

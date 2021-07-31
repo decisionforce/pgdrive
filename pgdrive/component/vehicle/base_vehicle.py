@@ -1,7 +1,7 @@
 import math
 import time
 from collections import deque
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 
 import gym
 import numpy as np
@@ -35,21 +35,32 @@ from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
 
 DEFAULT_VEHICLE_CONFIG = dict(
+    # Control
     increment_steering=False,
-    show_navi_mark=True,
+    enable_reverse=False,
+
+    # Kinematics
     wheel_friction=0.6,
     max_engine_force=500,
     max_brake_force=40,
     max_steering=40,
     max_speed=120,
+
+    # Observation
     extra_action_dim=0,
-    enable_reverse=False,
+
+    # Render related
+    model_type="ego",
+    model_details={},
+    am_i_the_special_one=False,  # A flag used to paint specified color to the special vehicles.
     random_navi_mark_color=False,
     show_dest_mark=False,
     show_line_to_dest=False,
-    am_i_the_special_one=False,
-    model_type="ego",
-    model_details={},
+    show_navi_mark=True,  # TODO(pzh): Why we put this flag here??
+
+    # Spawn points (only used for traffic vehicle!)
+    spawn_longitude=0.0,
+    spawn_lateral=0.0,
 )
 
 # TODO(pzh): Remove model type to other places! We should have a unify model selection flow.
@@ -146,11 +157,11 @@ class BaseVehicle(BaseObject):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-        self,
-        vehicle_config: Union[dict, Config] = None,
-        name: str = None,
-        am_i_the_special_one=False,
-        random_seed=None,
+            self,
+            vehicle_config: Union[dict, Config] = None,
+            name: str = None,
+            am_i_the_special_one=False,
+            random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -233,6 +244,8 @@ class BaseVehicle(BaseObject):
         if am_i_the_special_one:
             rand_c = color[2]  # A pretty green
         self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
+
+        self._reset_once = False
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
@@ -317,12 +330,15 @@ class BaseVehicle(BaseObject):
         return action, {'raw_action': (action[0], action[1])}
 
     def before_step(
-        self,
-        action,
+            self,
+            action,
     ):
         """
         Save info and make decision before action
         """
+
+        assert self._reset_once, "You should reset the base vehicle at least once before controlling it!"
+
         # init step info to store info before each step
         self._init_step_info()
         action, step_info = self._preprocess_action(action)
@@ -401,6 +417,9 @@ class BaseVehicle(BaseObject):
         if pos is not None, vehicle will be reset to the position
         else, vehicle will be reset to spawn place
         """
+        # TODO(pzh): Who provide a heading here?? If this is a traffic vehicle, then the pos and heading should be
+        #  determined by the traffic manager!!!!!!!!
+
         if pos is None:
             lane = map.road_network.get_lane(self.config["spawn_lane_index"])
             pos = lane.position(self.config["spawn_longitude"], self.config["spawn_lateral"])
@@ -449,6 +468,8 @@ class BaseVehicle(BaseObject):
         # Please note that if you respawn agent to some new place and might have a new destination,
         # you should reset the routing localization too! Via: vehicle.routing_localization.set_route or
         # vehicle.update
+
+        self._reset_once = True
 
     """------------------------------------------- act -------------------------------------------------"""
 
@@ -565,8 +586,8 @@ class BaseVehicle(BaseObject):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -602,16 +623,20 @@ class BaseVehicle(BaseObject):
 
     def _add_chassis(self, physics_world: PhysicsWorld):
         para = self.get_config()
+
+        # TODO(pzh): This part access many config!!! Would this part affect the creation of traffic vehicle???
         self.LENGTH = self.config["vehicle_length"]
         self.WIDTH = self.config["vehicle_width"]
+
         chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, para[Parameter.vehicle_height] / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)
-        heading = np.deg2rad(-para[Parameter.heading] - 90)
+        heading = np.deg2rad(-para[Parameter.heading] - 90)  # pzh: like this one!
         chassis.setMass(para[Parameter.mass])
         self.chassis_np = self.node_path.attachNewNode(chassis)
+
         # not random spawn now
         self.chassis_np.setPos(Vec3(*self.spawn_place, 1))
         self.chassis_np.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
@@ -644,7 +669,8 @@ class BaseVehicle(BaseObject):
 
                 # Set heading
                 if model_details["model"].get("heading", None) is not None:
-                    self.MODEL.setH(model_details["model"]["heading"])
+                    # TODO(pzh): This is a workaround! We should change all +90, -pi/2 ... after refactoring coord.sys.
+                    self.MODEL.setH(model_details["model"]["heading"] + 90)
                 else:
                     self.MODEL.setH(para[Parameter.vehicle_vis_h])
 
@@ -899,7 +925,7 @@ class BaseVehicle(BaseObject):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -914,7 +940,7 @@ class BaseVehicle(BaseObject):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -948,12 +974,12 @@ class BaseVehicle(BaseObject):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     @property
@@ -1003,9 +1029,9 @@ class BaseVehicle(BaseObject):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-            self.crash_building or self.crash_vehicle or
-            # self.on_white_continuous_line or
-            self.on_yellow_continuous_line
+                self.crash_building or self.crash_vehicle or
+                # self.on_white_continuous_line or
+                self.on_yellow_continuous_line
         )
 
     def to_dict(self, origin_vehicle: "Vehicle" = None, observe_intentions: bool = True) -> dict:

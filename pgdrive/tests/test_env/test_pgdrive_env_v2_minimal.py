@@ -37,10 +37,10 @@ def test_pgdrive_env_v2_minimal_long_run(render=False):
                     "fast": render,
                     "use_render": render,
                     "debug": True,
-                    "camera_height": 100,
-                    "vehicle_config": {
-                        "show_lidar": True
-                    }
+                    # "camera_height": 100,
+                    # "vehicle_config": {
+                    #     "show_lidar": True
+                    # }
                 }
             )
             o = env.reset()

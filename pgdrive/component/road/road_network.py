@@ -1,13 +1,12 @@
 import copy
 import logging
-import math
 from typing import List, Tuple, Dict
 
 import numpy as np
-from pgdrive.constants import Decoration, LineType
+
 from pgdrive.component.lane.abs_lane import AbstractLane
-from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.road.road import Road
+from pgdrive.constants import Decoration
 from pgdrive.utils.math_utils import get_boxes_bounding_box
 from pgdrive.utils.scene_utils import get_road_bounding_box
 
@@ -177,6 +176,9 @@ class RoadNetwork:
             _id = 0
         return self.graph[_from][_to][_id]
 
+    def get_lane_index(self, lane: AbstractLane):
+        return self._graph_helper.get_lane_index(lane)
+
     def _update_indices(self):
         indexes = []
         for _from, to_dict in self.graph.items():
@@ -189,12 +191,12 @@ class RoadNetwork:
         return self._graph_helper.get(position, return_all)
 
     def next_lane(
-        self,
-        current_index: LaneIndex,
-        route: Route = None,
-        position: np.ndarray = None,
-        # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
-        np_random: np.random.RandomState = None
+            self,
+            current_index: LaneIndex,
+            route: Route = None,
+            position: np.ndarray = None,
+            # Don't change this, since we need to make map identical to old version. get_np_random is used for traffic only.
+            np_random: np.random.RandomState = None
     ) -> LaneIndex:
         """
         Get the index of the next lane that should be followed after finishing the current lane.
@@ -300,12 +302,12 @@ class RoadNetwork:
         return lane_index_1[1] == lane_index_2[0] and (not same_lane or lane_index_1[2] == lane_index_2[2])
 
     def is_connected_road(
-        self,
-        lane_index_1: LaneIndex,
-        lane_index_2: LaneIndex,
-        route: Route = None,
-        same_lane: bool = False,
-        depth: int = 0
+            self,
+            lane_index_1: LaneIndex,
+            lane_index_2: LaneIndex,
+            route: Route = None,
+            same_lane: bool = False,
+            depth: int = 0
     ) -> bool:
         """
         Is the lane 2 leading to a road within lane 1's route?
@@ -379,6 +381,7 @@ class GraphLookupTable:
     def __init__(self, graph, debug):
         self.graph = graph
         self.debug = debug
+        self._lane_to_lane_index_mapping = self._build_lane_to_lane_index_mapping()
 
     def get(self, position, return_all):
         log = dict()
@@ -422,3 +425,16 @@ class GraphLookupTable:
             index = distance_index_mapping[ret_ind][1]
             distance = distance_index_mapping[ret_ind][0]
             return index, distance
+
+    def _build_lane_to_lane_index_mapping(self):
+        ret = {}
+        for section_id, section_dict in self.graph.items():
+            for lanes_id, lanes_list in section_dict.items():
+                for lane_id, lane in enumerate(lanes_list):
+                    ret[lane] = (section_id, lanes_id, lane_id)
+        return ret
+
+    def get_lane_index(self, lane):
+        if lane not in self._lane_to_lane_index_mapping:
+            raise ValueError("Querying lane {} is not in current graph: {}".format(lane, self.graph))
+        return self._lane_to_lane_index_mapping[lane]
