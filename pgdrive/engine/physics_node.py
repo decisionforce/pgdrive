@@ -97,3 +97,4 @@ class TrafficVehicleNode(BulletRigidBodyNode):
     def reset(self, kinematics_model):
         from pgdrive.component.highway_vehicle.behavior import IDMVehicle
         self.kinematic_model = IDMVehicle.create_from(kinematics_model)
+
