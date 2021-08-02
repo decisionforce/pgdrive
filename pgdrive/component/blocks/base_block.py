@@ -522,7 +522,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         """
         pass
 
-    def add_physics_body(self, physics_body):
+    def add_body(self, physics_body):
         raise DeprecationWarning("Different from common objects like vehicle/traffic sign, Block has several bodies!"
                                  "Therefore, you should create BulletBody and then add them to self.dynamics_nodes "
                                  "manually. See in construct() method")

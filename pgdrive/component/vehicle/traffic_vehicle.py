@@ -36,7 +36,7 @@ class TrafficVehicle(BaseObject):
         kinematic_model.LENGTH = self.LENGTH
         kinematic_model.WIDTH = self.WIDTH
         super(TrafficVehicle, self).__init__(random_seed=random_seed)
-        self.add_physics_body(TrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model)))
+        self.add_body(TrafficVehicleNode(BodyName.Traffic_vehicle, IDMVehicle.create_from(kinematic_model)))
         self.vehicle_node = self.body
         chassis_shape = BulletBoxShape(Vec3(self.LENGTH / 2, self.WIDTH / 2, self.HEIGHT / 2))
         self.index = index

@@ -1,4 +1,5 @@
 import math
+from pgdrive.utils.utils import get_object
 import time
 from collections import deque
 from typing import Union, Optional
@@ -87,7 +88,7 @@ class BaseVehicle(BaseObject):
 
         # build vehicle physics model
         vehicle_chassis = self._create_vehicle_chassis()
-        self.add_physics_body(vehicle_chassis.getChassis())
+        self.add_body(vehicle_chassis.getChassis())
         self.system = vehicle_chassis
         self.chassis = self.origin
         self.wheels = self._create_wheel()
@@ -217,7 +218,7 @@ class BaseVehicle(BaseObject):
 
     def _init_step_info(self):
         # done info will be initialized every frame
-        self.body.getPythonTag(BodyName.Base_vehicle).init_collision_info()
+        self.body.init_collision_info()
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
 
@@ -646,18 +647,18 @@ class BaseVehicle(BaseObject):
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
             elif name[0] == BodyName.White_continuous_line:
-                self.body.getPythonTag(BodyName.Base_vehicle).on_white_continuous_line = True
+                self.body.on_white_continuous_line = True
             elif name[0] == BodyName.Yellow_continuous_line:
-                self.body.getPythonTag(BodyName.Base_vehicle).on_yellow_continuous_line = True
+                self.body.on_yellow_continuous_line = True
             elif name[0] == BodyName.Broken_line:
-                self.body.getPythonTag(BodyName.Base_vehicle).on_broken_line = True
+                self.body.on_broken_line = True
             contacts.add(name[0])
         # side walk detect
         res = rect_region_detection(
             self.engine, self.position, np.rad2deg(self.heading_theta), self.LENGTH, self.WIDTH, CollisionGroup.Sidewalk
         )
         if res.hasHit():
-            self.body.getPythonTag(BodyName.Base_vehicle).crash_sidewalk = True
+            self.body.crash_sidewalk = True
             contacts.add(BodyName.Sidewalk)
         if self.render:
             self.render_collision_info(contacts)
@@ -709,7 +710,7 @@ class BaseVehicle(BaseObject):
             self.current_banner = new_banner
 
     def destroy(self):
-        self.body.getPythonTag(BodyName.Base_vehicle).destroy()
+        self.body.destroy()
         if self.body in self.dynamic_nodes:
             self.dynamic_nodes.remove(self.body)
         if self.system in self.dynamic_nodes:
@@ -839,34 +840,34 @@ class BaseVehicle(BaseObject):
 
     @property
     def crash_vehicle(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).crash_vehicle
+        return self.body.crash_vehicle
 
     @property
     def crash_object(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).crash_object
+        return self.body.crash_object
 
     @property
     def crash_sidewalk(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).crash_sidewalk
+        return self.body.crash_sidewalk
 
     @property
     def on_yellow_continuous_line(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).on_yellow_continuous_line
+        return self.body.on_yellow_continuous_line
 
     @property
     def on_white_continuous_line(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).on_white_continuous_line
+        return self.body.on_white_continuous_line
 
     @property
     def on_broken_line(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).on_broken_line
+        return self.body.on_broken_line
 
     def set_static(self, flag):
         self.body.setStatic(flag)
 
     @property
     def crash_building(self):
-        return self.body.getPythonTag(BodyName.Base_vehicle).crash_building
+        return self.body.crash_building
 
     @property
     def reference_lanes(self):

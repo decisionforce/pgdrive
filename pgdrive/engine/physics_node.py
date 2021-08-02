@@ -10,6 +10,17 @@ from panda3d.bullet import BulletRigidBodyNode
 from pgdrive.constants import BodyName
 
 
+class BaseRigidBodyNode(BulletRigidBodyNode):
+
+    def __init__(self, base_object):
+        super(BaseRigidBodyNode, self).__init__(base_object.name)
+        self.setPythonTag(self, base_object.name, self)
+        self.object = base_object
+
+    def destroy(self):
+        self.object = None
+
+
 class TrafficSignNode(BulletRigidBodyNode):
     """
     Collision Properties should place here, info here can used for collision callback
@@ -26,6 +37,7 @@ class LaneNode(BulletRigidBodyNode):
     """
     It is the body of land in panda3d, which can help quickly find current lane of vehicles
     """
+
     def __init__(self, node_name, lane, lane_index=(str, str, int)):
         """
         Using ray cast to query the lane information
@@ -41,7 +53,7 @@ class LaneNode(BulletRigidBodyNode):
         self.index = lane_index
 
 
-class BaseVehicleNode(BulletRigidBodyNode):
+class BaseVehicleNode(BaseRigidBodyNode):
     """
     Collision Properties should place here, info here can used for collision callback
     """
@@ -97,4 +109,3 @@ class TrafficVehicleNode(BulletRigidBodyNode):
     def reset(self, kinematics_model):
         from pgdrive.component.highway_vehicle.behavior import IDMVehicle
         self.kinematic_model = IDMVehicle.create_from(kinematics_model)
-
