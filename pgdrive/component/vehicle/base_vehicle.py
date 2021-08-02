@@ -53,6 +53,7 @@ class BaseVehicleState:
         self.crash_object = False
         self.crash_sidewalk = False
         self.crash_building = False
+
         self.on_yellow_continuous_line = False
         self.on_white_continuous_line = False
         self.on_broken_line = False
@@ -669,18 +670,18 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             if name[0] == "Ground" or name[0] == BodyName.Lane:
                 continue
             elif name[0] == BodyName.White_continuous_line:
-                self.body.on_white_continuous_line = True
+                self.on_white_continuous_line = True
             elif name[0] == BodyName.Yellow_continuous_line:
-                self.body.on_yellow_continuous_line = True
+                self.on_yellow_continuous_line = True
             elif name[0] == BodyName.Broken_line:
-                self.body.on_broken_line = True
+                self.on_broken_line = True
             contacts.add(name[0])
         # side walk detect
         res = rect_region_detection(
             self.engine, self.position, np.rad2deg(self.heading_theta), self.LENGTH, self.WIDTH, CollisionGroup.Sidewalk
         )
         if res.hasHit():
-            self.body.crash_sidewalk = True
+            self.crash_sidewalk = True
             contacts.add(BodyName.Sidewalk)
         if self.render:
             self.render_collision_info(contacts)
