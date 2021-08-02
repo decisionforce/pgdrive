@@ -6,7 +6,6 @@ Physics Callbacks and Object class
 """
 
 from panda3d.bullet import BulletRigidBodyNode
-
 from pgdrive.constants import BodyName
 
 
@@ -21,6 +20,8 @@ class BaseRigidBodyNode(BulletRigidBodyNode):
     def destroy(self):
         self.object = None
 
+
+# TODO inheriting from the BaseRigidBodyNode, property can be set in python object
 
 class TrafficSignNode(BulletRigidBodyNode):
     """

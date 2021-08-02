@@ -1,5 +1,4 @@
 import math
-from pgdrive.utils.utils import get_object_from_node
 import time
 from collections import deque
 from typing import Union, Optional
@@ -26,12 +25,12 @@ from pgdrive.component.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.utils import Config, safe_clip_for_small_array, Vector
-from pgdrive.engine.physics_node import BaseRigidBodyNode
-from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.engine.engine_utils import get_engine, engine_initialized
-from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
+from pgdrive.engine.physics_node import BaseRigidBodyNode
+from pgdrive.utils import Config, safe_clip_for_small_array, Vector
 from pgdrive.utils import get_np_random
+from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
+from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
 from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.scene_utils import rect_region_detection
 from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
@@ -49,7 +48,7 @@ class BaseVehicleState:
         self.on_white_continuous_line = False
         self.on_broken_line = False
 
-    def init_collision_info(self):
+    def init_state_info(self):
         self.crash_vehicle = False
         self.crash_object = False
         self.crash_sidewalk = False
@@ -241,7 +240,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def _init_step_info(self):
         # done info will be initialized every frame
-        self.init_collision_info()
+        self.init_state_info()
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
 
@@ -863,7 +862,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def set_static(self, flag):
         self.body.setStatic(flag)
-
 
     @property
     def reference_lanes(self):
