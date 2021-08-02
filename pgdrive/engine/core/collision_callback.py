@@ -1,4 +1,5 @@
 import logging
+from pgdrive.utils.utils import get_object_from_node
 
 from pgdrive.constants import BodyName
 
@@ -20,14 +21,14 @@ def collision_callback(contact):
             another_node_name = another_nodes[i].getName()
             # crash vehicles
             if another_node_name in [BodyName.Traffic_vehicle, BodyName.Base_vehicle]:
-                nodes[i].getPythonTag(BodyName.Base_vehicle).crash_vehicle = True
+                get_object_from_node(nodes[i]).crash_vehicle = True
             # crash objects
             elif another_node_name in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
                 if not another_nodes[i].getPythonTag(another_node_name).crashed:
-                    nodes[i].getPythonTag(BodyName.Base_vehicle).crash_object = True
+                    get_object_from_node(nodes[i]).crash_object = True
                     if another_nodes[i].getPythonTag(another_node_name).COST_ONCE:
                         another_nodes[i].getPythonTag(another_node_name).crashed = True
             # crash invisible wall or building
             elif another_node_name in [BodyName.InvisibleWall, BodyName.TollGate]:
-                nodes[i].getPythonTag(BodyName.Base_vehicle).crash_building = True
+                get_object_from_node(nodes[i]).crash_building = True
             logging.debug("{} crash with {}".format(nodes[i].getName(), another_nodes[i].getName()))

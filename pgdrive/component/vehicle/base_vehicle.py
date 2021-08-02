@@ -1,5 +1,5 @@
 import math
-from pgdrive.utils.utils import get_object
+from pgdrive.utils.utils import get_object_from_node
 import time
 from collections import deque
 from typing import Union, Optional
@@ -26,8 +26,8 @@ from pgdrive.component.vehicle_module.vehicle_panel import VehiclePanel
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
-from pgdrive.engine.physics_node import BaseVehicleNode
 from pgdrive.utils import Config, safe_clip_for_small_array, Vector
+from pgdrive.engine.physics_node import BaseRigidBodyNode
 from pgdrive.utils.coordinates_shift import panda_position, pgdrive_position, panda_heading, pgdrive_heading
 from pgdrive.engine.engine_utils import get_engine, engine_initialized
 from pgdrive.utils.math_utils import get_vertical_vector, norm, clip
@@ -37,7 +37,29 @@ from pgdrive.utils.scene_utils import rect_region_detection
 from pgdrive.utils.space import ParameterSpace, Parameter, VehicleParameterSpace
 
 
-class BaseVehicle(BaseObject):
+class BaseVehicleState:
+    def __init__(self):
+        self.crash_vehicle = False
+        self.crash_object = False
+        self.crash_sidewalk = False
+        self.crash_building = False
+
+        # lane line detection
+        self.on_yellow_continuous_line = False
+        self.on_white_continuous_line = False
+        self.on_broken_line = False
+
+    def init_collision_info(self):
+        self.crash_vehicle = False
+        self.crash_object = False
+        self.crash_sidewalk = False
+        self.crash_building = False
+        self.on_yellow_continuous_line = False
+        self.on_white_continuous_line = False
+        self.on_broken_line = False
+
+
+class BaseVehicle(BaseObject, BaseVehicleState):
     MODEL = None
     """
     Vehicle chassis and its wheels index
@@ -66,11 +88,11 @@ class BaseVehicle(BaseObject):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-        self,
-        vehicle_config: Union[dict, Config] = None,
-        name: str = None,
-        am_i_the_special_one=False,
-        random_seed=None,
+            self,
+            vehicle_config: Union[dict, Config] = None,
+            name: str = None,
+            am_i_the_special_one=False,
+            random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -84,7 +106,8 @@ class BaseVehicle(BaseObject):
 
         # NOTE: it is the game engine, not vehicle drivetrain
         self.engine = get_engine()
-        super(BaseVehicle, self).__init__(name, random_seed, vehicle_config)
+        BaseObject.__init__(self, name, random_seed, vehicle_config)
+        BaseVehicleState.__init__(self)
 
         # build vehicle physics model
         vehicle_chassis = self._create_vehicle_chassis()
@@ -218,7 +241,7 @@ class BaseVehicle(BaseObject):
 
     def _init_step_info(self):
         # done info will be initialized every frame
-        self.body.init_collision_info()
+        self.init_collision_info()
         self.out_of_route = False  # re-route is required if is false
         self.on_lane = True  # on lane surface or not
 
@@ -470,8 +493,8 @@ class BaseVehicle(BaseObject):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -509,7 +532,7 @@ class BaseVehicle(BaseObject):
         para = self.get_config()
         self.LENGTH = self.config["vehicle_length"]
         self.WIDTH = self.config["vehicle_width"]
-        chassis = BaseVehicleNode(BodyName.Base_vehicle, self)
+        chassis = BaseRigidBodyNode(self, BodyName.Base_vehicle)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, para[Parameter.vehicle_height] / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
@@ -780,7 +803,7 @@ class BaseVehicle(BaseObject):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -795,7 +818,7 @@ class BaseVehicle(BaseObject):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -830,44 +853,17 @@ class BaseVehicle(BaseObject):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
-
-    @property
-    def crash_vehicle(self):
-        return self.body.crash_vehicle
-
-    @property
-    def crash_object(self):
-        return self.body.crash_object
-
-    @property
-    def crash_sidewalk(self):
-        return self.body.crash_sidewalk
-
-    @property
-    def on_yellow_continuous_line(self):
-        return self.body.on_yellow_continuous_line
-
-    @property
-    def on_white_continuous_line(self):
-        return self.body.on_white_continuous_line
-
-    @property
-    def on_broken_line(self):
-        return self.body.on_broken_line
 
     def set_static(self, flag):
         self.body.setStatic(flag)
 
-    @property
-    def crash_building(self):
-        return self.body.crash_building
 
     @property
     def reference_lanes(self):
@@ -885,7 +881,7 @@ class BaseVehicle(BaseObject):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-            self.crash_building or self.crash_vehicle or
-            # self.on_white_continuous_line or
-            self.on_yellow_continuous_line
+                self.crash_building or self.crash_vehicle or
+                # self.on_white_continuous_line or
+                self.on_yellow_continuous_line
         )

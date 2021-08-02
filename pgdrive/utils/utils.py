@@ -147,7 +147,7 @@ def deprecation_warning(old, new, error=False) -> None:
         logger.warning("DeprecationWarning: " + msg + " This will raise an error in the future!")
 
 
-def get_object(node: BulletBodyNode):
+def get_object_from_node(node: BulletBodyNode):
     """
     Use this api to get the python object from bullet RayCast/SweepTest/CollisionCallback result
     """

@@ -12,9 +12,10 @@ from pgdrive.constants import BodyName
 
 class BaseRigidBodyNode(BulletRigidBodyNode):
 
-    def __init__(self, base_object):
-        super(BaseRigidBodyNode, self).__init__(base_object.name)
-        self.setPythonTag(self, base_object.name, self)
+    def __init__(self, base_object, type_name=None):
+        node_name = base_object.name if type_name is None else type_name
+        super(BaseRigidBodyNode, self).__init__(node_name)
+        self.setPythonTag(node_name, self)
         self.object = base_object
 
     def destroy(self):
@@ -51,51 +52,6 @@ class LaneNode(BulletRigidBodyNode):
         assert isinstance(lane, AbstractLane)
         self.info = lane
         self.index = lane_index
-
-
-class BaseVehicleNode(BaseRigidBodyNode):
-    """
-    Collision Properties should place here, info here can used for collision callback
-    """
-    def __init__(self, body_name: str, base_vehicle):
-        BulletRigidBodyNode.__init__(self, body_name)
-        BulletRigidBodyNode.setPythonTag(self, body_name, self)
-        # mutual reference here
-        self._base_vehicle = base_vehicle
-
-        self.crash_vehicle = False
-        self.crash_object = False
-        self.crash_sidewalk = False
-        self.crash_building = False
-
-        # lane line detection
-        self.on_yellow_continuous_line = False
-        self.on_white_continuous_line = False
-        self.on_broken_line = False
-
-    def init_collision_info(self):
-        self.crash_vehicle = False
-        self.crash_object = False
-        self.crash_sidewalk = False
-        self.crash_building = False
-        self.on_yellow_continuous_line = False
-        self.on_white_continuous_line = False
-        self.on_broken_line = False
-
-    @property
-    def position(self):
-        return self._base_vehicle.position
-
-    @property
-    def velocity(self):
-        return self._base_vehicle.velocity
-
-    def destroy(self):
-        # release pointer
-        self._base_vehicle = None
-
-    def get_vehicle(self):
-        return self._base_vehicle
 
 
 class TrafficVehicleNode(BulletRigidBodyNode):
