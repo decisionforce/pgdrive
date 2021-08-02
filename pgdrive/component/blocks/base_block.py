@@ -15,7 +15,7 @@ from pgdrive.component.road.road_network import RoadNetwork
 from pgdrive.constants import BodyName, CamMask, CollisionGroup, LineType, LineColor, DrivableAreaProperty
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.physics_world import PhysicsWorld
-from pgdrive.engine.physics_node import LaneNode
+from pgdrive.engine.physics_node import BaseRigidBodyNode
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.math_utils import norm, Vector
 
@@ -69,11 +69,11 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         raise NotImplementedError
 
     def construct_block(
-        self,
-        root_render_np: NodePath,
-        physics_world: PhysicsWorld,
-        extra_config: Dict = None,
-        no_same_node=True
+            self,
+            root_render_np: NodePath,
+            physics_world: PhysicsWorld,
+            extra_config: Dict = None,
+            no_same_node=True
     ) -> bool:
         """
         Randomly Construct a block, if overlap return False
@@ -303,14 +303,14 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         body_np.setQuat(LQuaternionf(numpy.cos(theta / 2), 0, 0, numpy.sin(theta / 2)))
 
     def _add_lane_line2bullet(
-        self,
-        lane_start,
-        lane_end,
-        middle,
-        parent_np: NodePath,
-        color: Vec4,
-        line_type: LineType,
-        straight_stripe=False
+            self,
+            lane_start,
+            lane_end,
+            middle,
+            parent_np: NodePath,
+            color: Vec4,
+            line_type: LineType,
+            straight_stripe=False
     ):
         length = norm(lane_end[0] - lane_start[0], lane_end[1] - lane_start[1])
         if length <= 0:
@@ -437,7 +437,8 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         :param lane: Lane info
         :return: None
         """
-        segment_np = NodePath(LaneNode(BodyName.Lane, lane, lane_index))
+        lane.index = lane_index
+        segment_np = NodePath(BaseRigidBodyNode(lane, BodyName.Lane))
         segment_node = segment_np.node()
         segment_node.set_active(False)
         segment_node.setKinematic(False)
@@ -473,14 +474,14 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
             card.setTexture(self.ts_color, self.road_texture)
 
     def _generate_invisible_static_wall(
-        self,
-        position: Tuple,
-        heading: float,
-        heading_length: float,
-        side_width: float,
-        height=10,
-        name=BodyName.InvisibleWall,
-        collision_group=CollisionGroup.InvisibleWall
+            self,
+            position: Tuple,
+            heading: float,
+            heading_length: float,
+            side_width: float,
+            height=10,
+            name=BodyName.InvisibleWall,
+            collision_group=CollisionGroup.InvisibleWall
     ):
         """
         Add an invisible physics wall to physics world

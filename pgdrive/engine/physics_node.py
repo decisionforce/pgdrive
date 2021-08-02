@@ -34,26 +34,6 @@ class TrafficSignNode(BulletRigidBodyNode):
         BulletRigidBodyNode.setPythonTag(self, object_body_name, self)
         self.crashed = False
 
-
-class LaneNode(BulletRigidBodyNode):
-    """
-    It is the body of land in panda3d, which can help quickly find current lane of vehicles
-    """
-    def __init__(self, node_name, lane, lane_index=(str, str, int)):
-        """
-        Using ray cast to query the lane information
-        :param node_name: node_name
-        :param lane: CircularLane or StraightLane
-        :param lane_index: Lane index
-        """
-        BulletRigidBodyNode.__init__(self, node_name)
-        BulletRigidBodyNode.setPythonTag(self, BodyName.Lane, self)
-        from pgdrive.component.lane.abs_lane import AbstractLane
-        assert isinstance(lane, AbstractLane)
-        self.info = lane
-        self.index = lane_index
-
-
 class TrafficVehicleNode(BulletRigidBodyNode):
 
     # for lidar detection and other purposes
