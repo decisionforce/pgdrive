@@ -59,7 +59,7 @@ class TrafficCone(TrafficSign):
     NAME = BodyName.Traffic_cone
 
     def __init__(
-            self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False, random_seed=None
+        self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False, random_seed=None
     ):
         super(TrafficCone, self).__init__(lane, lane_index, longitude, lateral, random_seed)
         self.body_node = BaseRigidBodyNode(self, self.NAME)
@@ -83,7 +83,7 @@ class TrafficTriangle(TrafficSign):
     RADIUS = 0.5
 
     def __init__(
-            self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False, random_seed=None
+        self, lane, lane_index: LaneIndex, longitude: float, lateral: float, static: bool = False, random_seed=None
     ):
         super(TrafficTriangle, self).__init__(lane, lane_index, longitude, lateral, random_seed)
         self.body_node = BaseRigidBodyNode(self, self.NAME)
