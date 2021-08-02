@@ -10,7 +10,6 @@ from pgdrive.constants import BodyName
 
 
 class BaseRigidBodyNode(BulletRigidBodyNode):
-
     def __init__(self, base_object, type_name=None):
         node_name = base_object.name if type_name is None else type_name
         super(BaseRigidBodyNode, self).__init__(node_name)
@@ -22,6 +21,7 @@ class BaseRigidBodyNode(BulletRigidBodyNode):
 
 
 # TODO inheriting from the BaseRigidBodyNode, property can be set in python object
+
 
 class TrafficSignNode(BulletRigidBodyNode):
     """
@@ -39,7 +39,6 @@ class LaneNode(BulletRigidBodyNode):
     """
     It is the body of land in panda3d, which can help quickly find current lane of vehicles
     """
-
     def __init__(self, node_name, lane, lane_index=(str, str, int)):
         """
         Using ray cast to query the lane information
