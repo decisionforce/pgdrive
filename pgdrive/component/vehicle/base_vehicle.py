@@ -21,7 +21,7 @@ from pgdrive.component.vehicle_module.depth_camera import DepthCamera
 from pgdrive.component.vehicle_module.distance_detector import SideDetector, LaneLineDetector
 from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.component.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.component.vehicle_module.vehicle_panel import VehiclePanel
+
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLOR, COLLISION_INFO_COLOR, BodyName, CamMask, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
