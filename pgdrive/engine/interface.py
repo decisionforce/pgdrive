@@ -10,17 +10,12 @@ class Interface:
     """
     Visualization interface, state banner and vehicle panel
     """
-
     def __init__(self, base_engine):
         self.engine = base_engine
         self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
         self.contact_result_render = self._init_collision_info_render(self.engine)
         self._contact_banners = {}  # to save time/memory
         self.current_banner = None
-
-        self.vehicle_panel.add_display_region(self.vehicle_panel.default_region)
-        self.contact_result_render.reparentTo(self.engine.aspect2d)
-        self.vehicle_panel.buffer.set_active(True)
 
     def after_step(self, vehicle):
         if vehicle is not None:

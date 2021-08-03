@@ -61,18 +61,14 @@ class ChaseCamera:
             # adjust hpr
             current_pos = self.camera.getPos()
             self.camera.lookAt(current_pos[0], current_pos[1], 0)
-            self.engine.task_manager.add(
-                self._top_down_task, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True
-            )
+            self.engine.task_manager.add(self._top_down_task, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
 
     def set_bird_view_pos(self, position):
         if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             # adjust hpr
             p_pos = panda_position(position)
             self.camera_x, self.camera_y = p_pos[0], p_pos[1]
-            self.engine.task_manager.add(
-                self._top_down_task, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True
-            )
+            self.engine.task_manager.add(self._top_down_task, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
 
     def reset(self):
         self.direction_running_mean.clear()
@@ -147,9 +143,7 @@ class ChaseCamera:
             self.engine.task_manager.remove(self.CHASE_TASK_NAME)
         if self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             self.engine.task_manager.remove(self.TOP_DOWN_TASK_NAME)
-        self.engine.task_manager.add(
-            self._chase_task, self.CHASE_TASK_NAME, extraArgs=[vehicle], appendTask=True
-        )
+        self.engine.task_manager.add(self._chase_task, self.CHASE_TASK_NAME, extraArgs=[vehicle], appendTask=True)
         self.camera_queue = queue.Queue(self.queue_length)
         for i in range(self.queue_length - 1):
             self.camera_queue.put(Vec3(pos[0], -pos[1], 0))
@@ -196,9 +190,7 @@ class ChaseCamera:
             # adjust hpr
             current_pos = self.camera.getPos()
             self.camera_x, self.camera_y = current_pos[0], current_pos[1]
-            self.engine.task_manager.add(
-                self._top_down_task, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True
-            )
+            self.engine.task_manager.add(self._top_down_task, self.TOP_DOWN_TASK_NAME, extraArgs=[], appendTask=True)
 
     def _top_down_task(self, task):
         self.top_down_camera_height = self._update_height(self.top_down_camera_height)

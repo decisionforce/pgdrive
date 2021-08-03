@@ -216,7 +216,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                 mini_map = MiniMap(vehicle_config["mini_map"], self.origin)
                 self.add_image_sensor("mini_map", mini_map)
 
-
         if vehicle_config["use_image"]:
             # 3 types image observation
             if vehicle_config["image_source"] == "rgb_cam":

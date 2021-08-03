@@ -65,7 +65,11 @@ class VehiclePanel(ImageBuffer):
                 card.setPos(0.2 + self.PARA_VIS_LENGTH / 2, 0, 0.22)
                 self.para_vis_np[name] = card
         super(VehiclePanel, self).__init__(
-            self.BUFFER_W, self.BUFFER_H, Vec3(-0.9, -1.01, 0.78), self.BKG_COLOR, parent_node=self.aspect2d_np,
+            self.BUFFER_W,
+            self.BUFFER_H,
+            Vec3(-0.9, -1.01, 0.78),
+            self.BKG_COLOR,
+            parent_node=self.aspect2d_np,
             engine=engine
         )
         self.add_display_region(self.default_region)

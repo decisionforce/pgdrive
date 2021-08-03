@@ -19,14 +19,14 @@ class ImageBuffer:
     default_region = [1 / 3, 2 / 3, 0.8, 1.0]
 
     def __init__(
-            self,
-            length: float,
-            width: float,
-            pos: Vec3,
-            bkg_color: Union[Vec4, Vec3],
-            parent_node: NodePath,
-            frame_buffer_property=None,
-            engine=None
+        self,
+        length: float,
+        width: float,
+        pos: Vec3,
+        bkg_color: Union[Vec4, Vec3],
+        parent_node: NodePath,
+        frame_buffer_property=None,
+        engine=None
     ):
         from pgdrive.engine.engine_utils import get_engine
         self.engine = engine or get_engine()
