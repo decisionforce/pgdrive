@@ -143,7 +143,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.routing_localization: Optional[RoutingLocalizationModule] = None
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-        self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
+        # self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
+        self.vehicle_panel = None
 
         # state info
         self.throttle_brake = 0.0
@@ -178,6 +179,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.back_vehicles = set()
 
     def _add_modules_for_vehicle(self, use_render: bool):
+
         # add self module for training according to config
         vehicle_config = self.config
         self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
@@ -206,7 +208,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                 logging.warning(
                     "You have set the lidar config to: {}, which seems to be invalid!".format(vehicle_config["lidar"])
                 )
-
+            return
             if use_render:
                 rgb_cam_config = vehicle_config["rgb_cam"]
                 rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
@@ -214,7 +216,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
                 mini_map = MiniMap(vehicle_config["mini_map"], self.origin)
                 self.add_image_sensor("mini_map", mini_map)
-            return
+
 
         if vehicle_config["use_image"]:
             # 3 types image observation
@@ -691,6 +693,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     @staticmethod
     def _init_collision_info_render(engine):
+        return None
         if engine.mode == "onscreen":
             info_np = NodePath("Collision info nodepath")
             info_np.reparentTo(engine.aspect2d)
