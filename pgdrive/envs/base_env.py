@@ -253,7 +253,7 @@ class BasePGDriveEnv(gym.Env):
         if mode == "rgb_array" and self.config["use_render"]:
             if not hasattr(self, "_temporary_img_obs"):
                 from pgdrive.obs.observation_base import ImageObservation
-                image_source = "rgb_cam"
+                image_source = "rgb_camera"
                 assert len(self.vehicles) == 1, "Multi-agent not supported yet!"
                 self.temporary_img_obs = ImageObservation(self.vehicles[DEFAULT_AGENT].config, image_source, False)
             else:

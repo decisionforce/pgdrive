@@ -66,15 +66,15 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         lidar=dict(num_lasers=240, distance=50, num_others=4, gaussian_noise=0.0, dropout_prob=0.0),
         show_lidar=False,
         mini_map=(84, 84, 250),  # buffer length, width
-        rgb_cam=(84, 84),  # buffer length, width
-        depth_cam=(84, 84, True),  # buffer length, width, view_ground
+        rgb_camera=(84, 84),  # buffer length, width
+        depth_camera=(84, 84, True),  # buffer length, width, view_ground
         side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
         show_side_detector=False,
         lane_line_detector=dict(num_lasers=0, distance=20),  # laser num, distance
         show_lane_line_detector=False,
 
         # ===== use image =====
-        image_source="rgb_cam",  # take effect when only when use_image == True
+        image_source="rgb_camera",  # take effect when only when use_image == True
 
         # ===== vehicle spawn =====
         spawn_lane_index=(FirstPGBlock.NODE_1, FirstPGBlock.NODE_2, 0),

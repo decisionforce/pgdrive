@@ -34,16 +34,16 @@ class DepthCamera(ImageBuffer):
 
         # add shader for it
         if self.engine.global_config["headless_image"]:
-            vert_path = AssetLoader.file_path("shaders", "depth_cam_gles.vert.glsl")
-            frag_path = AssetLoader.file_path("shaders", "depth_cam_gles.frag.glsl")
+            vert_path = AssetLoader.file_path("shaders", "depth_camera_gles.vert.glsl")
+            frag_path = AssetLoader.file_path("shaders", "depth_camera_gles.frag.glsl")
         else:
             from pgdrive.utils import is_mac
             if is_mac():
-                vert_path = AssetLoader.file_path("shaders", "depth_cam_mac.vert.glsl")
-                frag_path = AssetLoader.file_path("shaders", "depth_cam_mac.frag.glsl")
+                vert_path = AssetLoader.file_path("shaders", "depth_camera_mac.vert.glsl")
+                frag_path = AssetLoader.file_path("shaders", "depth_camera_mac.frag.glsl")
             else:
-                vert_path = AssetLoader.file_path("shaders", "depth_cam.vert.glsl")
-                frag_path = AssetLoader.file_path("shaders", "depth_cam.frag.glsl")
+                vert_path = AssetLoader.file_path("shaders", "depth_camera.vert.glsl")
+                frag_path = AssetLoader.file_path("shaders", "depth_camera.frag.glsl")
         custom_shader = Shader.load(Shader.SL_GLSL, vertex=vert_path, fragment=frag_path)
         self.cam.node().setInitialState(RenderState.make(ShaderAttrib.make(custom_shader, 1)))
 

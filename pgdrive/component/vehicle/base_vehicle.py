@@ -80,8 +80,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                     2       3
     """
     PARAMETER_SPACE = ParameterSpace(
-        VehicleParameterSpace.BASE_VEHICLE
-    )  # it will not sample config from parameter space
+        VehicleParameterSpace.BASE_VEHICLE)  # it will not sample config from parameter space
     COLLISION_MASK = CollisionGroup.EgoVehicle
     STEERING_INCREMENT = 0.05
 
@@ -96,11 +95,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-        self,
-        vehicle_config: Union[dict, Config] = None,
-        name: str = None,
-        am_i_the_special_one=False,
-        random_seed=None,
+            self,
+            vehicle_config: Union[dict, Config] = None,
+            name: str = None,
+            am_i_the_special_one=False,
+            random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -140,14 +139,14 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.panda_color = rand_c
         self._add_visualization()
 
-        # modules
-        self.image_sensors = {}
-        self.lidar: Optional[Lidar] = None
-        self.side_detector: Optional[SideDetector] = None
-        self.lane_line_detector: Optional[LaneLineDetector] = None
-        self.routing_localization: Optional[RoutingLocalizationModule] = None
+        # modules, get observation by using these modules
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
+        self.routing_localization: Optional[RoutingLocalizationModule] = None
+        self.lidar: Optional[Lidar] = None  # detect surrounding vehicles
+        self.side_detector: Optional[SideDetector] = None  # detect road side
+        self.lane_line_detector: Optional[LaneLineDetector] = None  # detect nearest lane lines
+        self.image_sensors = None
 
         # state info
         self.throttle_brake = 0.0
@@ -167,7 +166,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self._init_step_info()
 
         # others
-        self._add_modules_for_vehicle(self.config["use_render"])
+        self._add_modules_for_vehicle()
         self.takeover = False
         self._expert_takeover = False
         self.energy_consumption = 0
@@ -177,70 +176,36 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.front_vehicles = set()
         self.back_vehicles = set()
 
-    def _add_modules_for_vehicle(self, use_render: bool):
+    def _add_modules_for_vehicle(self, ):
+        config = self.config
+        # add routing module
+        self.add_routing_localization(config["show_navi_mark"])  # default added
 
-        # add self module for training according to config
-        vehicle_config = self.config
-        self.add_routing_localization(vehicle_config["show_navi_mark"])  # default added
-
-        if self.config["side_detector"]["num_lasers"] > 0:
+        # add distance detector
+        if config["side_detector"]["num_lasers"] > 0:
             self.side_detector = SideDetector(
-                self.engine.render, self.config["side_detector"]["num_lasers"],
-                self.config["side_detector"]["distance"], self.config["show_side_detector"]
-            )
+                self.engine.render, config["side_detector"]["num_lasers"],
+                config["side_detector"]["distance"], config["show_side_detector"])
 
-        if self.config["lane_line_detector"]["num_lasers"] > 0:
+        if config["lane_line_detector"]["num_lasers"] > 0:
             self.lane_line_detector = LaneLineDetector(
-                self.engine.render, self.config["lane_line_detector"]["num_lasers"],
-                self.config["lane_line_detector"]["distance"], self.config["show_lane_line_detector"]
-            )
+                self.engine.render, config["lane_line_detector"]["num_lasers"],
+                config["lane_line_detector"]["distance"], config["show_lane_line_detector"])
 
-        if not self.config["use_image"]:
-            if vehicle_config["lidar"]["num_lasers"] > 0 and vehicle_config["lidar"]["distance"] > 0:
-                self.add_lidar(
-                    num_lasers=vehicle_config["lidar"]["num_lasers"],
-                    distance=vehicle_config["lidar"]["distance"],
-                    show_lidar_point=vehicle_config["show_lidar"]
-                )
-            else:
-                import logging
-                logging.warning(
-                    "You have set the lidar config to: {}, which seems to be invalid!".format(vehicle_config["lidar"])
-                )
-            return
-            if use_render:
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
-                self.add_image_sensor("rgb_cam", rgb_cam)
+        if config["lidar"]["num_lasers"] > 0 and config["lidar"]["distance"] > 0:
+            self.add_lidar(
+                num_lasers=config["lidar"]["num_lasers"],
+                distance=config["lidar"]["distance"],
+                show_lidar_point=config["show_lidar"])
 
-                mini_map = MiniMap(vehicle_config["mini_map"], self.origin)
-                self.add_image_sensor("mini_map", mini_map)
-
-        if vehicle_config["use_image"]:
-            # 3 types image observation
-            if vehicle_config["image_source"] == "rgb_cam":
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
-                self.add_image_sensor("rgb_cam", rgb_cam)
-            elif vehicle_config["image_source"] == "mini_map":
-                mini_map = MiniMap(vehicle_config["mini_map"], self.origin)
-                self.add_image_sensor("mini_map", mini_map)
-            elif vehicle_config["image_source"] == "depth_cam":
-                cam_config = vehicle_config["depth_cam"]
-                depth_cam = DepthCamera(*cam_config, self.origin, self.engine)
-                self.add_image_sensor("depth_cam", depth_cam)
-            else:
-                raise ValueError("No module named {}".format(vehicle_config["image_source"]))
-
-        # load more sensors for visualization when render, only for beauty...
-        if use_render:
-            if vehicle_config["image_source"] == "mini_map":
-                rgb_cam_config = vehicle_config["rgb_cam"]
-                rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
-                self.add_image_sensor("rgb_cam", rgb_cam)
-            else:
-                mini_map = MiniMap(vehicle_config["mini_map"], self.origin)
-                self.add_image_sensor("mini_map", mini_map)
+        rgb_cam_config = config["rgb_cam"]
+        rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
+        self.add_image_sensor("rgb_cam", rgb_cam)
+        mini_map = MiniMap(config["mini_map"], self.origin)
+        self.add_image_sensor("mini_map", mini_map)
+        cam_config = config["depth_cam"]
+        depth_cam = DepthCamera(*cam_config, self.origin, self.engine)
+        self.add_image_sensor("depth_cam", depth_cam)
 
     def _init_step_info(self):
         # done info will be initialized every frame
@@ -366,7 +331,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.front_vehicles = set()
         self.back_vehicles = set()
 
-        if "depth_cam" in self.image_sensors and self.image_sensors["depth_cam"].view_ground:
+        if "depth_camera" in self.image_sensors and self.image_sensors["depth_camera"].view_ground:
             for block in map.blocks:
                 block.origin.hide(CamMask.DepthCam)
 
@@ -489,8 +454,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -750,7 +715,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -765,7 +730,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def remove_display_region(self):
         if self.render:
@@ -786,7 +751,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.engine = None
         self.lidar = None
         self.mini_map = None
-        self.rgb_cam = None
+        self.rgb_camera = None
         self.routing_localization = None
         self.wheels = None
 
@@ -794,12 +759,12 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def arrive_destination(self):
         long, lat = self.routing_localization.final_lane.local_coordinates(self.position)
         flag = (
-            self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
-        ) and (
-            self.routing_localization.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.routing_localization.get_current_lane_num()) *
-            self.routing_localization.get_current_lane_width()
-        )
+                       self.routing_localization.final_lane.length - 5 < long < self.routing_localization.final_lane.length + 5
+               ) and (
+                       self.routing_localization.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.routing_localization.get_current_lane_num()) *
+                       self.routing_localization.get_current_lane_width()
+               )
         return flag
 
     def set_static(self, flag):
@@ -821,7 +786,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-            self.crash_building or self.crash_vehicle or
-            # self.on_white_continuous_line or
-            self.on_yellow_continuous_line
+                self.crash_building or self.crash_vehicle or
+                # self.on_white_continuous_line or
+                self.on_yellow_continuous_line
         )

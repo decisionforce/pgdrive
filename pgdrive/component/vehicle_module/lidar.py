@@ -30,17 +30,6 @@ class Lidar(DistanceDetector):
                 vehicles.add(get_object_from_node(ret.getNode()))
         return vehicles
 
-    # def _get_surrounding_objects(self) -> Set[Object]:
-    #     """
-    #     TODO may be static objects info should be added in obs, now this func is useless
-    #     :return: a set of objects
-    #     """
-    #     objects = set()
-    #     for ret in self.detection_results:
-    #         if ret.hasHit() and ret.getNode().getName() in [BodyName.Traffic_cone, BodyName.Traffic_triangle]:
-    #             objects.add(ret.getNode().getPythonTag(BodyName.Traffic_vehicle).kinematic_model)
-    #     return objects
-
     def get_surrounding_vehicles_info(self, ego_vehicle, num_others: int = 4):
         from pgdrive.utils.math_utils import norm, clip
         surrounding_vehicles = list(self.get_surrounding_vehicles())

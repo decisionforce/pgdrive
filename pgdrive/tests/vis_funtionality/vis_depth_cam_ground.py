@@ -13,7 +13,7 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "use_image": True,
                 "rgb_clip": True,
-                "vehicle_config": dict(depth_cam=(200, 88, True), image_source="depth_cam"),
+                "vehicle_config": dict(depth_camera=(200, 88, True), image_source="depth_camera"),
                 "headless_image": False,
                 "map_config": {
                     BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_NUM,
