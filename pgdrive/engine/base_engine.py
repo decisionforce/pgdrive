@@ -250,4 +250,7 @@ class BaseEngine(EngineCore):
 
     @property
     def current_track_vehicle(self):
-        return self.main_camera.current_track_vehicle
+        if self.main_camera is not None:
+            return self.main_camera.current_track_vehicle
+        else:
+            return None

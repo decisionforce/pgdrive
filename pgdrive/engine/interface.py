@@ -86,8 +86,10 @@ class Interface:
 
     def destroy(self):
         self.remove_display_region()
-        self.vehicle_panel.destroy()
-        self.contact_result_render.removeNode()
+        if self.vehicle_panel is not None:
+            self.vehicle_panel.destroy()
+        if self.contact_result_render is not None:
+            self.contact_result_render.removeNode()
         self.contact_result_render = None
         self._contact_banners = None
         self.current_banner = None
