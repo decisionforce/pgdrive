@@ -146,7 +146,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.lidar: Optional[Lidar] = None  # detect surrounding vehicles
         self.side_detector: Optional[SideDetector] = None  # detect road side
         self.lane_line_detector: Optional[LaneLineDetector] = None  # detect nearest lane lines
-        self.image_sensors = None
+        self.image_sensors = {}
 
         # state info
         self.throttle_brake = 0.0
@@ -198,14 +198,14 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                 distance=config["lidar"]["distance"],
                 show_lidar_point=config["show_lidar"])
 
-        rgb_cam_config = config["rgb_cam"]
-        rgb_cam = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
-        self.add_image_sensor("rgb_cam", rgb_cam)
+        rgb_cam_config = config["rgb_camera"]
+        rgb_camera = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
+        self.add_image_sensor("rgb_camera", rgb_camera)
         mini_map = MiniMap(config["mini_map"], self.origin)
         self.add_image_sensor("mini_map", mini_map)
-        cam_config = config["depth_cam"]
-        depth_cam = DepthCamera(*cam_config, self.origin, self.engine)
-        self.add_image_sensor("depth_cam", depth_cam)
+        cam_config = config["depth_camera"]
+        depth_camera = DepthCamera(*cam_config, self.origin)
+        self.add_image_sensor("depth_camera", depth_camera)
 
     def _init_step_info(self):
         # done info will be initialized every frame

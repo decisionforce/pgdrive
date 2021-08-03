@@ -59,7 +59,7 @@ class DepthCamera(ImageBuffer):
             self.ground_model.setPos(-128, 0, self.GROUND)
             self.ground_model.hide(BitMask32.allOn())
             self.ground_model.show(CamMask.DepthCam)
-            self.ground.Generate()
+            self.ground.generate()
             self.engine.task_manager.add(
                 self.renew_pos_of_ground_mode, self.TASK_NAME, extraArgs=[chassis_np], appendTask=True
             )
