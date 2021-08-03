@@ -34,9 +34,10 @@ def test_original_lidar(render=False):
         v_config["spawn_lateral"] = 7.5
         another_v = BaseVehicle(v_config, random_seed=0)
         another_v.reset(env.current_map)
-        objs = env.vehicle.side_detector.perceive(env.vehicle,
-                                                  env.vehicle.engine.physics_world.static_world).detected_objects + env.vehicle.lane_line_detector.perceive(
-            env.vehicle, env.vehicle.engine.physics_world.static_world).detected_objects
+        objs = env.vehicle.side_detector.perceive(env.vehicle, env.vehicle.engine.physics_world.static_world
+                                                  ).detected_objects + env.vehicle.lane_line_detector.perceive(
+                                                      env.vehicle, env.vehicle.engine.physics_world.static_world
+                                                  ).detected_objects
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
@@ -87,9 +88,10 @@ def test_lidar_with_mask(render=False):
         another_v.reset(env.current_map)
         # for test
         env.agent_manager._pending_objects[another_v.name] = another_v
-        objs = env.vehicle.side_detector.perceive(env.vehicle,
-                                                  env.vehicle.engine.physics_world.static_world).detected_objects + env.vehicle.lane_line_detector.perceive(
-            env.vehicle, env.vehicle.engine.physics_world.static_world).detected_objects
+        objs = env.vehicle.side_detector.perceive(env.vehicle, env.vehicle.engine.physics_world.static_world
+                                                  ).detected_objects + env.vehicle.lane_line_detector.perceive(
+                                                      env.vehicle, env.vehicle.engine.physics_world.static_world
+                                                  ).detected_objects
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:

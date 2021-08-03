@@ -148,10 +148,7 @@ def test_detector_mask_in_lidar():
 
             v = env.vehicle
             c_p, objs = v.lidar.perceive(
-                v,
-                v.engine.physics_world.dynamic_world,
-                extra_filter_node={v.chassis.node()},
-                detector_mask=None
+                v, v.engine.physics_world.dynamic_world, extra_filter_node={v.chassis.node()}, detector_mask=None
             )
             old_cloud_points = np.array(copy.deepcopy(c_p))
 
@@ -184,10 +181,7 @@ def test_detector_mask_in_lidar():
             # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
             v = env.vehicle
             c_p, objs = v.lidar.perceive(
-                v,
-                v.engine.physics_world.dynamic_world,
-                extra_filter_node={v.chassis.node()},
-                detector_mask=mask
+                v, v.engine.physics_world.dynamic_world, extra_filter_node={v.chassis.node()}, detector_mask=mask
             )
             new_cloud_points = np.array(copy.deepcopy(c_p))
             np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
@@ -203,12 +197,12 @@ def test_detector_mask_in_lidar():
 
 def test_cutils_lidar():
     def _old_perceive(
-            self,
-            vehicle_position,
-            heading_theta,
-            physics_world,
-            extra_filter_node: set = None,
-            detector_mask: np.ndarray = None
+        self,
+        vehicle_position,
+        heading_theta,
+        physics_world,
+        extra_filter_node: set = None,
+        detector_mask: np.ndarray = None
     ):
         """
         Call me to update the perception info
@@ -268,12 +262,12 @@ def test_cutils_lidar():
     _fake_cutils = _get_fake_cutils()
 
     def fake_cutils_perceive(
-            self,
-            vehicle_position,
-            heading_theta,
-            physics_world,
-            extra_filter_node: set = None,
-            detector_mask: np.ndarray = None
+        self,
+        vehicle_position,
+        heading_theta,
+        physics_world,
+        extra_filter_node: set = None,
+        detector_mask: np.ndarray = None
     ):
         cloud_points, _, _ = _fake_cutils.cutils_perceive(
             cloud_points=self.cloud_points,
@@ -298,7 +292,7 @@ def test_cutils_lidar():
 
     env = PGDriveEnvV2({"map": "C", "traffic_density": 1.0, "environment_num": 10, "use_render": False})
     env.reset()
-    env.vehicle.lidar.cloud_points = np.ones((env.vehicle.lidar.num_lasers,), dtype=float)
+    env.vehicle.lidar.cloud_points = np.ones((env.vehicle.lidar.num_lasers, ), dtype=float)
     env.vehicle.lidar.detected_objects = []
     try:
         for _ in range(3):
@@ -309,10 +303,7 @@ def test_cutils_lidar():
 
                 v = env.vehicle
                 new_cloud_points, _ = v.lidar.perceive(
-                    v,
-                    v.engine.physics_world.dynamic_world,
-                    extra_filter_node={v.chassis.node()},
-                    detector_mask=None
+                    v, v.engine.physics_world.dynamic_world, extra_filter_node={v.chassis.node()}, detector_mask=None
                 )
                 new_cloud_points = np.array(copy.deepcopy(new_cloud_points))
                 old_cloud_points = _old_perceive(

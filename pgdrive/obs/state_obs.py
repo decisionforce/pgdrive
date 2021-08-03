@@ -11,7 +11,6 @@ class StateObservation(ObservationBase):
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
-
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -19,7 +18,7 @@ class StateObservation(ObservationBase):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + RoutingLocalizationModule.navigation_info_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):
         """
@@ -156,18 +155,23 @@ class LidarStateObservation(ObservationBase):
     def lidar_observe(self, vehicle):
         other_v_info = []
         if vehicle.lidar is not None:
-            cloud_points, detected_objects = vehicle.lidar.perceive(vehicle, vehicle.engine.physics_world.dynamic_world,
-                                                                    extra_filter_node={vehicle.body},
-                                                                    detector_mask=vehicle.lidar_mask)
+            cloud_points, detected_objects = vehicle.lidar.perceive(
+                vehicle,
+                vehicle.engine.physics_world.dynamic_world,
+                extra_filter_node={vehicle.body},
+                detector_mask=vehicle.lidar_mask
+            )
             if self.config["lidar"]["num_others"] > 0:
-                other_v_info += vehicle.lidar.get_surrounding_vehicles_info(vehicle, detected_objects,
-                                                                        self.config["lidar"]["num_others"])
+                other_v_info += vehicle.lidar.get_surrounding_vehicles_info(
+                    vehicle, detected_objects, self.config["lidar"]["num_others"]
+                )
             other_v_info += self._add_noise_to_cloud_points(
                 cloud_points,
                 gaussian_noise=self.config["lidar"]["gaussian_noise"],
-                dropout_prob=self.config["lidar"]["dropout_prob"])
+                dropout_prob=self.config["lidar"]["dropout_prob"]
+            )
             self.cloud_points = cloud_points
-            self.detected_objects=detected_objects
+            self.detected_objects = detected_objects
         return other_v_info
 
     def _add_noise_to_cloud_points(self, points, gaussian_noise, dropout_prob):
