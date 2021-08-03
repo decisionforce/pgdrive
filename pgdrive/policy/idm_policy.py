@@ -246,8 +246,6 @@ class IDMPolicy(BasePolicy):
         if not lane:
             lane = self.lane
         ret = lane.local_coordinates(vehicle.position)[0] - lane.local_coordinates(self.position)[0]
-        if ret == 0:
-            print('Fuck you!')
         return ret
 
     def acceleration(
@@ -282,9 +280,6 @@ class IDMPolicy(BasePolicy):
             # if isinstance(ego_vehicle, TrafficVehicle):
             d = self.lane_distance_to(front_vehicle)
 
-            if d > 0:
-                print('1111111111111')
-
             # else:
             #     d = ego_vehicle.lane_distance_to(front_vehicle)
 
@@ -292,9 +287,6 @@ class IDMPolicy(BasePolicy):
                             np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
         if acceleration < 0 and self.speed < 0:
             acceleration = -self.speed / 0.2
-
-        if abs(acceleration) > 10_0000:
-            print("Your acceleration {} is too large?".format(acceleration))
 
         return acceleration
 

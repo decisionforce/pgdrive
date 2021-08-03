@@ -286,7 +286,7 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH
-                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):
@@ -329,7 +329,7 @@ class PGDriveEnv(BasePGDriveEnv):
         reward -= steering_penalty
 
         # Penalty for frequent acceleration / brake
-        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1])**2)
+        acceleration_penalty = self.config["acceleration_penalty"] * ((action[1]) ** 2)
         reward -= acceleration_penalty
 
         # Penalty for waiting
@@ -502,7 +502,7 @@ class PGDriveEnv(BasePGDriveEnv):
                     #     throttle = saver_a[1]
 
                     # for collision
-                    lidar_p = vehicle.lidar.get_cloud_points()
+                    lidar_p = env.observations[DEFAULT_AGENT].cloud_points
                     left = int(vehicle.lidar.num_lasers / 4)
                     right = int(vehicle.lidar.num_lasers / 4 * 3)
                     if min(lidar_p[left - 4:left + 6]) < (save_level + 0.1) / 10 or min(lidar_p[right - 4:right + 6]
@@ -556,6 +556,7 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
+
 
     env = PGDriveEnv()
     try:

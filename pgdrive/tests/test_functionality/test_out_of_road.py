@@ -18,11 +18,13 @@ def test_out_of_road():
             )
             try:
                 obs = env.reset()
-                tolerance = math.sqrt(env.vehicle.WIDTH**2 + env.vehicle.LENGTH**2) / distance
+                tolerance = math.sqrt(env.vehicle.WIDTH ** 2 + env.vehicle.LENGTH ** 2) / distance
                 for _ in range(100000000):
                     o, r, d, i = env.step([steering, 1])
                     if d:
-                        points = env.vehicle.side_detector.get_cloud_points()
+                        points = \
+                            env.vehicle.side_detector.perceive(env.vehicle,
+                                                               env.vehicle.engine.physics_world.static_world).cloud_points
                         assert min(points) < tolerance, (min(points), tolerance)
                         print(
                             "Side detector minimal distance: {}, Current distance: {}, steering: {}".format(

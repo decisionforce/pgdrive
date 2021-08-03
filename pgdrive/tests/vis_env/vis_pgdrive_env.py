@@ -57,6 +57,7 @@ if __name__ == "__main__":
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption
         # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
+        assert env.observation_space.contains(o)
         env.render(
             text={
                 "reward": r,

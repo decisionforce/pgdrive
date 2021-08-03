@@ -20,9 +20,9 @@ class Lidar(DistanceDetector):
             CollisionGroup.EgoVehicle
         ) | BitMask32.bit(CollisionGroup.InvisibleWall)
 
-    def get_surrounding_vehicles(self) -> Set:
+    def get_surrounding_vehicles(self, detected_objects) -> Set:
         vehicles = set()
-        objs = self.get_detected_objects()
+        objs = detected_objects
         for ret in objs:
             if ret.getNode().hasPythonTag(BodyName.Traffic_vehicle):
                 vehicles.add(get_object_from_node(ret.getNode()).kinematic_model)
@@ -30,9 +30,9 @@ class Lidar(DistanceDetector):
                 vehicles.add(get_object_from_node(ret.getNode()))
         return vehicles
 
-    def get_surrounding_vehicles_info(self, ego_vehicle, num_others: int = 4):
+    def get_surrounding_vehicles_info(self, ego_vehicle, detected_objects, num_others: int = 4):
         from pgdrive.utils.math_utils import norm, clip
-        surrounding_vehicles = list(self.get_surrounding_vehicles())
+        surrounding_vehicles = list(self.get_surrounding_vehicles(detected_objects))
         surrounding_vehicles.sort(
             key=lambda v: norm(ego_vehicle.position[0] - v.position[0], ego_vehicle.position[1] - v.position[1])
         )

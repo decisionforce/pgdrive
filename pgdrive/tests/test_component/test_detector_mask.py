@@ -147,14 +147,13 @@ def test_detector_mask_in_lidar():
             print("We have: {} vehicles!".format(env.engine.traffic_manager.get_vehicle_num()))
 
             v = env.vehicle
-            v.lidar.perceive(
-                v.position,
-                v.heading_theta,
+            c_p, objs = v.lidar.perceive(
+                v,
                 v.engine.physics_world.dynamic_world,
                 extra_filter_node={v.chassis.node()},
                 detector_mask=None
             )
-            old_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
+            old_cloud_points = np.array(copy.deepcopy(c_p))
 
             position_dict = {}
             heading_dict = {}
@@ -184,14 +183,13 @@ def test_detector_mask_in_lidar():
 
             # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
             v = env.vehicle
-            v.lidar.perceive(
-                v.position,
-                v.heading_theta,
+            c_p, objs = v.lidar.perceive(
+                v,
                 v.engine.physics_world.dynamic_world,
                 extra_filter_node={v.chassis.node()},
                 detector_mask=mask
             )
-            new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
+            new_cloud_points = np.array(copy.deepcopy(c_p))
             np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
 
             if d:
@@ -205,12 +203,12 @@ def test_detector_mask_in_lidar():
 
 def test_cutils_lidar():
     def _old_perceive(
-        self,
-        vehicle_position,
-        heading_theta,
-        physics_world,
-        extra_filter_node: set = None,
-        detector_mask: np.ndarray = None
+            self,
+            vehicle_position,
+            heading_theta,
+            physics_world,
+            extra_filter_node: set = None,
+            detector_mask: np.ndarray = None
     ):
         """
         Call me to update the perception info
@@ -270,12 +268,12 @@ def test_cutils_lidar():
     _fake_cutils = _get_fake_cutils()
 
     def fake_cutils_perceive(
-        self,
-        vehicle_position,
-        heading_theta,
-        physics_world,
-        extra_filter_node: set = None,
-        detector_mask: np.ndarray = None
+            self,
+            vehicle_position,
+            heading_theta,
+            physics_world,
+            extra_filter_node: set = None,
+            detector_mask: np.ndarray = None
     ):
         cloud_points, _, _ = _fake_cutils.cutils_perceive(
             cloud_points=self.cloud_points,
@@ -296,9 +294,12 @@ def test_cutils_lidar():
             MARK_COLOR1=self.MARK_COLOR[1],
             MARK_COLOR2=self.MARK_COLOR[2]
         )
-        return cloud_points
+        return cloud_points.tolist(), _
 
     env = PGDriveEnvV2({"map": "C", "traffic_density": 1.0, "environment_num": 10, "use_render": False})
+    env.reset()
+    env.vehicle.lidar.cloud_points = np.ones((env.vehicle.lidar.num_lasers,), dtype=float)
+    env.vehicle.lidar.detected_objects = []
     try:
         for _ in range(3):
             env.reset()
@@ -307,9 +308,8 @@ def test_cutils_lidar():
                 o, r, d, i = env.step([0, 1])
 
                 v = env.vehicle
-                new_cloud_points = v.lidar.perceive(
-                    v.position,
-                    v.heading_theta,
+                new_cloud_points, _ = v.lidar.perceive(
+                    v,
                     v.engine.physics_world.dynamic_world,
                     extra_filter_node={v.chassis.node()},
                     detector_mask=None
@@ -320,7 +320,7 @@ def test_cutils_lidar():
                 )
                 np.testing.assert_almost_equal(new_cloud_points, old_cloud_points)
 
-                fake_cutils_cloud_points = fake_cutils_perceive(
+                fake_cutils_cloud_points, _ = fake_cutils_perceive(
                     v.lidar,
                     v.position,
                     v.heading_theta,
@@ -332,14 +332,17 @@ def test_cutils_lidar():
 
                 # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
                 v = env.vehicle
-                v.lidar.perceive(
-                    v.position,
-                    v.heading_theta,
+                c_p, _ = v.lidar.perceive(
+                    v,
                     v.engine.physics_world.dynamic_world,
-                    extra_filter_node={v.chassis.node()},
+                    extra_filter_node={v.body},
                     detector_mask=env.engine.detector_mask.get_mask(v.name)
                 )
-                new_cloud_points = np.array(copy.deepcopy(env.vehicle.lidar.get_cloud_points()))
+                old_cloud_points = _old_perceive(
+                    v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis.node()},
+                    env.engine.detector_mask.get_mask(v.name)
+                )
+                new_cloud_points = np.array(copy.deepcopy(c_p))
                 np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
 
                 if d:

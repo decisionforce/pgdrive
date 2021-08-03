@@ -59,6 +59,8 @@ class LidarStateObservationMARound(ObservationBase):
         self.state_obs = StateObservation(vehicle_config)
         super(LidarStateObservationMARound, self).__init__(vehicle_config)
         self.state_length = list(self.state_obs.observation_space.shape)[0]
+        self.cloud_points = None
+        self.detected_objects = None
 
     @property
     def observation_space(self):
@@ -73,8 +75,11 @@ class LidarStateObservationMARound(ObservationBase):
         state = self.state_observe(vehicle)
         other_v_info = []
         if vehicle.lidar is not None:
+            cloud_points, detected_objects = vehicle.lidar.perceive(vehicle, vehicle.engine.physics_world.dynamic_world,
+                                                                    extra_filter_node=[vehicle.body],
+                                                                    detector_mask=vehicle.lidar_mask)
             if self.config["lidar"]["num_others"] > 0:
-                surrounding_vehicles = list(vehicle.lidar.get_surrounding_vehicles())
+                surrounding_vehicles = list(vehicle.lidar.get_surrounding_vehicles(detected_objects))
                 surrounding_vehicles.sort(
                     key=lambda v: norm(vehicle.position[0] - v.position[0], vehicle.position[1] - v.position[1])
                 )
@@ -86,10 +91,12 @@ class LidarStateObservationMARound(ObservationBase):
                     else:
                         other_v_info += [0] * self.state_length
             other_v_info += self._add_noise_to_cloud_points(
-                vehicle.lidar.get_cloud_points(),
+                cloud_points,
                 gaussian_noise=self.config["lidar"]["gaussian_noise"],
                 dropout_prob=self.config["lidar"]["dropout_prob"]
             )
+            self.cloud_points = cloud_points
+            self.detected_objects = detected_objects
         return np.concatenate((state, np.asarray(other_v_info)))
 
     def state_observe(self, vehicle):

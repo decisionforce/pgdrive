@@ -171,6 +171,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self._expert_takeover = False
         self.energy_consumption = 0
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
+        # TODO remove me, this is a workaround
+        self.lidar_mask = None
 
         # overtake_stat
         self.front_vehicles = set()
@@ -178,10 +180,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def _add_modules_for_vehicle(self, ):
         config = self.config
+
         # add routing module
         self.add_routing_localization(config["show_navi_mark"])  # default added
 
-        # add distance detector
+        # add distance detector/lidar
         if config["side_detector"]["num_lasers"] > 0:
             self.side_detector = SideDetector(
                 self.engine.render, config["side_detector"]["num_lasers"],
@@ -193,19 +196,18 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                 config["lane_line_detector"]["distance"], config["show_lane_line_detector"])
 
         if config["lidar"]["num_lasers"] > 0 and config["lidar"]["distance"] > 0:
-            self.add_lidar(
-                num_lasers=config["lidar"]["num_lasers"],
-                distance=config["lidar"]["distance"],
-                show_lidar_point=config["show_lidar"])
+            self.lidar = Lidar(self.engine.render, config["lidar"]["num_lasers"], config["lidar"]["distance"],
+                               config["show_lidar"])
 
-        rgb_cam_config = config["rgb_camera"]
-        rgb_camera = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
-        self.add_image_sensor("rgb_camera", rgb_camera)
-        mini_map = MiniMap(config["mini_map"], self.origin)
-        self.add_image_sensor("mini_map", mini_map)
-        cam_config = config["depth_camera"]
-        depth_camera = DepthCamera(*cam_config, self.origin)
-        self.add_image_sensor("depth_camera", depth_camera)
+        # vision modules
+        # rgb_cam_config = config["rgb_camera"]
+        # rgb_camera = RGBCamera(rgb_cam_config[0], rgb_cam_config[1], self.origin)
+        # self.add_image_sensor("rgb_camera", rgb_camera)
+        # mini_map = MiniMap(config["mini_map"], self.origin)
+        # self.add_image_sensor("mini_map", mini_map)
+        # cam_config = config["depth_camera"]
+        # depth_camera = DepthCamera(*cam_config, self.origin)
+        # self.add_image_sensor("depth_camera", depth_camera)
 
     def _init_step_info(self):
         # done info will be initialized every frame
@@ -241,21 +243,9 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         return step_info
 
     def after_step(self, engine=None, detector_mask="WRONG"):
-        # lidar
-        if self.lidar is not None:
-            self.lidar.perceive(
-                self.position,
-                self.heading_theta,
-                self.engine.physics_world.dynamic_world,
-                extra_filter_node={self.body},
-                detector_mask=detector_mask
-            )
+        self.lidar_mask = detector_mask
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
-        if self.side_detector is not None:
-            self.side_detector.perceive(self.position, self.heading_theta, self.engine.physics_world.static_world)
-        if self.lane_line_detector is not None:
-            self.lane_line_detector.perceive(self.position, self.heading_theta, self.engine.physics_world.static_world)
         self._state_check()
         self.update_dist_to_left_right()
         step_energy, episode_energy = self._update_energy_consumption()
@@ -327,7 +317,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.energy_consumption = 0
 
         # overtake_stat
-        # TODO: Remove this!! A single instance of the vehicle should not access its context!!!
         self.front_vehicles = set()
         self.back_vehicles = set()
 
@@ -577,11 +566,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def add_image_sensor(self, name: str, sensor: ImageBuffer):
         self.image_sensors[name] = sensor
 
-    def add_lidar(self, num_lasers=240, distance=50, show_lidar_point=False):
-        assert num_lasers > 0
-        assert distance > 0
-        self.lidar = Lidar(self.engine.render, num_lasers, distance, show_lidar_point)
-
     def add_routing_localization(self, show_navi_mark: bool = False):
         config = self.config
         self.routing_localization = RoutingLocalizationModule(
@@ -709,7 +693,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.set_position(state["position"], height=0.28)
 
     def _update_overtake_stat(self):
-        if self.config["overtake_stat"]:
+        if self.config["overtake_stat"] and self.lidar is not None:
             surrounding_vs = self.lidar.get_surrounding_vehicles()
             routing = self.routing_localization
             ckpt_idx = routing._target_checkpoints_index
@@ -788,5 +772,4 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         return self._replay_done if hasattr(self, "_replay_done") else (
                 self.crash_building or self.crash_vehicle or
                 # self.on_white_continuous_line or
-                self.on_yellow_continuous_line
-        )
+                self.on_yellow_continuous_line)
