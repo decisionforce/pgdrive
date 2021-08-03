@@ -27,7 +27,7 @@ class DepthCamera(ImageBuffer):
         super(DepthCamera, self).__init__(
             self.BUFFER_W, self.BUFFER_H, Vec3(0.0, 0.8, 1.5), self.BKG_COLOR, parent_node=chassis_np
         )
-        self.add_to_display(self.default_region)
+        self.add_display_region(self.default_region)
         self.cam.lookAt(0, 2.4, 1.3)
         self.lens.setFov(60)
         self.lens.setAspectRatio(2.0)

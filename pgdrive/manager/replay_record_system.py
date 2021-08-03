@@ -4,8 +4,8 @@ import logging
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.road.road import Road
 from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT
-from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.engine.engine_utils import get_engine
+from pgdrive.manager.traffic_manager import TrafficManager
 
 
 class Replayer:

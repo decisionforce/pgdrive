@@ -5,6 +5,7 @@ from typing import Dict, AnyStr
 import numpy as np
 
 from pgdrive.engine.core.engine_core import EngineCore
+from pgdrive.engine.interface import Interface
 from pgdrive.engine.scene_cull import SceneCull
 from pgdrive.manager.base_manager import BaseManager
 
@@ -25,6 +26,7 @@ class BaseEngine(EngineCore):
 
     def __init__(self, global_config):
         super(BaseEngine, self).__init__(global_config)
+        self.interface = Interface(self)
 
         # managers
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager
@@ -133,7 +135,6 @@ class BaseEngine(EngineCore):
         Update states after finishing movement
         :return: if this episode is done
         """
-
         if self.replay_system is None:
             for manager in self._managers.values():
                 manager.after_step()
@@ -151,7 +152,7 @@ class BaseEngine(EngineCore):
                 self, self.traffic_manager.traffic_vehicles, poses, self.global_config["max_distance"]
             )
             SceneCull.cull_distant_objects(self, self.object_manager.objects, poses, self.global_config["max_distance"])
-
+        self.interface.after_step(self.current_track_vehicle)
         return step_infos
 
     def update_state_for_all_target_vehicles(self):
@@ -200,7 +201,7 @@ class BaseEngine(EngineCore):
                 setattr(self, name, None)
                 if manager is not None:
                     manager.destroy()
-
+        self.interface.destroy()
         self.clear_world()
         self.close_world()
 

@@ -18,7 +18,7 @@ class TestEnv(MultiAgentRoundaboutEnv):
                 "use_render": True,
                 # "debug":True,
                 "map": "XTX",
-                # "target_vehicle_configs": {
+                # "target_vehicle_configs": {sss
                 #     "agent0": {
                 #         "spawn_longitude": 40,
                 #         "show_lidar": True,

@@ -10,10 +10,10 @@ from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.constants import BodyName, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
+from pgdrive.engine.engine_utils import get_engine
 from pgdrive.engine.physics_node import BaseRigidBodyNode
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
-from pgdrive.engine.engine_utils import get_engine
 
 
 class TrafficVehicle(BaseObject):

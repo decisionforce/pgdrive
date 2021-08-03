@@ -1,11 +1,11 @@
 from typing import Set
-from pgdrive.utils.utils import get_object_from_node
 
 from panda3d.core import BitMask32, NodePath
 
 from pgdrive.component.vehicle.traffic_vehicle import TrafficVehicle
 from pgdrive.component.vehicle_module.distance_detector import DistanceDetector
 from pgdrive.constants import BodyName, CamMask, CollisionGroup
+from pgdrive.utils.utils import get_object_from_node
 
 
 class Lidar(DistanceDetector):

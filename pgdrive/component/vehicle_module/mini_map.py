@@ -19,4 +19,4 @@ class MiniMap(ImageBuffer):
         )
         self.cam.lookAt(Vec3(0, 20, 0))
         self.lens.setAspectRatio(2.0)
-        self.add_to_display(self.default_region)
+        self.add_display_region(self.default_region)

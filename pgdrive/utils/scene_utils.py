@@ -1,5 +1,4 @@
 import math
-from pgdrive.utils.utils import get_object_from_node
 from typing import List, TYPE_CHECKING, Tuple, Union
 
 import numpy as np
@@ -14,6 +13,7 @@ from pgdrive.engine.core.engine_core import EngineCore
 from pgdrive.utils.coordinates_shift import panda_heading
 from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.math_utils import get_points_bounding_box
+from pgdrive.utils.utils import get_object_from_node
 
 if TYPE_CHECKING:
     from pgdrive.component.blocks.pg_block import PGBlockSocket

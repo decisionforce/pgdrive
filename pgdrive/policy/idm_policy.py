@@ -11,10 +11,10 @@ from pgdrive.component.static_object import BaseStaticObject
 # from pgdrive.component.highway_vehicle.kinematics import Vehicle
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.constants import Route, LaneIndex
+from pgdrive.engine.engine_utils import get_engine
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.policy.base_policy import BasePolicy
 from pgdrive.utils import norm
-from pgdrive.engine.engine_utils import get_engine
 from pgdrive.utils.math_utils import clip
 from pgdrive.utils.scene_utils import ray_localization
 
