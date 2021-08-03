@@ -49,6 +49,9 @@ class BaseVehicleState:
         self.on_broken_line = False
 
     def init_state_info(self):
+        """
+        Call this before reset()/step()
+        """
         self.crash_vehicle = False
         self.crash_object = False
         self.crash_sidewalk = False
@@ -80,7 +83,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     LENGTH = None
     WIDTH = None
 
-    # for random color
+    # for random color choosing
     MATERIAL_COLOR_COEFF = 10  # to resist other factors, since other setting may make color dark
     MATERIAL_METAL_COEFF = 1  # 0-1
     MATERIAL_ROUGHNESS = 0.8  # smaller to make it more smooth, and reflect more light

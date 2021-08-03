@@ -193,7 +193,7 @@ class PGDriveEnv(BasePGDriveEnv):
         self.agent_manager.before_step()
         if self.config["manual_control"] and self.config["use_render"] \
                 and self.current_track_vehicle in self.agent_manager.get_vehicle_list() and not self.main_camera.is_bird_view_camera():
-            action = self.controller.process_input()
+            action = self.controller.process_input(self.current_track_vehicle)
             if self.is_multi_agent:
                 actions[self.agent_manager.object_to_agent(self.current_track_vehicle.name)] = action
             else:
