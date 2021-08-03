@@ -185,10 +185,11 @@ class ChaseCamera:
             engine.task_manager.remove(self.TOP_DOWN_TASK_NAME)
         self.current_track_vehicle = None
 
-    def stop_track(self, current_chase_vehicle):
+    def stop_track(self):
         if self.engine.task_manager.hasTaskNamed(self.CHASE_TASK_NAME):
             self.engine.task_manager.remove(self.CHASE_TASK_NAME)
-        current_chase_vehicle.remove_display_region()
+        if self.current_track_vehicle is not None:
+            self.current_track_vehicle.remove_display_region()
         self.current_track_vehicle = None
         if not self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             # adjust hpr

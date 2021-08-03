@@ -246,3 +246,7 @@ class BaseEngine(EngineCore):
             return ChaseCamera(self, self.global_config["camera_height"], self.global_config["camera_dist"])
         else:
             return None
+
+    @property
+    def current_track_vehicle(self):
+        return self.main_camera.current_track_vehicle

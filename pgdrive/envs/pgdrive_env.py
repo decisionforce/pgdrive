@@ -124,8 +124,6 @@ class PGDriveEnv(BasePGDriveEnv):
     def __init__(self, config: dict = None):
         super(PGDriveEnv, self).__init__(config)
 
-        self.current_track_vehicle: Optional[BaseVehicle] = None
-
     def _process_extra_config(self, config: Union[dict, "Config"]) -> "Config":
         """Check, update, sync and overwrite some config."""
         config = self.default_config().update(config, allow_add_new_key=False)
@@ -162,18 +160,18 @@ class PGDriveEnv(BasePGDriveEnv):
 
         # initialize track vehicles
         vehicles = self.agent_manager.get_vehicle_list()
-        self.current_track_vehicle = vehicles[0]
+        current_track_vehicle = vehicles[0]
         for vehicle in vehicles:
-            if vehicle is not self.current_track_vehicle:
+            if vehicle is not current_track_vehicle:
                 # for display
                 vehicle.remove_display_region()
 
         # for manual_control and main camera type
         if self.config["use_render"] or self.config["use_image"]:
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
-            self.main_camera.track(self.current_track_vehicle)
+            self.main_camera.track(current_track_vehicle)
             self.engine.accept("b", self.bird_view_camera)
-        self.engine.accept("q", self.chase_another_v)
+        self.engine.accept("q", self.chase_camera)
 
         # setup the detector mask
 
@@ -435,32 +433,27 @@ class PGDriveEnv(BasePGDriveEnv):
         """
         self.current_track_vehicle._expert_takeover = not self.current_track_vehicle._expert_takeover
 
-    def chase_another_v(self) -> (str, BaseVehicle):
-        done = False
-        if self.config["prefer_track_agent"] is not None:
-            if self.config["prefer_track_agent"] in self.vehicles.keys():
-                new_v = self.vehicles[self.config["prefer_track_agent"]]
-                self.current_track_vehicle = new_v
-                done = True
+    def chase_camera(self) -> (str, BaseVehicle):
         if self.main_camera is None:
             return
         self.main_camera.reset()
-        vehicles = list(self.agent_manager.active_agents.values())
-        if not self.main_camera.is_bird_view_camera():
-            if self.current_track_vehicle in vehicles:
+        if self.config["prefer_track_agent"] is not None and self.config["prefer_track_agent"] in self.vehicles.keys():
+            new_v = self.vehicles[self.config["prefer_track_agent"]]
+            current_track_vehicle = new_v
+        else:
+            vehicles = list(self.agent_manager.active_agents.values())
+            if self.current_track_vehicle in vehicles and len(vehicles) > 1:
                 vehicles.remove(self.current_track_vehicle)
-            if len(vehicles) == 0:
-                return
-            self.current_track_vehicle.remove_display_region()
-            if not done:
-                new_v = get_np_random().choice(vehicles)
-                self.current_track_vehicle = new_v
-        self.current_track_vehicle.add_to_display()
-        self.main_camera.track(self.current_track_vehicle)
+            if self.current_track_vehicle is not None:
+                self.current_track_vehicle.remove_display_region()
+            new_v = get_np_random().choice(vehicles)
+            current_track_vehicle = new_v
+        current_track_vehicle.add_to_display()
+        self.main_camera.track(current_track_vehicle)
         return
 
     def bird_view_camera(self):
-        self.main_camera.stop_track(self.current_track_vehicle)
+        self.main_camera.stop_track()
 
     def saver(self, v_id: str, actions):
         """
@@ -540,6 +533,10 @@ class PGDriveEnv(BasePGDriveEnv):
     @property
     def main_camera(self):
         return self.engine.main_camera
+
+    @property
+    def current_track_vehicle(self):
+        return self.engine.current_track_vehicle
 
 
 def _auto_termination(vehicle, should_done):

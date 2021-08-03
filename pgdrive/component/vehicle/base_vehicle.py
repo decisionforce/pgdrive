@@ -828,9 +828,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def remove_display_region(self):
         if self.render:
-            self.vehicle_panel.remove_display_region()
-            self.vehicle_panel.buffer.set_active(False)
-            self.collision_info_np.detachNode()
+            if self.vehicle_panel is not None:
+                self.vehicle_panel.remove_display_region()
+                self.vehicle_panel.buffer.set_active(False)
+            if self.collision_info_np is not None:
+                self.collision_info_np.detachNode()
             self.routing_localization._arrow_node_path.detachNode()
         for sensor in self.image_sensors.values():
             sensor.remove_display_region()
@@ -838,9 +840,9 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def add_to_display(self):
         if self.render:
-            self.vehicle_panel.add_to_display(self.vehicle_panel.default_region)
-            self.vehicle_panel.buffer.set_active(True)
-            self.collision_info_np.reparentTo(self.engine.aspect2d)
+            # self.vehicle_panel.add_to_display(self.vehicle_panel.default_region)
+            # self.collision_info_np.reparentTo(self.engine.aspect2d)
+            # self.vehicle_panel.buffer.set_active(True)
             self.routing_localization._arrow_node_path.reparentTo(self.engine.aspect2d)
         for sensor in self.image_sensors.values():
             sensor.add_to_display(sensor.default_region)
