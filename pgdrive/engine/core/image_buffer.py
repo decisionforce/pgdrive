@@ -16,7 +16,7 @@ class ImageBuffer:
     display_bottom = 0.8
     display_top = 1
     display_region = None
-    default_region = [1 / 3, 2 / 3, 0.8, 1.0]
+    display_region_size = [1 / 3, 2 / 3, 0.8, 1.0]
 
     def __init__(
             self,
@@ -101,7 +101,7 @@ class ImageBuffer:
             return np.clip(numpy_array, 0, 1)
 
     def add_display_region(self, display_region: List[float]):
-        if self.engine.mode==RENDER_MODE_ONSCREEN:
+        if self.engine.mode==RENDER_MODE_ONSCREEN and self.display_region is None:
             # only show them when onscreen
             self.display_region = self.engine.win.makeDisplayRegion(*display_region)
             self.display_region.setCamera(self.cam)
@@ -122,8 +122,9 @@ class ImageBuffer:
 
     def remove_display_region(self):
         engine = self.engine
-        if engine.mode == RENDER_MODE_ONSCREEN and self.display_region:
+        if engine.mode == RENDER_MODE_ONSCREEN and self.display_region is not None:
             engine.win.removeDisplayRegion(self.display_region)
+            self.display_region = None
         for line_node in self.line_borders:
             line_node.detachNode()
         self.origin.detachNode()

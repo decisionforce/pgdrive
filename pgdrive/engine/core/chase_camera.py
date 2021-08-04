@@ -12,7 +12,7 @@ from pgdrive.engine.engine_utils import get_engine
 from pgdrive.utils.coordinates_shift import panda_heading, panda_position
 
 
-class ChaseCamera:
+class MainCamera:
     """
     Only chase vehicle now
     """
@@ -122,7 +122,7 @@ class ChaseCamera:
         :param pos: pgdrive position, tuple
         :return: dir, tuple
         """
-        heading = ChaseCamera._heading_of_lane(lane, pos)
+        heading = MainCamera._heading_of_lane(lane, pos)
         return math.cos(heading), math.sin(heading)
 
     def track(self, vehicle):
@@ -132,7 +132,7 @@ class ChaseCamera:
         :return: None
         """
         self.current_track_vehicle = vehicle
-        self.engine.interface.add_display_region()
+        self.engine.interface.track(vehicle)
         pos = None
         if self.FOLLOW_LANE:
             pos = self._pos_on_lane(vehicle)  # Return None if routing system is not ready
@@ -181,7 +181,7 @@ class ChaseCamera:
         self.current_track_vehicle = None
 
     def stop_track(self):
-        self.engine.interface.remove_display_region()
+        self.engine.interface.stop_track()
         if self.engine.task_manager.hasTaskNamed(self.CHASE_TASK_NAME):
             self.engine.task_manager.remove(self.CHASE_TASK_NAME)
         if self.current_track_vehicle is not None:

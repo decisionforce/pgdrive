@@ -15,7 +15,7 @@ class BaseCamera(ImageBuffer):
     BUFFER_W = 84  # dim 1
     BUFFER_H = 84  # dim 2
     CAM_MASK = None
-    default_region = [1 / 3, 2 / 3, ImageBuffer.display_bottom, ImageBuffer.display_top]
+    display_region_size = [1 / 3, 2 / 3, ImageBuffer.display_bottom, ImageBuffer.display_top]
     _singleton = None
 
     attached_object = None
@@ -31,7 +31,7 @@ class BaseCamera(ImageBuffer):
 
     def get_image(self, base_object):
         """
-        Borrow the camera
+        Borrow the camera to get observations
         """
         self._singleton.origin.reparentTo(base_object.origin)
         ret = super(BaseCamera, self).get_image()
@@ -57,6 +57,7 @@ class BaseCamera(ImageBuffer):
     def get_lens(self):
         return self._singleton.lens
 
+    # following functions are for onscreen render
     def add_display_region(self, display_region):
         self.track(self.attached_object)
         super(BaseCamera, self).add_display_region(display_region)

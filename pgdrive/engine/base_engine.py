@@ -241,9 +241,9 @@ class BaseEngine(EngineCore):
         return self.map_manager.current_map
 
     def setup_main_camera(self):
-        from pgdrive.engine.core.chase_camera import ChaseCamera
+        from pgdrive.engine.core.chase_camera import MainCamera
         if self.global_config["use_render"] or self.global_config["offscreen_render"]:
-            return ChaseCamera(self, self.global_config["camera_height"], self.global_config["camera_dist"])
+            return MainCamera(self, self.global_config["camera_height"], self.global_config["camera_dist"])
         else:
             return None
 

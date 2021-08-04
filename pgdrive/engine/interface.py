@@ -24,14 +24,9 @@ class Interface:
         self.init_interface()
 
     def after_step(self):
-        if self.engine.current_track_vehicle is not None and self.engine.mode==RENDER_MODE_ONSCREEN:
+        if self.engine.current_track_vehicle is not None and self.engine.mode == RENDER_MODE_ONSCREEN:
             self.vehicle_panel.update_vehicle_state(self.engine.current_track_vehicle)
-            self.render_contact_result(self.engine.current_track_vehicle.contact_results)
-            for p in [self.left_panel, self.mid_panel]:
-                if p.attached_object is self.engine.current_track_vehicle:
-                    continue
-                else:
-                     p.track(self.engine.current_track_vehicle)
+            self._render_contact_result(self.engine.current_track_vehicle.contact_results)
 
     def init_interface(self):
         from pgdrive.component.vehicle_module.mini_map import MiniMap
@@ -73,7 +68,7 @@ class Interface:
             new_banner.reparentTo(self.contact_result_render)
             self.current_banner = new_banner
 
-    def render_contact_result(self, contacts):
+    def _render_contact_result(self, contacts):
         contacts = sorted(list(contacts), key=lambda c: COLLISION_INFO_COLOR[COLOR[c]][0])
         text = contacts[0] if len(contacts) != 0 else None
         if text is None:
@@ -84,7 +79,7 @@ class Interface:
                 text = BodyName.Traffic_vehicle
             self._render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
-    def remove_display_region(self):
+    def stop_track(self):
         if self.engine.mode == RENDER_MODE_ONSCREEN:
             self.vehicle_panel.remove_display_region()
             self.vehicle_panel.buffer.set_active(False)
@@ -92,16 +87,17 @@ class Interface:
             self.mid_panel.remove_display_region()
             self.left_panel.remove_display_region()
 
-    def add_display_region(self):
+    def track(self, vehicle):
         if self.engine.mode == RENDER_MODE_ONSCREEN:
             self.vehicle_panel.buffer.set_active(True)
             self.contact_result_render.reparentTo(self.engine.aspect2d)
-            self.vehicle_panel.add_display_region(self.vehicle_panel.default_region)
-            self.mid_panel.add_display_region(self.mid_panel.default_region)
-            self.left_panel.add_display_region(self.left_panel.default_region)
+            self.vehicle_panel.add_display_region(self.vehicle_panel.display_region_size)
+            for p in [self.left_panel, self.mid_panel]:
+                p.track(vehicle)
+                p.add_display_region(p.display_region_size)
 
     def destroy(self):
-        self.remove_display_region()
+        self.stop_track()
         if self.vehicle_panel is not None:
             self.vehicle_panel.destroy()
         if self.contact_result_render is not None:
@@ -120,7 +116,7 @@ class VehiclePanel(ImageBuffer):
     CAM_MASK = CamMask.PARA_VIS
     GAP = 4.1
     TASK_NAME = "update panel"
-    default_region = [2 / 3, 1, ImageBuffer.display_bottom, ImageBuffer.display_top]
+    display_region_size = [2 / 3, 1, ImageBuffer.display_bottom, ImageBuffer.display_top]
 
     def __init__(self, engine: EngineCore):
         if engine.win is None:
@@ -178,7 +174,7 @@ class VehiclePanel(ImageBuffer):
             parent_node=self.aspect2d_np,
             engine=engine
         )
-        self.add_display_region(self.default_region)
+        self.add_display_region(self.display_region_size)
 
     def update_vehicle_state(self, vehicle):
         steering, throttle_brake, speed = vehicle.steering, vehicle.throttle_brake, vehicle.speed
