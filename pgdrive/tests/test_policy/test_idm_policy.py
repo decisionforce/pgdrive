@@ -58,7 +58,7 @@ def test_idm_policy_is_moving(render=False, in_test=True):
     if render:
         config.update({"use_render": True, "fast": True, "manual_control": True})
     env = PGDriveEnvV2(config)
-    env.reset()
+    env.reset(force_seed=0)
     last_pos = None
     try:
         for _ in range(1000):

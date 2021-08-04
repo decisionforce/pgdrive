@@ -3,8 +3,8 @@ from panda3d.core import Vec3, Shader, RenderState, ShaderAttrib, BitMask32, Geo
 from pgdrive.component.vehicle_module.base_camera import BaseCamera
 from pgdrive.constants import CamMask
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.engine_utils import get_global_config, engine_initialized
-
+from pgdrive.engine.engine_utils import get_global_config, engine_initialized, get_engine
+from pgdrive.constants import RENDER_MODE_NONE
 
 class DepthCamera(BaseCamera):
     # shape(dim_1, dim_2)
@@ -27,7 +27,8 @@ class DepthCamera(BaseCamera):
         cam.lookAt(0, 2.4, 1.3)
         lens.setFov(60)
         lens.setAspectRatio(2.0)
-
+        if get_engine().mode == RENDER_MODE_NONE:
+            return
         # add shader for it
         if get_global_config()["headless_machine_render"]:
             vert_path = AssetLoader.file_path("shaders", "depth_cam_gles.vert.glsl")

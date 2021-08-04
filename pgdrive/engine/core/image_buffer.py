@@ -17,6 +17,7 @@ class ImageBuffer:
     display_top = 1
     display_region = None
     display_region_size = [1 / 3, 2 / 3, 0.8, 1.0]
+    line_borders = []
 
     def __init__(
             self,
@@ -54,7 +55,6 @@ class ImageBuffer:
             # now we have to setup a new scene graph to make this scene
 
         self.origin = NodePath("new render")
-        self.line_borders = []
         # this takes care of setting up their camera properly
         self.cam = self.engine.makeCamera(self.buffer, clearColor=bkg_color)
         self.cam.reparentTo(self.origin)
@@ -127,13 +127,13 @@ class ImageBuffer:
             self.display_region = None
         for line_node in self.line_borders:
             line_node.detachNode()
-        self.origin.detachNode()
 
     def destroy(self):
         engine = self.engine
         if engine is not None:
             self.remove_display_region()
-            engine.graphicsEngine.removeWindow(self.buffer)
+            if self.buffer is not None:
+                engine.graphicsEngine.removeWindow(self.buffer)
             self.display_region = None
             self.buffer = None
             if self.cam in engine.camList:
@@ -143,8 +143,9 @@ class ImageBuffer:
             for line_np in self.line_borders:
                 if line_np:
                     line_np.removeNode()
-        self.line_borders = None
-        self.origin.removeNode()
+        self.line_borders = []
+        if hasattr(self, "origin"):
+            self.origin.removeNode()
 
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
