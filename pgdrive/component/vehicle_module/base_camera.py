@@ -58,13 +58,13 @@ class BaseCamera(ImageBuffer):
         return self._singleton.lens
 
     def add_display_region(self, display_region):
-        if self.attached_object is not None:
-            self.track(self.attached_object)
+        self.track(self.attached_object)
         super(BaseCamera, self).add_display_region(display_region)
 
     def remove_display_region(self):
         super(BaseCamera, self).remove_display_region()
 
     def track(self, base_object):
-        self.attached_object = base_object
-        self._singleton.origin.reparentTo(base_object.origin)
+        if base_object is not None:
+            self.attached_object = base_object
+            self._singleton.origin.reparentTo(base_object.origin)
