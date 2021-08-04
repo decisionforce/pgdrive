@@ -40,9 +40,9 @@ if __name__ == "__main__":
     o = env.reset()
     print("vehicle num", len(env.engine.traffic_manager.vehicles))
     for i in range(1, 100000):
-        o, r, d, info = env.step({key:[0,0] for key in env.action_space.sample()})
+        o, r, d, info = env.step({key: [0, 0] for key in env.action_space.sample()})
         # o, r, d, info = env.step([0,1])
-        env.render(text={"display_regions":len(env.engine.win.getDisplayRegions())})
+        env.render(text={"display_regions": len(env.engine.win.getDisplayRegions())})
         if True in d.values():
             print("Reset")
             env.reset()

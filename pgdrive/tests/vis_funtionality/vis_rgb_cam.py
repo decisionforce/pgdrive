@@ -12,7 +12,7 @@ class TestEnv(PGDriveEnv):
                 "use_render": False,
                 "offscreen_render": True,  # it is a switch telling pgdrive to use rgb as observation
                 "rgb_clip": True,  # clip rgb to range(0,1) instead of (0, 255)
-                "pstats":True,
+                "pstats": True,
             }
         )
 

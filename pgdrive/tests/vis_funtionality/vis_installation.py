@@ -14,7 +14,13 @@ class TestEnv(PGDriveEnv):
 
 def capture_image(headless):
     env = PGDriveEnv(
-        dict(use_render=False, start_seed=666, traffic_density=0.1, offscreen_render=True, headless_machine_render=headless)
+        dict(
+            use_render=False,
+            start_seed=666,
+            traffic_density=0.1,
+            offscreen_render=True,
+            headless_machine_render=headless
+        )
     )
     env.reset()
     for i in range(10):

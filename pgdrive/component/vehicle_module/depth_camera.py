@@ -6,6 +6,7 @@ from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.engine_utils import get_global_config, engine_initialized, get_engine
 from pgdrive.constants import RENDER_MODE_NONE
 
+
 class DepthCamera(BaseCamera):
     # shape(dim_1, dim_2)
     CAM_MASK = CamMask.DepthCam
@@ -61,4 +62,3 @@ class DepthCamera(BaseCamera):
         self.GROUND_MODEL.setPos(-128, 0, self.GROUND)
         self.GROUND_MODEL.setP(-chassis_np.getP())
         self.GROUND_MODEL.setH(chassis_np.getH())
-

@@ -48,8 +48,8 @@ class Interface:
             self.contact_result_render = info_np
             self.vehicle_panel = VehiclePanel(self.engine)
             self.right_panel = self.vehicle_panel
-            self.mid_panel = RGBCamera() if self.engine.global_config["vehicle_config"][
-                                                "image_source"] != "depth_camera" else DepthCamera()
+            self.mid_panel = RGBCamera(
+            ) if self.engine.global_config["vehicle_config"]["image_source"] != "depth_camera" else DepthCamera()
             self.left_panel = MiniMap()
             self.arrow = self.engine.aspect2d.attachNewNode("arrow")
             navi_arrow_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "navi_arrow.gltf"))
