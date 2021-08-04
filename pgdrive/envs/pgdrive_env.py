@@ -45,7 +45,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
     # ===== Observation =====
     use_topdown=False,  # Use top-down view
-    use_image=False,
+    offscreen_render=False,
     _disable_detector_mask=False,
 
     # ===== Traffic =====
@@ -74,7 +74,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         show_lane_line_detector=False,
 
         # ===== use image =====
-        image_source="rgb_camera",  # take effect when only when use_image == True
+        image_source="rgb_camera",  # take effect when only when offscreen_render == True
 
         # ===== vehicle spawn =====
         spawn_lane_index=(FirstPGBlock.NODE_1, FirstPGBlock.NODE_2, 0),
@@ -143,7 +143,7 @@ class PGDriveEnv(BasePGDriveEnv):
         config["vehicle_config"].update(
             {
                 "use_render": config["use_render"],
-                "use_image": config["use_image"],
+                "offscreen_render": config["offscreen_render"],
                 "rgb_clip": config["rgb_clip"]
             }
         )
@@ -167,7 +167,7 @@ class PGDriveEnv(BasePGDriveEnv):
                 vehicle.remove_display_region()
 
         # for manual_control and main camera type
-        if self.config["use_render"] or self.config["use_image"]:
+        if self.config["use_render"] or self.config["offscreen_render"]:
             self.main_camera.set_follow_lane(self.config["use_chase_camera_follow_lane"])
             self.main_camera.track(current_track_vehicle)
             self.engine.accept("b", self.bird_view_camera)
@@ -524,7 +524,7 @@ class PGDriveEnv(BasePGDriveEnv):
         return (steering, throttle) if saver_info["takeover"] else action, saver_info
 
     def get_single_observation(self, vehicle_config: "Config") -> "ObservationType":
-        if self.config["use_image"]:
+        if self.config["offscreen_render"]:
             o = ImageStateObservation(vehicle_config)
         else:
             o = LidarStateObservation(vehicle_config)

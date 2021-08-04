@@ -84,7 +84,7 @@ BASE_DEFAULT_CONFIG = dict(
     debug_static_world=False,
 
     # set to true only when on headless machine and use rgb image!!!!!!
-    headless_image=False,
+    headless_machine_render=False,
 
     # turn on to profile the efficiency
     pstats=False,
@@ -246,7 +246,7 @@ class BasePGDriveEnv(gym.Env):
         """
         assert self.config["use_render"] or self.engine.mode != RENDER_MODE_NONE, ("render is off now, can not render")
         self.engine.render_frame(text)
-        if mode != "human" and self.config["use_image"]:
+        if mode != "human" and self.config["offscreen_render"]:
             # fetch img from img stack to be make this func compatible with other render func in RL setting
             return self.vehicle.observations.img_obs.get_image()
 
@@ -261,7 +261,7 @@ class BasePGDriveEnv(gym.Env):
             self.temporary_img_obs.observe(self.vehicles[DEFAULT_AGENT].image_sensors[image_source])
             return self.temporary_img_obs.get_image()
 
-        # logging.warning("You do not set 'use_image' or 'use_image' to True, so no image will be returned!")
+        # logging.warning("You do not set 'offscreen_render' or 'offscreen_render' to True, so no image will be returned!")
         return None
 
     def reset(self, episode_data: dict = None, force_seed: Union[None, int] = None):

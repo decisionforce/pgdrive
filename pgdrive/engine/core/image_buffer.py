@@ -31,7 +31,7 @@ class ImageBuffer:
         from pgdrive.engine.engine_utils import get_engine
         self.engine = engine or get_engine()
         try:
-            assert self.engine.win is not None, "{} cannot be made without use_render or use_image".format(
+            assert self.engine.win is not None, "{} cannot be made without use_render or offscreen_render".format(
                 self.__class__.__name__
             )
             assert self.CAM_MASK is not None, "Define a camera mask for every image buffer"

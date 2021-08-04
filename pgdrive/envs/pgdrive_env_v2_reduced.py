@@ -134,7 +134,7 @@ class PGDriveEnvV2Reduced(PGDriveEnvV2):
         return config
 
     def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
-        assert not self.config["use_image"]
+        assert not self.config["offscreen_render"]
         vehicle_config["obs_mode"] = self.config["obs_mode"]
         return LidarStateObservationV2(vehicle_config)
 

@@ -11,13 +11,13 @@ from pgdrive.utils import Config
 
 def _create_vehicle():
     v_config = Config(BASE_DEFAULT_CONFIG["vehicle_config"]).update(PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"])
-    v_config.update({"use_render": False, "use_image": False})
+    v_config.update({"use_render": False, "offscreen_render": False})
     config = Config(BASE_DEFAULT_CONFIG)
     config.update(
         {
             "use_render": False,
             "pstats": False,
-            "use_image": False,
+            "offscreen_render": False,
             "debug": False,
             "vehicle_config": v_config
         }
