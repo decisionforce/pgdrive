@@ -19,14 +19,14 @@ class ImageBuffer:
     default_region = [1 / 3, 2 / 3, 0.8, 1.0]
 
     def __init__(
-        self,
-        length: float,
-        width: float,
-        pos: Vec3,
-        bkg_color: Union[Vec4, Vec3],
-        parent_node: NodePath,
-        frame_buffer_property=None,
-        engine=None
+            self,
+            length: float,
+            width: float,
+            pos: Vec3,
+            bkg_color: Union[Vec4, Vec3],
+            parent_node: NodePath = None,
+            frame_buffer_property=None,
+            engine=None
     ):
         from pgdrive.engine.engine_utils import get_engine
         self.engine = engine or get_engine()
@@ -61,7 +61,8 @@ class ImageBuffer:
         self.cam.setPos(pos)
         self.lens = self.cam.node().getLens()
         self.cam.node().setCameraMask(self.CAM_MASK)
-        self.origin.reparentTo(parent_node)
+        if parent_node is not None:
+            self.origin.reparentTo(parent_node)
         logging.debug("Load Image Buffer: {}".format(self.__class__.__name__))
 
     def get_image(self):
@@ -85,7 +86,10 @@ class ImageBuffer:
         default: For gray scale image, one channel. Override this func, when you want a new obs type
         """
         img = self.get_image()
+        return self.convert_to_array(img, clip)
 
+    @staticmethod
+    def convert_to_array(img, clip=True):
         if not clip:
             numpy_array = np.array(
                 [[int(img.getGray(i, j) * 255) for j in range(img.getYSize())] for i in range(img.getXSize())],
@@ -97,7 +101,7 @@ class ImageBuffer:
             return np.clip(numpy_array, 0, 1)
 
     def add_display_region(self, display_region: List[float]):
-        if self.engine.global_config["use_render"]:
+        if self.engine.mode==RENDER_MODE_ONSCREEN:
             # only show them when onscreen
             self.display_region = self.engine.win.makeDisplayRegion(*display_region)
             self.display_region.setCamera(self.cam)
@@ -122,6 +126,7 @@ class ImageBuffer:
             engine.win.removeDisplayRegion(self.display_region)
         for line_node in self.line_borders:
             line_node.detachNode()
+        self.origin.detachNode()
 
     def destroy(self):
         engine = self.engine

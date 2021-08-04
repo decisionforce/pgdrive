@@ -1,0 +1,70 @@
+import numpy as np
+from panda3d.core import Vec3
+
+from pgdrive.engine.core.image_buffer import ImageBuffer
+
+
+class BaseCamera(ImageBuffer):
+    """
+    To enable the image observation, set offscreen render to True. The instance of subclasses will be singleton, so that
+    every objects share the same camera to boost the efficiency and save memory. Camera configuration is read from the
+    global config automatically.
+    """
+
+    # shape(dim_1, dim_2)
+    BUFFER_W = 84  # dim 1
+    BUFFER_H = 84  # dim 2
+    CAM_MASK = None
+    default_region = [1 / 3, 2 / 3, ImageBuffer.display_bottom, ImageBuffer.display_top]
+    _singleton = None
+
+    attached_object = None
+
+    @classmethod
+    def initialized(cls):
+        return True if cls._singleton is not None else False
+
+    def __init__(self):
+        if not self.initialized():
+            super(BaseCamera, self).__init__(self.BUFFER_W, self.BUFFER_H, Vec3(0.0, 0.8, 1.5), self.BKG_COLOR)
+            self._singleton = self
+
+    def get_image(self, base_object):
+        """
+        Borrow the camera
+        """
+        self._singleton.origin.reparentTo(base_object.origin)
+        ret = super(BaseCamera, self).get_image()
+        self.track(self.attached_object)
+        return ret
+
+    def save_image(self, base_object, name="debug.jpg"):
+        img = self.get_image(base_object)
+        img.write(name)
+
+    def get_pixels_array(self, base_object, clip=True) -> np.ndarray:
+        img = self.get_image(base_object)
+        return self._singleton.convert_to_array(img, clip)
+
+    def destroy(self):
+        if self.initialized():
+            self._singleton.destroy()
+            self._singleton = None
+
+    def get_cam(self):
+        return self._singleton.cam
+
+    def get_lens(self):
+        return self._singleton.lens
+
+    def add_display_region(self, display_region):
+        if self.attached_object is not None:
+            self.track(self.attached_object)
+        super(BaseCamera, self).add_display_region(display_region)
+
+    def remove_display_region(self):
+        super(BaseCamera, self).remove_display_region()
+
+    def track(self, base_object):
+        self.attached_object = base_object
+        self._singleton.origin.reparentTo(base_object.origin)

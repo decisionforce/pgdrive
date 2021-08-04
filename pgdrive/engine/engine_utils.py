@@ -1,7 +1,7 @@
 import copy
 import logging
 from typing import Optional
-
+from pgdrive.engine.interface import Interface
 from pgdrive.engine.base_engine import BaseEngine
 
 
@@ -10,6 +10,7 @@ def initialize_engine(env_global_config, agent_manager=None):
     if cls.singleton is None:
         # assert cls.global_config is not None, "Set global config before initialization BaseEngine"
         cls.singleton = cls(env_global_config)
+        cls.singleton.interface = Interface(cls.singleton)
     else:
         raise PermissionError("There should be only one BaseEngine instance in one process")
     add_managers(agent_manager)

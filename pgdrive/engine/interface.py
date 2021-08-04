@@ -11,28 +11,41 @@ class Interface:
     """
     Visualization interface, state banner and vehicle panel
     """
+
     def __init__(self, base_engine):
         self.engine = base_engine
-        self.vehicle_panel = VehiclePanel(self.engine) if (self.engine.mode == RENDER_MODE_ONSCREEN) else None
-        self.contact_result_render = self._init_collision_info_render(self.engine)
+        self.vehicle_panel = None
+        self.right_panel = None
+        self.mid_panel = None
+        self.left_panel = None
+        self.contact_result_render = None
         self._contact_banners = {}  # to save time/memory
         self.current_banner = None
+        self.init_interface()
 
-    def after_step(self, vehicle):
-        if vehicle is not None:
-            if self.vehicle_panel is not None:
-                self.vehicle_panel.update_vehicle_state(vehicle)
-            if self.contact_result_render is not None:
-                self.render_contact_result(vehicle.contact_results)
+    def after_step(self):
+        if self.engine.current_track_vehicle is not None and self.engine.mode==RENDER_MODE_ONSCREEN:
+            self.vehicle_panel.update_vehicle_state(self.engine.current_track_vehicle)
+            self.render_contact_result(self.engine.current_track_vehicle.contact_results)
+            for p in [self.left_panel, self.mid_panel]:
+                if p.attached_object is self.engine.current_track_vehicle:
+                    continue
+                else:
+                     p.track(self.engine.current_track_vehicle)
 
-    @staticmethod
-    def _init_collision_info_render(engine):
-        if engine.mode == "onscreen":
+    def init_interface(self):
+        from pgdrive.component.vehicle_module.mini_map import MiniMap
+        from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
+        from pgdrive.component.vehicle_module.depth_camera import DepthCamera
+        if self.engine.mode == RENDER_MODE_ONSCREEN:
             info_np = NodePath("Collision info nodepath")
-            info_np.reparentTo(engine.aspect2d)
-        else:
-            info_np = None
-        return info_np
+            info_np.reparentTo(self.engine.aspect2d)
+            self.contact_result_render = info_np
+            self.vehicle_panel = VehiclePanel(self.engine)
+            self.right_panel = self.vehicle_panel
+            self.mid_panel = RGBCamera() if self.engine.global_config["vehicle_config"][
+                                                "image_source"] != "depth_camera" else DepthCamera()
+            self.left_panel = MiniMap()
 
     def _render_banner(self, text, color=COLLISION_INFO_COLOR["green"][1]):
         """
@@ -72,18 +85,20 @@ class Interface:
             self._render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
     def remove_display_region(self):
-        if self.vehicle_panel is not None:
+        if self.engine.mode == RENDER_MODE_ONSCREEN:
             self.vehicle_panel.remove_display_region()
             self.vehicle_panel.buffer.set_active(False)
-        if self.contact_result_render is not None:
             self.contact_result_render.detachNode()
+            self.mid_panel.remove_display_region()
+            self.left_panel.remove_display_region()
 
     def add_display_region(self):
-        if self.vehicle_panel is not None:
-            self.vehicle_panel.add_display_region(self.vehicle_panel.default_region)
+        if self.engine.mode == RENDER_MODE_ONSCREEN:
             self.vehicle_panel.buffer.set_active(True)
-        if self.contact_result_render is not None:
             self.contact_result_render.reparentTo(self.engine.aspect2d)
+            self.vehicle_panel.add_display_region(self.vehicle_panel.default_region)
+            self.mid_panel.add_display_region(self.mid_panel.default_region)
+            self.left_panel.add_display_region(self.left_panel.default_region)
 
     def destroy(self):
         self.remove_display_region()
@@ -192,7 +207,6 @@ class VehiclePanel(ImageBuffer):
 
     def remove_display_region(self):
         super(VehiclePanel, self).remove_display_region()
-        self.origin.detachNode()
 
     def add_display_region(self, display_region):
         super(VehiclePanel, self).add_display_region(display_region)
