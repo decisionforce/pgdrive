@@ -184,8 +184,6 @@ class MainCamera:
         self.engine.interface.stop_track()
         if self.engine.task_manager.hasTaskNamed(self.CHASE_TASK_NAME):
             self.engine.task_manager.remove(self.CHASE_TASK_NAME)
-        if self.current_track_vehicle is not None:
-            self.current_track_vehicle.remove_display_region()
         if not self.engine.task_manager.hasTaskNamed(self.TOP_DOWN_TASK_NAME):
             # adjust hpr
             current_pos = self.camera.getPos()

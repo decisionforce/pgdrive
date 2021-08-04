@@ -1,9 +1,11 @@
 import time
+import math
 
-from panda3d.core import NodePath, TextNode, PGTop, CardMaker, Vec3
-
+from panda3d.core import NodePath, TextNode, PGTop, CardMaker, Vec3, LQuaternionf, BitMask32
+from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.constants import RENDER_MODE_ONSCREEN, COLLISION_INFO_COLOR, COLOR, BodyName, CamMask
 from pgdrive.engine.core.engine_core import EngineCore
+import numpy as np
 from pgdrive.engine.core.image_buffer import ImageBuffer
 
 
@@ -11,6 +13,7 @@ class Interface:
     """
     Visualization interface, state banner and vehicle panel
     """
+    ARROW_COLOR = COLLISION_INFO_COLOR["green"][1]
 
     def __init__(self, base_engine):
         self.engine = base_engine
@@ -19,14 +22,21 @@ class Interface:
         self.mid_panel = None
         self.left_panel = None
         self.contact_result_render = None
+        self.arrow = None
+        self._left_arrow = None
+        self._right_arrow = None
         self._contact_banners = {}  # to save time/memory
         self.current_banner = None
         self.init_interface()
+        self._is_showing_arrow = True  # store the state of navigation mark
 
     def after_step(self):
         if self.engine.current_track_vehicle is not None and self.engine.mode == RENDER_MODE_ONSCREEN:
-            self.vehicle_panel.update_vehicle_state(self.engine.current_track_vehicle)
-            self._render_contact_result(self.engine.current_track_vehicle.contact_results)
+            track_v = self.engine.current_track_vehicle
+            self.vehicle_panel.update_vehicle_state(track_v)
+            self._render_contact_result(track_v.contact_results)
+            if hasattr(track_v, "routing_localization"):
+                self._update_navi_arrow(track_v.routing_localization.navi_arrow_dir)
 
     def init_interface(self):
         from pgdrive.component.vehicle_module.mini_map import MiniMap
@@ -41,6 +51,40 @@ class Interface:
             self.mid_panel = RGBCamera() if self.engine.global_config["vehicle_config"][
                                                 "image_source"] != "depth_camera" else DepthCamera()
             self.left_panel = MiniMap()
+            self.arrow = self.engine.aspect2d.attachNewNode("arrow")
+            navi_arrow_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "navi_arrow.gltf"))
+            navi_arrow_model.setScale(0.1, 0.12, 0.2)
+            navi_arrow_model.setPos(2, 1.15, -0.221)
+            self._left_arrow = self.arrow.attachNewNode("left arrow")
+            self._left_arrow.setP(180)
+            self._right_arrow = self.arrow.attachNewNode("right arrow")
+            self._left_arrow.setColor(self.ARROW_COLOR)
+            self._right_arrow.setColor(self.ARROW_COLOR)
+            navi_arrow_model.instanceTo(self._left_arrow)
+            navi_arrow_model.instanceTo(self._right_arrow)
+            self.arrow.setPos(0, 0, 0.08)
+            self.arrow.hide(BitMask32.allOn())
+            self.arrow.show(CamMask.MainCam)
+            self.arrow.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
+            # the transparency attribute of gltf model is invalid on windows
+            # self.arrow.setTransparency(TransparencyAttrib.M_alpha)
+
+    def stop_track(self):
+        if self.engine.mode == RENDER_MODE_ONSCREEN:
+            self.vehicle_panel.remove_display_region()
+            self.vehicle_panel.buffer.set_active(False)
+            self.contact_result_render.detachNode()
+            self.mid_panel.remove_display_region()
+            self.left_panel.remove_display_region()
+
+    def track(self, vehicle):
+        if self.engine.mode == RENDER_MODE_ONSCREEN:
+            self.vehicle_panel.buffer.set_active(True)
+            self.contact_result_render.reparentTo(self.engine.aspect2d)
+            self.vehicle_panel.add_display_region(self.vehicle_panel.display_region_size)
+            for p in [self.left_panel, self.mid_panel]:
+                p.track(vehicle)
+                p.add_display_region(p.display_region_size)
 
     def _render_banner(self, text, color=COLLISION_INFO_COLOR["green"][1]):
         """
@@ -79,32 +123,43 @@ class Interface:
                 text = BodyName.Traffic_vehicle
             self._render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
-    def stop_track(self):
-        if self.engine.mode == RENDER_MODE_ONSCREEN:
-            self.vehicle_panel.remove_display_region()
-            self.vehicle_panel.buffer.set_active(False)
-            self.contact_result_render.detachNode()
-            self.mid_panel.remove_display_region()
-            self.left_panel.remove_display_region()
-
-    def track(self, vehicle):
-        if self.engine.mode == RENDER_MODE_ONSCREEN:
-            self.vehicle_panel.buffer.set_active(True)
-            self.contact_result_render.reparentTo(self.engine.aspect2d)
-            self.vehicle_panel.add_display_region(self.vehicle_panel.display_region_size)
-            for p in [self.left_panel, self.mid_panel]:
-                p.track(vehicle)
-                p.add_display_region(p.display_region_size)
-
     def destroy(self):
-        self.stop_track()
-        if self.vehicle_panel is not None:
+        if self.engine.mode == RENDER_MODE_ONSCREEN:
+            self.stop_track()
             self.vehicle_panel.destroy()
-        if self.contact_result_render is not None:
             self.contact_result_render.removeNode()
-        self.contact_result_render = None
-        self._contact_banners = None
-        self.current_banner = None
+            self.arrow.removeNode()
+            self.contact_result_render = None
+            self._contact_banners = None
+            self.current_banner = None
+            self.mid_panel.destroy()
+            self.left_panel.destroy()
+
+    def _update_navi_arrow(self, lanes_heading):
+        lane_0_heading = lanes_heading[0]
+        lane_1_heading = lanes_heading[1]
+        if abs(lane_0_heading - lane_1_heading) < 0.01:
+            if self._is_showing_arrow:
+                self._left_arrow.detachNode()
+                self._right_arrow.detachNode()
+                self._is_showing_arrow = False
+        else:
+            dir_0 = np.array([math.cos(lane_0_heading), math.sin(lane_0_heading), 0])
+            dir_1 = np.array([math.cos(lane_1_heading), math.sin(lane_1_heading), 0])
+            cross_product = np.cross(dir_1, dir_0)
+            left = False if cross_product[-1] < 0 else True
+            if not self._is_showing_arrow:
+                self._is_showing_arrow = True
+            if left:
+                if not self._left_arrow.hasParent():
+                    self._left_arrow.reparentTo(self.arrow)
+                if self._right_arrow.hasParent():
+                    self._right_arrow.detachNode()
+            else:
+                if not self._right_arrow.hasParent():
+                    self._right_arrow.reparentTo(self.arrow)
+                if self._left_arrow.hasParent():
+                    self._left_arrow.detachNode()
 
 
 class VehiclePanel(ImageBuffer):

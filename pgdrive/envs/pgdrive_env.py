@@ -161,10 +161,6 @@ class PGDriveEnv(BasePGDriveEnv):
         # initialize track vehicles
         vehicles = self.agent_manager.get_vehicle_list()
         current_track_vehicle = vehicles[0]
-        for vehicle in vehicles:
-            if vehicle is not current_track_vehicle:
-                # for display
-                vehicle.remove_display_region()
 
         # for manual_control and main camera type
         if self.config["use_render"] or self.config["offscreen_render"]:
@@ -449,11 +445,8 @@ class PGDriveEnv(BasePGDriveEnv):
                     return
                 if self.current_track_vehicle in vehicles:
                     vehicles.remove(self.current_track_vehicle)
-                if self.current_track_vehicle is not None:
-                    self.current_track_vehicle.remove_display_region()
                 new_v = get_np_random().choice(vehicles)
                 current_track_vehicle = new_v
-        current_track_vehicle.add_display_region()
         self.main_camera.track(current_track_vehicle)
         return
 

@@ -715,15 +715,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
         return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
-    def remove_display_region(self):
-        # TODO remove it
-        if self.render:
-            self.routing_localization._arrow_node_path.detachNode()
-
-    def add_display_region(self):
-        if self.render:
-            self.routing_localization._arrow_node_path.reparentTo(self.engine.aspect2d)
-
     def __del__(self):
         super(BaseVehicle, self).__del__()
         self.engine = None

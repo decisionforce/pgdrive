@@ -1,4 +1,5 @@
 import logging
+from pgdrive.engine.interface import Interface
 from collections import OrderedDict
 from typing import Dict, AnyStr
 
@@ -25,7 +26,8 @@ class BaseEngine(EngineCore):
 
     def __init__(self, global_config):
         super(BaseEngine, self).__init__(global_config)
-        self.interface = None
+        BaseEngine.singleton = self
+        self.interface = Interface(self)
 
         # managers
         self.task_manager = self.taskMgr  # use the inner TaskMgr of Panda3D as PGDrive task manager

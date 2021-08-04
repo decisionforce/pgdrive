@@ -214,7 +214,6 @@ class AgentManager(BaseManager):
         )]
         new_v = self._get_vehicles({agent_name: next_config})[agent_name]
         new_v_name = new_v.name
-        new_v.remove_display_region()
         self._newly_added_object_to_agent[new_v_name] = agent_name
         self._agent_to_object[agent_name] = new_v_name
         self._object_to_agent[new_v_name] = agent_name
