@@ -78,7 +78,6 @@ class LidarStateObservationMARound(ObservationBase):
             cloud_points, detected_objects = vehicle.lidar.perceive(
                 vehicle,
                 vehicle.engine.physics_world.dynamic_world,
-                extra_filter_node=[vehicle.body],
                 detector_mask=vehicle.lidar_mask
             )
             if self.config["lidar"]["num_others"] > 0:

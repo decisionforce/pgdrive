@@ -68,7 +68,6 @@ class BaseVehicleState:
 
 
 class BaseVehicle(BaseObject, BaseVehicleState):
-    MODEL = None
     """
     Vehicle chassis and its wheels index
                     0       1
@@ -79,6 +78,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                     II-----II
                     2       3
     """
+    MODEL = None
     PARAMETER_SPACE = ParameterSpace(
         VehicleParameterSpace.BASE_VEHICLE
     )  # it will not sample config from parameter space

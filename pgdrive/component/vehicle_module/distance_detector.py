@@ -148,6 +148,7 @@ class DistanceDetector:
         self.start_phase_offset = 0
         self.origin = parent_node_np.attachNewNode("Could_points")
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
+        self.extra_filter_node= {parent_node_np.node()}
 
         # override these properties to decide which elements to detect and show
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
@@ -168,7 +169,8 @@ class DistanceDetector:
                 ball.getChildren().reparentTo(laser_np)
             # self.origin.flattenStrong()
 
-    def perceive(self, base_vehicle, physics_world, extra_filter_node: set = None, detector_mask: np.ndarray = None):
+    def perceive(self, base_vehicle, physics_world, detector_mask: np.ndarray = None):
+        extra_filter_node = self.extra_filter_node
         vehicle_position = base_vehicle.position
         heading_theta = base_vehicle.heading_theta
         assert not isinstance(detector_mask, str), "Please specify detector_mask either with None or a numpy array."
