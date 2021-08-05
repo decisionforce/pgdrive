@@ -5,7 +5,6 @@ import numpy as np
 from panda3d.bullet import BulletGhostNode, ZUp, BulletCylinderShape
 from panda3d.core import BitMask32, NodePath
 
-
 from pgdrive.component.vehicle_module.distance_detector import DistanceDetector
 from pgdrive.constants import BodyName, CamMask, CollisionGroup
 from pgdrive.engine import get_engine
@@ -24,7 +23,8 @@ class Lidar(DistanceDetector):
         super(Lidar, self).__init__(num_lasers, distance, enable_show)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(CollisionGroup.TrafficVehicle) | BitMask32.bit(
-            CollisionGroup.EgoVehicle) | BitMask32.bit(CollisionGroup.InvisibleWall)
+            CollisionGroup.EgoVehicle
+        ) | BitMask32.bit(CollisionGroup.InvisibleWall)
 
         # lidar can calculate the detector mask by itself
         self.angle_delta = 360 / num_lasers
@@ -83,10 +83,10 @@ class Lidar(DistanceDetector):
 
         pos1 = vehicle.position
         head1 = vehicle.heading_theta
-        half_max_span_square = ((vehicle.LENGTH + vehicle.WIDTH) / 2) ** 2
+        half_max_span_square = ((vehicle.LENGTH + vehicle.WIDTH) / 2)**2
         objs = []
 
-        mask = np.zeros((self.num_lasers,), dtype=np.bool)
+        mask = np.zeros((self.num_lasers, ), dtype=np.bool)
         mask.fill(False)
         for contact in contact_results:
             node0 = contact.getNode0()
@@ -103,7 +103,7 @@ class Lidar(DistanceDetector):
             pos2 = obj.position
 
             diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
-            dist_square = diff[0] ** 2 + diff[1] ** 2
+            dist_square = diff[0]**2 + diff[1]**2
             if dist_square < half_max_span_square:
                 mask.fill(True)
                 continue

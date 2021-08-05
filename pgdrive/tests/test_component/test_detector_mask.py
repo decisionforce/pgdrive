@@ -20,8 +20,10 @@ from pgdrive.utils import panda_position
 
 class DetectorMask:
     def __init__(self, num_lasers: int, max_span: float, max_distance: float = 1e6):
-        logging.warning("This class is deprecated, the new lidar is implemented with this optimization, and"
-                                 "can be easily extended to 3d")
+        logging.warning(
+            "This class is deprecated, the new lidar is implemented with this optimization, and"
+            "can be easily extended to 3d"
+        )
         self.num_lasers = num_lasers
         self.angle_delta = 360 / self.num_lasers
         # self.max_span = max_span
@@ -264,9 +266,7 @@ def test_detector_mask_in_lidar():
             print("We have: {} vehicles!".format(env.engine.traffic_manager.get_vehicle_num()))
 
             v = env.vehicle
-            c_p, objs = v.lidar.perceive(
-                v, detector_mask=None
-            )
+            c_p, objs = v.lidar.perceive(v, detector_mask=None)
             old_cloud_points = np.array(copy.deepcopy(c_p))
 
             position_dict = {}
@@ -417,9 +417,7 @@ def test_cutils_lidar():
                 o, r, d, i = env.step([0, 1])
 
                 v = env.vehicle
-                new_cloud_points, _ = v.lidar.perceive(
-                    v,  detector_mask=None
-                )
+                new_cloud_points, _ = v.lidar.perceive(v, detector_mask=None)
                 new_cloud_points = np.array(copy.deepcopy(new_cloud_points))
                 old_cloud_points = _old_perceive(
                     v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis.node()}, None
@@ -438,11 +436,11 @@ def test_cutils_lidar():
 
                 # assert sum(abs(mask.astype(int) - real_mask.astype(int))) <= 3
                 v = env.vehicle
-                c_p, _ = v.lidar.perceive(
-                    v)
+                c_p, _ = v.lidar.perceive(v)
                 old_cloud_points = _old_perceive(
                     v.lidar, v.position, v.heading_theta, v.engine.physics_world.dynamic_world, {v.chassis.node()},
-                    v.lidar._get_lidar_mask(v))
+                    v.lidar._get_lidar_mask(v)
+                )
                 new_cloud_points = np.array(copy.deepcopy(c_p))
                 np.testing.assert_almost_equal(old_cloud_points, new_cloud_points)
 

@@ -136,7 +136,7 @@ class LaneLineDetector(SideDetector):
     MARK_COLOR = (1, 77 / 255, 77 / 255)
 
     def __init__(self, num_lasers: int = 2, distance: float = 50, enable_show=False):
-        super(SideDetector, self).__init__( num_lasers, distance, enable_show)
+        super(SideDetector, self).__init__(num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine) | BitMask32.bit(CollisionGroup.BrokenLaneLine)

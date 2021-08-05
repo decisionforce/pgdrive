@@ -155,9 +155,7 @@ class LidarStateObservation(ObservationBase):
     def lidar_observe(self, vehicle):
         other_v_info = []
         if vehicle.lidar is not None:
-            cloud_points, detected_objects = vehicle.lidar.perceive(
-                vehicle,
-            )
+            cloud_points, detected_objects = vehicle.lidar.perceive(vehicle, )
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(
                     vehicle, detected_objects, self.config["lidar"]["num_others"]

@@ -152,8 +152,7 @@ class BaseEngine(EngineCore):
         return step_infos
 
     def update_state_for_all_target_vehicles(self):
-        step_infos = self.agent_manager.for_each_active_agents(
-            lambda v: v.after_step())
+        step_infos = self.agent_manager.for_each_active_agents(lambda v: v.after_step())
         return step_infos
 
     def dump_episode(self) -> None:

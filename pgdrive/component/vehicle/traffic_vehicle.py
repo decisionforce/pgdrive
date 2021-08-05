@@ -66,7 +66,7 @@ class TrafficVehicle(BaseVehicle):
         position = panda_position(self.kinematic_model.position, 0)
         self.origin.setPos(position)
         heading = np.rad2deg(panda_heading(self.kinematic_model.heading))
-        self.origin.setH(heading-90)
+        self.origin.setH(heading - 90)
 
     def after_step(self):
         pass

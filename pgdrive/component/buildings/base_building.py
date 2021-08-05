@@ -9,7 +9,7 @@ class BaseBuilding(BaseStaticObject):
         self.origin = node_path
 
         # This is a work around
-        self.origin.node().getPythonTag(self.origin.node().getName()).object=self
+        self.origin.node().getPythonTag(self.origin.node().getName()).object = self
 
     def destroy(self):
         engine = get_engine()
