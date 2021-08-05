@@ -172,7 +172,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self._expert_takeover = False
         self.energy_consumption = 0
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
-        # TODO remove me, this is a workaround
 
         # overtake_stat
         self.front_vehicles = set()

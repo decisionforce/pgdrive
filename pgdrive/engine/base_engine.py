@@ -156,10 +156,6 @@ class BaseEngine(EngineCore):
             lambda v: v.after_step())
         return step_infos
 
-    def get_interactive_objects(self):
-        objs = self.agent_manager.get_vehicle_list() + self.object_manager.objects
-        return objs
-
     def dump_episode(self) -> None:
         """Dump the data of an episode."""
         assert self.record_system is not None
