@@ -17,7 +17,7 @@ class Lidar(DistanceDetector):
     Lidar_point_cloud_obs_dim = 240
     DEFAULT_HEIGHT = 0.5
 
-    BROAD_PHASE_EXTRA_DIST = 20
+    BROAD_PHASE_EXTRA_DIST = 0
 
     def __init__(self, num_lasers: int = 240, distance: float = 50, enable_show=False):
         super(Lidar, self).__init__(num_lasers, distance, enable_show)
@@ -32,7 +32,6 @@ class Lidar(DistanceDetector):
         self.broad_detector.node().addShape(BulletCylinderShape(self.BROAD_PHASE_EXTRA_DIST + distance, 5, ZUp))
         self.broad_detector.node().setIntoCollideMask(BitMask32.bit(CollisionGroup.LidarBroadDetector))
         self.broad_detector.node().setStatic(True)
-        self.broad_detector.node().setDeactivationEnabled(True)
         engine = get_engine()
         engine.physics_world.dynamic_world.attach(self.broad_detector.node())
         self.enable_mask = True if not engine.global_config["_disable_detector_mask"] else False
@@ -83,8 +82,7 @@ class Lidar(DistanceDetector):
 
         pos1 = vehicle.position
         head1 = vehicle.heading_theta
-        half_max_span_square = ((vehicle.LENGTH + vehicle.WIDTH) / 2)**2
-        objs = []
+        objs = set()
 
         mask = np.zeros((self.num_lasers, ), dtype=np.bool)
         mask.fill(False)
@@ -94,14 +92,17 @@ class Lidar(DistanceDetector):
             nodes = [node0, node1]
             nodes.remove(self.broad_detector.node())
             obj = get_object_from_node(nodes[0])
-            objs.append(obj)
+            objs.add(obj)
 
         if vehicle in objs:
             objs.remove(vehicle)
 
         for obj in objs:
             pos2 = obj.position
-
+            pos = obj.origin.getPos()
+            length = obj.LENGTH if hasattr(obj, "LENGTH") else vehicle.LENGTH
+            width = obj.WIDTH if hasattr(obj, "WIDTH") else vehicle.WIDTH
+            half_max_span_square = ((length+width) / 2) ** 2
             diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
             dist_square = diff[0]**2 + diff[1]**2
             if dist_square < half_max_span_square:

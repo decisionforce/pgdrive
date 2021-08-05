@@ -36,6 +36,8 @@ class TrafficVehicle(BaseVehicle):
         self.kinematic_model = IDMVehicle.create_from(kinematic_model)
         # TODO random seed work_around
         super(TrafficVehicle, self).__init__(engine.global_config["vehicle_config"], random_seed=random_seed)
+        self.step(0.01, {"steering": 0, "acceleration": 0})
+
 
     def _add_visualization(self):
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
@@ -86,6 +88,7 @@ class TrafficVehicle(BaseVehicle):
 
     def reset(self):
         self.kinematic_model = IDMVehicle.create_from(self._initial_state)
+        self.step(0.01, {"steering": 0, "acceleration": 0})
 
     def destroy(self):
         self.kinematic_model.destroy()
