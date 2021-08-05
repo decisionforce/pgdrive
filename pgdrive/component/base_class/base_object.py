@@ -45,6 +45,7 @@ class BaseObject(BaseRunnable):
     sample some special configs for it ,Properties and parameters in PARAMETER_SPACE of the object are fixed after
     calling __init__().
     """
+
     def __init__(self, name=None, random_seed=None, config=None):
         """
         Config is a static conception, which specified the parameters of one element.

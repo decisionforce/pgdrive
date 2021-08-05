@@ -87,6 +87,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     LENGTH = None
     WIDTH = None
+    HEIGHT = None
 
     # for random color choosing
     MATERIAL_COLOR_COEFF = 10  # to resist other factors, since other setting may make color dark
@@ -472,11 +473,12 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def _create_vehicle_chassis(self):
         para = self.get_config()
-        self.LENGTH = self.config["vehicle_length"]
-        self.WIDTH = self.config["vehicle_width"]
+        self.LENGTH = type(self).LENGTH or self.config["vehicle_length"]
+        self.WIDTH = type(self).WIDTH or self.config["vehicle_width"]
+        self.HEIGHT = type(self).HEIGHT or self.config[Parameter.vehicle_height]
         chassis = BaseRigidBodyNode(self, BodyName.Base_vehicle)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
-        chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, para[Parameter.vehicle_height] / 2))
+        chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, self.HEIGHT / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)
         chassis.setMass(para[Parameter.mass])

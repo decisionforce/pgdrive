@@ -1,22 +1,19 @@
 from typing import Union
 
 import numpy as np
-from panda3d.bullet import BulletBoxShape
-from panda3d.core import BitMask32, TransformState, Point3, Vec3
 
-from pgdrive.component.base_class.base_object import BaseObject
 from pgdrive.component.highway_vehicle.behavior import IDMVehicle
 from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
-from pgdrive.constants import BodyName, CollisionGroup
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.constants import CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.engine_utils import get_engine
-from pgdrive.engine.physics_node import BaseRigidBodyNode
 from pgdrive.manager.traffic_manager import TrafficManager
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 
 
-class TrafficVehicle(BaseObject):
+class TrafficVehicle(BaseVehicle):
     COLLISION_MASK = CollisionGroup.TrafficVehicle
     HEIGHT = 1.8
     LENGTH = 4
@@ -28,29 +25,19 @@ class TrafficVehicle(BaseObject):
     def __init__(self, index: int, kinematic_model: IDMVehicle, enable_respawn: bool = False, random_seed=None):
         """
         A traffic vehicle class.
-        :param index: Each Traffic vehicle has an unique index, and the name of this vehicle will contain this index
         :param kinematic_model: IDM Model or other models
         :param enable_respawn: It will be generated at the spawn place again when arriving at the destination
         :param random_seed: Random Engine seed
         """
         kinematic_model.LENGTH = self.LENGTH
         kinematic_model.WIDTH = self.WIDTH
-        super(TrafficVehicle, self).__init__(random_seed=random_seed)
-        self.add_body(BaseRigidBodyNode(self, BodyName.Traffic_vehicle))
-        self.vehicle_node = self.body
-        chassis_shape = BulletBoxShape(Vec3(self.LENGTH / 2, self.WIDTH / 2, self.HEIGHT / 2))
-        self.index = index
-        self.vehicle_node.addShape(chassis_shape, TransformState.makePos(Point3(0, 0, self.HEIGHT / 2)))
-        self.vehicle_node.setMass(800.0)
-        self.vehicle_node.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
-        self.vehicle_node.setKinematic(False)
-        self.vehicle_node.setStatic(True)
-        self.enable_respawn = enable_respawn
+        engine = get_engine()
         self._initial_state = kinematic_model if enable_respawn else None
-        self.dynamic_nodes.append(self.vehicle_node)
         self.kinematic_model = IDMVehicle.create_from(kinematic_model)
-        # self.out_of_road = False
+        # TODO random seed work_around
+        super(TrafficVehicle, self).__init__(engine.global_config["vehicle_config"], random_seed=random_seed)
 
+    def _add_visualization(self):
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
         if self.render:
             if path not in TrafficVehicle.model_collection:
@@ -59,19 +46,12 @@ class TrafficVehicle(BaseObject):
             else:
                 carNP = TrafficVehicle.model_collection[path]
             carNP.setScale(scale)
-            carNP.setH(H)
+            carNP.setH(H+90)
             carNP.setPos(x_y_z_offset)
-
             carNP.instanceTo(self.origin)
-        self.step(1e-1, None)
-        # self.carNP.setQuat(LQuaternionf(math.cos(-1 * np.pi / 4), 0, 0, math.sin(-1 * np.pi / 4)))
 
-    # def before_step(self) -> None:
-    #     """
-    #     Determine the action according to the elements in scene
-    #     :return: None
-    #     """
-    #     self.kinematic_model.act()
+    def before_step(self):
+        pass
 
     def step(self, dt, action=None):
         if self.break_down:
@@ -86,7 +66,7 @@ class TrafficVehicle(BaseObject):
         position = panda_position(self.kinematic_model.position, 0)
         self.origin.setPos(position)
         heading = np.rad2deg(panda_heading(self.kinematic_model.heading))
-        self.origin.setH(heading)
+        self.origin.setH(heading-90)
 
     def after_step(self):
         # engine = get_engine()
@@ -123,13 +103,9 @@ class TrafficVehicle(BaseObject):
 
     def destroy(self):
         self.kinematic_model.destroy()
-        self.vehicle_node.destroy()
         super(TrafficVehicle, self).destroy()
 
-    def get_name(self):
-        return self.vehicle_node.getName() + "_" + str(self.index)
-
-    def set_position(self, position):
+    def set_position(self, position, height=0.4):
         """
         Should only be called when restore traffic from episode data
         :param position: 2d array or list
@@ -190,7 +166,6 @@ class TrafficVehicle(BaseObject):
     def __del__(self):
         super(TrafficVehicle, self).__del__()
 
-    # TODO(pzh): This is only workaround! We should not have so many speed all around!
     @property
     def speed(self):
         return self.kinematic_model.speed
