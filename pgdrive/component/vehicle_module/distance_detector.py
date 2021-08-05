@@ -1,4 +1,5 @@
 import logging
+from pgdrive.engine.engine_utils import get_engine
 from collections import namedtuple
 import math
 from collections import defaultdict
@@ -17,6 +18,8 @@ cutils = import_cutils()
 
 class DetectorMask:
     def __init__(self, num_lasers: int, max_span: float, max_distance: float = 1e6):
+        raise DeprecationWarning("This class is deprecated, the new lidar is implemented with this optimization, and"
+                                 "can be easily extended to 3d")
         self.num_lasers = num_lasers
         self.angle_delta = 360 / self.num_lasers
         # self.max_span = max_span
@@ -136,8 +139,9 @@ class DistanceDetector:
     MARK_COLOR = (51 / 255, 221 / 255, 1)
     ANGLE_FACTOR = False
 
-    def __init__(self, parent_node_np: NodePath, num_lasers: int = 16, distance: float = 50, enable_show=False):
+    def __init__(self, num_lasers: int = 16, distance: float = 50, enable_show=False):
         # properties
+        parent_node_np: NodePath = get_engine().render
         assert num_lasers > 0
         show = enable_show and (AssetLoader.loader is not None)
         self.dim = num_lasers
@@ -233,8 +237,8 @@ class DistanceDetector:
 
 
 class SideDetector(DistanceDetector):
-    def __init__(self, parent_node_np: NodePath, num_lasers: int = 2, distance: float = 50, enable_show=False):
-        super(SideDetector, self).__init__(parent_node_np, num_lasers, distance, enable_show)
+    def __init__(self, num_lasers: int = 2, distance: float = 50, enable_show=False):
+        super(SideDetector, self).__init__(num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine)
@@ -243,8 +247,8 @@ class SideDetector(DistanceDetector):
 class LaneLineDetector(SideDetector):
     MARK_COLOR = (1, 77 / 255, 77 / 255)
 
-    def __init__(self, parent_node_np: NodePath, num_lasers: int = 2, distance: float = 50, enable_show=False):
-        super(SideDetector, self).__init__(parent_node_np, num_lasers, distance, enable_show)
+    def __init__(self, num_lasers: int = 2, distance: float = 50, enable_show=False):
+        super(SideDetector, self).__init__( num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine) | BitMask32.bit(CollisionGroup.BrokenLaneLine)

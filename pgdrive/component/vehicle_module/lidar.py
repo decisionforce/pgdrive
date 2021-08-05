@@ -1,10 +1,15 @@
 from typing import Set
+import math
 
+import numpy as np
+from panda3d.bullet import BulletGhostNode, ZUp, BulletCylinderShape
 from panda3d.core import BitMask32, NodePath
 
 from pgdrive.component.vehicle.traffic_vehicle import TrafficVehicle
 from pgdrive.component.vehicle_module.distance_detector import DistanceDetector
 from pgdrive.constants import BodyName, CamMask, CollisionGroup
+from pgdrive.engine import get_engine
+from pgdrive.utils.coordinates_shift import panda_position
 from pgdrive.utils.utils import get_object_from_node
 
 
@@ -13,14 +18,34 @@ class Lidar(DistanceDetector):
     Lidar_point_cloud_obs_dim = 240
     DEFAULT_HEIGHT = 0.5
 
-    def __init__(self, parent_node_np: NodePath, num_lasers: int = 240, distance: float = 50, enable_show=False):
-        super(Lidar, self).__init__(parent_node_np, num_lasers, distance, enable_show)
+    BROAD_PHASE_EXTRA_DIST = 10
+
+    def __init__(self, num_lasers: int = 240, distance: float = 50, enable_show=False):
+        super(Lidar, self).__init__(num_lasers, distance, enable_show)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
         self.mask = BitMask32.bit(TrafficVehicle.COLLISION_MASK) | BitMask32.bit(
             CollisionGroup.EgoVehicle
         ) | BitMask32.bit(CollisionGroup.InvisibleWall)
 
-    def get_surrounding_vehicles(self, detected_objects) -> Set:
+        # lidar can calculate the detector mask by itself
+        self.angle_delta = 360 / num_lasers
+        self.broad_detector = NodePath(BulletGhostNode("detector_mask"))
+        self.broad_detector.node().addShape(BulletCylinderShape(self.BROAD_PHASE_EXTRA_DIST + distance, 5, ZUp))
+        self.broad_detector.node().setIntoCollideMask(BitMask32.bit(CollisionGroup.LidarBroadDetector))
+        self.broad_detector.node().setStatic(True)
+        engine = get_engine()
+        engine.physics_world.dynamic_world.attach(self.broad_detector.node())
+        self.enable_mask = True if not engine.global_config["_disable_detector_mask"] else False
+
+    def perceive(self, base_vehicle, detector_mask=True):
+        self.broad_detector.setPos(panda_position(base_vehicle.position))
+        physics_world = base_vehicle.engine.physics_world.dynamic_world
+        result = physics_world.contactTest(self.broad_detector.node(), True).getContacts()
+        lidar_mask = self._get_lidar_mask(result, base_vehicle) if detector_mask and self.enable_mask else None
+        return super(Lidar, self).perceive(base_vehicle, physics_world, lidar_mask)
+
+    @staticmethod
+    def get_surrounding_vehicles(detected_objects) -> Set:
         vehicles = set()
         objs = detected_objects
         for ret in objs:
@@ -53,3 +78,66 @@ class Lidar(DistanceDetector):
             else:
                 res += [0.0] * 4
         return res
+
+    def _get_lidar_mask(self, contact_results, vehicle):
+        pos1 = vehicle.position
+        head1 = vehicle.heading_theta
+        half_max_span_square = ((vehicle.LENGTH + vehicle.WIDTH) / 2) ** 2
+        objs = []
+
+        mask = np.zeros((self.num_lasers,), dtype=np.bool)
+        mask.fill(False)
+        for contact in contact_results:
+            node0 = contact.getNode0()
+            node1 = contact.getNode1()
+            nodes = [node0, node1]
+            nodes.remove(self.broad_detector.node())
+            obj = get_object_from_node(nodes[0])
+            objs.append(obj)
+
+        if vehicle in objs:
+            objs.remove(vehicle)
+
+        for obj in objs:
+            pos2 = obj.position
+
+            diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
+            dist_square = diff[0] ** 2 + diff[1] ** 2
+            if dist_square < half_max_span_square:
+                mask.fill(True)
+                continue
+
+            span = math.asin(math.sqrt(half_max_span_square / dist_square))
+            # relative heading of v2's center when compared to v1's center
+            relative_head = math.atan2(diff[1], diff[0])
+            head_in_1 = relative_head - head1
+            head_in_1_max = head_in_1 + span
+            head_in_1_min = head_in_1 - span
+            head_1_max = np.rad2deg(head_in_1_max)
+            head_1_min = np.rad2deg(head_in_1_min)
+            mask = self._mark_this_range(head_1_min, head_1_max, mask)
+
+        return mask
+
+    def _mark_this_range(self, small_angle, large_angle, mask):
+        # We use clockwise to determine small and large angle.
+        # For example, if you wish to fill 355 deg to 5 deg, then small_angle is 355, large_angle is 5.
+        small_angle = small_angle % 360
+        large_angle = large_angle % 360
+
+        assert 0 <= small_angle <= 360
+        assert 0 <= large_angle <= 360
+
+        small_index = math.floor(small_angle / self.angle_delta)
+        large_index = math.ceil(large_angle / self.angle_delta)
+        if large_angle < small_angle:  # We are in the case like small=355, large=5
+            mask[small_index:] = True
+            mask[:large_index + 1] = True
+        else:
+            mask[small_index:large_index + 1] = True
+        return mask
+
+    def destroy(self):
+        get_engine().physics_world.dynamic_world.remove(self.broad_detector.node())
+        self.broad_detector.removeNode()
+        super(Lidar, self).destroy()

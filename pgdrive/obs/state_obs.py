@@ -157,8 +157,6 @@ class LidarStateObservation(ObservationBase):
         if vehicle.lidar is not None:
             cloud_points, detected_objects = vehicle.lidar.perceive(
                 vehicle,
-                vehicle.engine.physics_world.dynamic_world,
-                detector_mask=vehicle.lidar_mask
             )
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(

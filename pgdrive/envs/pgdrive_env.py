@@ -169,16 +169,6 @@ class PGDriveEnv(BasePGDriveEnv):
             self.engine.accept("b", self.bird_view_camera)
         self.engine.accept("q", self.chase_camera)
 
-        # setup the detector mask
-
-        if any([v.lidar is not None for v in self.vehicles.values()]) and (not self.config["_disable_detector_mask"]):
-            v = next(iter(self.vehicles.values()))
-            self.engine.detector_mask = DetectorMask(
-                num_lasers=self.config["vehicle_config"]["lidar"]["num_lasers"],
-                max_distance=self.config["vehicle_config"]["lidar"]["distance"],
-                max_span=v.WIDTH + v.LENGTH
-            )
-
     def _get_observations(self):
         return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
 
