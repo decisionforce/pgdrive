@@ -9,7 +9,7 @@ class TestEnv(PGDriveEnv):
         """
         super(TestEnv, self).__init__(
             {
-                "environment_num": 2,
+                "environment_num": 10,
                 "traffic_density": 0.2,
                 "traffic_mode": "respawn",
                 "start_seed": 4,
@@ -32,7 +32,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "CCCCCC",
+                "map": "S",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
@@ -70,9 +70,7 @@ if __name__ == "__main__":
                 "lane_heading": env.vehicle.lane.heading_at(0)
             }
         )
-        # if d:
-        #     print("Reset")
-        #     env.reset()
-        # if env.vehicle.crash_sidewalk:
-        #     env.close()
+        if d:
+            print("Reset")
+            env.reset()
     env.close()

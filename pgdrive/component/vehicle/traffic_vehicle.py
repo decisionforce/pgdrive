@@ -46,7 +46,7 @@ class TrafficVehicle(BaseVehicle):
             else:
                 carNP = TrafficVehicle.model_collection[path]
             carNP.setScale(scale)
-            carNP.setH(H+90)
+            carNP.setH(H)
             carNP.setPos(x_y_z_offset)
             carNP.instanceTo(self.origin)
 
@@ -69,20 +69,6 @@ class TrafficVehicle(BaseVehicle):
         self.origin.setH(heading-90)
 
     def after_step(self):
-        # engine = get_engine()
-        # dir = np.array([math.cos(self.heading), math.sin(self.heading)])
-        # lane, lane_index = ray_localization(dir, self.position, engine)
-        # if lane is not None:
-        # e = get_engine()
-        # p = e.policy_manager.get_policy(self.name)
-        # p.update_lane_index(lane_index, lane)
-        # self.kinematic_model.update_lane_index(lane_index, lane)
-
-        # self.out_of_road = not self.kinematic_model.lane.on_lane(
-        #     self.kinematic_model.position, margin=2
-        # )
-        # if self.out_of_road:
-        #     print('stop here')
         pass
 
     @property
