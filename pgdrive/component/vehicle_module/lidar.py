@@ -18,7 +18,7 @@ class Lidar(DistanceDetector):
     Lidar_point_cloud_obs_dim = 240
     DEFAULT_HEIGHT = 0.5
 
-    BROAD_PHASE_EXTRA_DIST = 10
+    BROAD_PHASE_EXTRA_DIST = 20
 
     def __init__(self, num_lasers: int = 240, distance: float = 50, enable_show=False):
         super(Lidar, self).__init__(num_lasers, distance, enable_show)
@@ -38,11 +38,8 @@ class Lidar(DistanceDetector):
         self.enable_mask = True if not engine.global_config["_disable_detector_mask"] else False
 
     def perceive(self, base_vehicle, detector_mask=True):
-        self.broad_detector.setPos(panda_position(base_vehicle.position))
-        physics_world = base_vehicle.engine.physics_world.dynamic_world
-        result = physics_world.contactTest(self.broad_detector.node(), True).getContacts()
-        lidar_mask = self._get_lidar_mask(result, base_vehicle) if detector_mask and self.enable_mask else None
-        return super(Lidar, self).perceive(base_vehicle, physics_world, lidar_mask)
+        lidar_mask = self._get_lidar_mask(base_vehicle) if detector_mask and self.enable_mask else None
+        return super(Lidar, self).perceive(base_vehicle, base_vehicle.engine.physics_world.dynamic_world, lidar_mask)
 
     @staticmethod
     def get_surrounding_vehicles(detected_objects) -> Set:
@@ -79,7 +76,11 @@ class Lidar(DistanceDetector):
                 res += [0.0] * 4
         return res
 
-    def _get_lidar_mask(self, contact_results, vehicle):
+    def _get_lidar_mask(self, vehicle):
+        self.broad_detector.setPos(panda_position(vehicle.position))
+        physics_world = vehicle.engine.physics_world.dynamic_world
+        contact_results = physics_world.contactTest(self.broad_detector.node(), True).getContacts()
+
         pos1 = vehicle.position
         head1 = vehicle.heading_theta
         half_max_span_square = ((vehicle.LENGTH + vehicle.WIDTH) / 2) ** 2

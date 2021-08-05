@@ -173,7 +173,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.energy_consumption = 0
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
         # TODO remove me, this is a workaround
-        self.lidar_mask = None
 
         # overtake_stat
         self.front_vehicles = set()
@@ -237,8 +236,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             self.set_act(action)
         return step_info
 
-    def after_step(self, engine=None, detector_mask="WRONG"):
-        self.lidar_mask = detector_mask
+    def after_step(self):
         if self.routing_localization is not None:
             self.lane, self.lane_index, = self.routing_localization.update_navigation_localization(self)
         self._state_check()

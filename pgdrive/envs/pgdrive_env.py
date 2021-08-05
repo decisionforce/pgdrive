@@ -9,7 +9,6 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod, parse_map_config
 from pgdrive.component.map.pg_map import PGMap
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
-from pgdrive.component.vehicle_module.distance_detector import DetectorMask
 from pgdrive.constants import DEFAULT_AGENT, TerminationState
 from pgdrive.engine.core.manual_controller import KeyboardController, JoystickController
 from pgdrive.engine.engine_utils import engine_initialized

@@ -54,7 +54,7 @@ def test_base_vehicle():
                 v_pos = v.position
                 np.testing.assert_almost_equal(v_pos, pos)
 
-                v.after_step(detector_mask=None)
+                v.after_step()
         v.reset(map, pos=np.array([10, 0]))
         for a_x in [-1, 0, 0.5, 1]:
             for a_y in [-1, 0, 0.5, 1]:

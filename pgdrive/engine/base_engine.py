@@ -42,7 +42,6 @@ class BaseEngine(EngineCore):
 
         # cull scene
         self.cull_scene = self.global_config["cull_scene"]
-        self.detector_mask = None
 
         # add camera or not
         self.main_camera = self.setup_main_camera()
@@ -54,8 +53,6 @@ class BaseEngine(EngineCore):
 
         for manager in self._managers.values():
             manager.before_reset()
-        if self.detector_mask is not None:
-            self.detector_mask.clear()
 
         if self.replay_system is not None:
             self.replay_system.destroy()
@@ -73,7 +70,6 @@ class BaseEngine(EngineCore):
         else:
             self.replay_system = None
             logging.warning("You are replaying episodes! Delete detector mask!")
-            self.detector_mask = None
             self.IN_REPLAY = True
 
         # TODO recorder
@@ -140,7 +136,6 @@ class BaseEngine(EngineCore):
             for manager in self._managers.values():
                 manager.after_step()
 
-        # TODO make detector mask a manager and do after_step!
         step_infos = self.update_state_for_all_target_vehicles()
 
         # cull distant blocks
@@ -157,28 +152,8 @@ class BaseEngine(EngineCore):
         return step_infos
 
     def update_state_for_all_target_vehicles(self):
-
-        # TODO(pzh): What is this function? Should we need to call it all steps?
-
-        if self.detector_mask is not None:
-            is_target_vehicle_dict = {
-                v_obj.name: self.agent_manager.is_active_object(v_obj.name)
-                for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
-            }
-            self.detector_mask.update_mask(
-                position_dict={
-                    v_obj.name: v_obj.position
-                    for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
-                },
-                heading_dict={
-                    v_obj.name: v_obj.heading_theta
-                    for v_obj in self.get_interactive_objects() + self.traffic_manager.traffic_vehicles
-                },
-                is_target_vehicle_dict=is_target_vehicle_dict
-            )
         step_infos = self.agent_manager.for_each_active_agents(
-            lambda v: v.after_step(detector_mask=self.detector_mask.get_mask(v.name) if self.detector_mask else None)
-        )
+            lambda v: v.after_step())
         return step_infos
 
     def get_interactive_objects(self):
