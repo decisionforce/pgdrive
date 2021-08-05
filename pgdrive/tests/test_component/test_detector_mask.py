@@ -252,7 +252,15 @@ def test_detector_mask():
 
 
 def test_detector_mask_in_lidar():
-    env = PGDriveEnvV2({"traffic_density": 1.0, "map": "SSSSS", "random_traffic": False, "use_render":False, "debug":True})
+    env = PGDriveEnvV2(
+        {
+            "traffic_density": 1.0,
+            "map": "SSSSS",
+            "random_traffic": False,
+            "use_render": False,
+            "debug": True
+        }
+    )
     try:
         env.reset()
         span = 2 * max(env.vehicle.WIDTH, env.vehicle.LENGTH)

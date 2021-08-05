@@ -38,7 +38,6 @@ class TrafficVehicle(BaseVehicle):
         super(TrafficVehicle, self).__init__(engine.global_config["vehicle_config"], random_seed=random_seed)
         self.step(0.01, {"steering": 0, "acceleration": 0})
 
-
     def _add_visualization(self):
         [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
         if self.render:

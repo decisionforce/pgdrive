@@ -102,7 +102,7 @@ class Lidar(DistanceDetector):
             pos = obj.origin.getPos()
             length = obj.LENGTH if hasattr(obj, "LENGTH") else vehicle.LENGTH
             width = obj.WIDTH if hasattr(obj, "WIDTH") else vehicle.WIDTH
-            half_max_span_square = ((length+width) / 2) ** 2
+            half_max_span_square = ((length + width) / 2)**2
             diff = (pos2[0] - pos1[0], pos2[1] - pos1[1])
             dist_square = diff[0]**2 + diff[1]**2
             if dist_square < half_max_span_square:
