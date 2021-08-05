@@ -276,7 +276,7 @@ def _vis():
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step({k: [1.0, 1.0] for k in env.vehicles.keys()})
+        o, r, d, info = env.step({k: [0, .0] for k in env.vehicles.keys()})
         for r_ in r.values():
             total_r += r_
         ep_s += 1
@@ -305,7 +305,7 @@ def _vis():
 
 def _profile():
     import time
-    env = MultiAgentRoundaboutEnv({"num_agents": 16})
+    env = MultiAgentRoundaboutEnv({"num_agents": 40})
     obs = env.reset()
     start = time.time()
     for s in range(10000):
@@ -384,8 +384,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    _vis()
+    # _vis()
     # _vis_debug_respawn()
-    # _profiwdle()
+    _profile()
     # _long_run()
     # pygame_replay("round", MultiAgentRoundaboutEnv)

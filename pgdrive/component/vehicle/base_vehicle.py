@@ -628,10 +628,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def destroy(self):
         self.body.destroy()
-        if self.body in self.dynamic_nodes:
-            self.dynamic_nodes.remove(self.body)
-        if self.system in self.dynamic_nodes:
-            self.dynamic_nodes.remove(self.system)
         super(BaseVehicle, self).destroy()
 
         self.routing_localization.destroy()

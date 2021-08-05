@@ -16,6 +16,7 @@ class BaseCamera(ImageBuffer):
     CAM_MASK = None
     display_region_size = [1 / 3, 2 / 3, ImageBuffer.display_bottom, ImageBuffer.display_top]
     _singleton = None
+    _init_num = 0
 
     attached_object = None
 
@@ -24,6 +25,7 @@ class BaseCamera(ImageBuffer):
         return True if cls._singleton is not None else False
 
     def __init__(self):
+        type(self)._init_num += 1
         if not self.initialized():
             super(BaseCamera, self).__init__(self.BUFFER_W, self.BUFFER_H, Vec3(0.0, 0.8, 1.5), self.BKG_COLOR)
             type(self)._singleton = self
@@ -47,8 +49,13 @@ class BaseCamera(ImageBuffer):
 
     def destroy(self):
         if self.initialized():
-            ImageBuffer.destroy(type(self)._singleton)
-            type(self)._singleton = None
+            if type(self)._init_num > 1:
+                type(self)._init_num -= 1
+            else:
+                ImageBuffer.destroy(type(self)._singleton)
+                type(self)._singleton = None
+                type(self)._init_num -= 1
+                assert type(self)._init_num == 0
 
     def get_cam(self):
         return type(self)._singleton.cam
