@@ -10,7 +10,6 @@ from pgdrive.engine.core.engine_core import EngineCore
 from pgdrive.engine.core.image_buffer import ImageBuffer
 
 
-
 class Interface:
     """
     Visualization interface, state banner and vehicle panel

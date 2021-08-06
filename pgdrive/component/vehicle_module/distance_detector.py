@@ -140,4 +140,4 @@ class LaneLineDetector(SideDetector):
         super(SideDetector, self).__init__(num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask =CollisionGroup.ContinuousLaneLine | CollisionGroup.BrokenLaneLine
+        self.mask = CollisionGroup.ContinuousLaneLine | CollisionGroup.BrokenLaneLine

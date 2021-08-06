@@ -235,9 +235,7 @@ class MainCamera:
             # Transform to global coordinates
             pFrom = self.engine.render.getRelativePoint(self.camera, pFrom)
             pTo = self.engine.render.getRelativePoint(self.camera, pTo)
-            ret = self.engine.physics_world.dynamic_world.rayTestClosest(
-                pFrom, pTo, CollisionGroup.Terrain
-            )
+            ret = self.engine.physics_world.dynamic_world.rayTestClosest(pFrom, pTo, CollisionGroup.Terrain)
             self.camera_x = ret.getHitPos()[0]
             self.camera_y = ret.getHitPos()[1]
 
