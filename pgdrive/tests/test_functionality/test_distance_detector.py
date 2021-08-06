@@ -1,6 +1,6 @@
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
-from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.constants import BodyName
+from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import setup_logger
 

@@ -4,8 +4,9 @@ from collections import namedtuple
 
 import numpy as np
 from panda3d.bullet import BulletGhostNode, BulletSphereShape
-from panda3d.core import BitMask32, NodePath
+from panda3d.core import NodePath
 
+from pgdrive.constants import Mask
 from pgdrive.constants import CamMask, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.engine_utils import get_engine
@@ -44,7 +45,7 @@ class DistanceDetector:
 
         # override these properties to decide which elements to detect and show
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask = BitMask32.bit(CollisionGroup.BrokenLaneLine)
+        self.mask = CollisionGroup.BrokenLaneLine
         self.cloud_points_vis = [] if show else None
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
         if show:
@@ -54,7 +55,7 @@ class DistanceDetector:
                 ball.setColor(0., 0.5, 0.5, 1)
                 shape = BulletSphereShape(0.1)
                 ghost = BulletGhostNode('Lidar Point')
-                ghost.setIntoCollideMask(BitMask32.allOff())
+                ghost.setIntoCollideMask(CollisionGroup.AllOff())
                 ghost.addShape(shape)
                 laser_np = self.origin.attachNewNode(ghost)
                 self.cloud_points_vis.append(laser_np)
@@ -129,7 +130,7 @@ class SideDetector(DistanceDetector):
         super(SideDetector, self).__init__(num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine)
+        self.mask = CollisionGroup.ContinuousLaneLine
 
 
 class LaneLineDetector(SideDetector):
@@ -139,4 +140,4 @@ class LaneLineDetector(SideDetector):
         super(SideDetector, self).__init__(num_lasers, distance, enable_show)
         self.set_start_phase_offset(90)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask = BitMask32.bit(CollisionGroup.ContinuousLaneLine) | BitMask32.bit(CollisionGroup.BrokenLaneLine)
+        self.mask =CollisionGroup.ContinuousLaneLine | CollisionGroup.BrokenLaneLine

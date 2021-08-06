@@ -3,10 +3,11 @@ from math import floor
 
 import numpy as np
 from panda3d.bullet import BulletBoxShape, BulletGhostNode
-from panda3d.core import Vec3, BitMask32
+from panda3d.core import Vec3
 
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.lane.straight_lane import StraightLane
+from pgdrive.constants import Mask
 from pgdrive.constants import CollisionGroup
 from pgdrive.engine.engine_utils import get_engine
 from pgdrive.utils import Config, get_np_random
@@ -201,7 +202,7 @@ class SpawnManager:
                 vis_body.setH(panda_heading(lane_heading))
                 vis_body.setPos(panda_position(spawn_point_position, z=2))
                 engine.physics_world.dynamic_world.attach(vis_body.node())
-                vis_body.node().setIntoCollideMask(BitMask32.allOff())
+                vis_body.node().setIntoCollideMask(CollisionGroup.AllOff())
                 bp.force_set("need_debug", False)
 
             if not result.hasHit():

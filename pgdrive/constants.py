@@ -1,3 +1,4 @@
+import math
 from typing import List, Tuple
 
 from panda3d.bullet import BulletWorld
@@ -98,7 +99,12 @@ class Goal:
     ADVERSE = 3  # Useless now
 
 
-class CamMask:
+class Mask:
+    AllOn = BitMask32.allOn()
+    AllOff = BitMask32.allOff
+
+
+class CamMask(Mask):
     MainCam = BitMask32.bit(9)
     Shadow = BitMask32.bit(10)
     RgbCam = BitMask32.bit(11)
@@ -108,16 +114,16 @@ class CamMask:
     ScreenshotCam = BitMask32.bit(15)
 
 
-class CollisionGroup:
-    EgoVehicle = 1
-    Terrain = 2
-    BrokenLaneLine = 3
-    TrafficVehicle = 4
-    LaneSurface = 5  # useless now, since it is in another bullet world
-    Sidewalk = 6
-    ContinuousLaneLine = 7
-    InvisibleWall = 8
-    LidarBroadDetector = 9
+class CollisionGroup(Mask):
+    EgoVehicle = BitMask32.bit(1)
+    Terrain = BitMask32.bit(2)
+    BrokenLaneLine = BitMask32.bit(3)
+    TrafficVehicle = BitMask32.bit(4)
+    LaneSurface = BitMask32.bit(5)  # useless now, since it is in another bullet world
+    Sidewalk = BitMask32.bit(6)
+    ContinuousLaneLine = BitMask32.bit(7)
+    InvisibleWall = BitMask32.bit(8)
+    LidarBroadDetector = BitMask32.bit(9)
 
     @classmethod
     def collision_rules(cls):
@@ -190,7 +196,10 @@ class CollisionGroup:
     @classmethod
     def set_collision_rule(cls, world: BulletWorld):
         for rule in cls.collision_rules():
-            world.setGroupCollisionFlag(*rule)
+            group_1 = int(math.log(rule[0].getWord(), 2))
+            group_2 = int(math.log(rule[1].getWord(), 2))
+            relation = rule[-1]
+            world.setGroupCollisionFlag(group_1, group_2, relation)
 
 
 LaneIndex = Tuple[str, str, int]

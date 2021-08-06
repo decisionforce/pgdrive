@@ -6,7 +6,7 @@ import gym
 import numpy as np
 import seaborn as sns
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp
-from panda3d.core import Material, Vec3, TransformState, LQuaternionf, BitMask32
+from panda3d.core import Material, Vec3, TransformState, LQuaternionf
 
 from pgdrive.component.base_class.base_object import BaseObject
 from pgdrive.component.lane.abs_lane import AbstractLane
@@ -15,13 +15,13 @@ from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.lane.waypoint_lane import WayPointLane
 from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.road.road import Road
-from pgdrive.component.vehicle_module.lidar import Lidar
-from pgdrive.component.vehicle_module.mini_map import MiniMap
 from pgdrive.component.vehicle_module.depth_camera import DepthCamera
 from pgdrive.component.vehicle_module.distance_detector import SideDetector, LaneLineDetector
+from pgdrive.component.vehicle_module.lidar import Lidar
+from pgdrive.component.vehicle_module.mini_map import MiniMap
 from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
 from pgdrive.component.vehicle_module.routing_localization import RoutingLocalizationModule
-from pgdrive.constants import BodyName, CamMask, CollisionGroup
+from pgdrive.constants import BodyName, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
 from pgdrive.engine.engine_utils import get_engine, engine_initialized
@@ -478,7 +478,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.WIDTH = type(self).WIDTH or self.config["vehicle_width"]
         self.HEIGHT = type(self).HEIGHT or self.config[Parameter.vehicle_height]
         chassis = BaseRigidBodyNode(self, BodyName.Base_vehicle)
-        chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
+        chassis.setIntoCollideMask(CollisionGroup.EgoVehicle)
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, self.HEIGHT / 2))
         ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
         chassis.addShape(chassis_shape, ts)

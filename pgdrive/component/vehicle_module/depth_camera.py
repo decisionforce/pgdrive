@@ -1,10 +1,10 @@
-from panda3d.core import Vec3, Shader, RenderState, ShaderAttrib, BitMask32, GeoMipTerrain
+from panda3d.core import Vec3, Shader, RenderState, ShaderAttrib, GeoMipTerrain
 
 from pgdrive.component.vehicle_module.base_camera import BaseCamera
 from pgdrive.constants import CamMask
+from pgdrive.constants import RENDER_MODE_NONE
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.engine_utils import get_global_config, engine_initialized, get_engine
-from pgdrive.constants import RENDER_MODE_NONE
 
 
 class DepthCamera(BaseCamera):
@@ -54,7 +54,7 @@ class DepthCamera(BaseCamera):
             # # model to enable the depth information of terrain
             self.GROUND_MODEL = self.GROUND.getRoot()
             self.GROUND_MODEL.setPos(-128, 0, self.GROUND_HEIGHT)
-            self.GROUND_MODEL.hide(BitMask32.allOn())
+            self.GROUND_MODEL.hide(CamMask.AllOn)
             self.GROUND_MODEL.show(CamMask.DepthCam)
             self.GROUND.generate()
 

@@ -1,8 +1,7 @@
 import logging
-import math
 
 import numpy as np
-from panda3d.core import BitMask32, LQuaternionf, TransparencyAttrib, LineSegs, NodePath
+from panda3d.core import TransparencyAttrib, LineSegs, NodePath
 
 from pgdrive.component.blocks.bottleneck import Merge, Split
 from pgdrive.component.blocks.first_block import FirstPGBlock
@@ -10,7 +9,8 @@ from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.road.road import Road
-from pgdrive.constants import COLLISION_INFO_COLOR, RENDER_MODE_ONSCREEN, CamMask
+from pgdrive.constants import Mask
+from pgdrive.constants import RENDER_MODE_ONSCREEN, CamMask
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.utils import clip, norm
 from pgdrive.utils import get_np_random
@@ -87,8 +87,8 @@ class RoutingLocalizationModule:
             self._dest_node_path.setColor(
                 self.navi_mark_color[0], self.navi_mark_color[1], self.navi_mark_color[2], 0.7
             )
-            self._goal_node_path.hide(BitMask32.allOn())
-            self._dest_node_path.hide(BitMask32.allOn())
+            self._goal_node_path.hide(CamMask.AllOn())
+            self._dest_node_path.hide(CamMask.AllOn())
             self._goal_node_path.show(CamMask.MainCam)
             self._dest_node_path.show(CamMask.MainCam)
         logging.debug("Load Vehicle Module: {}".format(self.__class__.__name__))
@@ -313,7 +313,7 @@ class RoutingLocalizationModule:
         end_position = start_position[0] + dir[0] * length, start_position[1] + dir[1] * length
         start_position = panda_position(start_position, z=0.15)
         end_position = panda_position(end_position, z=0.15)
-        mask = BitMask32.bit(FirstPGBlock.CONTINUOUS_COLLISION_MASK)
+        mask = FirstPGBlock.CONTINUOUS_COLLISION_MASK
         res = engine.physics_world.static_world.rayTestClosest(start_position, end_position, mask=mask)
         if not res.hasHit():
             return length

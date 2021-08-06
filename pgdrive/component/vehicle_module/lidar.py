@@ -1,9 +1,9 @@
-from typing import Set
 import math
+from typing import Set
 
 import numpy as np
 from panda3d.bullet import BulletGhostNode, ZUp, BulletCylinderShape
-from panda3d.core import BitMask32, NodePath
+from panda3d.core import NodePath
 
 from pgdrive.component.vehicle_module.distance_detector import DistanceDetector
 from pgdrive.constants import BodyName, CamMask, CollisionGroup
@@ -22,15 +22,13 @@ class Lidar(DistanceDetector):
     def __init__(self, num_lasers: int = 240, distance: float = 50, enable_show=False):
         super(Lidar, self).__init__(num_lasers, distance, enable_show)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask = BitMask32.bit(CollisionGroup.TrafficVehicle) | BitMask32.bit(
-            CollisionGroup.EgoVehicle
-        ) | BitMask32.bit(CollisionGroup.InvisibleWall)
+        self.mask = CollisionGroup.TrafficVehicle | CollisionGroup.EgoVehicle |CollisionGroup.InvisibleWall
 
         # lidar can calculate the detector mask by itself
         self.angle_delta = 360 / num_lasers
         self.broad_detector = NodePath(BulletGhostNode("detector_mask"))
         self.broad_detector.node().addShape(BulletCylinderShape(self.BROAD_PHASE_EXTRA_DIST + distance, 5, ZUp))
-        self.broad_detector.node().setIntoCollideMask(BitMask32.bit(CollisionGroup.LidarBroadDetector))
+        self.broad_detector.node().setIntoCollideMask(CollisionGroup.LidarBroadDetector)
         self.broad_detector.node().setStatic(True)
         engine = get_engine()
         engine.physics_world.dynamic_world.attach(self.broad_detector.node())

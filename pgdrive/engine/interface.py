@@ -1,12 +1,14 @@
-import time
 import math
+import time
 
-from panda3d.core import NodePath, TextNode, PGTop, CardMaker, Vec3, LQuaternionf, BitMask32
-from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.constants import RENDER_MODE_ONSCREEN, COLLISION_INFO_COLOR, COLOR, BodyName, CamMask
-from pgdrive.engine.core.engine_core import EngineCore
 import numpy as np
+from panda3d.core import NodePath, TextNode, PGTop, CardMaker, Vec3, LQuaternionf
+
+from pgdrive.constants import RENDER_MODE_ONSCREEN, COLLISION_INFO_COLOR, COLOR, BodyName, CamMask
+from pgdrive.engine.asset_loader import AssetLoader
+from pgdrive.engine.core.engine_core import EngineCore
 from pgdrive.engine.core.image_buffer import ImageBuffer
+
 
 
 class Interface:
@@ -63,7 +65,7 @@ class Interface:
             navi_arrow_model.instanceTo(self._left_arrow)
             navi_arrow_model.instanceTo(self._right_arrow)
             self.arrow.setPos(0, 0, 0.08)
-            self.arrow.hide(BitMask32.allOn())
+            self.arrow.hide(CamMask.AllOn())
             self.arrow.show(CamMask.MainCam)
             self.arrow.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
             # the transparency attribute of gltf model is invalid on windows

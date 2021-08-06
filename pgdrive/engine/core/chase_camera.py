@@ -5,7 +5,7 @@ from typing import Tuple
 
 import numpy as np
 from direct.controls.InputState import InputState
-from panda3d.core import Vec3, Point3, BitMask32
+from panda3d.core import Vec3, Point3
 
 from pgdrive.constants import CollisionGroup
 from pgdrive.engine.engine_utils import get_engine
@@ -236,7 +236,7 @@ class MainCamera:
             pFrom = self.engine.render.getRelativePoint(self.camera, pFrom)
             pTo = self.engine.render.getRelativePoint(self.camera, pTo)
             ret = self.engine.physics_world.dynamic_world.rayTestClosest(
-                pFrom, pTo, BitMask32.bit(CollisionGroup.Terrain)
+                pFrom, pTo, CollisionGroup.Terrain
             )
             self.camera_x = ret.getHitPos()[0]
             self.camera_y = ret.getHitPos()[1]

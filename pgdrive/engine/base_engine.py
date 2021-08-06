@@ -1,11 +1,11 @@
 import logging
-from pgdrive.engine.interface import Interface
 from collections import OrderedDict
 from typing import Dict, AnyStr
 
 import numpy as np
 
 from pgdrive.engine.core.engine_core import EngineCore
+from pgdrive.engine.interface import Interface
 from pgdrive.engine.scene_cull import SceneCull
 from pgdrive.manager.base_manager import BaseManager
 

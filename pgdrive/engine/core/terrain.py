@@ -1,6 +1,6 @@
 import numpy
 from panda3d.bullet import BulletRigidBodyNode, BulletPlaneShape
-from panda3d.core import Vec3, CardMaker, LQuaternionf, BitMask32, TextureStage, Texture, SamplerState
+from panda3d.core import Vec3, CardMaker, LQuaternionf, TextureStage, Texture, SamplerState
 
 from pgdrive.component.base_class.base_object import BaseObject
 from pgdrive.constants import BodyName, CamMask, CollisionGroup
@@ -18,7 +18,7 @@ class Terrain(BaseObject):
         node.setFriction(.9)
         node.addShape(shape)
 
-        node.setIntoCollideMask(BitMask32.bit(self.COLLISION_MASK))
+        node.setIntoCollideMask(self.COLLISION_MASK)
         self.dynamic_nodes.append(node)
 
         self.origin.attachNewNode(node)
