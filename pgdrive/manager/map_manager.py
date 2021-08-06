@@ -29,7 +29,15 @@ class MapManager(BaseManager):
         self.pg_maps[map.random_seed] = map
         return map
 
-    def load_all_maps_from_json(self, path):
+    def load_map(self, map):
+        map.load_to_world()
+        self.current_map = map
+
+    def unload_map(self, map):
+        map.unload_from_world()
+        self.current_map = None
+
+    def read_all_maps_from_json(self, path):
         assert path.endswith(".json")
         assert osp.isfile(path)
         with open(path, "r") as f:
@@ -40,7 +48,7 @@ class MapManager(BaseManager):
         if recursive_equal(global_config["map_config"], config_and_data["map_config"]) \
                 and set([i for i in range(start_seed, start_seed + env_num)]).issubset(
             set([int(v) for v in config_and_data["map_data"].keys()])):
-            self.load_all_maps(config_and_data)
+            self.read_all_maps(config_and_data)
             return True
         else:
             logging.warning(
@@ -52,7 +60,7 @@ class MapManager(BaseManager):
             global_config["load_map_from_json"] = False  # Don't fall into this function again.
             return False
 
-    def load_all_maps(self, data):
+    def read_all_maps(self, data):
         assert isinstance(data, dict)
         assert set(data.keys()) == {"map_config", "map_data"}
         logging.info(
@@ -73,14 +81,6 @@ class MapManager(BaseManager):
             map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
             map_config[BaseMap.GENERATE_CONFIG] = config
             self.restored_pg_map_configs[seed] = map_config
-
-    def load_map(self, map):
-        map.load_to_world()
-        self.current_map = map
-
-    def unload_map(self, map):
-        map.unload_from_world()
-        self.current_map = None
 
     def destroy(self):
         self.pg_maps = None

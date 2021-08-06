@@ -33,11 +33,9 @@ class TrafficManager(BaseManager):
         Control the whole traffic flow
         """
         super(TrafficManager, self).__init__()
-        self.current_map = None
 
         self._traffic_vehicles = []
         self.block_triggered_vehicles = None
-        self.is_target_vehicle_dict = {}
 
         # traffic property
         self.mode = self.engine.global_config["traffic_mode"]
@@ -55,8 +53,6 @@ class TrafficManager(BaseManager):
 
         # update vehicle list
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
-        for v in self.vehicles:
-            self.is_target_vehicle_dict[v.name] = True
 
         traffic_density = self.density
         if abs(traffic_density - 0.0) < 1e-2:
@@ -147,12 +143,9 @@ class TrafficManager(BaseManager):
         Clear the scene and then reset the scene to empty
         :return: None
         """
-        # update global info
-        self.current_map = self.engine.map_manager.current_map
         self.density = self.engine.global_config["traffic_density"]
         self.clear_objects()
 
-        self.is_target_vehicle_dict.clear()
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
@@ -346,7 +339,7 @@ class TrafficManager(BaseManager):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
@@ -399,7 +392,6 @@ class TrafficManager(BaseManager):
         """
         self.clear_objects()
         # current map
-        self.current_map = None
 
         # traffic vehicle list
         self._traffic_vehicles = None
@@ -416,11 +408,6 @@ class TrafficManager(BaseManager):
     def __repr__(self):
         return self.vehicles.__repr__()
 
-    def is_target_vehicle(self, v):
-        if v.name in self.is_target_vehicle_dict and self.is_target_vehicle_dict[v.name]:
-            return True
-        return False
-
     @property
     def vehicles(self):
         return list(self.engine.agent_manager.active_objects.values()) + \
@@ -433,3 +420,7 @@ class TrafficManager(BaseManager):
     def seed(self, random_seed):
         if not self.random_traffic:
             super(TrafficManager, self).seed(random_seed)
+
+    @property
+    def current_map(self):
+        return self.engine.map_manager.current_map

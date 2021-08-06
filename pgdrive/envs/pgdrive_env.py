@@ -367,7 +367,7 @@ class PGDriveEnv(BasePGDriveEnv):
 
         if self.config["load_map_from_json"] and self.current_map is None:
             assert self.config["_load_map_from_json"]
-            map_manager.load_all_maps_from_json(self.config["_load_map_from_json"])
+            map_manager.read_all_maps_from_json(self.config["_load_map_from_json"])
 
         # remove map from world before adding
         if self.current_map is not None:

@@ -46,41 +46,20 @@ class BaseEngine(EngineCore):
         # add camera or not
         self.main_camera = self.setup_main_camera()
 
-    def reset(self, episode_data=None):
+    def reset(self):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
 
         for manager in self._managers.values():
             manager.before_reset()
+        for manager in self._managers.values():
+            manager.reset()
+        for manager in self._managers.values():
+            manager.after_reset()
 
-        if self.replay_system is not None:
-            self.replay_system.destroy()
-            self.replay_system = None
-        if self.record_system is not None:
-            self.record_system.destroy()
-            self.record_system = None
-
-        if episode_data is None:
-            for manager in self._managers.values():
-                manager.reset()
-            for manager in self._managers.values():
-                manager.after_reset()
-            self.IN_REPLAY = False
-        else:
-            self.replay_system = None
-            logging.warning("You are replaying episodes! Delete detector mask!")
-            self.IN_REPLAY = True
-
-        # TODO recorder
-        # if engine.highway_render is not None:
-        #     engine.highway_render.set_scene_manager(self)
-        # if self.record_episode:
-        #     if episode_data is None:
-        #         init_states = self.traffic_manager.get_global_init_states()
-        #         self.record_system = None
-        #     else:
-        #         logging.warning("Temporally disable episode recorder, since we are replaying other episode!")
+        if self.main_camera is not None:
+            self.main_camera.reset()
 
     def before_step(self, target_actions: Dict[AnyStr, np.array]):
         """

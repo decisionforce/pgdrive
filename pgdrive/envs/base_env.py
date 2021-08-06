@@ -288,9 +288,6 @@ class BasePGDriveEnv(gym.Env):
         # generate new traffic according to the map
         self.engine.reset()
 
-        if self.main_camera is not None:
-            self.main_camera.reset()
-
         return self._get_reset_return()
 
     def _update_map(self, episode_data: Union[None, dict] = None):
