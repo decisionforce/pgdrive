@@ -64,7 +64,7 @@ class Interface:
             navi_arrow_model.instanceTo(self._left_arrow)
             navi_arrow_model.instanceTo(self._right_arrow)
             self.arrow.setPos(0, 0, 0.08)
-            self.arrow.hide(CamMask.AllOn())
+            self.arrow.hide(CamMask.AllOn)
             self.arrow.show(CamMask.MainCam)
             self.arrow.setQuat(LQuaternionf(np.cos(-np.pi / 4), 0, 0, np.sin(-np.pi / 4)))
             # the transparency attribute of gltf model is invalid on windows

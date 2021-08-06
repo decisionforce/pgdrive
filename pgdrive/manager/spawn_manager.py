@@ -202,7 +202,7 @@ class SpawnManager:
                 vis_body.setH(panda_heading(lane_heading))
                 vis_body.setPos(panda_position(spawn_point_position, z=2))
                 engine.physics_world.dynamic_world.attach(vis_body.node())
-                vis_body.node().setIntoCollideMask(CollisionGroup.AllOff())
+                vis_body.node().setIntoCollideMask(CollisionGroup.AllOff)
                 bp.force_set("need_debug", False)
 
             if not result.hasHit():

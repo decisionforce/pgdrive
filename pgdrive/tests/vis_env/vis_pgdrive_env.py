@@ -36,7 +36,7 @@ class TestEnv(PGDriveEnv):
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
-                    "show_lidar": True,
+                    # "show_lidar": True,
                     # "show_side_detector": True,
                     # "show_lane_line_detector": True,
                     "side_detector": dict(num_lasers=2, distance=50),

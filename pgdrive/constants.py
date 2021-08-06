@@ -101,7 +101,7 @@ class Goal:
 
 class Mask:
     AllOn = BitMask32.allOn()
-    AllOff = BitMask32.allOff
+    AllOff = BitMask32.allOff()
 
 
 class CamMask(Mask):

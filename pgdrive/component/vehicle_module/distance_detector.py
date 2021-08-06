@@ -55,7 +55,7 @@ class DistanceDetector:
                 ball.setColor(0., 0.5, 0.5, 1)
                 shape = BulletSphereShape(0.1)
                 ghost = BulletGhostNode('Lidar Point')
-                ghost.setIntoCollideMask(CollisionGroup.AllOff())
+                ghost.setIntoCollideMask(CollisionGroup.AllOff)
                 ghost.addShape(shape)
                 laser_np = self.origin.attachNewNode(ghost)
                 self.cloud_points_vis.append(laser_np)
