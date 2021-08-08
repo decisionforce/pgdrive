@@ -380,7 +380,7 @@ class PGDriveEnv(BasePGDriveEnv):
             else:
                 map_config = self.config["map_config"]
                 map_config.update({"seed": self.current_seed})
-                map = map_manager.spawn_object(PGMap, map_config=map_config)
+            map = map_manager.spawn_object(PGMap, map_config=map_config)
         else:
             map = map_manager.pg_maps[self.current_seed]
         map_manager.load_map(map)
@@ -399,7 +399,7 @@ class PGDriveEnv(BasePGDriveEnv):
             map_config = copy.deepcopy(self.config["map_config"])
             map_config.update({"seed": seed})
             set_global_random_seed(seed)
-            new_map = self.engine.map_manager.spawn_object(PGMap, map_config=map_config)
+            new_map = self.engine.spawn_object(PGMap, map_config=map_config)
             self.engine.map_manager.unload_map(new_map)
             logging.info("Finish generating map with seed: {}".format(seed))
 

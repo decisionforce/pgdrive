@@ -8,7 +8,7 @@ import seaborn as sns
 from panda3d.bullet import BulletVehicle, BulletBoxShape, ZUp
 from panda3d.core import Material, Vec3, TransformState, LQuaternionf
 
-from pgdrive.component.base_class.base_object import BaseObject
+from pgdrive.base_class.base_object import BaseObject
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane

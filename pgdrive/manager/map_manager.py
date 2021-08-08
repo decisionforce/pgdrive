@@ -25,7 +25,7 @@ class MapManager(BaseManager):
         if "random_seed" in kwargs:
             assert kwargs["random_seed"] == self.random_seed, "The random seed assigned is not same as map.seed"
             kwargs.pop("random_seed")
-        map = super(MapManager, self).spawn_object(object_class, random_seed=self.random_seed, *args, **kwargs)
+        map = self.engine.spawn_object(object_class, random_seed=self.random_seed, *args, **kwargs)
         self.pg_maps[map.random_seed] = map
         return map
 

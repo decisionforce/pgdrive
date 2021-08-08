@@ -48,7 +48,7 @@ class TrafficSignManager(BaseManager):
             block.construct_block_buildings(self)
 
     def clear_objects(self, filter_func: Optional[Callable] = None):
-        super(TrafficSignManager, self).clear_objects()
+        self.engine.clear_objects(lambda o:isinstance(o, BaseStaticObject))
         for block_object in self._block_objects.values():
             block_object.origin.detachNode()
         self._block_objects = {}
@@ -171,4 +171,4 @@ class TrafficSignManager(BaseManager):
 
     @property
     def objects(self):
-        return list(self._spawned_objects.values()) + list(self._block_objects.values())
+        return list(self.engine.get_objects(filter_func=lambda o:isinstance(o, BaseStaticObject)).values())

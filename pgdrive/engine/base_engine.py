@@ -1,7 +1,8 @@
 import logging
+from typing import Callable, Optional
 from collections import OrderedDict
 from typing import Dict, AnyStr
-
+from pgdrive.base_class.randomizable import Randomizable
 import numpy as np
 
 from pgdrive.engine.core.engine_core import EngineCore
@@ -12,7 +13,7 @@ from pgdrive.manager.base_manager import BaseManager
 logger = logging.getLogger(__name__)
 
 
-class BaseEngine(EngineCore):
+class BaseEngine(EngineCore, Randomizable):
     """
     Due to the feature of Panda3D, BaseEngine should only be created once(Singleton Pattern)
     PGWorld is a pure game engine, which is not task-specific, while BaseEngine connects the
@@ -25,7 +26,8 @@ class BaseEngine(EngineCore):
     STOP_REPLAY = False
 
     def __init__(self, global_config):
-        super(BaseEngine, self).__init__(global_config)
+        EngineCore.__init__(self, global_config)
+        Randomizable.__init__(self, self.global_random_seed)
         BaseEngine.singleton = self
         self.interface = Interface(self)
 
@@ -45,6 +47,53 @@ class BaseEngine(EngineCore):
 
         # add camera or not
         self.main_camera = self.setup_main_camera()
+
+        self._spawned_objects = dict()
+        self._object_policies = dict()
+        self._object_tasks = dict()
+
+    def spawn_object(self, object_class, *args, **kwargs):
+        """
+        Call this func to spawn one object
+        :param object_class: object class
+        :param kwargs: class init parameters
+        :return: object spawned
+        """
+        if "random_seed" not in kwargs:
+            kwargs["random_seed"] = self.randint()
+        obj = object_class(*args, **kwargs)
+        self._spawned_objects[obj.id] = obj
+        if "policy" in kwargs:
+            self._object_policies[obj.id] = kwargs["policy"]
+        if "task" in kwargs:
+            self._object_tasks[obj.id] = kwargs["task"]
+        return obj
+
+    def get_objects(self, filter_func: Optional[Callable] = None):
+        """
+        Return objects spawned and managed by this manager, default all objects
+        Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
+        :param filter_func: a filter function, only return objects satisfying this condition
+        :return: return all objects or objects satisfying the filter_func
+        """
+        res = dict()
+        for id, obj in self._spawned_objects.items():
+            if filter_func is None or filter_func(obj):
+                res[id] = obj
+        return res
+
+    def clear_objects(self, filter_func: Optional[Callable] = None):
+        """
+        Destroy all self-generated objects or objects satisfying the filter condition
+        Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
+        """
+        exclude = []
+        for id, obj in self._spawned_objects.items():
+            if filter_func is None or filter_func(obj):
+                obj.destroy()
+            exclude.append(id)
+        for id in exclude:
+            self._spawned_objects.pop(id)
 
     def reset(self):
         """
@@ -184,6 +233,7 @@ class BaseEngine(EngineCore):
 
     def seed(self, random_seed):
         self.global_random_seed = random_seed
+        super(BaseEngine, self).seed(random_seed)
         for mgr in self._managers.values():
             mgr.seed(random_seed)
 

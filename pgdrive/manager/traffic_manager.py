@@ -1,3 +1,4 @@
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 import copy
 import logging
 from collections import namedtuple, deque
@@ -69,7 +70,6 @@ class TrafficManager(BaseManager):
             self._create_vehicles_once(map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
-        logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_objects)))
 
     def before_step(self):
         """
@@ -135,7 +135,7 @@ class TrafficManager(BaseManager):
                 self.spawn_object(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
 
     def clear_objects(self, filter_func=None):
-        super(TrafficManager, self).clear_objects()
+        self.engine.clear_objects(lambda o:o in self._traffic_vehicles)
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
 
     def before_reset(self) -> None:
@@ -226,9 +226,8 @@ class TrafficManager(BaseManager):
         :return: TrafficVehicle
         """
         random_v = vehicle_type.create_random_traffic_vehicle(
-            len(self._spawned_objects), self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
+            0, self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
         )
-        self._spawned_objects[random_v.id] = random_v
         self._traffic_vehicles.append(random_v)
 
         # TODO(pzh): Clean this part!
@@ -410,8 +409,7 @@ class TrafficManager(BaseManager):
 
     @property
     def vehicles(self):
-        return list(self.engine.agent_manager.active_objects.values()) + \
-               [v.kinematic_model for v in self._spawned_objects.values()]
+        return list(self.engine.get_objects(filter_func=lambda o:isinstance(o, BaseVehicle)).values())
 
     @property
     def traffic_vehicles(self):

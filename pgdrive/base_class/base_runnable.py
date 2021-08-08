@@ -1,8 +1,8 @@
 from typing import Dict
 
-from pgdrive.component.base_class.configurable import Configurable
-from pgdrive.component.base_class.nameable import Nameable
-from pgdrive.component.base_class.randomizable import Randomizable
+from pgdrive.base_class.configurable import Configurable
+from pgdrive.base_class.nameable import Nameable
+from pgdrive.base_class.randomizable import Randomizable
 from pgdrive.utils.space import ParameterSpace
 
 

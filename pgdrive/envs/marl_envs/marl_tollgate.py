@@ -176,7 +176,7 @@ class MultiAgentTollgateEnv(MultiAgentPGDrive):
 
         if self.current_map is None:
             self.seed(map_config["seed"])
-            new_map = self.engine.map_manager.spawn_object(
+            new_map = self.engine.spawn_object(
                 MATollGateMap, map_config=map_config, random_seed=self.current_seed
             )
             self.engine.map_manager.load_map(new_map)

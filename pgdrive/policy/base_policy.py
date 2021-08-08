@@ -1,4 +1,4 @@
-from pgdrive.component.base_class.base_runable import BaseRunnable
+from pgdrive.base_class.base_runnable import BaseRunnable
 
 
 class BasePolicy(BaseRunnable):

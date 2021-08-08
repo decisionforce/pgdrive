@@ -1,7 +1,7 @@
 from panda3d.bullet import BulletWorld, BulletBodyNode
 from panda3d.core import NodePath
 
-from pgdrive.component.base_class.base_runable import BaseRunnable
+from pgdrive.base_class.base_runnable import BaseRunnable
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.physics_world import PhysicsWorld
 

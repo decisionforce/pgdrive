@@ -5,7 +5,7 @@ from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode, BulletGhostNode
 from panda3d.core import Vec3, LQuaternionf, Vec4, CardMaker, TextureStage, RigidBodyCombiner, \
     TransparencyAttrib, SamplerState, NodePath
 
-from pgdrive.component.base_class.base_object import BaseObject
+from pgdrive.base_class.base_object import BaseObject
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.lane.circular_lane import CircularLane
 from pgdrive.component.lane.straight_lane import StraightLane
