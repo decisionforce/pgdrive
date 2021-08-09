@@ -270,7 +270,10 @@ def _vis():
             "use_render": True,
             "debug": False,
             "manual_control": True,
-            "num_agents": 40,
+
+            "num_agents": 20,
+            "traffic_density": 20,
+
         }
     )
     o = env.reset()
@@ -388,8 +391,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _vis_debug_respawn()
     # _profiwdle()
-    _long_run()
+    # _long_run()
     # pygame_replay("round", MultiAgentRoundaboutEnv)
