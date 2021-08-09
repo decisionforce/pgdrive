@@ -66,7 +66,7 @@ class AgentManager(BaseManager):
         from pgdrive.component.vehicle.base_vehicle import BaseVehicle
         ret = {
             key: self.engine.spawn_object(
-                BaseVehicle, v_config, am_i_the_special_one=v_config.get("am_i_the_special_one", False)
+                BaseVehicle, vehicle_config=v_config, am_i_the_special_one=v_config.get("am_i_the_special_one")
             )
             for key, v_config in config_dict.items()
         }

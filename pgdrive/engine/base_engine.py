@@ -52,20 +52,22 @@ class BaseEngine(EngineCore, Randomizable):
         self._object_policies = dict()
         self._object_tasks = dict()
 
-    def spawn_object(self, object_class, *args, **kwargs):
+    def spawn_object(self, object_class, policy=None, task=None, **kwargs):
         """
         Call this func to spawn one object
         :param object_class: object class
+        :param policy: control policy for this object
+        :param task: task for this objects
         :param kwargs: class init parameters
         :return: object spawned
         """
         if "random_seed" not in kwargs:
             kwargs["random_seed"] = self.randint()
-        obj = object_class(*args, **kwargs)
+        obj = object_class(**kwargs)
         self._spawned_objects[obj.id] = obj
-        if "policy" in kwargs:
+        if policy:
             self._object_policies[obj.id] = kwargs["policy"]
-        if "task" in kwargs:
+        if task:
             self._object_tasks[obj.id] = kwargs["task"]
         return obj
 

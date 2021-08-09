@@ -1,4 +1,5 @@
 from typing import Union, Callable, Optional
+from pgdrive.component.static_object.traffic_object import TrafficCone, TrafficTriangle
 
 from pgdrive.component.blocks.curve import Curve
 from pgdrive.component.blocks.ramp import InRampOnStraight, OutRampOnStraight
@@ -57,24 +58,6 @@ class TrafficSignManager(BaseManager):
         self._block_objects[building.id] = building
         building.origin.reparentTo(render_node)
 
-    def spawn_object(
-        self,
-        object_class: Union[TrafficSign, str],
-        *args,
-        **kwargs,
-    ):
-        """
-        Spawn an object by assigning its type and position on the lane
-        :param object_class: object name or the class name of the object
-        """
-        cls = None
-        for t in TrafficSign.type():
-            if t.__name__ == object_class or t.NAME == object_class:
-                cls = t
-        if cls is None:
-            raise ValueError("No object named {}, so it can not be spawned".format(object_class))
-        return self.engine.spawn_object(cls, *args, **kwargs)
-
     def reset(self):
         """
         Generate an accident scene or construction scene on block
@@ -125,13 +108,13 @@ class TrafficSignManager(BaseManager):
 
     def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):
         engine = get_engine()
-        breakdown_vehicle = engine.traffic_manager.spawn_object(
+        breakdown_vehicle = engine.spawn_object(
             engine.traffic_manager.random_vehicle_type(), lane, longitude, False
         )
         breakdown_vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         breakdown_vehicle.set_break_down()
 
-        alert = self.spawn_object("Traffic Triangle", lane, lane_index, longitude - self.ALERT_DIST, 0)
+        alert = self.engine.spawn_object(TrafficTriangle, lane= lane, longitude=longitude - self.ALERT_DIST, lateral=0)
         alert.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def prohibit_scene(
@@ -161,9 +144,8 @@ class TrafficSignManager(BaseManager):
         left = 1 if on_left else -1
         for p in pos:
             p_ = (p[0] + longitude_position, left * p[1])
-            cone = self.spawn_object("Traffic Cone", lane, lane_index, *p_)
+            cone = self.engine.spawn_object(TrafficCone, lane=lane, longitude=p_[0], lateral=p_[1])
             cone.attach_to_world(engine.pbr_worldNP, engine.physics_world)
-            # TODO refactor traffic and traffic system to make it compatible
 
     def destroy(self):
         self._block_objects = {}
