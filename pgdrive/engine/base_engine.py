@@ -101,12 +101,12 @@ class BaseEngine(EngineCore, Randomizable):
             exclude_objects = {id: self._spawned_objects[id] for id in filter}
         elif callable(filter):
             exclude_objects = dict()
-            for id, obj in self._spawned_objects:
+            for id, obj in self._spawned_objects.items():
                 if filter(obj):
                     exclude_objects[id] = obj
         else:
             raise ValueError("filter should be a list or a function")
-        for id, obj in exclude_objects:
+        for id, obj in exclude_objects.items():
             self._spawned_objects.pop(id)
             obj.destroy()
 

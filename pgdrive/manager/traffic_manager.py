@@ -125,7 +125,7 @@ class TrafficManager(BaseManager):
         # remove vehicles out of road
         for v in vehicles_to_remove:
             self._traffic_vehicles.remove(v)
-            self.engine.clear_objects(filter_func=lambda o:o.id==v.id)
+            self.engine.clear_objects(filter=[v.id])
 
             if self.mode == TrafficMode.Hybrid:
                 # create a new one
@@ -133,17 +133,13 @@ class TrafficManager(BaseManager):
                 vehicle_type = self.random_vehicle_type()
                 self.spawn_object(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
 
-    def clear_objects(self, filter_func=None):
-        self.engine.clear_objects(lambda o:o in self._traffic_vehicles)
-        self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
-
     def before_reset(self) -> None:
         """
         Clear the scene and then reset the scene to empty
         :return: None
         """
         self.density = self.engine.global_config["traffic_density"]
-        self.clear_objects()
+        self.engine.clear_objects(filter=[v.id for v in self._traffic_vehicles])
 
         self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
         self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
@@ -228,7 +224,7 @@ class TrafficManager(BaseManager):
             0, self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
         )
         self._traffic_vehicles.append(random_v)
-
+        self.engine._spawned_objects[random_v.id] = random_v
         # TODO(pzh): Clean this part!
         # TODO(pzh): Check whether delay_time is correct!
         # TODO(pzh): Check whether the random seed is correct!
@@ -408,7 +404,7 @@ class TrafficManager(BaseManager):
 
     @property
     def vehicles(self):
-        return list(self.engine.get_objects(filter_func=lambda o:isinstance(o, BaseVehicle)).values())
+        return list(self.engine.get_objects(filter=lambda o:isinstance(o, BaseVehicle)).values())
 
     @property
     def traffic_vehicles(self):

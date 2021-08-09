@@ -171,4 +171,4 @@ class TrafficSignManager(BaseManager):
 
     @property
     def objects(self):
-        return list(self.engine.get_objects(filter_func=lambda o:isinstance(o, BaseStaticObject)).values())
+        return list(self.engine.get_objects(filter=lambda o:isinstance(o, BaseStaticObject)).values())
