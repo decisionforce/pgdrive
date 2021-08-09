@@ -73,7 +73,7 @@ class TrafficSignManager(BaseManager):
                 cls = t
         if cls is None:
             raise ValueError("No object named {}, so it can not be spawned".format(object_class))
-        return super(TrafficSignManager, self).spawn_object(cls, *args, **kwargs)
+        return self.engine.spawn_object(cls, *args, **kwargs)
 
     def reset(self):
         """

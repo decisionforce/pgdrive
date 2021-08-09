@@ -147,8 +147,8 @@ class TopDownObservation(ObservationBase):
 
     def draw_scene(self):
         # Set the active area that can be modify to accelerate
-        assert len(self.engine.target_vehicles) == 1, "Don't support multi-agent top-down observation yet!"
-        vehicle = self.engine.target_vehicles[DEFAULT_AGENT]
+        assert len(self.engine.agents) == 1, "Don't support multi-agent top-down observation yet!"
+        vehicle = self.engine.agents[DEFAULT_AGENT]
         pos = self.canvas_runtime.pos2pix(*vehicle.position)
         clip_size = (int(self.obs_window.get_size()[0] * 1.1), int(self.obs_window.get_size()[0] * 1.1))
         self.canvas_runtime.set_clip((pos[0] - clip_size[0] / 2, pos[1] - clip_size[1] / 2, clip_size[0], clip_size[1]))

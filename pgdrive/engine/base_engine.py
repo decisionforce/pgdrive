@@ -69,26 +69,31 @@ class BaseEngine(EngineCore, Randomizable):
             self._object_tasks[obj.id] = kwargs["task"]
         return obj
 
-    def get_objects(self, filter_func: Optional[Callable] = None):
+    def get_objects(self, filter: Optional[Callable] = None):
         """
-        Return objects spawned and managed by this manager, default all objects
+        Return objects spawned, default all objects. Filter_func will be applied on dict filtered by objects_id
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
+        :param objects_id: get objects by id
         :param filter_func: a filter function, only return objects satisfying this condition
         :return: return all objects or objects satisfying the filter_func
         """
+        objects = self._spawned_objects if objects_id is None else {id: self._spawned_objects[id] for id in objects_id}
+        if filter_func is None:
+            return objects
         res = dict()
-        for id, obj in self._spawned_objects.items():
+        for id, obj in objects.items():
             if filter_func is None or filter_func(obj):
                 res[id] = obj
         return res
 
-    def clear_objects(self, filter_func: Optional[Callable] = None):
+    def clear_objects(self, objects_ids:list, filter_func: Optional[Callable] = None):
         """
         Destroy all self-generated objects or objects satisfying the filter condition
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
         """
+        objs = self._spawned_objects.items() if objects_ids is None else
         exclude = []
-        for id, obj in self._spawned_objects.items():
+        for id, obj in :
             if filter_func is None or filter_func(obj):
                 obj.destroy()
             exclude.append(id)
@@ -142,7 +147,7 @@ class BaseEngine(EngineCore, Randomizable):
                 engine.step_physics_world()
             else:
                 if not self.STOP_REPLAY:
-                    self.replay_system.replay_frame(self.target_vehicles, i == step_num - 1)
+                    self.replay_system.replay_frame(self.agents, i == step_num - 1)
             # # record every step
             # if self.record_system is not None:
             #     # didn't record while replay
@@ -207,13 +212,6 @@ class BaseEngine(EngineCore, Randomizable):
     def __del__(self):
         logging.debug("{} is destroyed".format(self.__class__.__name__))
 
-    def is_target_vehicle(self, v):
-        return v in self.agent_manager.active_agents.values()
-
-    @property
-    def target_vehicles(self):
-        return {k: v for k, v in self.agent_manager.active_agents.items()}
-
     def _stop_replay(self):
         if not self.IN_REPLAY:
             return
@@ -241,16 +239,20 @@ class BaseEngine(EngineCore, Randomizable):
     def current_map(self):
         return self.map_manager.current_map
 
-    def setup_main_camera(self):
-        from pgdrive.engine.core.chase_camera import MainCamera
-        if self.global_config["use_render"] or self.global_config["offscreen_render"]:
-            return MainCamera(self, self.global_config["camera_height"], self.global_config["camera_dist"])
-        else:
-            return None
-
     @property
     def current_track_vehicle(self):
         if self.main_camera is not None:
             return self.main_camera.current_track_vehicle
+        else:
+            return None
+
+    @property
+    def agents(self):
+        return {k: v for k, v in self.agent_manager.active_agents.items()}
+
+    def setup_main_camera(self):
+        from pgdrive.engine.core.chase_camera import MainCamera
+        if self.global_config["use_render"] or self.global_config["offscreen_render"]:
+            return MainCamera(self, self.global_config["camera_height"], self.global_config["camera_dist"])
         else:
             return None

@@ -125,8 +125,7 @@ class TrafficManager(BaseManager):
         # remove vehicles out of road
         for v in vehicles_to_remove:
             self._traffic_vehicles.remove(v)
-            v.destroy()
-            self._spawned_objects.pop(v.id)
+            self.engine.clear_objects(filter_func=lambda o:o.id==v.id)
 
             if self.mode == TrafficMode.Hybrid:
                 # create a new one
