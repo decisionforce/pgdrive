@@ -138,7 +138,7 @@ class TrafficManager(RandomEngine):
                 nodes = [node1, node0]
                 nodes.remove(v.vehicle_node)
                 name = nodes[0].getName()
-                if name == BodyName.Traffic_vehicle or name == BodyName.Base_vehicle:
+                if name == BodyName.Traffic_vehicle or name == BodyName.Base_vehicle or name==BodyName.TollGate:
                     crash = True
                     break
             if v.out_of_road or crash:
@@ -146,7 +146,7 @@ class TrafficManager(RandomEngine):
                     self.v_success += 1
                 remove = v.need_remove()
                 if remove:
-                    self.vehicles_to_remove.append(V_t(v,10))
+                    self.vehicles_to_remove.append(V_t(v, 10))
                     v_exclude.append(v)
                 else:
                     v.reset()
@@ -162,12 +162,12 @@ class TrafficManager(RandomEngine):
                 self._spawned_vehicles.remove(v_t.v)
 
         respawn_places = self._scene_mgr.spawn_manager.get_available_respawn_places(self._scene_mgr.pg_world, self.map)
-        if len(respawn_places) > 0 and len(self._traffic_vehicles)<int(self.density):
+        if len(respawn_places) > 0 and len(self._traffic_vehicles) < int(self.density):
             v_config = list(respawn_places.values())[0]["config"]
             vehicle_type = self.random_vehicle_type()
             self.spawn_one_vehicle(vehicle_type, self.map.road_network.get_lane(v_config["spawn_lane_index"]),
                                    v_config["spawn_longitude"], False)
-        return {"episode_success":self.v_success, "episode_all":self.v_generate}
+        return {"episode_success": self.v_success, "episode_all": self.v_generate}
 
     def _clear_traffic(self, pg_world: PGWorld):
         if self._spawned_vehicles is not None:
@@ -466,7 +466,8 @@ class TrafficManager(RandomEngine):
     @property
     def vehicles(self):
         return list(self._scene_mgr.agent_manager.active_objects.values()) + \
-               [v.vehicle_node.kinematic_model for v in self._spawned_vehicles]
+               [v.vehicle_node.kinematic_model for v in self._spawned_vehicles] + list(
+            self._scene_mgr.object_manager.objects)
 
     @property
     def traffic_vehicles(self):

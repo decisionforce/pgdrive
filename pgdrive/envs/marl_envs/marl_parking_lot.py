@@ -393,7 +393,8 @@ def _vis():
             "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 8,
+            "num_agents": 4,
+            "traffic_density":4,
             "delay_done": 10,
             # "parking_space_num": 4
         }
@@ -545,15 +546,15 @@ if __name__ == "__main__":
     # _draw()
     _vis()
     # _vis_debug_respawn()
-    _profile()
+    # _profile()
     # _long_run()
     # pygame_replay("parking", MultiAgentParkingLotEnv, False, other_traj="metasvodist_parking_best.json")
-    panda_replay(
-        "parking",
-        MultiAgentParkingLotEnv,
-        False,
-        other_traj="metasvodist_parking_best.json",
-        extra_config={"pg_world_config": {
-            "global_light": True
-        }}
-    )
+    # panda_replay(
+    #     "parking",
+    #     MultiAgentParkingLotEnv,
+    #     False,
+    #     other_traj="metasvodist_parking_best.json",
+    #     extra_config={"pg_world_config": {
+    #         "global_light": True
+    #     }}
+    # )

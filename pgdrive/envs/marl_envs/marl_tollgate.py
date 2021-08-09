@@ -401,14 +401,14 @@ def _vis():
                 # "show_side_detector":True,
                 # "show_lane_line_detector":True,
             },
-            "traffic_density": 0.,
             "traffic_mode": "hybrid",
             "debug": True,
             "fast": True,
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 1,
+            "traffic_density":10,
+            "num_agents": 10,
         }
     )
     o = env.reset()
@@ -532,8 +532,8 @@ def _long_run():
 
 if __name__ == "__main__":
     # _draw()
-    # _vis()
+    _vis()
     # _vis_debug_respawn()
     # _profile()
     # _long_run()
-    pygame_replay("tollgate", MultiAgentTollgateEnv)
+    # pygame_replay("tollgate", MultiAgentTollgateEnv)

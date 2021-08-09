@@ -267,7 +267,8 @@ def _vis():
             "use_render": True,
             # "debug": True,
             "manual_control": True,
-            "num_agents": 20,
+            "num_agents": 10,
+            "traffic_density":10
         }
     )
     o = env.reset()
