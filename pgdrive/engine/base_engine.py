@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional
+from typing import Callable, Optional, Union, List
 from collections import OrderedDict
 from typing import Dict, AnyStr
 from pgdrive.base_class.randomizable import Randomizable
@@ -69,36 +69,46 @@ class BaseEngine(EngineCore, Randomizable):
             self._object_tasks[obj.id] = kwargs["task"]
         return obj
 
-    def get_objects(self, filter: Optional[Callable] = None):
+    def get_objects(self, filter: Optional[Union[Callable, List]] = None):
         """
-        Return objects spawned, default all objects. Filter_func will be applied on dict filtered by objects_id
+        Return objects spawned, default all objects. Filter_func will be applied on all objects.
+        It can be a id list or a function
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
-        :param objects_id: get objects by id
-        :param filter_func: a filter function, only return objects satisfying this condition
+        :param filter: a filter function, only return objects satisfying this condition
         :return: return all objects or objects satisfying the filter_func
         """
-        objects = self._spawned_objects if objects_id is None else {id: self._spawned_objects[id] for id in objects_id}
-        if filter_func is None:
-            return objects
-        res = dict()
-        for id, obj in objects.items():
-            if filter_func is None or filter_func(obj):
-                res[id] = obj
-        return res
+        if filter is None:
+            return self._spawned_objects
+        elif isinstance(filter, list):
+            return {id: self._spawned_objects[id] for id in filter}
+        elif callable(filter):
+            res = dict()
+            for id, obj in self._spawned_objects.items():
+                if filter(obj):
+                    res[id] = obj
+            return res
+        else:
+            raise ValueError("filter should be a list or a function")
 
-    def clear_objects(self, objects_ids:list, filter_func: Optional[Callable] = None):
+    def clear_objects(self, filter: Optional[Union[Callable, List]] = None):
         """
         Destroy all self-generated objects or objects satisfying the filter condition
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
         """
-        objs = self._spawned_objects.items() if objects_ids is None else
-        exclude = []
-        for id, obj in :
-            if filter_func is None or filter_func(obj):
-                obj.destroy()
-            exclude.append(id)
-        for id in exclude:
+        if filter is None:
+            exclude_objects = self._spawned_objects
+        elif isinstance(filter, list):
+            exclude_objects = {id: self._spawned_objects[id] for id in filter}
+        elif callable(filter):
+            exclude_objects = dict()
+            for id, obj in self._spawned_objects:
+                if filter(obj):
+                    exclude_objects[id] = obj
+        else:
+            raise ValueError("filter should be a list or a function")
+        for id, obj in exclude_objects:
             self._spawned_objects.pop(id)
+            obj.destroy()
 
     def reset(self):
         """
