@@ -41,6 +41,7 @@ class SpawnManager:
         self.initialized = False
         self.target_vehicle_configs = target_vehicle_configs
         self.spawn_places_used = []
+        self.spawn_places_left = []
         self.vehicle_length = vehicle_config["vehicle_length"]
         self.vehicle_width = vehicle_config["vehicle_width"]
         self.custom_target_vehicle_config = True if target_vehicle_configs is not None and len(
@@ -116,7 +117,7 @@ class SpawnManager:
                     target_vehicle_configs.append(
                         PGConfig(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
@@ -151,6 +152,8 @@ class SpawnManager:
             )
 
         # for rllib compatibility
+        self.spawn_places_left = list(
+            set([i for i in range(len(self.target_vehicle_configs))]).difference(set(target_agents)))
         ret = {}
         if len(target_agents) > 1:
             for real_idx, idx in enumerate(target_agents):

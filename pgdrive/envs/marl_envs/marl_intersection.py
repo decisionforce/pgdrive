@@ -205,18 +205,19 @@ def _vis():
                 "show_lidar": False,
             },
             # "fast": True,
-            # "use_render": True,
+            "use_render": True,
             "debug": True,
             "manual_control": True,
-            "num_agents": 48,
-            "delay_done": 1000,
+            "traffic_density":16,
+            "num_agents": 16,
+            "delay_done": 10,
         }
     )
     o = env.reset()
     total_r = 0
     ep_s = 0
     for i in range(1, 100000):
-        actions = {k: [0.0, 1.0] for k in env.vehicles.keys()}
+        actions = {k: [0.0, 0.2] for k in env.vehicles.keys()}
         if len(env.vehicles) == 1:
             actions = {k: [-0, 1.0] for k in env.vehicles.keys()}
         o, r, d, info = env.step(actions)
@@ -233,7 +234,7 @@ def _vis():
         #     "alive": len(env.vehicles)
         # }
         # env.render(text=render_text)
-        env.render(mode="top_down")
+        # env.render(mode="top_down")
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(

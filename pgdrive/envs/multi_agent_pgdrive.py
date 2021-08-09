@@ -217,7 +217,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     def _after_lazy_init(self):
         super(MultiAgentPGDrive, self)._after_lazy_init()
-
+        self.scene_manager.spawn_manager = self._spawn_manager
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
             top_down_camera_height = self.config["top_down_camera_initial_z"]

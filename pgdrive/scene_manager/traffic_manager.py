@@ -1,9 +1,10 @@
 import logging
+
 import copy
 from collections import namedtuple, deque
 from typing import Tuple, Dict
 
-from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT
+from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT, BodyName
 from pgdrive.scene_creator.lane.abs_lane import AbstractLane
 from pgdrive.scene_creator.map import Map
 from pgdrive.scene_creator.road.road import Road
@@ -11,6 +12,12 @@ from pgdrive.utils import norm, RandomEngine, merge_dicts
 from pgdrive.world.pg_world import PGWorld
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
+
+
+class V_t:
+    def __init__(self, v, t):
+        self.v = v
+        self.t = t
 
 
 class TrafficMode:
@@ -47,6 +54,10 @@ class TrafficManager(RandomEngine):
         self.random_traffic = random_traffic
         self.density = 0
         self.respawn_lanes = None
+        self.vehicles_to_remove = []
+
+        self.v_generate = 0
+        self.v_success = 0
 
         # control randomness of traffic
         super(TrafficManager, self).__init__()
@@ -59,7 +70,8 @@ class TrafficManager(RandomEngine):
         :param traffic_density: Traffic density defined by: number of vehicles per meter
         :return: List of Traffic vehicles
         """
-
+        self.v_generate = 0
+        self.v_success = 0
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.update_random_seed(map.random_seed if not self.random_traffic else None)
 
@@ -76,22 +88,11 @@ class TrafficManager(RandomEngine):
         for v in self.vehicles:
             self.is_target_vehicle_dict[v.name] = True
 
-        traffic_density = self.density
-        if abs(traffic_density - 0.0) < 1e-2:
-            return
         self.respawn_lanes = None
-        if self.mode == TrafficMode.Respawn:
-            # add respawn vehicle
-            self._create_respawn_vehicles(pg_world, map, traffic_density)
-        elif self.mode == TrafficMode.Trigger:
-            self._create_vehicles_once(pg_world, map, traffic_density)
-        elif self.mode == TrafficMode.Hybrid:
-            # vehicles will be respawn after arriving destination
-            self.respawn_lanes = self._get_available_respawn_lanes(map)
-            self._create_vehicles_once(pg_world, map, traffic_density)
-        else:
-            raise ValueError("No such mode named {}".format(self.mode))
-        logging.debug("Init {} Traffic Vehicles".format(len(self._spawned_vehicles)))
+        self.vehicles_to_remove = []
+        # add respawn vehicle
+
+        self._create_respawn_vehicles(pg_world, map, traffic_density)
 
     def prepare_step(self):
         """
@@ -127,28 +128,46 @@ class TrafficManager(RandomEngine):
         """
         scene_manager = self._scene_mgr
         pg_world = scene_manager.pg_world
-        vehicles_to_remove = []
+        v_exclude = []
         for v in self._traffic_vehicles:
-            if v.out_of_road:
+            crash = False
+            res = self._scene_mgr.pg_world.physics_world.dynamic_world.contactTest(v.node_path.node(), False)
+            for contact in res.getContacts():
+                node0 = contact.getNode0()
+                node1 = contact.getNode1()
+                nodes = [node1, node0]
+                nodes.remove(v.vehicle_node)
+                name = nodes[0].getName()
+                if name == BodyName.Traffic_vehicle or name == BodyName.Base_vehicle:
+                    crash = True
+                    break
+            if v.out_of_road or crash:
+                if v.out_of_road:
+                    self.v_success += 1
                 remove = v.need_remove()
                 if remove:
-                    vehicles_to_remove.append(v)
+                    self.vehicles_to_remove.append(V_t(v,10))
+                    v_exclude.append(v)
                 else:
                     v.reset()
             else:
                 v.update_state(pg_world)
-
-        # remove vehicles out of road
-        for v in vehicles_to_remove:
+        for v in v_exclude:
             self._traffic_vehicles.remove(v)
-            v.destroy(scene_manager.pg_world)
-            self._spawned_vehicles.remove(v)
+        # remove vehicles out of road
+        for v_t in self.vehicles_to_remove:
+            v_t.t -= 1
+            if v_t.t == 0:
+                v_t.v.destroy(scene_manager.pg_world)
+                self._spawned_vehicles.remove(v_t.v)
 
-            if self.mode == TrafficMode.Hybrid:
-                # create a new one
-                lane = self.np_random.choice(self.respawn_lanes)
-                vehicle_type = self.random_vehicle_type()
-                self.spawn_one_vehicle(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
+        respawn_places = self._scene_mgr.spawn_manager.get_available_respawn_places(self._scene_mgr.pg_world, self.map)
+        if len(respawn_places) > 0 and len(self._traffic_vehicles)<int(self.density):
+            v_config = list(respawn_places.values())[0]["config"]
+            vehicle_type = self.random_vehicle_type()
+            self.spawn_one_vehicle(vehicle_type, self.map.road_network.get_lane(v_config["spawn_lane_index"]),
+                                   v_config["spawn_longitude"], False)
+        return {"episode_success":self.v_success, "episode_all":self.v_generate}
 
     def _clear_traffic(self, pg_world: PGWorld):
         if self._spawned_vehicles is not None:
@@ -257,6 +276,7 @@ class TrafficManager(RandomEngine):
         :param enable_respawn: Respawn or not
         :return: PGTrafficVehicle
         """
+        self.v_generate += 1
         random_v = vehicle_type.create_random_traffic_vehicle(
             len(self._spawned_vehicles), self, lane, long, seed=self.random_seed, enable_respawn=enable_respawn
         )
@@ -287,9 +307,13 @@ class TrafficManager(RandomEngine):
         return _traffic_vehicles
 
     def _create_respawn_vehicles(self, pg_world: PGWorld, map: Map, traffic_density: float):
-        respawn_lanes = self._get_available_respawn_lanes(map)
-        for lane in respawn_lanes:
-            self._traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
+        respawn_places = self._scene_mgr.spawn_manager.spawn_places_left
+        respawn_places = respawn_places[:int(self.density)]
+        for real_idx, idx in enumerate(respawn_places):
+            v_config = self._scene_mgr.spawn_manager.target_vehicle_configs[idx]["config"]
+            vehicle_type = self.random_vehicle_type()
+            self.spawn_one_vehicle(vehicle_type, self.map.road_network.get_lane(v_config["spawn_lane_index"]),
+                                   v_config["spawn_longitude"], False)
         for vehicle in self._traffic_vehicles:
             vehicle.attach_to_pg_world(pg_world.pbr_worldNP, pg_world.physics_world)
 
@@ -359,7 +383,7 @@ class TrafficManager(RandomEngine):
         vehicles = [
             v for v in self.vehicles
             if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-            and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
+               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
         ]
 
         vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))

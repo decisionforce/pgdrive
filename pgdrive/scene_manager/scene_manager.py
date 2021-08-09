@@ -50,6 +50,7 @@ class SceneManager:
         # cull scene
         self.cull_scene = cull_scene
         self.detector_mask = None
+        self.spawn_manager = None
 
     def _get_traffic_manager(self, traffic_config):
         return TrafficManager(self, traffic_config["traffic_mode"], traffic_config["random_traffic"])
@@ -168,7 +169,6 @@ class SceneManager:
                     self.object_manager._spawned_objects, poses, self.pg_world,
                     self.pg_world.world_config["max_distance"]
                 )
-
         return step_infos
 
     def update_state_for_all_target_vehicles(self):

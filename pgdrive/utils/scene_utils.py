@@ -210,6 +210,6 @@ def rect_region_detection(
     penetration = 0.0
 
     result = pg_world.physics_world.dynamic_world.sweep_test_closest(
-        shape, tsFrom, tsTo, BitMask32.bit(detection_group), penetration
+        shape, tsFrom, tsTo, BitMask32.bit(detection_group) | BitMask32.bit(CollisionGroup.TrafficVehicle), penetration
     )
     return result

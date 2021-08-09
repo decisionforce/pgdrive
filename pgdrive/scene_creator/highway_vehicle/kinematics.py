@@ -104,7 +104,8 @@ class Vehicle:
             traffic_mgr,
             list(lane.position(longitude, 0)),
             lane.heading_at(longitude),
-            speed,
+            speed=0,
+            target_speed=speed,
             np_random=get_np_random(random_seed)
         )
         return v
