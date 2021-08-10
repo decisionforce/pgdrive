@@ -90,6 +90,7 @@ class TrafficManager(BaseManager):
             p = self.engine.get_policy(v.name)
             p.before_step(vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map)
             v.before_step()
+        return dict()
 
     def step(self):
         """

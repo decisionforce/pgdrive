@@ -1,4 +1,5 @@
 import copy
+from pgdrive.policy.env_input_policy import EnvInputPolicy
 import logging
 from typing import Dict
 
@@ -64,12 +65,13 @@ class AgentManager(BaseManager):
 
     def _get_vehicles(self, config_dict: dict):
         from pgdrive.component.vehicle.base_vehicle import BaseVehicle
-        ret = {
-            key: self.engine.spawn_object(
-                BaseVehicle, vehicle_config=v_config, am_i_the_special_one=v_config.get("am_i_the_special_one")
-            )
-            for key, v_config in config_dict.items()
-        }
+        ret = {}
+        for agent_id, v_config in config_dict.items():
+            obj = self.engine.spawn_object(
+                BaseVehicle, vehicle_config=v_config, am_i_the_special_one=v_config.get("am_i_the_special_one"))
+            ret[agent_id] = obj
+            # note: agent.id = object id
+            self.engine.add_policy(obj.id, EnvInputPolicy(agent_id))
         return ret
 
     def init_space(self, init_observation_space, init_action_space):
@@ -233,6 +235,12 @@ class AgentManager(BaseManager):
             self._allow_respawn = flag
 
     def before_step(self):
+        # not in replay mode
+        step_infos = {}
+        for agent_id in self.active_agents.keys():
+            a = self.engine.get_policy(self._agent_to_object[agent_id]).act()
+            step_infos[agent_id] = self.get_agent(agent_id).before_step(a)
+
         self._agents_finished_this_frame = dict()
         finished = set()
         for v_name in self._dying_objects.keys():
@@ -243,6 +251,7 @@ class AgentManager(BaseManager):
                 finished.add(v_name)
         for v_name in finished:
             self._dying_objects.pop(v_name)
+        return step_infos
 
     def _translate(self, d):
         return {self._object_to_agent[k]: v for k, v in d.items()}

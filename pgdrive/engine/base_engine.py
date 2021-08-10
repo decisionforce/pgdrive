@@ -53,6 +53,9 @@ class BaseEngine(EngineCore, Randomizable):
         self._object_policies = dict()
         self._object_tasks = dict()
 
+        # store external actions
+        self.external_actions = None
+
     def add_policy(self, object_id, policy):
         self._object_policies[object_id]=policy
 
@@ -162,21 +165,17 @@ class BaseEngine(EngineCore, Randomizable):
         if self.main_camera is not None:
             self.main_camera.reset()
 
-    def before_step(self, target_actions: Dict[AnyStr, np.array]):
+    def before_step(self, external_actions: Dict[AnyStr, np.array]):
         """
         Entities make decision here, and prepare for step
         All entities can access this global manager to query or interact with others
-        :param target_actions: Dict[agent_id:action]
+        :param external_actions: Dict[agent_id:action]
         :return:
         """
         step_infos = {}
-        if self.replay_system is None:
-            # not in replay mode
-            for k in self.agent_manager.active_agents.keys():
-                a = target_actions[k]
-                step_infos[k] = self.agent_manager.get_agent(k).before_step(a)
-            for manager in self._managers.values():
-                manager.before_step()
+        self.external_actions=external_actions
+        for manager in self._managers.values():
+            step_infos.update(manager.before_step())
         return step_infos
 
     def step(self, step_num: int = 1) -> None:

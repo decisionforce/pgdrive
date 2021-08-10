@@ -15,7 +15,7 @@ class BaseManager(Randomizable):
         """
         Usually used to set actions for all elements with their policies
         """
-        pass
+        return dict()
 
     def step(self, *args, **kwargs):
         """
