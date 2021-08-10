@@ -19,7 +19,7 @@ from pgdrive.utils.scene_utils import ray_localization
 from pgdrive.utils.space import Parameter, BlockParameterSpace
 
 
-class RoutingLocalizationModule:
+class Navigation:
     navigation_info_dim = 10
     NAVI_POINT_DIST = 50
     PRE_NOTIFY_DIST = 40
@@ -45,7 +45,9 @@ class RoutingLocalizationModule:
         self.final_lane = None
         self.checkpoints = None
         self.current_ref_lanes = None
+        self.next_ref_lanes = None
         self.current_road = None
+        self.next_road = None
         self._target_checkpoints_index = None
         self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
 
@@ -126,7 +128,7 @@ class RoutingLocalizationModule:
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
         assert len(self.checkpoints) > 2, "Can not find a route from {} to {}".format(start_road_node, end_road_node)
         # update routing info
-        self.final_road = Road(self.checkpoints[-2], end_road_node)
+        self.final_road = Road(self.checkpoints[-2], self.checkpoints[-1])
         final_lanes = self.final_road.get_lanes(self.map.road_network)
         self.final_lane = final_lanes[-1]
         self._target_checkpoints_index = [0, 1]
@@ -134,7 +136,9 @@ class RoutingLocalizationModule:
         target_road_1_start = self.checkpoints[0]
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
+        self.next_ref_lanes = self.map.road_network.graph[self.checkpoints[1]][self.checkpoints[2]]
         self.current_road = Road(target_road_1_start, target_road_1_end)
+        self.next_road = Road(self.checkpoints[1],self.checkpoints[2]) if len(self.checkpoints)>2 else self.current_road
         if self._dest_node_path is not None:
             ref_lane = final_lanes[0]
             later_middle = (float(self.get_current_lane_num()) / 2 - 0.5) * self.get_current_lane_width()
@@ -162,7 +166,9 @@ class RoutingLocalizationModule:
         target_lanes_1 = self.map.road_network.graph[target_road_1_start][target_road_1_end]
         target_lanes_2 = self.map.road_network.graph[target_road_2_start][target_road_2_end]
         self.current_ref_lanes = target_lanes_1
+        self.next_ref_lanes = target_lanes_2
         self.current_road = Road(target_road_1_start, target_road_1_end)
+        self.next_road = Road(target_road_2_start, target_road_2_end)
 
         self._navi_info.fill(0.0)
         half = self.navigation_info_dim // 2

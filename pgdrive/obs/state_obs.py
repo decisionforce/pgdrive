@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 
-from pgdrive.component.vehicle_module.navigation import RoutingLocalizationModule
+from pgdrive.component.vehicle_module.navigation import Navigation
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils.math_utils import clip, norm
 
@@ -17,7 +17,7 @@ class StateObservation(ObservationBase):
     @property
     def observation_space(self):
         # Navi info + Other states
-        shape = self.ego_state_obs_dim + RoutingLocalizationModule.navigation_info_dim + self.get_side_detector_dim()
+        shape = self.ego_state_obs_dim + Navigation.navigation_info_dim + self.get_side_detector_dim()
         return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
 
     def observe(self, vehicle):

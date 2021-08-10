@@ -20,7 +20,7 @@ from pgdrive.component.vehicle_module.distance_detector import SideDetector, Lan
 from pgdrive.component.vehicle_module.lidar import Lidar
 from pgdrive.component.vehicle_module.mini_map import MiniMap
 from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
-from pgdrive.component.vehicle_module.navigation import RoutingLocalizationModule
+from pgdrive.component.vehicle_module.navigation import Navigation
 from pgdrive.constants import BodyName, CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
 from pgdrive.engine.core.image_buffer import ImageBuffer
@@ -145,7 +145,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         # modules, get observation by using these modules
         self.lane: Optional[AbstractLane] = None
         self.lane_index = None
-        self.navigation: Optional[RoutingLocalizationModule] = None
+        self.navigation: Optional[Navigation] = None
         self.lidar: Optional[Lidar] = None  # detect surrounding vehicles
         self.side_detector: Optional[SideDetector] = None  # detect road side
         self.lane_line_detector: Optional[LaneLineDetector] = None  # detect nearest lane lines
@@ -565,7 +565,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def add_routing_localization(self, show_navi_mark: bool = False):
         config = self.config
-        self.navigation = RoutingLocalizationModule(
+        self.navigation = Navigation(
             self.engine,
             show_navi_mark=show_navi_mark,
             random_navi_mark_color=config["random_navi_mark_color"],
