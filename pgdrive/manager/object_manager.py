@@ -7,7 +7,6 @@ from pgdrive.component.blocks.straight import Straight
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.road.road import Road
 from pgdrive.component.road.road_network import LaneIndex
-from pgdrive.component.static_object.base_static_object import BaseStaticObject
 from pgdrive.component.static_object.traffic_object import TrafficSign
 from pgdrive.engine.engine_utils import get_engine
 from pgdrive.manager.base_manager import BaseManager
@@ -30,13 +29,10 @@ class TrafficSignManager(BaseManager):
     CONE_LATERAL = 1
     PROHIBIT_SCENE_PROB = 0.5  # the reset is the probability of break_down_scene
 
-    def __init__(self, config=None):
+    def __init__(self):
         super(TrafficSignManager, self).__init__()
         self._block_objects = {}
         self.accident_prob = 0.
-
-        # init random engine
-        super(TrafficSignManager, self).__init__()
 
     def before_reset(self):
         """
@@ -48,8 +44,8 @@ class TrafficSignManager(BaseManager):
         for block in map.blocks:
             block.construct_block_buildings(self)
 
-    def clear_objects(self, filter_func: Optional[Callable] = None):
-        self.engine.clear_objects(lambda o:isinstance(o, BaseStaticObject))
+    def clear_objects(self):
+        self.engine.clear_objects(lambda o:isinstance(o, TrafficSign))
         for block_object in self._block_objects.values():
             block_object.origin.detachNode()
         self._block_objects = {}
@@ -96,17 +92,15 @@ class TrafficSignManager(BaseManager):
             # generate scene
             block.PROHIBIT_TRAFFIC_GENERATION = True
 
-            # TODO(pzh) This might not worked in MARL envs when the route is also has changeable lanes.
             lateral_len = engine.current_map.config[engine.current_map.LANE_WIDTH]
 
             lane = engine.current_map.road_network.get_lane(accident_road.lane_index(accident_lane_idx))
             if self.np_random.rand() > 0.5 or _debug:
-                self.prohibit_scene(lane, accident_road.lane_index(accident_lane_idx), longitude, lateral_len, on_left)
+                self.prohibit_scene(lane, longitude, lateral_len, on_left)
             else:
-                accident_lane_idx = self.np_random.randint(engine.current_map.config[engine.current_map.LANE_NUM])
-                self.break_down_scene(lane, accident_road.lane_index(accident_lane_idx), longitude)
+                self.break_down_scene(lane,  longitude)
 
-    def break_down_scene(self, lane: AbstractLane, lane_index: LaneIndex, longitude: float):
+    def break_down_scene(self, lane: AbstractLane, longitude: float):
         engine = get_engine()
         breakdown_vehicle = engine.spawn_object(
             engine.traffic_manager.random_vehicle_type(), lane, longitude, False
@@ -117,13 +111,10 @@ class TrafficSignManager(BaseManager):
         alert = self.engine.spawn_object(TrafficTriangle, lane= lane, longitude=longitude - self.ALERT_DIST, lateral=0)
         alert.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
-    def prohibit_scene(
-        self, lane: AbstractLane, lane_index: LaneIndex, longitude_position: float, lateral_len: float, on_left=False
-    ):
+    def prohibit_scene(self, lane: AbstractLane, longitude_position: float, lateral_len: float, on_left=False):
         """
         Generate an accident scene on the most left or most right lane
         :param lane lane object
-        :param lane_index: lane index used to find the lane in map
         :param longitude_position: longitude position of the accident on the lane
         :param lateral_len: the distance that traffic cones extend on lateral direction
         :param on_left: on left or right side
@@ -153,4 +144,4 @@ class TrafficSignManager(BaseManager):
 
     @property
     def objects(self):
-        return list(self.engine.get_objects(filter=lambda o:isinstance(o, BaseStaticObject)).values())
+        return list(self.engine.get_objects(filter=lambda o:isinstance(o, TrafficSign)).values())

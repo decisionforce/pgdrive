@@ -33,23 +33,8 @@ class TrafficSign(BaseStaticObject):
         position = lane.position(longitude, lateral)
         heading = lane.heading_at(longitude)
         assert self.NAME is not None, "Assign a name for this class for finding it easily"
-        super(TrafficSign, self).__init__(lane, lane.index, position, heading, random_seed)
-        self.position = position
-        self.speed = 0
-        self.heading = heading / np.pi * 180
-        self.lane_index = lane.index
-        self.lane = lane
-        self.body_node = None
-
+        super(TrafficSign, self).__init__(lane, position, heading, random_seed)
         self.crashed = False
-
-    def set_static(self, static: bool = False):
-        mass = 0 if static else self.MASS
-        self.body_node.setMass(mass)
-
-    @classmethod
-    def type(cls):
-        return cls.__subclasses__()
 
 
 class TrafficCone(TrafficSign):
@@ -60,11 +45,9 @@ class TrafficCone(TrafficSign):
     def __init__(
         self, lane, longitude: float, lateral: float, static: bool = False, random_seed=None):
         super(TrafficCone, self).__init__(lane, longitude, lateral, random_seed)
-        self.body_node = BaseRigidBodyNode(self, self.NAME)
-        self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
-        self.origin: NodePath = NodePath(self.body_node)
+        self.add_body(BaseRigidBodyNode(self, self.NAME))
+        self.body.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
         self.origin.setPos(panda_position(self.position, self.HEIGHT / 2))
-        self.dynamic_nodes.append(self.body_node)
         self.origin.setH(panda_heading(self.heading))
         if self.render:
             model = self.loader.loadModel(AssetLoader.file_path("models", "traffic_cone", "scene.gltf"))
@@ -80,14 +63,11 @@ class TrafficTriangle(TrafficSign):
     NAME = BodyName.Traffic_triangle
     RADIUS = 0.5
 
-    def __init__(
-        self, lane,  longitude: float, lateral: float, static: bool = False, random_seed=None):
+    def __init__(self, lane,  longitude: float, lateral: float, static: bool = False, random_seed=None):
         super(TrafficTriangle, self).__init__(lane, longitude, lateral, random_seed)
-        self.body_node = BaseRigidBodyNode(self, self.NAME)
-        self.body_node.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
-        self.origin: NodePath = NodePath(self.body_node)
+        self.add_body(BaseRigidBodyNode(self, self.NAME))
+        self.body.addShape(BulletCylinderShape(self.RADIUS, self.HEIGHT))
         self.origin.setPos(panda_position(self.position, self.HEIGHT / 2))
-        self.dynamic_nodes.append(self.body_node)
         self.origin.setH(panda_heading(self.heading))
         if self.render:
             model = self.loader.loadModel(AssetLoader.file_path("models", "warning", "warning.gltf"))
