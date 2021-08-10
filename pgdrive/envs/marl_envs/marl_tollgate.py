@@ -192,10 +192,10 @@ class MultiAgentTollgateEnv(MultiAgentPGDrive):
         step_info = dict()
 
         # Reward for moving forward in current lane
-        if vehicle.lane in vehicle.routing_localization.current_ref_lanes:
+        if vehicle.lane in vehicle.navigation.current_ref_lanes:
             current_lane = vehicle.lane
         else:
-            current_lane = vehicle.routing_localization.current_ref_lanes[0]
+            current_lane = vehicle.navigation.current_ref_lanes[0]
             current_road = vehicle.current_road
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
@@ -203,7 +203,7 @@ class MultiAgentTollgateEnv(MultiAgentPGDrive):
         # reward for lane keeping, without it vehicle can learn to overtake but fail to keep in lane
         if self.config["use_lateral"]:
             lateral_factor = clip(
-                1 - 2 * abs(lateral_now) / vehicle.routing_localization.get_current_lane_width(), 0.0, 1.0
+                1 - 2 * abs(lateral_now) / vehicle.navigation.get_current_lane_width(), 0.0, 1.0
             )
         else:
             lateral_factor = 1.0

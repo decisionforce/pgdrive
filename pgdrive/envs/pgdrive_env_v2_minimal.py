@@ -34,7 +34,7 @@ class MinimalObservation(LidarStateObservation):
         return gym.spaces.Box(-0.0, 1.0, shape=tuple(shape), dtype=np.float32)
 
     def observe_ego_state(self, vehicle):
-        navi_info = vehicle.routing_localization.get_navi_info()
+        navi_info = vehicle.navigation.get_navi_info()
         ego_state = self.vehicle_state(vehicle)
         return np.concatenate([ego_state, navi_info])
 
@@ -43,14 +43,14 @@ class MinimalObservation(LidarStateObservation):
         info = []
         lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
         total_width = float(
-            (vehicle.routing_localization.get_current_lane_num() + 1) *
-            vehicle.routing_localization.get_current_lane_width()
+            (vehicle.navigation.get_current_lane_num() + 1) *
+            vehicle.navigation.get_current_lane_width()
         )
         lateral_to_left /= total_width
         lateral_to_right /= total_width
         info += [clip(lateral_to_left, 0.0, 1.0), clip(lateral_to_right, 0.0, 1.0)]
 
-        current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
+        current_reference_lane = vehicle.navigation.current_ref_lanes[-1]
         info += [
             vehicle.heading_diff(current_reference_lane),
             # Note: speed can be negative denoting free fall. This happen when emergency brake.
@@ -87,7 +87,7 @@ class MinimalObservation(LidarStateObservation):
         info.append(clip(yaw_rate, 0.0, 1.0))
 
         long, lateral = vehicle.lane.local_coordinates(vehicle.position)
-        info.append(clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
+        info.append(clip((lateral * 2 / vehicle.navigation.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
         info.append(clip(long / DISTANCE, 0.0, 1.0))
         return info
 

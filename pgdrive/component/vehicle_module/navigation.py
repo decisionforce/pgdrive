@@ -42,16 +42,16 @@ class RoutingLocalizationModule:
         """
         self.map = None
         self.final_road = None
-        self.checkpoints = None
         self.final_lane = None
+        self.checkpoints = None
         self.current_ref_lanes = None
         self.current_road = None
         self._target_checkpoints_index = None
         self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
-        self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
-        self.navi_arrow_dir = None
 
         # Vis
+        self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
+        self.navi_arrow_dir = None
         self._show_navi_info = (engine.mode == RENDER_MODE_ONSCREEN and not engine.global_config["debug_physics_world"])
         self._dest_node_path = None
         self._goal_node_path = None
@@ -141,7 +141,7 @@ class RoutingLocalizationModule:
             check_point = ref_lane.position(ref_lane.length, later_middle)
             self._dest_node_path.setPos(check_point[0], -check_point[1], 1.8)
 
-    def update_navigation_localization(self, ego_vehicle):
+    def update_localization(self, ego_vehicle):
         position = ego_vehicle.position
         lane, lane_index = self.get_current_lane(ego_vehicle)
         if lane is None:

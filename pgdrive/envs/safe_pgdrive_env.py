@@ -48,8 +48,8 @@ class SafePGDriveEnv(PGDriveEnv):
         step_info = dict()
 
         # Reward for moving forward in current lane
-        current_lane = vehicle.lane if vehicle.lane in vehicle.routing_localization.current_ref_lanes else \
-            vehicle.routing_localization.current_ref_lanes[0]
+        current_lane = vehicle.lane if vehicle.lane in vehicle.navigation.current_ref_lanes else \
+            vehicle.navigation.current_ref_lanes[0]
         long_last, _ = current_lane.local_coordinates(vehicle.last_position)
         long_now, lateral_now = current_lane.local_coordinates(vehicle.position)
 
@@ -57,7 +57,7 @@ class SafePGDriveEnv(PGDriveEnv):
         reward = 0.0
         if self.config["use_lateral"]:
             lateral_factor = clip(
-                1 - 2 * abs(lateral_now) / vehicle.routing_localization.get_current_lane_width(), 0.0, 1.0
+                1 - 2 * abs(lateral_now) / vehicle.navigation.get_current_lane_width(), 0.0, 1.0
             )
         else:
             lateral_factor = 1.0

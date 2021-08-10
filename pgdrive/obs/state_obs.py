@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 
-from pgdrive.component.vehicle_module.routing_localization import RoutingLocalizationModule
+from pgdrive.component.vehicle_module.navigation import RoutingLocalizationModule
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils.math_utils import clip, norm
 
@@ -49,7 +49,7 @@ class StateObservation(ObservationBase):
         :param vehicle: BaseVehicle
         :return: Vehicle State + Navigation information
         """
-        navi_info = vehicle.routing_localization.get_navi_info()
+        navi_info = vehicle.navigation.get_navi_info()
         ego_state = self.vehicle_state(vehicle)
         return np.concatenate([ego_state, navi_info])
 
@@ -65,8 +65,8 @@ class StateObservation(ObservationBase):
         else:
             lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
             total_width = float(
-                (vehicle.routing_localization.get_current_lane_num() + 1) *
-                vehicle.routing_localization.get_current_lane_width()
+                (vehicle.navigation.get_current_lane_num() + 1) *
+                vehicle.navigation.get_current_lane_width()
             )
             lateral_to_left /= total_width
             lateral_to_right /= total_width
@@ -74,10 +74,10 @@ class StateObservation(ObservationBase):
 
         # print("Heading Diff: ", [
         #     vehicle.heading_diff(current_reference_lane)
-        #     for current_reference_lane in vehicle.routing_localization.current_ref_lanes
+        #     for current_reference_lane in vehicle.navigation.current_ref_lanes
         # ])
 
-        current_reference_lane = vehicle.routing_localization.current_ref_lanes[-1]
+        current_reference_lane = vehicle.navigation.current_ref_lanes[-1]
         info += [
             vehicle.heading_diff(current_reference_lane),
             # Note: speed can be negative denoting free fall. This happen when emergency brake.
@@ -100,7 +100,7 @@ class StateObservation(ObservationBase):
         else:
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
             info.append(
-                clip((lateral * 2 / vehicle.routing_localization.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0)
+                clip((lateral * 2 / vehicle.navigation.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0)
             )
 
         return info

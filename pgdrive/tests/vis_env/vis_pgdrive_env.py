@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 10,
-                "traffic_density": .0,
+                "traffic_density": .5,
                 "traffic_mode": "trigger",
                 "start_seed": 4,
                 "onscreen_message": True,

@@ -38,7 +38,7 @@ def test_base_vehicle():
         v.lidar = Lidar()
         v.add_routing_localization(True)
         v.add_routing_localization(False)
-        v.routing_localization.set_force_calculate_lane_index(True)
+        v.navigation.set_force_calculate_lane_index(True)
         v.update_map_info(map)
 
         for heading in [-1.0, 0.0, 1.0]:
@@ -59,9 +59,9 @@ def test_base_vehicle():
         for a_x in [-1, 0, 0.5, 1]:
             for a_y in [-1, 0, 0.5, 1]:
                 v.before_step([a_x, a_y])
-                v.set_act([a_x, a_y])
+                v._set_action([a_x, a_y])
                 _assert_vehicle(v)
-                v.set_incremental_action([a_x, a_y])
+                v._set_incremental_action([a_x, a_y])
                 _assert_vehicle(v)
                 state = v.get_state()
                 v.set_state(state)

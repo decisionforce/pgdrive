@@ -140,7 +140,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
         vehicle = self.vehicles[vehicle_id]
         # when agent re-joined to the game, call this to set the new route to destination
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
-        vehicle.routing_localization.set_route(vehicle.lane_index[0], end_road.end_node)
+        vehicle.navigation.set_route(vehicle.lane_index[0], end_road.end_node)
 
     def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)

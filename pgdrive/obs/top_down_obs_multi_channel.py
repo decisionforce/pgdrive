@@ -257,7 +257,7 @@ class TopDownMultiChannel(TopDownObservation):
         return np.transpose(img, (1, 0, 2))
 
     def draw_navigation(self, canvas, color=(128, 128, 128)):
-        checkpoints = self.target_vehicle.routing_localization.checkpoints
+        checkpoints = self.target_vehicle.navigation.checkpoints
         for i, c in enumerate(checkpoints[:-1]):
             lanes = self.road_network.graph[c][checkpoints[i + 1]]
             for lane in lanes:

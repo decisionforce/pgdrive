@@ -27,10 +27,7 @@ class TrafficVehicle(BaseVehicle):
         """
         A traffic vehicle class.
         """
-        engine = get_engine()
-        config = copy.copy(engine.global_config["vehicle_config"])
-        config.update(vehicle_config)
-        super(TrafficVehicle, self).__init__(config, random_seed=random_seed)
+        super(TrafficVehicle, self).__init__(vehicle_config, random_seed=random_seed)
         self.step(0.01, {"steering": 0, "acceleration": 0})
 
     def _add_visualization(self):

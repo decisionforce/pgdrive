@@ -37,7 +37,7 @@ class Interface:
             self.vehicle_panel.update_vehicle_state(track_v)
             self._render_contact_result(track_v.contact_results)
             if hasattr(track_v, "routing_localization"):
-                self._update_navi_arrow(track_v.routing_localization.navi_arrow_dir)
+                self._update_navi_arrow(track_v.navigation.navi_arrow_dir)
 
     def init_interface(self):
         from pgdrive.component.vehicle_module.mini_map import MiniMap
