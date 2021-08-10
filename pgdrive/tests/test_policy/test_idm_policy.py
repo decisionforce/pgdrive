@@ -22,7 +22,7 @@ def _create_vehicle():
             "vehicle_config": v_config
         }
     )
-    initialize_engine(config, None)
+    initialize_engine(config)
     v = BaseVehicle(vehicle_config=v_config, random_seed=0)
     return v
 
