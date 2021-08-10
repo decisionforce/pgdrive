@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Callable, Optional, Union, List
 from collections import OrderedDict
 from typing import Dict, AnyStr
@@ -52,12 +53,41 @@ class BaseEngine(EngineCore, Randomizable):
         self._object_policies = dict()
         self._object_tasks = dict()
 
-    def spawn_object(self, object_class, policy=None, task=None, **kwargs):
+    def add_policy(self, object_id, policy):
+        self._object_policies[object_id]=policy
+
+    def add_task(self, object_id, task):
+        self._object_tasks[object_id] = task
+
+    def get_policy(self, object_id):
+        """
+        Return policy of specific object with id
+        :param object_id: a filter function, only return objects satisfying this condition
+        :return: policy
+        """
+        assert object_id in self._object_policies, "Can not find the policy for object(id: {})".format(object_id)
+        return self._object_policies[object_id]
+
+    def get_task(self, object_id):
+        """
+        Return task of specific object with id
+        :param object_id: a filter function, only return objects satisfying this condition
+        :return: task
+        """
+        assert object_id in self._object_tasks, "Can not find the task for object(id: {})".format(object_id)
+        return self._object_tasks[object_id]
+
+    def has_policy(self, object_id):
+        return True if object_id in self._object_policies else False
+
+    def has_task(self, object_id):
+        return True if object_id in self._object_tasks else False
+
+    def spawn_object(self, object_class, pbr_model=True, **kwargs):
         """
         Call this func to spawn one object
         :param object_class: object class
-        :param policy: control policy for this object
-        :param task: task for this objects
+        :param pbr_model:
         :param kwargs: class init parameters
         :return: object spawned
         """
@@ -65,10 +95,7 @@ class BaseEngine(EngineCore, Randomizable):
             kwargs["random_seed"] = self.randint()
         obj = object_class(**kwargs)
         self._spawned_objects[obj.id] = obj
-        if policy:
-            self._object_policies[obj.id] = kwargs["policy"]
-        if task:
-            self._object_tasks[obj.id] = kwargs["task"]
+        obj.attach_to_world(self.pbr_worldNP if pbr_model else self.worldNP, self.physics_world)
         return obj
 
     def get_objects(self, filter: Optional[Union[Callable, List]] = None):
@@ -110,12 +137,20 @@ class BaseEngine(EngineCore, Randomizable):
             raise ValueError("filter should be a list or a function")
         for id, obj in exclude_objects.items():
             self._spawned_objects.pop(id)
+            if id in self._object_tasks:
+                self._object_tasks.pop(id)
+            if id in self._object_policies:
+                self._object_policies.pop(id)
             obj.destroy()
 
     def reset(self):
         """
         For garbage collecting using, ensure to release the memory of all traffic vehicles
         """
+        if self.global_config["debug_physics_world"]:
+            self.addTask(self.report_body_nums, "report_num")
+
+        self._episode_start_time = time.time()
 
         for manager in self._managers.values():
             manager.before_reset()

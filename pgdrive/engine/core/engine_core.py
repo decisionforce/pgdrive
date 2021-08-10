@@ -268,18 +268,6 @@ class EngineCore(ShowBase.ShowBase):
         # if self.highway_render is not None:
         #     self.highway_render.render()
 
-    def clear_world(self):
-        """
-        Call me to setup the whole visualization world after _init_
-        """
-        # attach all node to this node asset_path
-        self.worldNP.node().removeAllChildren()
-        self.pbr_worldNP.node().removeAllChildren()
-        if self.global_config["debug_physics_world"]:
-            self.addTask(self.report_body_nums, "report_num")
-
-        self._episode_start_time = time.time()
-
     def step_physics_world(self):
         dt = self.global_config["physics_world_step_size"]
         self.physics_world.dynamic_world.doPhysics(dt, 1, dt)
@@ -369,7 +357,6 @@ class EngineCore(ShowBase.ShowBase):
             new_alpha = alpha - 0.08
             self._loading_logo.setColor((1, 1, 1, new_alpha))
             return task.cont
-
 
 if __name__ == "__main__":
     world = EngineCore({"debug": True})

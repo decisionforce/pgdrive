@@ -393,7 +393,6 @@ class PGDriveEnv(BasePGDriveEnv):
 
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         assert engine_initialized()
-        self.engine.clear_world()
 
         for seed in range(self.start_seed, self.start_seed + self.env_num):
             map_config = copy.deepcopy(self.config["map_config"])

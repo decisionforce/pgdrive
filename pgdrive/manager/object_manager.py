@@ -27,12 +27,13 @@ class TrafficSignManager(BaseManager):
     # distance between two cones
     CONE_LONGITUDE = 2
     CONE_LATERAL = 1
-    PROHIBIT_SCENE_PROB = 0.5  # the reset is the probability of break_down_scene
+    PROHIBIT_SCENE_PROB = 0.  # the reset is the probability of break_down_scene
 
     def __init__(self):
         super(TrafficSignManager, self).__init__()
         self._block_objects = {}
         self.accident_prob = 0.
+        self.object=[]
 
     def before_reset(self):
         """
@@ -50,7 +51,7 @@ class TrafficSignManager(BaseManager):
             block_object.origin.detachNode()
         self._block_objects = {}
 
-    def add_block_buildings(self, building: BaseStaticObject, render_node):
+    def add_block_buildings(self, building, render_node):
         self._block_objects[building.id] = building
         building.origin.reparentTo(render_node)
 
@@ -95,7 +96,7 @@ class TrafficSignManager(BaseManager):
             lateral_len = engine.current_map.config[engine.current_map.LANE_WIDTH]
 
             lane = engine.current_map.road_network.get_lane(accident_road.lane_index(accident_lane_idx))
-            if self.np_random.rand() > 0.5 or _debug:
+            if self.np_random.rand() > self.PROHIBIT_SCENE_PROB or _debug:
                 self.prohibit_scene(lane, longitude, lateral_len, on_left)
             else:
                 self.break_down_scene(lane,  longitude)
@@ -105,11 +106,8 @@ class TrafficSignManager(BaseManager):
         breakdown_vehicle = engine.spawn_object(
             engine.traffic_manager.random_vehicle_type(), lane, longitude, False
         )
-        breakdown_vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
         breakdown_vehicle.set_break_down()
-
-        alert = self.engine.spawn_object(TrafficTriangle, lane= lane, longitude=longitude - self.ALERT_DIST, lateral=0)
-        alert.attach_to_world(engine.pbr_worldNP, engine.physics_world)
+        self.engine.spawn_object(TrafficTriangle, lane= lane, longitude=longitude - self.ALERT_DIST, lateral=0)
 
     def prohibit_scene(self, lane: AbstractLane, longitude_position: float, lateral_len: float, on_left=False):
         """
@@ -136,7 +134,6 @@ class TrafficSignManager(BaseManager):
         for p in pos:
             p_ = (p[0] + longitude_position, left * p[1])
             cone = self.engine.spawn_object(TrafficCone, lane=lane, longitude=p_[0], lateral=p_[1])
-            cone.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def destroy(self):
         self._block_objects = {}

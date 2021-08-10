@@ -30,11 +30,11 @@ class MapManager(BaseManager):
         return map
 
     def load_map(self, map):
-        map.load_to_world()
+        map.attach_to_world()
         self.current_map = map
 
     def unload_map(self, map):
-        map.unload_from_world()
+        map.detach_from_world()
         self.current_map = None
 
     def read_all_maps_from_json(self, path):

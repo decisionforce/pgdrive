@@ -159,8 +159,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.dist_to_left_side = None
         self.dist_to_right_side = None
 
-        self.attach_to_world(self.engine.pbr_render, self.engine.physics_world)
-
         # step info
         self.out_of_route = None
         self.on_lane = None

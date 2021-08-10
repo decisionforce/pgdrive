@@ -87,8 +87,7 @@ class TrafficManager(BaseManager):
                     block_vehicles = self.block_triggered_vehicles.pop()
                     self._traffic_vehicles += block_vehicles.vehicles
         for v in self._traffic_vehicles:
-            p = self.engine.policy_manager.get_policy(v.name)
-            # TODO(pzh): Why we input None here? Is that correct?
+            p = self.engine.get_policy(v.name)
             p.before_step(vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map)
             v.before_step()
 
@@ -101,7 +100,7 @@ class TrafficManager(BaseManager):
         dt = self.engine.global_config["physics_world_step_size"]
         dt /= 3.6  # 1m/s = 3.6km/h
         for v in self._traffic_vehicles:
-            p = self.engine.policy_manager.get_policy(v.name)
+            p = self.engine.get_policy(v.name)
             action = p.step(dt)
             v.step(dt, action)
 
@@ -111,7 +110,7 @@ class TrafficManager(BaseManager):
         """
         vehicles_to_remove = []
         for v in self._traffic_vehicles:
-            p = self.engine.policy_manager.get_policy(v.name)
+            p = self.engine.get_policy(v.name)
             p.after_step()
             if v.out_of_road:
                 remove = v.need_remove()
@@ -211,7 +210,7 @@ class TrafficManager(BaseManager):
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, enable_respawn: bool, *args, **kwargs):
+    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, *args, **kwargs):
         """
         Create one vehicle on lane and a specific place
         :param vehicle_type: TrafficVehicle type (s,m,l,xl)
@@ -220,20 +219,13 @@ class TrafficManager(BaseManager):
         :param enable_respawn: Respawn or not
         :return: TrafficVehicle
         """
-        random_v = vehicle_type.create_random_traffic_vehicle(
-            0, self, lane, long, random_seed=self.randint(), enable_respawn=enable_respawn
-        )
+        random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index":lane.index,
+                                                                          "spawn_longitude": long})
         self._traffic_vehicles.append(random_v)
-        self.engine._spawned_objects[random_v.id] = random_v
-        # TODO(pzh): Clean this part!
-        # TODO(pzh): Check whether delay_time is correct!
-        # TODO(pzh): Check whether the random seed is correct!
         # Register the IDM policy for each traffic vehicle
         from pgdrive.policy.idm_policy import IDMPolicy
-        e = get_engine()
-        e.policy_manager.register_new_policy(
-            IDMPolicy, vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1, target_speed=random_v.speed
-        )
+        self.engine.add_policy(random_v.id,
+            IDMPolicy(vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1, target_speed=random_v.speed))
 
         return random_v
 
@@ -264,8 +256,6 @@ class TrafficManager(BaseManager):
         engine = get_engine()
         for lane in respawn_lanes:
             self._traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
-        for vehicle in self._traffic_vehicles:
-            vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
 
     def _create_vehicles_once(self, map: BaseMap, traffic_density: float) -> None:
         """
@@ -294,8 +284,6 @@ class TrafficManager(BaseManager):
                 lanes = self.np_random.choice(lanes, num, replace=False) if len(lanes) != 1 else lanes
                 for l in lanes:
                     vehicles_on_block += self._create_vehicles_on_lane(traffic_density, l, False)
-            for vehicle in vehicles_on_block:
-                vehicle.attach_to_world(engine.pbr_worldNP, engine.physics_world)
             block_vehicles = BlockVehicles(trigger_road=trigger_road, vehicles=vehicles_on_block)
             self.block_triggered_vehicles.append(block_vehicles)
             vehicle_num += len(vehicles_on_block)
@@ -404,7 +392,7 @@ class TrafficManager(BaseManager):
 
     @property
     def vehicles(self):
-        return list(self.engine.get_objects(filter=lambda o:isinstance(o, BaseVehicle)).values())
+        return list(self.engine.get_objects(filter=lambda o: isinstance(o, BaseVehicle)).values())
 
     @property
     def traffic_vehicles(self):

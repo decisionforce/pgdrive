@@ -273,7 +273,6 @@ class BasePGDriveEnv(gym.Env):
         :return: None
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
-        self.engine.clear_world()
         self._reset_global_seed(force_seed)
         self._update_map(episode_data)
         self.agent_manager.reset()
