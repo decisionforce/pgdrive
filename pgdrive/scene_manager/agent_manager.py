@@ -367,7 +367,6 @@ class AgentManager:
         """
         This func is a function that take each vehicle as the first argument and *arg and **kwargs as others.
         """
-        assert len(self.active_agents) > 0, "Not enough vehicles exist!"
         ret = dict()
         for k, v in self.active_agents.items():
             ret[k] = func(v, *args, **kwargs)

@@ -114,9 +114,9 @@ class BasePGDriveEnv(gym.Env):
 
         self.num_agents = self.config["num_agents"]
         self.is_multi_agent = self.config["is_multi_agent"]
-        if not self.is_multi_agent:
-            assert self.num_agents == 1
-        assert isinstance(self.num_agents, int) and (self.num_agents > 0 or self.num_agents == -1)
+        # if not self.is_multi_agent:
+        #     assert self.num_agents == 1
+        # assert isinstance(self.num_agents, int) and (self.num_agents > 0 or self.num_agents == -1)
 
         # observation and action space
         self.agent_manager = AgentManager(

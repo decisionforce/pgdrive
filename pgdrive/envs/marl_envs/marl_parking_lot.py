@@ -376,90 +376,21 @@ def _vis():
     # vis_big(block_type_version="v2")
     env = MultiAgentParkingLotEnv(
         {
-            "horizon": 100000,
-            "vehicle_config": {
-                "lidar": {
-                    "num_lasers": 72,
-                    "num_others": 0,
-                    "distance": 40
-                },
-                "show_lidar": False,
-            },
-            "pg_world_config": {
-                "debug_static_world": True,
-                "global_light": True
-            },
-            "fast": True,
-            "use_render": True,
-            "debug": True,
-            "manual_control": True,
-            "num_agents": 4,
-            "traffic_density":4,
+            "horizon": 1000,
+            "traffic_density":30,
+            "num_agents": 0,
             "delay_done": 10,
-            # "parking_space_num": 4
         }
     )
-    o = env.reset()
-    total_r = 0
-    ep_s = 0
-    for i in range(1, 100000):
-        actions = {k: [1.0, .0] for k in env.vehicles.keys()}
-        if len(env.vehicles) == 1:
-            actions = {k: [-1.0, .0] for k in env.vehicles.keys()}
-        o, r, d, info = env.step(actions)
-        for r_ in r.values():
-            total_r += r_
-        ep_s += 1
-        # d.update({"total_r": total_r, "episode length": ep_s})
-        if len(env.vehicles) != 0:
-            v = env.current_track_vehicle
-            dist = v.dist_to_left_side, v.dist_to_right_side
-            ckpt_idx = v.routing_localization._target_checkpoints_index
-        else:
-            dist = (0, 0)
-            ckpt_idx = (0, 0)
-
-        render_text = {
-            "total_r": total_r,
-            "episode length": ep_s,
-            "cam_x": env.main_camera.camera_x,
-            "cam_y": env.main_camera.camera_y,
-            "cam_z": env.main_camera.top_down_camera_height,
-            "alive": len(env.vehicles),
-            "dist_right_left": dist,
-            "ckpt_idx": ckpt_idx,
-            "parking_space_num": len(env.current_map.parking_space_manager.parking_space_available)
-        }
-        if len(env.vehicles) > 0:
-            v = env.current_track_vehicle
-            # print(v.routing_localization.checkpoints)
-            render_text["current_road"] = v.current_road
-
-        env.render(text=render_text)
-        for kkk, ddd in d.items():
-            if ddd and kkk != "__all__":
-                print(
-                    "{} done! State: {}".format(
-                        kkk, {
-                            "arrive_dest": info[kkk]["arrive_dest"],
-                            "out_of_road": info[kkk]["out_of_road"],
-                            "crash": info[kkk]["crash"],
-                            "max_step": info[kkk]["max_step"],
-                        }
-                    )
-                )
-        if d["__all__"]:
-            print(
-                "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
-                    i, total_r, total_r / env.agent_manager.next_agent_count
-                )
-            )
-            env.reset()
-            # break
-        if len(env.vehicles) == 0:
-            total_r = 0
-            print("Reset")
-            env.reset()
+    import numpy as np
+    res = []
+    for i in range(20):
+        o = env.reset()
+        for i in range(1, 1000):
+            actions = {k: [0.0, 0.2] for k in env.vehicles.keys()}
+            o, r, d, info = env.step(actions)
+        res.append(env.scene_manager.traffic_manager.v_success/env.scene_manager.traffic_manager.v_generate   )
+        print("mean:",sum(res)/len(res),"std:", np.std(res))
     env.close()
 
 

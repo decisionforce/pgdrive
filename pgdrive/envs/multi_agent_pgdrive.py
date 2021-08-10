@@ -158,7 +158,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def reset(self, *args, **kwargs):
         self.config = self._update_agent_pos_configs(self.config)
         ret = super(MultiAgentPGDrive, self).reset(*args, **kwargs)
-        assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
+        # assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
         return ret
 
     def _reset_agents(self):

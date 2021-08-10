@@ -58,6 +58,7 @@ class TrafficManager(RandomEngine):
 
         self.v_generate = 0
         self.v_success = 0
+        self.step_num = 0
 
         # control randomness of traffic
         super(TrafficManager, self).__init__()
@@ -72,6 +73,7 @@ class TrafficManager(RandomEngine):
         """
         self.v_generate = 0
         self.v_success = 0
+        self.step_num = 0
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
         self.update_random_seed(map.random_seed if not self.random_traffic else None)
 
@@ -138,7 +140,7 @@ class TrafficManager(RandomEngine):
                 nodes = [node1, node0]
                 nodes.remove(v.vehicle_node)
                 name = nodes[0].getName()
-                if name == BodyName.Traffic_vehicle or name == BodyName.Base_vehicle or name==BodyName.TollGate:
+                if name == BodyName.Traffic_vehicle or name == BodyName.Base_vehicle or name == BodyName.TollGate:
                     crash = True
                     break
             if v.out_of_road or crash:
@@ -162,7 +164,7 @@ class TrafficManager(RandomEngine):
                 self._spawned_vehicles.remove(v_t.v)
 
         respawn_places = self._scene_mgr.spawn_manager.get_available_respawn_places(self._scene_mgr.pg_world, self.map)
-        if len(respawn_places) > 0 and len(self._traffic_vehicles) < int(self.density):
+        if len(respawn_places) > 0 and len(self._traffic_vehicles) < int(self.density) and self.step_num < 1000:
             v_config = list(respawn_places.values())[0]["config"]
             vehicle_type = self.random_vehicle_type()
             self.spawn_one_vehicle(vehicle_type, self.map.road_network.get_lane(v_config["spawn_lane_index"]),
