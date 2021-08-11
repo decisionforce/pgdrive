@@ -12,7 +12,7 @@ class TestEnv(PGDriveEnv):
                 "environment_num": 10,
                 "traffic_density": .0,
                 "traffic_mode": "trigger",
-                "start_seed": 4,
+                "start_seed": 12,
                 "onscreen_message": True,
                 # "debug_physics_world": True,
                 "pstats": True,
@@ -24,7 +24,7 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "debug": True,
+                # "debug": True,
                 "fast": True,
                 # "map_config": {
                 #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
@@ -32,7 +32,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "S",
+                "map": "CCC",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
@@ -55,6 +55,7 @@ if __name__ == "__main__":
     o = env.reset()
     for i in range(1, 100000):
         o, r, d, info = env.step([1.0, 0.])
+        print(i)
         info["fuel"] = env.vehicle.energy_consumption
         # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
         assert env.observation_space.contains(o)
@@ -70,6 +71,7 @@ if __name__ == "__main__":
         #         "lane_heading": env.vehicle.lane.heading_at(0)
         #     }
         # )
+        env.render(text={"map":env.current_seed})
         if d:
             print("Reset")
             env.reset()

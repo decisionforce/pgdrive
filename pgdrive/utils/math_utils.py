@@ -221,3 +221,4 @@ class Vector(tuple):
 
     def dot(self, other):
         return self[0] * other[0] + self[1] * other[1]
+
