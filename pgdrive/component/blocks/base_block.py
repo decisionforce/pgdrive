@@ -437,6 +437,7 @@ class BaseBlock(BaseObject, DrivableAreaProperty):
         :param lane: Lane info
         :return: None
         """
+        length+=0.1
         lane.index = lane_index
         segment_np = NodePath(BaseRigidBodyNode(lane, BodyName.Lane))
         segment_node = segment_np.node()

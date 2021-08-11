@@ -20,10 +20,6 @@ class IDMPolicy(BasePolicy):
     MAX_STEERING_ANGLE = np.pi / 3  # [rad]
     DELTA_SPEED = 5  # [m/s]
 
-    # Longitudinal policy parameters
-    ACC_MAX = 6.0  # [m/s2]
-    """Maximum acceleration."""
-
     COMFORT_ACC_MAX = 3.0  # [m/s2]
     """Desired maximum acceleration."""
 
@@ -63,7 +59,8 @@ class IDMPolicy(BasePolicy):
             index = self.target_lane.index[-1]
             self.target_lane = self.control_object.navigation.current_ref_lanes[index]
         steering = self.steering_control(ego_vehicle=self.control_object)
-        acc = self.acceleration(self.control_object, None)
+        front_obj, dist = self.find_front_obj()
+        acc = self.acceleration(self.control_object, front_obj, dist)
         return [steering, acc]
 
     def steering_control(self, ego_vehicle) -> float:
@@ -76,26 +73,47 @@ class IDMPolicy(BasePolicy):
         steering += self.lateral_pid.get_result(-lat)
         return float(steering)
 
-    def acceleration(self, ego_vehicle, front_obj) -> float:
+    def acceleration(self, ego_vehicle, front_obj, dist_to_front) -> float:
         ego_target_speed = not_zero(self.target_speed, 0)
         acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(ego_vehicle.speed, 0) / ego_target_speed, self.DELTA))
-        # if front_obj:
-        #     d = ego_vehicle.lane_distance_to(front_obj)
-        #     acceleration -= self.COMFORT_ACC_MAX * \
-        #                     np.power(self.desired_gap(ego_vehicle, front_obj) / not_zero(d), 2)
+        if front_obj:
+            d = dist_to_front
+            acceleration -= self.COMFORT_ACC_MAX * \
+                            np.power(self.desired_gap(ego_vehicle, front_obj) / not_zero(d), 2)
+        print(acceleration)
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_obj, projected: bool = True) -> float:
         d0 = self.DISTANCE_WANTED
         tau = self.TIME_WANTED
         ab = -self.COMFORT_ACC_MAX * self.COMFORT_ACC_MIN
-        dv = np.dot(ego_vehicle.velocity - front_obj.velocity, ego_vehicle.direction) if projected \
+        dv = np.dot(ego_vehicle.velocity - front_obj.velocity, ego_vehicle.heading) if projected \
             else ego_vehicle.speed - front_obj.speed
         d_star = d0 + ego_vehicle.speed * tau + ego_vehicle.speed * dv / (2 * np.sqrt(ab))
         return d_star
 
     def find_front_obj(self):
         objs = self.control_object.lidar.get_surrounding_objects(self.control_object)
+        min_long = 1000
+        ret = None
+        find_in_current_lane = False
+        current_long = self.control_object.lane.local_coordinates(self.control_object.position)[0]
+        left_long = self.control_object.lane.length - current_long
+
+        for obj in objs:
+            if obj.lane_index == self.control_object.lane_index:
+                long = self.control_object.lane.local_coordinates(obj.position)[0] - current_long
+                if min_long > long > 0:
+                    min_long = long
+                    ret = obj
+                    find_in_current_lane = True
+            elif not find_in_current_lane and obj.lane_index[1] == self.control_object.lane_index[0] and obj.lane_index[
+                -1] == self.control_object.lane_index[-0]:
+                long = obj.lane.local_coordinates(obj.position)[0] + left_long
+                if min_long > long > 0:
+                    min_long = long
+                    ret = obj
+        return ret, min_long
 
     def reset(self):
         self.heading_pid.reset()
