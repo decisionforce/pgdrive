@@ -91,16 +91,21 @@ class TrafficManager(BaseManager):
         """
         Update all traffic vehicles' states,
         """
+        v_to_remove = []
         for v in self._traffic_vehicles:
             if v.arrive_destination or v.crash_vehicle or v.crash_object:
-                lane = self.respawn_lanes[self.np_random.randint(0, len(self.respawn_lanes))]
-                lane_idx = lane.index
-                long = self.np_random.rand() * lane.length / 2
-                v.update_config({"spawn_lane_index": lane_idx, "spawn_longitude": long})
-                v.reset(self.current_map)
-                self.engine.get_policy(v.id).reset()
+                v_to_remove.append(v)
+                # lane = self.respawn_lanes[self.np_random.randint(0, len(self.respawn_lanes))]
+                # lane_idx = lane.index
+                # long = self.np_random.rand() * lane.length / 2
+                # v.update_config({"spawn_lane_index": lane_idx, "spawn_longitude": long})
+                # v.reset(self.current_map)
+                # self.engine.get_policy(v.id).reset()
             else:
                 v.after_step()
+        for v in v_to_remove:
+            self.engine.clear_objects([v.id])
+            self._traffic_vehicles.remove(v)
 
     def before_reset(self) -> None:
         """
