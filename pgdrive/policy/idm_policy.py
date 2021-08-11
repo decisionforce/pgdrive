@@ -96,3 +96,7 @@ class IDMPolicy(BasePolicy):
 
     def find_front_obj(self):
         objs = self.control_object.lidar.get_surrounding_objects(self.control_object)
+
+    def reset(self):
+        self.heading_pid.reset()
+        self.lateral_pid.reset()

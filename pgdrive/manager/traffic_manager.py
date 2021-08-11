@@ -58,15 +58,11 @@ class TrafficManager(BaseManager):
         traffic_density = self.density
         if abs(traffic_density - 0.0) < 1e-2:
             return
-        self.respawn_lanes = None
+        self.respawn_lanes = self.respawn_lanes = self._get_available_respawn_lanes(map)
         if self.mode == TrafficMode.Respawn:
             # add respawn vehicle
             self._create_respawn_vehicles(map, traffic_density)
-        elif self.mode == TrafficMode.Trigger:
-            self._create_vehicles_once(map, traffic_density)
-        elif self.mode == TrafficMode.Hybrid:
-            # vehicles will be respawn after arriving destination
-            self.respawn_lanes = self._get_available_respawn_lanes(map)
+        elif self.mode == TrafficMode.Trigger or self.mode == TrafficMode.Respawn:
             self._create_vehicles_once(map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
@@ -95,23 +91,16 @@ class TrafficManager(BaseManager):
         """
         Update all traffic vehicles' states,
         """
-        vehicles_to_remove = []
         for v in self._traffic_vehicles:
-            if not v.on_lane:
-                    vehicles_to_remove.append(v)
+            if v.arrive_destination or v.crash_vehicle or v.crash_object:
+                lane = self.respawn_lanes[self.np_random.randint(0, len(self.respawn_lanes))]
+                lane_idx = lane.index
+                long = self.np_random.rand() * lane.length / 2
+                v.update_config({"spawn_lane_index": lane_idx, "spawn_longitude": long})
+                v.reset(self.current_map)
+                self.engine.get_policy(v.id).reset()
             else:
                 v.after_step()
-
-        # remove vehicles out of road
-        for v in vehicles_to_remove:
-            self._traffic_vehicles.remove(v)
-            self.engine.clear_objects(filter=[v.id])
-
-            if self.mode == TrafficMode.Hybrid:
-                # create a new one
-                lane = self.np_random.choice(self.respawn_lanes)
-                vehicle_type = self.random_vehicle_type()
-                self.spawn_object(vehicle_type, lane, self.np_random.rand() * lane.length / 2, True)
 
     def before_reset(self) -> None:
         """
@@ -199,13 +188,11 @@ class TrafficManager(BaseManager):
         :param long: longitude position on lane
         :return: TrafficVehicle
         """
-        random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index":lane.index,
+        random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index": lane.index,
                                                                           "spawn_longitude": long})
-        self._traffic_vehicles.append(random_v)
         random_v.reset(self.current_map)
-        # Register the IDM policy for each traffic vehicle
         from pgdrive.policy.idm_policy import IDMPolicy
-        self.engine.add_policy(random_v.id,IDMPolicy(random_v, self.randint()))
+        self.engine.add_policy(random_v.id, IDMPolicy(random_v, self.randint()))
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_respawn_lane):
@@ -227,12 +214,11 @@ class TrafficManager(BaseManager):
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = self.random_vehicle_type()
-            self.spawn_object(vehicle_type, lane, long, is_respawn_lane)
+            _traffic_vehicles.append(self.spawn_object(vehicle_type, lane, long, is_respawn_lane))
         return _traffic_vehicles
 
     def _create_respawn_vehicles(self, map: BaseMap, traffic_density: float):
         respawn_lanes = self._get_available_respawn_lanes(map)
-        engine = get_engine()
         for lane in respawn_lanes:
             self._traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
 
@@ -243,7 +229,6 @@ class TrafficManager(BaseManager):
         :param traffic_density: it can be adjusted each episode
         :return: None
         """
-        engine = get_engine()
         vehicle_num = 0
         for block in map.blocks[1:]:
             if block.PROHIBIT_TRAFFIC_GENERATION:

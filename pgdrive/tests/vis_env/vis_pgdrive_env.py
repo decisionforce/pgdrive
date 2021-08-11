@@ -10,8 +10,8 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 10,
-                "traffic_density": 1,
-                "traffic_mode": "respawn",
+                "traffic_density": 0.2,
+                "traffic_mode": "trigger",
                 "start_seed": 12,
                 "onscreen_message": True,
                 # "debug_physics_world": True,
@@ -21,7 +21,7 @@ class TestEnv(PGDriveEnv):
                 "cull_scene": False,
                 # "controller":"joystick",
                 "manual_control": True,
-                # "use_render": True,
+                "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 "debug": True,
@@ -32,7 +32,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "CCC",
+                "map": "CC",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
@@ -54,27 +54,12 @@ if __name__ == "__main__":
     import time
     start = time.time()
     o = env.reset()
+    print(len(env.engine.traffic_manager._traffic_vehicles))
     for s in range(1, 100000):
         o, r, d, info = env.step([1.0, 0.])
         info["fuel"] = env.vehicle.energy_consumption
         # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
         assert env.observation_space.contains(o)
-        # env.render(
-        #     text={
-        #         "reward": r,
-        #         "lane_index": env.vehicle.lane_index,
-        #         "dist_to_left": env.vehicle.dist_to_left_side,
-        #         "dist_to_right": env.vehicle.dist_to_right_side,
-        #         "out_of_route": env.vehicle.out_of_route,
-        #         "current_seed": env.current_seed,
-        #         "car_heading": env.vehicle.heading_theta,
-        #         "lane_heading": env.vehicle.lane.heading_at(0)
-        #     }
-        # )
-        # env.render(text={"map":env.current_seed})
-        # if d:
-        #     print("Reset")
-        #     env.reset()
         if (s + 1) % 100 == 0:
             print(
                 "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(

@@ -109,7 +109,7 @@ class Navigation:
             sockets = block.get_socket_list()
             while True:
                 socket = get_np_random(random_seed).choice(sockets)
-                if not socket.is_socket_node(start_road_node):
+                if not socket.is_socket_node(start_road_node) or len(sockets)==1:
                     break
                 else:
                     sockets.remove(socket)
@@ -127,7 +127,7 @@ class Navigation:
         :return: None
         """
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
-        assert len(self.checkpoints) > 2, "Can not find a route from {} to {}".format(start_road_node, end_road_node)
+        assert len(self.checkpoints) >= 2, "Can not find a route from {} to {}".format(start_road_node, end_road_node)
         # update routing info
         self.final_road = Road(self.checkpoints[-2], self.checkpoints[-1])
         final_lanes = self.final_road.get_lanes(self.map.road_network)
@@ -313,7 +313,7 @@ class Navigation:
             if lane in self.current_ref_lanes:
                 return lane, index
         nx_ckpt = self._target_checkpoints_index[-1]
-        if nx_ckpt == self.checkpoints[-1]:
+        if nx_ckpt == self.checkpoints[-1] or self.next_road is None:
             return possible_lanes[0][:-1] if len(possible_lanes) > 0 else (None, None)
 
         nx_nx_ckpt = nx_ckpt + 1
