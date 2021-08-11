@@ -36,7 +36,7 @@ class Lidar(DistanceDetector):
         self.enable_mask = True if not engine.global_config["_disable_detector_mask"] else False
 
     def perceive(self, base_vehicle, detector_mask=True):
-        lidar_mask, _ = self._get_lidar_mask(base_vehicle) if detector_mask and self.enable_mask else None
+        lidar_mask = self._get_lidar_mask(base_vehicle)[0] if detector_mask and self.enable_mask else None
         return super(Lidar, self).perceive(base_vehicle, base_vehicle.engine.physics_world.dynamic_world, lidar_mask)
 
     @staticmethod
@@ -116,7 +116,7 @@ class Lidar(DistanceDetector):
             nodes = [node0, node1]
             nodes.remove(self.broad_detector.node())
             obj = get_object_from_node(nodes[0])
-            if not isinstance(obj, AbstractLane):
+            if not isinstance(obj, AbstractLane) and obj is not None:
                 objs.add(obj)
         if vehicle in objs:
             objs.remove(vehicle)

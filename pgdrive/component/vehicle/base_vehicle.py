@@ -1,4 +1,5 @@
 import math
+from pgdrive.utils.math_utils import time_me
 from collections import deque
 from typing import Union, Optional
 
@@ -589,12 +590,13 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.lane_index = new_l_index
         self.lane = lane
 
+    @time_me
     def _state_check(self):
         """
         Check States and filter to update info
         """
-        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis.node(), True)
-        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis.node(), True)
+        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis.node())
+        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis.node())
         contacts = set()
         for contact in result_1.getContacts() + result_2.getContacts():
             node0 = contact.getNode0()
@@ -621,6 +623,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.contact_results = contacts
 
     def destroy(self):
+        self.dynamic_nodes.remove(self.system)
         self.body.destroy()
         super(BaseVehicle, self).destroy()
 

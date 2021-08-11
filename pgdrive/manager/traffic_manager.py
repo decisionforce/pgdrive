@@ -62,7 +62,7 @@ class TrafficManager(BaseManager):
         if self.mode == TrafficMode.Respawn:
             # add respawn vehicle
             self._create_respawn_vehicles(map, traffic_density)
-        elif self.mode == TrafficMode.Trigger or self.mode == TrafficMode.Respawn:
+        elif self.mode == TrafficMode.Trigger or self.mode == TrafficMode.Hybrid:
             self._create_vehicles_once(map, traffic_density)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
@@ -279,7 +279,8 @@ class TrafficManager(BaseManager):
         Destory func, release resource
         :return: None
         """
-        self.clear_objects()
+        self.engine.clear_objects([v.id for v in self._traffic_vehicles])
+        self._traffic_vehicles = []
         # current map
 
         # traffic vehicle list

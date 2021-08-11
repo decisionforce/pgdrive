@@ -327,6 +327,10 @@ class EngineCore(ShowBase.ShowBase):
         if hasattr(builtins, 'base'):
             del builtins.base
 
+    def clear_world(self):
+        self.worldNP.removeNode()
+        self.pbr_worldNP.removeNode()
+
     def toggle_help_message(self):
         if self.on_screen_message:
             self.on_screen_message.toggle_help_message()
