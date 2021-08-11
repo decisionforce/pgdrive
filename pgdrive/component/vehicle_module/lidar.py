@@ -35,11 +35,12 @@ class Lidar(DistanceDetector):
         self.enable_mask = True if not engine.global_config["_disable_detector_mask"] else False
 
     def perceive(self, base_vehicle, detector_mask=True):
-        lidar_mask = self._get_lidar_mask(base_vehicle) if detector_mask and self.enable_mask else None
+        lidar_mask, _ = self._get_lidar_mask(base_vehicle) if detector_mask and self.enable_mask else None
         return super(Lidar, self).perceive(base_vehicle, base_vehicle.engine.physics_world.dynamic_world, lidar_mask)
 
     @staticmethod
     def get_surrounding_vehicles(detected_objects) -> Set:
+        # TODO this will be removed in the future
         vehicles = set()
         objs = detected_objects
         for ret in objs:
@@ -74,27 +75,12 @@ class Lidar(DistanceDetector):
         return res
 
     def _get_lidar_mask(self, vehicle):
-        self.broad_detector.setPos(panda_position(vehicle.position))
-        physics_world = vehicle.engine.physics_world.dynamic_world
-        contact_results = physics_world.contactTest(self.broad_detector.node(), True).getContacts()
-
         pos1 = vehicle.position
         head1 = vehicle.heading_theta
-        objs = set()
 
         mask = np.zeros((self.num_lasers, ), dtype=np.bool)
         mask.fill(False)
-        for contact in contact_results:
-            node0 = contact.getNode0()
-            node1 = contact.getNode1()
-            nodes = [node0, node1]
-            nodes.remove(self.broad_detector.node())
-            obj = get_object_from_node(nodes[0])
-            objs.add(obj)
-
-        if vehicle in objs:
-            objs.remove(vehicle)
-
+        objs = self.get_surrounding_objects(vehicle)
         for obj in objs:
             pos2 = obj.position
             length = obj.LENGTH if hasattr(obj, "LENGTH") else vehicle.LENGTH
@@ -116,7 +102,23 @@ class Lidar(DistanceDetector):
             head_1_min = np.rad2deg(head_in_1_min)
             mask = self._mark_this_range(head_1_min, head_1_max, mask)
 
-        return mask
+        return mask, objs
+
+    def get_surrounding_objects(self, vehicle):
+        self.broad_detector.setPos(panda_position(vehicle.position))
+        physics_world = vehicle.engine.physics_world.dynamic_world
+        contact_results = physics_world.contactTest(self.broad_detector.node(), True).getContacts()
+        objs = set()
+        for contact in contact_results:
+            node0 = contact.getNode0()
+            node1 = contact.getNode1()
+            nodes = [node0, node1]
+            nodes.remove(self.broad_detector.node())
+            obj = get_object_from_node(nodes[0])
+            objs.add(obj)
+        if vehicle in objs:
+            objs.remove(vehicle)
+        return objs
 
     def _mark_this_range(self, small_angle, large_angle, mask):
         # We use clockwise to determine small and large angle.
