@@ -287,7 +287,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             self.spawn_place = pos
         heading = -np.deg2rad(heading) - np.pi / 2
         self.set_static(False)
-        self.origin.setPos(panda_position(Vec3(*pos, 1)))
+        self.origin.setPos(panda_position(Vec3(*pos, self.HEIGHT/2 + 1)))
         self.origin.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
         self.update_map_info(map)
         self.body.clearForces()
@@ -473,7 +473,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         chassis = BaseRigidBodyNode(self, BodyName.Base_vehicle)
         chassis.setIntoCollideMask(CollisionGroup.EgoVehicle)
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, self.HEIGHT / 2))
-        ts = TransformState.makePos(Vec3(0, 0, para[Parameter.chassis_height] * 2))
+        ts = TransformState.makePos(Vec3(0, 0, self.HEIGHT/2))
         chassis.addShape(chassis_shape, ts)
         chassis.setMass(para[Parameter.mass])
         chassis.setDeactivationEnabled(False)
@@ -491,7 +491,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             pos = lane.position(self.config["spawn_longitude"], self.config["spawn_lateral"])
             heading = np.rad2deg(lane.heading_at(self.config["spawn_longitude"]))
             self.spawn_place = pos
-            self.origin.setPos(panda_position(pos))
+            self.origin.setPos(panda_position(pos, self.HEIGHT/2 + 1))
             self.origin.setH(panda_heading(heading))
 
     def _add_visualization(self):
@@ -527,7 +527,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         f_l = para[Parameter.front_tire_longitude]
         r_l = -para[Parameter.rear_tire_longitude]
         lateral = para[Parameter.tire_lateral]
-        axis_height = para[Parameter.tire_radius] + 0.05
+        axis_height = para[Parameter.tire_radius] - 0.2  # 0.2 suspension length
         radius = para[Parameter.tire_radius]
         wheels = []
         for k, pos in enumerate([Vec3(lateral, f_l, axis_height), Vec3(-lateral, f_l, axis_height),

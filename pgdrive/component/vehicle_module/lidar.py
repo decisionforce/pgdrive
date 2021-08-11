@@ -1,4 +1,5 @@
 import math
+from pgdrive.component.lane.abs_lane import AbstractLane
 from typing import Set
 
 import numpy as np
@@ -115,7 +116,8 @@ class Lidar(DistanceDetector):
             nodes = [node0, node1]
             nodes.remove(self.broad_detector.node())
             obj = get_object_from_node(nodes[0])
-            objs.add(obj)
+            if not isinstance(obj, AbstractLane):
+                objs.add(obj)
         if vehicle in objs:
             objs.remove(vehicle)
         return objs

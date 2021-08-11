@@ -28,11 +28,13 @@ class Interface:
         self._right_arrow = None
         self._contact_banners = {}  # to save time/memory
         self.current_banner = None
+        self.need_interface = self.engine.mode == RENDER_MODE_ONSCREEN and not self.engine.global_config[
+            "debug_physics_world"]
         self.init_interface()
         self._is_showing_arrow = True  # store the state of navigation mark
 
     def after_step(self):
-        if self.engine.current_track_vehicle is not None and self.engine.mode == RENDER_MODE_ONSCREEN:
+        if self.engine.current_track_vehicle is not None and self.need_interface:
             track_v = self.engine.current_track_vehicle
             self.vehicle_panel.update_vehicle_state(track_v)
             self._render_contact_result(track_v.contact_results)
@@ -43,7 +45,7 @@ class Interface:
         from pgdrive.component.vehicle_module.mini_map import MiniMap
         from pgdrive.component.vehicle_module.rgb_camera import RGBCamera
         from pgdrive.component.vehicle_module.depth_camera import DepthCamera
-        if self.engine.mode == RENDER_MODE_ONSCREEN:
+        if self.need_interface:
             info_np = NodePath("Collision info nodepath")
             info_np.reparentTo(self.engine.aspect2d)
             self.contact_result_render = info_np
@@ -71,7 +73,7 @@ class Interface:
             # self.arrow.setTransparency(TransparencyAttrib.M_alpha)
 
     def stop_track(self):
-        if self.engine.mode == RENDER_MODE_ONSCREEN:
+        if self.need_interface:
             self.vehicle_panel.remove_display_region()
             self.vehicle_panel.buffer.set_active(False)
             self.contact_result_render.detachNode()
@@ -79,7 +81,7 @@ class Interface:
             self.left_panel.remove_display_region()
 
     def track(self, vehicle):
-        if self.engine.mode == RENDER_MODE_ONSCREEN:
+        if self.need_interface:
             self.vehicle_panel.buffer.set_active(True)
             self.contact_result_render.reparentTo(self.engine.aspect2d)
             self.vehicle_panel.add_display_region(self.vehicle_panel.display_region_size)
@@ -125,7 +127,7 @@ class Interface:
             self._render_banner(text, COLLISION_INFO_COLOR[COLOR[text]][1])
 
     def destroy(self):
-        if self.engine.mode == RENDER_MODE_ONSCREEN:
+        if self.need_interface:
             self.stop_track()
             self.vehicle_panel.destroy()
             self.contact_result_render.removeNode()

@@ -32,7 +32,7 @@ class MVehicle(TrafficVehicle):
 
 class XLVehicle(TrafficVehicle):
     LENGTH = 7.3
-    WIDTH = 2.3
+    WIDTH = 1.5
     HEIGHT = 2.7
     path = [['new/truck/scene.gltf', (factor * 0.031, factor * 0.025, factor * 0.025), (0.35, 0, factor * 0), 0]]
 

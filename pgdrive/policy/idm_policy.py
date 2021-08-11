@@ -79,10 +79,10 @@ class IDMPolicy(BasePolicy):
     def acceleration(self, ego_vehicle, front_obj) -> float:
         ego_target_speed = not_zero(self.target_speed, 0)
         acceleration = self.COMFORT_ACC_MAX * (1 - np.power(max(ego_vehicle.speed, 0) / ego_target_speed, self.DELTA))
-        if front_obj:
-            d = ego_vehicle.lane_distance_to(front_obj)
-            acceleration -= self.COMFORT_ACC_MAX * \
-                            np.power(self.desired_gap(ego_vehicle, front_obj) / not_zero(d), 2)
+        # if front_obj:
+        #     d = ego_vehicle.lane_distance_to(front_obj)
+        #     acceleration -= self.COMFORT_ACC_MAX * \
+        #                     np.power(self.desired_gap(ego_vehicle, front_obj) / not_zero(d), 2)
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_obj, projected: bool = True) -> float:

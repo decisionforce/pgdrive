@@ -88,22 +88,8 @@ class TrafficManager(BaseManager):
                     self._traffic_vehicles += block_vehicles.vehicles
         for v in self._traffic_vehicles:
             p = self.engine.get_policy(v.name)
-            p.before_step(vehicle=v, front_vehicle=None, rear_vehicle=None, current_map=engine.current_map)
-            v.before_step()
+            v.before_step(p.act())
         return dict()
-
-    def step(self):
-        """
-        Move all traffic vehicles
-        :param dt: Decision keeping time
-        :return: None
-        """
-        dt = self.engine.global_config["physics_world_step_size"]
-        dt /= 3.6  # 1m/s = 3.6km/h
-        for v in self._traffic_vehicles:
-            p = self.engine.get_policy(v.name)
-            action = p.step(dt)
-            v.step(dt, action)
 
     def after_step(self):
         """
@@ -111,14 +97,8 @@ class TrafficManager(BaseManager):
         """
         vehicles_to_remove = []
         for v in self._traffic_vehicles:
-            p = self.engine.get_policy(v.name)
-            p.after_step()
-            if v.out_of_road:
-                remove = v.need_remove()
-                if remove:
+            if not v.on_lane:
                     vehicles_to_remove.append(v)
-                else:
-                    v.reset()
             else:
                 v.after_step()
 
@@ -217,17 +197,15 @@ class TrafficManager(BaseManager):
         :param vehicle_type: TrafficVehicle type (s,m,l,xl)
         :param lane: Straight Lane or Circular Lane
         :param long: longitude position on lane
-        :param enable_respawn: Respawn or not
         :return: TrafficVehicle
         """
         random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index":lane.index,
                                                                           "spawn_longitude": long})
         self._traffic_vehicles.append(random_v)
+        random_v.reset(self.current_map)
         # Register the IDM policy for each traffic vehicle
         from pgdrive.policy.idm_policy import IDMPolicy
-        self.engine.add_policy(random_v.id,
-            IDMPolicy(vehicle=random_v, traffic_manager=self, random_seed=0, delay_time=1, target_speed=random_v.speed))
-
+        self.engine.add_policy(random_v.id,IDMPolicy(random_v, self.randint()))
         return random_v
 
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_respawn_lane):
@@ -309,63 +287,9 @@ class TrafficManager(BaseManager):
             respawn_lanes += road.get_lanes(map.road_network)
         return respawn_lanes
 
-    def close_vehicles_to(self, vehicle, distance: float, count: int = None, see_behind: bool = True) -> object:
-        """
-        Find the closest vehicles for IDM vehicles
-        :param vehicle: IDM vehicle
-        :param distance: How much distance
-        :param count: Num of vehicles to return
-        :param see_behind: Whether find vehicles behind this IDM vehicle or not
-        :return:
-        """
-        raise DeprecationWarning("This func is Deprecated")
-        vehicles = [
-            v for v in self.vehicles
-            if norm((v.position - vehicle.position)[0], (v.position - vehicle.position)[1]) < distance
-               and v is not vehicle and (see_behind or -2 * vehicle.LENGTH < vehicle.lane_distance_to(v))
-        ]
-
-        vehicles = sorted(vehicles, key=lambda v: abs(vehicle.lane_distance_to(v)))
-        if count:
-            vehicles = vehicles[:count]
-        return vehicles
-
-    def neighbour_vehicles(self, vehicle, lane_index: Tuple = None) -> Tuple:
-        """
-        Find the preceding and following vehicles of a given vehicle.
-
-        :param vehicle: the vehicle whose neighbours must be found
-        :param lane_index: the lane on which to look for preceding and following vehicles.
-                     It doesn't have to be the current vehicle lane but can also be another lane, in which case the
-                     vehicle is projected on it considering its local coordinates in the lane.
-        :return: its preceding vehicle, its following vehicle
-        """
-        lane_index = lane_index or vehicle.lane_index
-        if not lane_index:
-            return None, None
-        lane = self.current_map.road_network.get_lane(lane_index)
-        s = self.current_map.road_network.get_lane(lane_index).local_coordinates(vehicle.position)[0]
-        s_front = s_rear = None
-        v_front = v_rear = None
-        for v in self.vehicles + self.engine.object_manager.objects:
-            if norm(v.position[0] - vehicle.position[0], v.position[1] - vehicle.position[1]) > 100:
-                # coarse filter
-                continue
-            if v is not vehicle:
-                s_v, lat_v = lane.local_coordinates(v.position)
-                if not lane.on_lane(v.position, s_v, lat_v, margin=1):
-                    continue
-                if s <= s_v and (s_front is None or s_v <= s_front):
-                    s_front = s_v
-                    v_front = v
-                if s_v < s and (s_rear is None or s_v > s_rear):
-                    s_rear = s_v
-                    v_rear = v
-        return v_front, v_rear
-
     def random_vehicle_type(self):
         from pgdrive.component.vehicle.traffic_vehicle_type import vehicle_type
-        vehicle_type = vehicle_type[self.np_random.choice(list(vehicle_type.keys()), p=[0.2, 0.3, 0.3, 0.2])]
+        vehicle_type = vehicle_type[self.np_random.choice(list(vehicle_type.keys()), p=[0., 0., 0., 1.0])]
         return vehicle_type
 
     def destroy(self) -> None:
