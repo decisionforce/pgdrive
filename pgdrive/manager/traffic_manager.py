@@ -36,7 +36,7 @@ class TrafficManager(BaseManager):
         super(TrafficManager, self).__init__()
 
         self._traffic_vehicles = []
-        self.block_triggered_vehicles = None
+        self.block_triggered_vehicles = []
 
         # traffic property
         self.mode = self.engine.global_config["traffic_mode"]
@@ -108,10 +108,12 @@ class TrafficManager(BaseManager):
         :return: None
         """
         self.density = self.engine.global_config["traffic_density"]
-        self.engine.clear_objects(filter=[v.id for v in self._traffic_vehicles])
-
-        self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
-        self._traffic_vehicles = deque()  # it is used to step all vehicles on scene
+        bv = []
+        for vs in self.block_triggered_vehicles:
+            bv += vs.vehicles
+        self.engine.clear_objects(filter=[v.id for v in self._traffic_vehicles + bv])
+        self.block_triggered_vehicles = []
+        self._traffic_vehicles = []
 
     def get_vehicle_num(self):
         """
@@ -180,21 +182,6 @@ class TrafficManager(BaseManager):
                     vehicles[vehicle.index] = init_state
         return vehicles
 
-    def spawn_object(self, vehicle_type, lane: AbstractLane, long: float, *args, **kwargs):
-        """
-        Create one vehicle on lane and a specific place
-        :param vehicle_type: TrafficVehicle type (s,m,l,xl)
-        :param lane: Straight Lane or Circular Lane
-        :param long: longitude position on lane
-        :return: TrafficVehicle
-        """
-        random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index": lane.index,
-                                                                          "spawn_longitude": long})
-        random_v.reset(self.current_map)
-        from pgdrive.policy.idm_policy import IDMPolicy
-        self.engine.add_policy(random_v.id, IDMPolicy(random_v, self.randint()))
-        return random_v
-
     def _create_vehicles_on_lane(self, traffic_density: float, lane: AbstractLane, is_respawn_lane):
         """
         Create vehicles on a lane
@@ -214,7 +201,11 @@ class TrafficManager(BaseManager):
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = self.random_vehicle_type()
-            _traffic_vehicles.append(self.spawn_object(vehicle_type, lane, long, is_respawn_lane))
+            random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index": lane.index,
+                                                                              "spawn_longitude": long})
+            from pgdrive.policy.idm_policy import IDMPolicy
+            self.engine.add_policy(random_v.id, IDMPolicy(random_v, self.randint()))
+            _traffic_vehicles.append(random_v)
         return _traffic_vehicles
 
     def _create_respawn_vehicles(self, map: BaseMap, traffic_density: float):

@@ -32,7 +32,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "CC",
+                "map": "CCCC",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,

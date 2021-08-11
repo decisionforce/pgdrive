@@ -177,7 +177,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.front_vehicles = set()
         self.back_vehicles = set()
 
-        self._init_position()
+        if self.engine.current_map is not None:
+            self.reset(self.engine.current_map)
 
     def _add_modules_for_vehicle(self, ):
         config = self.config
@@ -484,15 +485,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         vehicle_chassis.setCoordinateSystem(ZUp)
         self.dynamic_nodes.append(vehicle_chassis)
         return vehicle_chassis
-
-    def _init_position(self):
-        if self.engine.current_map is not None:
-            lane = self.engine.current_map.road_network.get_lane(self.config["spawn_lane_index"])
-            pos = lane.position(self.config["spawn_longitude"], self.config["spawn_lateral"])
-            heading = np.rad2deg(lane.heading_at(self.config["spawn_longitude"]))
-            self.spawn_place = pos
-            self.origin.setPos(panda_position(pos, self.HEIGHT/2 + 1))
-            self.origin.setH(panda_heading(heading))
 
     def _add_visualization(self):
         para = self.config
