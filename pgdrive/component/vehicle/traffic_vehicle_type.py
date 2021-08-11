@@ -11,7 +11,6 @@ class XLVehicle(TrafficVehicle):
     path = [['new/truck/scene.gltf', (factor, factor, factor), (0, 0, 0), 0]]
 
 
-
 class LVehicle(TrafficVehicle):
     LENGTH = 4.5
     WIDTH = 1.86
@@ -22,7 +21,6 @@ class LVehicle(TrafficVehicle):
     ]
 
 
-
 class MVehicle(TrafficVehicle):
     LENGTH = 4.4
     WIDTH = 1.85
@@ -31,6 +29,7 @@ class MVehicle(TrafficVehicle):
         # ['new/130/scene.gltf', (factor * .0055, factor * .0046, factor * .0049), (0, 0, factor * 0.33), 90],
         ['new/130/scene.gltf', (factor, factor, factor), (0, 0, 0), 0],
     ]
+
 
 class SVehicle(TrafficVehicle):
     LENGTH = 4.25

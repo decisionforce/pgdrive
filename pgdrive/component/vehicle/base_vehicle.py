@@ -475,9 +475,9 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def _create_vehicle_chassis(self):
         para = self.get_config()
 
-        self.LENGTH = type(self).LENGTH # or self.config["vehicle_length"]
-        self.WIDTH = type(self).WIDTH # or self.config["vehicle_width"]
-        self.HEIGHT = type(self).HEIGHT # or self.config[Parameter.vehicle_height]
+        self.LENGTH = type(self).LENGTH  # or self.config["vehicle_length"]
+        self.WIDTH = type(self).WIDTH  # or self.config["vehicle_width"]
+        self.HEIGHT = type(self).HEIGHT  # or self.config[Parameter.vehicle_height]
 
         chassis = BaseRigidBodyNode(self, BodyName.Base_vehicle)
         chassis.setIntoCollideMask(BitMask32.bit(CollisionGroup.EgoVehicle))
