@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": .8,
+                "traffic_density": .0,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
                 "onscreen_message": True,
@@ -20,7 +20,7 @@ class TestEnv(PGDriveEnv):
                 # "debug_static_world":True,
                 "cull_scene": False,
                 # "controller":"joystick",
-                "manual_control": True,
+                # "manual_control": True,
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
@@ -56,15 +56,17 @@ if __name__ == "__main__":
     o = env.reset()
     print(len(env.engine.traffic_manager._traffic_vehicles))
     for s in range(1, 100000):
-        o, r, d, info = env.step([1.0, 0.])
-        info["fuel"] = env.vehicle.energy_consumption
-        # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
-        assert env.observation_space.contains(o)
-        if (s + 1) % 100 == 0:
-            print(
-                "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
-                    s + 1,
-                    time.time() - start, (s + 1) / (time.time() - start)
-                )
-            )
+        o, r, d, info = env.step([.0, 1.])
+        if s % 5 ==0:
+            print(env.vehicle.speed)
+        # info["fuel"] = env.vehicle.energy_consumption
+        # # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
+        # assert env.observation_space.contains(o)
+        # if (s + 1) % 100 == 0:
+        #     print(
+        #         "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
+        #             s + 1,
+        #             time.time() - start, (s + 1) / (time.time() - start)
+        #         )
+        #     )
     env.close()

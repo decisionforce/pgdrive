@@ -30,7 +30,7 @@ class IDMPolicy(BasePolicy):
     """Desired jam distance to the front vehicle."""
 
     TIME_WANTED = 1.5  # [s]
-    """Desired time gap to the front vehiall([obj.lane_index[i] == self.control_object.lane_index[i] for i in range(3)]):cle."""
+    """Desired time gap to the front v"""
 
     DELTA = 2.0  # []
     """Exponent of the velocity term."""
