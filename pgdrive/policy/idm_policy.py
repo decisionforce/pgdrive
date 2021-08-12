@@ -1,5 +1,5 @@
 from pgdrive.policy.base_policy import BasePolicy
-from pgdrive.component.lane.straight_lane import StraightLane
+from pgdrive.utils.scene_utils import is_same_lane_index, is_following_lane_index
 import numpy as np
 from pgdrive.utils.math_utils import not_zero, wrap_to_pi
 from pgdrive.component.vehicle_module.PID_controller import PIDController
@@ -30,9 +30,9 @@ class IDMPolicy(BasePolicy):
     """Desired jam distance to the front vehicle."""
 
     TIME_WANTED = 1.5  # [s]
-    """Desired time gap to the front vehicle."""
+    """Desired time gap to the front vehiall([obj.lane_index[i] == self.control_object.lane_index[i] for i in range(3)]):cle."""
 
-    DELTA = 4.0  # []
+    DELTA = 2.0  # []
     """Exponent of the velocity term."""
 
     DELTA_RANGE = [3.5, 4.5]
@@ -100,14 +100,13 @@ class IDMPolicy(BasePolicy):
         left_long = self.control_object.lane.length - current_long
 
         for obj in objs:
-            if obj.lane_index == self.control_object.lane_index:
+            if is_same_lane_index(obj.lane_index, self.control_object.lane_index):
                 long = self.control_object.lane.local_coordinates(obj.position)[0] - current_long
                 if min_long > long > 0:
                     min_long = long
                     ret = obj
                     find_in_current_lane = True
-            elif not find_in_current_lane and obj.lane_index[1] == self.control_object.lane_index[0] and obj.lane_index[
-                -1] == self.control_object.lane_index[-0]:
+            elif not find_in_current_lane and is_following_lane_index(self.control_object.lane_index, obj.lane_index):
                 long = obj.lane.local_coordinates(obj.position)[0] + left_long
                 if min_long > long > 0:
                     min_long = long
