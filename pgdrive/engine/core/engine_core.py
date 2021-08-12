@@ -362,6 +362,7 @@ class EngineCore(ShowBase.ShowBase):
             self._loading_logo.setColor((1, 1, 1, new_alpha))
             return task.cont
 
+
 if __name__ == "__main__":
     world = EngineCore({"debug": True})
     world.run()

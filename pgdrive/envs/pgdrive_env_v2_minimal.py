@@ -43,8 +43,7 @@ class MinimalObservation(LidarStateObservation):
         info = []
         lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
         total_width = float(
-            (vehicle.navigation.get_current_lane_num() + 1) *
-            vehicle.navigation.get_current_lane_width()
+            (vehicle.navigation.get_current_lane_num() + 1) * vehicle.navigation.get_current_lane_width()
         )
         lateral_to_left /= total_width
         lateral_to_right /= total_width
@@ -174,10 +173,10 @@ class MinimalObservation(LidarStateObservation):
         s.append(0.0)
         s.append(0.0)
         # else:
-            # s.append(p.destination[0])
-            # s.append(p.destination[1])
-            # target_speed = p.target_speed
-            # s.append(target_speed / vehicle.MAX_SPEED)
+        # s.append(p.destination[0])
+        # s.append(p.destination[1])
+        # target_speed = p.target_speed
+        # s.append(target_speed / vehicle.MAX_SPEED)
 
         s.append(vehicle.speed / vehicle.max_speed)
         s.append(math.cos(vehicle.heading_theta))

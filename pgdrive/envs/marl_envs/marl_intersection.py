@@ -63,9 +63,7 @@ class MultiAgentIntersectionEnv(MultiAgentPGDrive):
 
         if self.current_map is None:
             self.seed(map_config["seed"])
-            new_map = self.engine.spawn_object(
-                MAIntersectionMap, map_config=map_config, random_seed=self.current_seed
-            )
+            new_map = self.engine.spawn_object(MAIntersectionMap, map_config=map_config, random_seed=self.current_seed)
             self.engine.map_manager.load_map(new_map)
             self.current_map.spawn_roads = self.spawn_roads
 

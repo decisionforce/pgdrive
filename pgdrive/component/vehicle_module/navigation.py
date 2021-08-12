@@ -29,12 +29,12 @@ class Navigation:
     LINE_TO_DEST_HEIGHT = 0.6
 
     def __init__(
-            self,
-            engine,
-            show_navi_mark: bool = False,
-            random_navi_mark_color=False,
-            show_dest_mark=False,
-            show_line_to_dest=False
+        self,
+        engine,
+        show_navi_mark: bool = False,
+        random_navi_mark_color=False,
+        show_dest_mark=False,
+        show_line_to_dest=False
     ):
         """
         This class define a helper for localizing vehicles and retrieving navigation information.
@@ -49,7 +49,7 @@ class Navigation:
         self.current_road = None
         self.next_road = None
         self._target_checkpoints_index = None
-        self._navi_info = np.zeros((self.navigation_info_dim,))  # navi information res
+        self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
 
         # Vis
         self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
@@ -109,7 +109,7 @@ class Navigation:
             sockets = block.get_socket_list()
             while True:
                 socket = get_np_random(random_seed).choice(sockets)
-                if not socket.is_socket_node(start_road_node) or len(sockets)==1:
+                if not socket.is_socket_node(start_road_node) or len(sockets) == 1:
                     break
                 else:
                     sockets.remove(socket)
@@ -140,11 +140,10 @@ class Navigation:
         target_road_1_start = self.checkpoints[0]
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
-        self.next_ref_lanes = self.map.road_network.graph[self.checkpoints[1]][self.checkpoints[2]] if len(
-            self.checkpoints) > 2 else None
+        self.next_ref_lanes = self.map.road_network.graph[self.checkpoints[1]][self.checkpoints[2]
+                                                                               ] if len(self.checkpoints) > 2 else None
         self.current_road = Road(target_road_1_start, target_road_1_end)
-        self.next_road = Road(self.checkpoints[1], self.checkpoints[2]) if len(
-            self.checkpoints) > 2 else None
+        self.next_road = Road(self.checkpoints[1], self.checkpoints[2]) if len(self.checkpoints) > 2 else None
         if self._dest_node_path is not None:
             ref_lane = final_lanes[0]
             later_middle = (float(self.get_current_lane_num()) / 2 - 0.5) * self.get_current_lane_width()
@@ -225,8 +224,8 @@ class Navigation:
         angle = 0.0
         if isinstance(ref_lane, CircularLane):
             bendradius = ref_lane.radius / (
-                    BlockParameterSpace.CURVE[Parameter.radius].max +
-                    self.get_current_lane_num() * self.get_current_lane_width()
+                BlockParameterSpace.CURVE[Parameter.radius].max +
+                self.get_current_lane_num() * self.get_current_lane_width()
             )
             dir = ref_lane.direction
             if dir == 1:
@@ -234,11 +233,11 @@ class Navigation:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-                   clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                        1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                                   1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
-                   clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
-               ), lanes_heading, check_point
+            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+            clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+        ), lanes_heading, check_point
 
     def _update_target_checkpoints(self, ego_lane_index, ego_lane_longitude):
         """

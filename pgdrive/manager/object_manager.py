@@ -33,7 +33,7 @@ class TrafficSignManager(BaseManager):
         super(TrafficSignManager, self).__init__()
         self._block_objects = {}
         self.accident_prob = 0.
-        self.object=[]
+        self.object = []
 
     def before_reset(self):
         """
@@ -46,7 +46,7 @@ class TrafficSignManager(BaseManager):
             block.construct_block_buildings(self)
 
     def clear_objects(self):
-        self.engine.clear_objects(lambda o:isinstance(o, TrafficSign))
+        self.engine.clear_objects(lambda o: isinstance(o, TrafficSign))
         for block_object in self._block_objects.values():
             block_object.origin.detachNode()
         self._block_objects = {}
@@ -99,15 +99,13 @@ class TrafficSignManager(BaseManager):
             if self.np_random.rand() > self.PROHIBIT_SCENE_PROB or _debug:
                 self.prohibit_scene(lane, longitude, lateral_len, on_left)
             else:
-                self.break_down_scene(lane,  longitude)
+                self.break_down_scene(lane, longitude)
 
     def break_down_scene(self, lane: AbstractLane, longitude: float):
         engine = get_engine()
-        breakdown_vehicle = engine.spawn_object(
-            engine.traffic_manager.random_vehicle_type(), lane, longitude, False
-        )
+        breakdown_vehicle = engine.spawn_object(engine.traffic_manager.random_vehicle_type(), lane, longitude, False)
         breakdown_vehicle.set_break_down()
-        self.engine.spawn_object(TrafficTriangle, lane= lane, longitude=longitude - self.ALERT_DIST, lateral=0)
+        self.engine.spawn_object(TrafficTriangle, lane=lane, longitude=longitude - self.ALERT_DIST, lateral=0)
 
     def prohibit_scene(self, lane: AbstractLane, longitude_position: float, lateral_len: float, on_left=False):
         """
@@ -141,4 +139,4 @@ class TrafficSignManager(BaseManager):
 
     @property
     def objects(self):
-        return list(self.engine.get_objects(filter=lambda o:isinstance(o, TrafficSign)).values())
+        return list(self.engine.get_objects(filter=lambda o: isinstance(o, TrafficSign)).values())

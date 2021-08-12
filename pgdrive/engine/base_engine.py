@@ -212,7 +212,7 @@ class BaseEngine(EngineCore, Randomizable):
         Update states after finishing movement
         :return: if this episode is done
         """
-        step_infos={}
+        step_infos = {}
         for manager in self._managers.values():
             step_infos.update(manager.after_step())
         # cull distant blocks

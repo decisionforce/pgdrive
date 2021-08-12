@@ -8,7 +8,6 @@ class TestEnv(PGDriveEnv):
     """
     now for test use and demo use only
     """
-
     @classmethod
     def default_config(cls):
         config = super(TestEnv, cls).default_config()
@@ -36,11 +35,19 @@ class TestEnv(PGDriveEnv):
         lane = self.current_map.road_network.graph[">>>"]["1C0_0_"][0]
         self.breakdown_vehicle = self.engine.spawn_object(
             self.engine.traffic_manager.random_vehicle_type(),
-            vehicle_config={"spawn_lane_index": lane.index, "spawn_longitude": 30})
+            vehicle_config={
+                "spawn_lane_index": lane.index,
+                "spawn_longitude": 30
+            }
+        )
 
         lane_ = self.current_map.road_network.graph[">>>"]["1C0_0_"][1]
-        breakdown_vehicle = self.engine.spawn_object(LVehicle, vehicle_config={"spawn_lane_index": lane_.index,
-                                                                               "spawn_longitude": 30})
+        breakdown_vehicle = self.engine.spawn_object(
+            LVehicle, vehicle_config={
+                "spawn_lane_index": lane_.index,
+                "spawn_longitude": 30
+            }
+        )
 
         self.alert = self.engine.spawn_object(TrafficTriangle, lane=lane, longitude=22, lateral=0)
 
@@ -59,8 +66,12 @@ class TestEnv(PGDriveEnv):
         v_pos = [8, 14]
         v_type = [SVehicle, XLVehicle]
         for v_long, v_t in zip(v_pos, v_type):
-            v = self.engine.spawn_object(v_t,
-                                         vehicle_config={"spawn_lane_index": lane.index, "spawn_longitude": v_long})
+            v = self.engine.spawn_object(
+                v_t, vehicle_config={
+                    "spawn_lane_index": lane.index,
+                    "spawn_longitude": v_long
+                }
+            )
 
         # part 2
         lane = self.current_map.road_network.graph["3R0_0_"]["3R0_1_"][0]
@@ -79,7 +90,10 @@ class TestEnv(PGDriveEnv):
         for v_long in v_pos:
             v = self.engine.spawn_object(
                 self.engine.traffic_manager.random_vehicle_type(),
-                vehicle_config={"spawn_lane_index": lane.index, "spawn_longitude": v_long}
+                vehicle_config={
+                    "spawn_lane_index": lane.index,
+                    "spawn_longitude": v_long
+                }
             )
 
         alert = self.engine.spawn_object(TrafficTriangle, lane=lane, longitude=-35, lateral=0)
@@ -102,7 +116,10 @@ class TestEnv(PGDriveEnv):
         for v_long in v_pos:
             v = self.engine.spawn_object(
                 self.engine.traffic_manager.random_vehicle_type(),
-                vehicle_config={"spawn_lane_index": lane.index, "spawn_longitude": v_long}
+                vehicle_config={
+                    "spawn_lane_index": lane.index,
+                    "spawn_longitude": v_long
+                }
             )
 
         # part 4
@@ -131,11 +148,11 @@ def test_object_collision_detection(render=False):
         o = env.reset()
         lane_index = (">>", ">>>", 0)
         alert = env.engine.spawn_object(
-          TrafficTriangle, lane=env.current_map.road_network.get_lane(lane_index), longitude=22, lateral=0
+            TrafficTriangle, lane=env.current_map.road_network.get_lane(lane_index), longitude=22, lateral=0
         )
         lane_index = (">>", ">>>", 2)
         alert = env.engine.spawn_object(
-            TrafficCone, lane=env.current_map.road_network.get_lane(lane_index), longitude= 22, lateral=0
+            TrafficCone, lane=env.current_map.road_network.get_lane(lane_index), longitude=22, lateral=0
         )
         crash_obj = False
         detect_obj = False

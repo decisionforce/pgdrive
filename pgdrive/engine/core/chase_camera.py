@@ -95,8 +95,7 @@ class MainCamera:
         self.camera.lookAt(current_pos)
         if self.FOLLOW_LANE:
             self.camera.setH(
-                self._heading_of_lane(vehicle.navigation.current_ref_lanes[0], vehicle.position) / np.pi *
-                180 - 90
+                self._heading_of_lane(vehicle.navigation.current_ref_lanes[0], vehicle.position) / np.pi * 180 - 90
             )
 
         if self.world_light is not None:

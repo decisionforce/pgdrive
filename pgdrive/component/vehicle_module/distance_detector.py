@@ -31,7 +31,7 @@ class DistanceDetector:
 
     def __init__(self, num_lasers: int = 16, distance: float = 50, enable_show=False):
         # properties
-        self.available = True if num_lasers>0 and distance>0else False
+        self.available = True if num_lasers > 0 and distance > 0 else False
         parent_node_np: NodePath = get_engine().render
         self.origin = parent_node_np.attachNewNode("Could_points")
         show = enable_show and (AssetLoader.loader is not None)

@@ -201,14 +201,10 @@ def test_ma_parking_lot_reset():
                     np.testing.assert_almost_equal(pos, loc, decimal=3)
                     new_loc = v.navigation.final_lane.end
                     long, lat = v.navigation.final_lane.local_coordinates(v.position)
-                    flag1 = (
-                        v.navigation.final_lane.length - 5 < long <
-                        v.navigation.final_lane.length + 5
-                    )
+                    flag1 = (v.navigation.final_lane.length - 5 < long < v.navigation.final_lane.length + 5)
                     flag2 = (
                         v.navigation.get_current_lane_width() / 2 >= lat >=
-                        (0.5 - v.navigation.get_current_lane_num()) *
-                        v.navigation.get_current_lane_width()
+                        (0.5 - v.navigation.get_current_lane_num()) * v.navigation.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')

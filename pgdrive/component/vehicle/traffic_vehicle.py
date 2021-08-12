@@ -30,7 +30,7 @@ class TrafficVehicle(BaseVehicle):
             carNP.setScale(scale)
             carNP.setH(H)
             carNP.setPos(x_y_z_offset)
-            carNP.setZ(-self.config[Parameter.tire_radius]-0.2)
+            carNP.setZ(-self.config[Parameter.tire_radius] - 0.2)
             carNP.instanceTo(self.origin)
 
     def set_break_down(self, break_down=True):

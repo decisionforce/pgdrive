@@ -65,8 +65,7 @@ class StateObservation(ObservationBase):
         else:
             lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
             total_width = float(
-                (vehicle.navigation.get_current_lane_num() + 1) *
-                vehicle.navigation.get_current_lane_width()
+                (vehicle.navigation.get_current_lane_num() + 1) * vehicle.navigation.get_current_lane_width()
             )
             lateral_to_left /= total_width
             lateral_to_right /= total_width
@@ -99,9 +98,7 @@ class StateObservation(ObservationBase):
             info += vehicle.lane_line_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points
         else:
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
-            info.append(
-                clip((lateral * 2 / vehicle.navigation.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0)
-            )
+            info.append(clip((lateral * 2 / vehicle.navigation.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
 
         return info
 

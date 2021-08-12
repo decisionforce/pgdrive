@@ -98,11 +98,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-            self,
-            vehicle_config: Union[dict, Config] = None,
-            name: str = None,
-            am_i_the_special_one=False,
-            random_seed=None,
+        self,
+        vehicle_config: Union[dict, Config] = None,
+        name: str = None,
+        am_i_the_special_one=False,
+        random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -189,11 +189,13 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
         # add distance detector/lidar
         self.side_detector = SideDetector(
-            config["side_detector"]["num_lasers"], config["side_detector"]["distance"], config["show_side_detector"])
+            config["side_detector"]["num_lasers"], config["side_detector"]["distance"], config["show_side_detector"]
+        )
 
         self.lane_line_detector = LaneLineDetector(
             config["lane_line_detector"]["num_lasers"], config["lane_line_detector"]["distance"],
-            config["show_lane_line_detector"])
+            config["show_lane_line_detector"]
+        )
 
         self.lidar = Lidar(config["lidar"]["num_lasers"], config["lidar"]["distance"], config["show_lidar"])
 
@@ -211,7 +213,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def _preprocess_action(self, action):
         if self.config["action_check"]:
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
-                action, self.action_space)
+                action, self.action_space
+            )
 
         # protect agent from nan error
         action = safe_clip_for_small_array(action, min_val=self.action_space.low[0], max_val=self.action_space.high[0])
@@ -359,9 +362,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         current_reference_lane = self.navigation.current_ref_lanes[0]
         _, lateral_to_reference = current_reference_lane.local_coordinates(self.position)
         lateral_to_left = lateral_to_reference + self.navigation.get_current_lane_width() / 2
-        lateral_to_right = self.navigation.get_current_lateral_range(
-            self.position, self.engine
-        ) - lateral_to_left
+        lateral_to_right = self.navigation.get_current_lateral_range(self.position, self.engine) - lateral_to_left
         return lateral_to_left, lateral_to_right
 
     @property
@@ -427,8 +428,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-                (lateral_norm * forward_direction_norm)
+            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+            (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -675,7 +676,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                ]):
+                                                                                                           ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -690,7 +691,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
@@ -704,13 +705,10 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     @property
     def arrive_destination(self):
         long, lat = self.navigation.final_lane.local_coordinates(self.position)
-        flag = (
-                       self.navigation.final_lane.length - 5 < long < self.navigation.final_lane.length + 5
-               ) and (
-                       self.navigation.get_current_lane_width() / 2 >= lat >=
-                       (0.5 - self.navigation.get_current_lane_num()) *
-                       self.navigation.get_current_lane_width()
-               )
+        flag = (self.navigation.final_lane.length - 5 < long < self.navigation.final_lane.length + 5) and (
+            self.navigation.get_current_lane_width() / 2 >= lat >=
+            (0.5 - self.navigation.get_current_lane_num()) * self.navigation.get_current_lane_width()
+        )
         return flag
 
     def set_static(self, flag):
@@ -732,9 +730,9 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-                self.crash_building or self.crash_vehicle or
-                # self.on_white_continuous_line or
-                self.on_yellow_continuous_line
+            self.crash_building or self.crash_vehicle or
+            # self.on_white_continuous_line or
+            self.on_yellow_continuous_line
         )
 
     @property

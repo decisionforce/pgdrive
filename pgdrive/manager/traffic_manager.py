@@ -206,9 +206,14 @@ class TrafficManager(BaseManager):
                 # Do special handling for ramp, and there must be vehicles created there
                 continue
             vehicle_type = self.random_vehicle_type()
-            random_v = self.engine.spawn_object(vehicle_type, vehicle_config={"spawn_lane_index": lane.index,
-                                                                              "spawn_longitude": long,
-                                                                              "enable_reverse":False})
+            random_v = self.engine.spawn_object(
+                vehicle_type,
+                vehicle_config={
+                    "spawn_lane_index": lane.index,
+                    "spawn_longitude": long,
+                    "enable_reverse": False
+                }
+            )
             from pgdrive.policy.idm_policy import IDMPolicy
             self.engine.add_policy(random_v.id, IDMPolicy(random_v, self.randint()))
             _traffic_vehicles.append(random_v)
