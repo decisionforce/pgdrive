@@ -597,7 +597,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.lane_index = new_l_index
         self.lane = lane
 
-    @time_me
     def _state_check(self):
         """
         Check States and filter to update info

@@ -33,4 +33,4 @@ def collision_callback(contact):
             # crash invisible wall or building
             elif another_node_name in [BodyName.InvisibleWall, BodyName.TollGate]:
                 obj_1.crash_building = True
-            logging.debug("{} crash with {}".format(nodes[i].getName(), another_nodes[i].getName()))
+            # logging.debug("{} crash with {}".format(nodes[i].getName(), another_nodes[i].getName()))
