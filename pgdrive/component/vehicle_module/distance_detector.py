@@ -32,7 +32,8 @@ class DistanceDetector:
     def __init__(self, num_lasers: int = 16, distance: float = 50, enable_show=False):
         # properties
         parent_node_np: NodePath = get_engine().render
-        assert num_lasers > 0
+        if num_lasers <= 0:
+            num_lasers = 1
         show = enable_show and (AssetLoader.loader is not None)
         self.dim = num_lasers
         self.num_lasers = num_lasers
@@ -68,7 +69,7 @@ class DistanceDetector:
         heading_theta = base_vehicle.heading_theta
         assert not isinstance(detector_mask, str), "Please specify detector_mask either with None or a numpy array."
         cloud_points, detected_objects, colors = cutils.cutils_perceive(
-            cloud_points=np.ones((self.num_lasers, ), dtype=float),
+            cloud_points=np.ones((self.num_lasers,), dtype=float),
             detector_mask=detector_mask.astype(dtype=np.uint8) if detector_mask is not None else None,
             mask=self.mask,
             lidar_range=self._lidar_range,

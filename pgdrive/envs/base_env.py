@@ -404,11 +404,9 @@ class BasePGDriveEnv(gym.Env):
         self.engine.accept("escape", sys.exit)
         self.engine.accept("p", self.capture)
         from pgdrive.manager.map_manager import MapManager
-        from pgdrive.manager.policy_manager import PolicyManager
 
         self.engine.register_manager("agent_manager", self.agent_manager)
         self.engine.register_manager("map_manager", MapManager())
-        self.engine.register_manager("policy_manager", PolicyManager())
 
     @property
     def current_map(self):

@@ -254,6 +254,10 @@ class AgentManager(BaseManager):
             self._dying_objects.pop(v_name)
         return step_infos
 
+    def after_step(self, *args, **kwargs):
+        step_infos = self.for_each_active_agents(lambda v: v.after_step())
+        return step_infos
+
     def _translate(self, d):
         return {self._object_to_agent[k]: v for k, v in d.items()}
 

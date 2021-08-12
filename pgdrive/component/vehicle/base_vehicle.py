@@ -98,11 +98,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     MATERIAL_SPECULAR_COLOR = (3, 3, 3, 3)
 
     def __init__(
-        self,
-        vehicle_config: Union[dict, Config] = None,
-        name: str = None,
-        am_i_the_special_one=False,
-        random_seed=None,
+            self,
+            vehicle_config: Union[dict, Config] = None,
+            name: str = None,
+            am_i_the_special_one=False,
+            random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -188,19 +188,14 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.add_routing_localization(config["show_navi_mark"])  # default added
 
         # add distance detector/lidar
-        if config["side_detector"]["num_lasers"] > 0:
-            self.side_detector = SideDetector(
-                config["side_detector"]["num_lasers"], config["side_detector"]["distance"], config["show_side_detector"]
-            )
+        self.side_detector = SideDetector(
+            config["side_detector"]["num_lasers"], config["side_detector"]["distance"], config["show_side_detector"])
 
-        if config["lane_line_detector"]["num_lasers"] > 0:
-            self.lane_line_detector = LaneLineDetector(
-                config["lane_line_detector"]["num_lasers"], config["lane_line_detector"]["distance"],
-                config["show_lane_line_detector"]
-            )
+        self.lane_line_detector = LaneLineDetector(
+            config["lane_line_detector"]["num_lasers"], config["lane_line_detector"]["distance"],
+            config["show_lane_line_detector"])
 
-        if config["lidar"]["num_lasers"] > 0 and config["lidar"]["distance"] > 0:
-            self.lidar = Lidar(config["lidar"]["num_lasers"], config["lidar"]["distance"], config["show_lidar"])
+        self.lidar = Lidar(config["lidar"]["num_lasers"], config["lidar"]["distance"], config["show_lidar"])
 
         # vision modules
         self.add_image_sensor("rgb_camera", RGBCamera())
@@ -289,7 +284,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             self.spawn_place = pos
         heading = -np.deg2rad(heading) - np.pi / 2
         self.set_static(False)
-        self.origin.setPos(panda_position(Vec3(*pos, self.HEIGHT/2 + 1)))
+        self.origin.setPos(panda_position(Vec3(*pos, self.HEIGHT / 2 + 1)))
         self.origin.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
         self.update_map_info(map)
         self.body.clearForces()
@@ -432,8 +427,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-            (lateral_norm * forward_direction_norm)
+                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+                (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -458,7 +453,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def lane_distance_to(self, vehicle, lane: AbstractLane = None) -> float:
         assert self.navigation is not None, "a routing and localization module should be added " \
-                                                      "to interact with other vehicles"
+                                            "to interact with other vehicles"
         if not vehicle:
             return np.nan
         if not lane:
@@ -477,7 +472,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         chassis = BaseRigidBodyNode(self, BodyName.Vehicle)
         chassis.setIntoCollideMask(CollisionGroup.EgoVehicle)
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, self.HEIGHT / 2))
-        ts = TransformState.makePos(Vec3(0, 0, self.HEIGHT/2))
+        ts = TransformState.makePos(Vec3(0, 0, self.HEIGHT / 2))
         chassis.addShape(chassis_shape, ts)
         chassis.setMass(para[Parameter.mass])
         chassis.setDeactivationEnabled(False)
@@ -686,7 +681,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                                                                                                           ]):
+                ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -701,7 +696,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
@@ -716,12 +711,12 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def arrive_destination(self):
         long, lat = self.navigation.final_lane.local_coordinates(self.position)
         flag = (
-            self.navigation.final_lane.length - 5 < long < self.navigation.final_lane.length + 5
-        ) and (
-            self.navigation.get_current_lane_width() / 2 >= lat >=
-            (0.5 - self.navigation.get_current_lane_num()) *
-            self.navigation.get_current_lane_width()
-        )
+                       self.navigation.final_lane.length - 5 < long < self.navigation.final_lane.length + 5
+               ) and (
+                       self.navigation.get_current_lane_width() / 2 >= lat >=
+                       (0.5 - self.navigation.get_current_lane_num()) *
+                       self.navigation.get_current_lane_width()
+               )
         return flag
 
     def set_static(self, flag):
@@ -743,10 +738,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-            self.crash_building or self.crash_vehicle or
-            # self.on_white_continuous_line or
-            self.on_yellow_continuous_line
+                self.crash_building or self.crash_vehicle or
+                # self.on_white_continuous_line or
+                self.on_yellow_continuous_line
         )
+
     @property
     def current_action(self):
         return self.last_current_action[-1]

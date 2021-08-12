@@ -151,38 +151,43 @@ class MinimalObservation(LidarStateObservation):
         return res
 
     def traffic_vehicle_state(self, vehicle):
+        # FIXME not available now
         s = []
-        state = vehicle.to_dict()
-        s.append(state['vx'] / vehicle.MAX_SPEED)
-        s.append(state['vy'] / vehicle.MAX_SPEED)
-        s.append(state["cos_h"])
-        s.append(state["sin_h"])
+        s.append(0.0)
+        s.append(0.0)
+        s.append(0.0)
+        s.append(0.0)
+        # s.append(0.0)
+        # s.append(0.0)
+        # state = vehicle.to_dict()
+        # s.append(state['vx'] / vehicle.MAX_SPEED)
+        # s.append(state['vy'] / vehicle.MAX_SPEED)
+        # s.append(state["cos_h"])
+        # s.append(state["sin_h"])
+        #
+        # p = pm.get_policy(vehicle.name)
+        # # s.append(state["cos_d"])
+        # # s.append(state["sin_d"])
+        #
+        # if p is None:
+        s.append(0.0)
+        s.append(0.0)
+        s.append(0.0)
+        # else:
+            # s.append(p.destination[0])
+            # s.append(p.destination[1])
+            # target_speed = p.target_speed
+            # s.append(target_speed / vehicle.MAX_SPEED)
 
-        # TODO(pzh): This is stupid here!!
-        pm = get_engine().policy_manager
-        p = pm.get_policy(vehicle.name)
-        # s.append(state["cos_d"])
-        # s.append(state["sin_d"])
-
-        # TODO(pzh): This is a workaround!!
-        if p is None:
-            s.append(0.0)
-            s.append(0.0)
-            s.append(0.0)
-        else:
-            s.append(p.destination[0])
-            s.append(p.destination[1])
-            target_speed = p.target_speed
-            s.append(target_speed / vehicle.MAX_SPEED)
-
-        s.append(vehicle.speed / vehicle.MAX_SPEED)
-        s.append(math.cos(vehicle.heading))
-        s.append(math.sin(vehicle.heading))
-        s.append(vehicle.action["steering"])
-        s.append(vehicle.action["acceleration"] / vehicle.ACC_MAX)
+        s.append(vehicle.speed / vehicle.max_speed)
+        s.append(math.cos(vehicle.heading_theta))
+        s.append(math.sin(vehicle.heading_theta))
+        s.append(vehicle.current_action[0])
+        s.append(vehicle.current_action[1])
         ret = []
         for v in s:
-            ret.append(self._to_zero_and_one(v))
+            v = self._to_zero_and_one(v)
+            ret.append(v)
         return ret
 
     @staticmethod

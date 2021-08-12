@@ -23,11 +23,11 @@ class BaseManager(Randomizable):
         """
         pass
 
-    def after_step(self, *args, **kwargs):
+    def after_step(self, *args, **kwargs)->dict():
         """
         Update state for this manager after system advancing dt
         """
-        pass
+        return dict()
 
     def before_reset(self):
         """

@@ -57,7 +57,7 @@ class BaseEngine(EngineCore, Randomizable):
         self.external_actions = None
 
     def add_policy(self, object_id, policy):
-        self._object_policies[object_id]=policy
+        self._object_policies[object_id] = policy
 
     def add_task(self, object_id, task):
         self._object_tasks[object_id] = task
@@ -174,7 +174,7 @@ class BaseEngine(EngineCore, Randomizable):
         :return:
         """
         step_infos = {}
-        self.external_actions=external_actions
+        self.external_actions = external_actions
         for manager in self._managers.values():
             step_infos.update(manager.before_step())
         return step_infos
@@ -212,12 +212,9 @@ class BaseEngine(EngineCore, Randomizable):
         Update states after finishing movement
         :return: if this episode is done
         """
-        if self.replay_system is None:
-            for manager in self._managers.values():
-                manager.after_step()
-
-        step_infos = self.update_state_for_all_target_vehicles()
-
+        step_infos={}
+        for manager in self._managers.values():
+            step_infos.update(manager.after_step())
         # cull distant blocks
         # poses = [v.position for v in self.agent_manager.active_agents.values()]
         # if self.cull_scene and False:
@@ -229,10 +226,6 @@ class BaseEngine(EngineCore, Randomizable):
         #     )
         #     SceneCull.cull_distant_objects(self, self.object_manager.objects, poses, self.global_config["max_distance"])
         self.interface.after_step()
-        return step_infos
-
-    def update_state_for_all_target_vehicles(self):
-        step_infos = self.agent_manager.for_each_active_agents(lambda v: v.after_step())
         return step_infos
 
     def dump_episode(self) -> None:

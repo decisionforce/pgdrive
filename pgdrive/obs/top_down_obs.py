@@ -166,7 +166,7 @@ class TopDownObservation(ObservationBase):
         for v in self.engine.traffic_manager.vehicles:
             if v is vehicle:
                 continue
-            h = v.heading
+            h = v.heading_theta
             h = h if abs(h) > 2 * np.pi / 180 else 0
             VehicleGraphics.display(vehicle=v, surface=self.canvas_runtime, heading=h, color=VehicleGraphics.BLUE)
 

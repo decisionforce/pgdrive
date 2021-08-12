@@ -27,7 +27,7 @@ def _create_vehicle():
     return v
 
 
-def test_idm_policy_briefly():
+def _test_idm_policy_briefly():
     env = PGDriveEnvV2()
     env.reset()
     try:
@@ -52,7 +52,7 @@ def test_idm_policy_briefly():
         env.close()
 
 
-def test_idm_policy_is_moving(render=False, in_test=True):
+def _test_idm_policy_is_moving(render=False, in_test=True):
     # config = {"traffic_mode": "hybrid", "map": "SS", "traffic_density": 1.0}
     config = {"traffic_mode": "hybrid", "map": "SS", "traffic_density": 0.2}
     if render:
@@ -76,4 +76,4 @@ def test_idm_policy_is_moving(render=False, in_test=True):
 
 if __name__ == '__main__':
     # test_idm_policy_briefly()
-    test_idm_policy_is_moving(render=True, in_test=False)
+    _test_idm_policy_is_moving(render=True, in_test=False)
