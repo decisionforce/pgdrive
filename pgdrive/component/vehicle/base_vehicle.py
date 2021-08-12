@@ -601,8 +601,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         """
         Check States and filter to update info
         """
-        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis.node())
-        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis.node())
+        result_1 = self.engine.physics_world.static_world.contactTest(self.chassis.node(), True)
+        result_2 = self.engine.physics_world.dynamic_world.contactTest(self.chassis.node(), True)
         contacts = set()
         for contact in result_1.getContacts() + result_2.getContacts():
             node0 = contact.getNode0()
@@ -629,8 +629,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.contact_results = contacts
 
     def destroy(self):
-        self.dynamic_nodes.remove(self.system)
-        self.body.destroy()
         super(BaseVehicle, self).destroy()
 
         self.navigation.destroy()

@@ -28,11 +28,11 @@ class Lidar(DistanceDetector):
         # lidar can calculate the detector mask by itself
         self.angle_delta = 360 / num_lasers
         self.broad_detector = NodePath(BulletGhostNode("detector_mask"))
-        self.broad_detector.node().addShape(BulletCylinderShape(self.BROAD_PHASE_EXTRA_DIST + distance, 5, ZUp))
+        self.broad_detector.node().addShape(BulletCylinderShape(self.BROAD_PHASE_EXTRA_DIST + distance, 5))
         self.broad_detector.node().setIntoCollideMask(CollisionGroup.LidarBroadDetector)
         self.broad_detector.node().setStatic(True)
         engine = get_engine()
-        engine.physics_world.dynamic_world.attach(self.broad_detector.node())
+        engine.physics_world.static_world.attach(self.broad_detector.node())
         self.enable_mask = True if not engine.global_config["_disable_detector_mask"] else False
 
     def perceive(self, base_vehicle, detector_mask=True):
@@ -141,6 +141,6 @@ class Lidar(DistanceDetector):
         return mask
 
     def destroy(self):
-        get_engine().physics_world.dynamic_world.remove(self.broad_detector.node())
+        get_engine().physics_world.static_world.remove(self.broad_detector.node())
         self.broad_detector.removeNode()
         super(Lidar, self).destroy()

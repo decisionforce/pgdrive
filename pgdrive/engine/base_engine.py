@@ -143,7 +143,8 @@ class BaseEngine(EngineCore, Randomizable):
             if id in self._object_tasks:
                 self._object_tasks.pop(id)
             if id in self._object_policies:
-                self._object_policies.pop(id)
+                policy = self._object_policies.pop(id)
+                policy.destroy()
             obj.destroy()
 
     def reset(self):
