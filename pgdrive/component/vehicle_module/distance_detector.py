@@ -64,7 +64,7 @@ class DistanceDetector:
 
     def perceive(self, base_vehicle, physics_world, detector_mask: np.ndarray = None):
         assert self.available
-        extra_filter_node = {base_vehicle.origin.node()}
+        extra_filter_node = set(base_vehicle.dynamic_nodes)
         vehicle_position = base_vehicle.position
         heading_theta = base_vehicle.heading_theta
         assert not isinstance(detector_mask, str), "Please specify detector_mask either with None or a numpy array."
@@ -119,9 +119,8 @@ class DistanceDetector:
         Change the start phase of lidar lasers
         :param angle: phasse offset in [degree]
         """
-        if hasattr(self, "num_lasers"):
-            self.start_phase_offset = np.deg2rad(angle)
-            self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
+        self.start_phase_offset = np.deg2rad(angle)
+        self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
     def __del__(self):
         logging.debug("Lidar is destroyed.")

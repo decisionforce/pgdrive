@@ -83,7 +83,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     PARAMETER_SPACE = ParameterSpace(
         VehicleParameterSpace.BASE_VEHICLE
     )  # it will not sample config from parameter space
-    COLLISION_MASK = CollisionGroup.EgoVehicle
+    COLLISION_MASK = CollisionGroup.Vehicle
     STEERING_INCREMENT = 0.05
 
     LENGTH = 4.51
@@ -470,7 +470,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.HEIGHT = type(self).HEIGHT  # or self.config[Parameter.vehicle_height]
 
         chassis = BaseRigidBodyNode(self, BodyName.Vehicle)
-        chassis.setIntoCollideMask(CollisionGroup.EgoVehicle)
+        chassis.setIntoCollideMask(CollisionGroup.Vehicle)
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, self.HEIGHT / 2))
         ts = TransformState.makePos(Vec3(0, 0, self.HEIGHT / 2))
         chassis.addShape(chassis_shape, ts)

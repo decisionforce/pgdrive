@@ -16,14 +16,14 @@ from pgdrive.utils.utils import get_object_from_node
 class Lidar(DistanceDetector):
     ANGLE_FACTOR = True
     Lidar_point_cloud_obs_dim = 240
-    DEFAULT_HEIGHT = 0.5
+    DEFAULT_HEIGHT = 1.2
 
     BROAD_PHASE_EXTRA_DIST = 0
 
     def __init__(self, num_lasers: int = 240, distance: float = 50, enable_show=False):
         super(Lidar, self).__init__(num_lasers, distance, enable_show)
         self.origin.hide(CamMask.RgbCam | CamMask.Shadow | CamMask.Shadow | CamMask.DepthCam)
-        self.mask = CollisionGroup.TrafficVehicle | CollisionGroup.EgoVehicle | CollisionGroup.InvisibleWall
+        self.mask = CollisionGroup.Vehicle | CollisionGroup.InvisibleWall
 
         # lidar can calculate the detector mask by itself
         self.angle_delta = 360 / num_lasers if num_lasers > 0 else None

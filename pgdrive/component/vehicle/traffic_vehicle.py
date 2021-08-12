@@ -5,7 +5,7 @@ from pgdrive.engine.asset_loader import AssetLoader
 
 
 class TrafficVehicle(BaseVehicle):
-    COLLISION_MASK = CollisionGroup.TrafficVehicle
+    COLLISION_MASK = CollisionGroup.Vehicle
     HEIGHT = 1.8
     LENGTH = 4
     WIDTH = 2

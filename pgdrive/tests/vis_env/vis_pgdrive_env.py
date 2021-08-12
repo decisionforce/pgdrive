@@ -10,9 +10,10 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": .8,
+                "traffic_density": .2,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
+                # "_disable_detector_mask":True,
                 "onscreen_message": True,
                 # "debug_physics_world": True,
                 "pstats": True,
@@ -20,7 +21,7 @@ class TestEnv(PGDriveEnv):
                 # "debug_static_world":True,
                 "cull_scene": False,
                 # "controller":"joystick",
-                # "manual_control": True,
+                "manual_control": True,
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
@@ -36,7 +37,7 @@ class TestEnv(PGDriveEnv):
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
-                    # "show_lidar": True,
+                    "show_lidar": True,
                     # "show_side_detector": True,
                     # "show_lane_line_detector": True,
                     "side_detector": dict(num_lasers=2, distance=50),

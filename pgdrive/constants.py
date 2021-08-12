@@ -113,10 +113,10 @@ class CamMask(Mask):
 
 
 class CollisionGroup(Mask):
-    EgoVehicle = BitMask32.bit(1)
+    Vehicle = BitMask32.bit(1)
     Terrain = BitMask32.bit(2)
     BrokenLaneLine = BitMask32.bit(3)
-    TrafficVehicle = BitMask32.bit(4)
+    # TrafficVehicle = BitMask32.bit(4)
     LaneSurface = BitMask32.bit(5)  # useless now, since it is in another bullet world
     Sidewalk = BitMask32.bit(6)
     ContinuousLaneLine = BitMask32.bit(7)
@@ -130,8 +130,7 @@ class CollisionGroup(Mask):
             (cls.Terrain, cls.Terrain, False),
             (cls.Terrain, cls.BrokenLaneLine, False),
             (cls.Terrain, cls.LaneSurface, False),
-            (cls.Terrain, cls.EgoVehicle, True),
-            (cls.Terrain, cls.TrafficVehicle, False),
+            (cls.Terrain, cls.Vehicle, True),
             (cls.Terrain, cls.ContinuousLaneLine, False),
             (cls.Terrain, cls.InvisibleWall, False),
             (cls.Terrain, cls.Sidewalk, True),
@@ -140,30 +139,20 @@ class CollisionGroup(Mask):
             # block collision
             (cls.BrokenLaneLine, cls.BrokenLaneLine, False),
             (cls.BrokenLaneLine, cls.LaneSurface, False),
-            (cls.BrokenLaneLine, cls.EgoVehicle, True),
+            (cls.BrokenLaneLine, cls.Vehicle, True),
             # change it after we design a new traffic system !
-            (cls.BrokenLaneLine, cls.TrafficVehicle, False),
             (cls.BrokenLaneLine, cls.ContinuousLaneLine, False),
             (cls.BrokenLaneLine, cls.InvisibleWall, False),
             (cls.BrokenLaneLine, cls.Sidewalk, False),
             (cls.BrokenLaneLine, cls.LidarBroadDetector, False),
 
-            # traffic vehicles collision
-            (cls.TrafficVehicle, cls.TrafficVehicle, False),
-            (cls.TrafficVehicle, cls.LaneSurface, False),
-            (cls.TrafficVehicle, cls.EgoVehicle, True),
-            (cls.TrafficVehicle, cls.ContinuousLaneLine, False),
-            (cls.TrafficVehicle, cls.InvisibleWall, True),
-            (cls.TrafficVehicle, cls.Sidewalk, False),
-            (cls.TrafficVehicle, cls.LidarBroadDetector, True),
-
             # ego vehicle collision
-            (cls.EgoVehicle, cls.EgoVehicle, True),
-            (cls.EgoVehicle, cls.LaneSurface, True),
-            (cls.EgoVehicle, cls.ContinuousLaneLine, True),
-            (cls.EgoVehicle, cls.InvisibleWall, True),
-            (cls.EgoVehicle, cls.Sidewalk, True),
-            (cls.EgoVehicle, cls.LidarBroadDetector, True),
+            (cls.Vehicle, cls.Vehicle, True),
+            (cls.Vehicle, cls.LaneSurface, True),
+            (cls.Vehicle, cls.ContinuousLaneLine, True),
+            (cls.Vehicle, cls.InvisibleWall, True),
+            (cls.Vehicle, cls.Sidewalk, True),
+            (cls.Vehicle, cls.LidarBroadDetector, True),
 
             # lane surface
             (cls.LaneSurface, cls.LaneSurface, False),
