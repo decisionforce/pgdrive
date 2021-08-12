@@ -51,7 +51,7 @@ def test_original_lidar(render=False):
                 detect_traffic_vehicle = True
             for hit in env.observations[DEFAULT_AGENT].detected_objects:
                 v = hit.getNode()
-                if v.hasPythonTag(BodyName.Base_vehicle):
+                if v.hasPythonTag(BodyName.Vehicle):
                     detect_base_vehicle = True
             if d:
                 break
@@ -105,7 +105,7 @@ def test_lidar_with_mask(render=False):
                 detect_traffic_vehicle = True
             for hit in env.observations[DEFAULT_AGENT].detected_objects:
                 v = hit.getNode()
-                if v.hasPythonTag(BodyName.Base_vehicle):
+                if v.hasPythonTag(BodyName.Vehicle):
                     detect_base_vehicle = True
             if d:
                 break

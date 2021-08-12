@@ -57,8 +57,7 @@ class BodyName:
     Sidewalk = "Sidewalk"
     Ground = "Ground"
     InvisibleWall = "InvisibleWall"
-    Base_vehicle = "Target Vehicle"
-    Traffic_vehicle = "Traffic Vehicle"
+    Vehicle = "Vehicle"
     Lane = "Lane"
     Traffic_cone = "Traffic Cone"
     Traffic_triangle = "Traffic Triangle"
@@ -70,10 +69,9 @@ COLOR = {
     BodyName.White_continuous_line: "orange",
     BodyName.Yellow_continuous_line: "red",
     BodyName.Broken_line: "yellow",
-    BodyName.Traffic_vehicle: "red",
+    BodyName.Vehicle: "red",
     BodyName.Traffic_cone: "orange",
     BodyName.Traffic_triangle: "orange",
-    BodyName.Base_vehicle: "red",
     BodyName.InvisibleWall: "red",
     BodyName.TollGate: "red",
 }

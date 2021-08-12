@@ -41,13 +41,11 @@ class Lidar(DistanceDetector):
 
     @staticmethod
     def get_surrounding_vehicles(detected_objects) -> Set:
-        # TODO this will be removed in the future
+        # TODO this will be removed in the future and use the broad phase detection results
         vehicles = set()
         objs = detected_objects
         for ret in objs:
-            if ret.getNode().hasPythonTag(BodyName.Traffic_vehicle):
-                vehicles.add(get_object_from_node(ret.getNode()).kinematic_model)
-            elif ret.getNode().hasPythonTag(BodyName.Base_vehicle):
+            if ret.getNode().hasPythonTag(BodyName.Vehicle):
                 vehicles.add(get_object_from_node(ret.getNode()))
         return vehicles
 

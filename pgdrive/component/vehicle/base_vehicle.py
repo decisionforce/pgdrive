@@ -474,7 +474,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.WIDTH = type(self).WIDTH  # or self.config["vehicle_width"]
         self.HEIGHT = type(self).HEIGHT  # or self.config[Parameter.vehicle_height]
 
-        chassis = BaseRigidBodyNode(self, BodyName.Base_vehicle)
+        chassis = BaseRigidBodyNode(self, BodyName.Vehicle)
         chassis.setIntoCollideMask(CollisionGroup.EgoVehicle)
         chassis_shape = BulletBoxShape(Vec3(self.WIDTH / 2, self.LENGTH / 2, self.HEIGHT / 2))
         ts = TransformState.makePos(Vec3(0, 0, self.HEIGHT/2))
@@ -608,7 +608,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             node0 = contact.getNode0()
             node1 = contact.getNode1()
             name = [node0.getName(), node1.getName()]
-            name.remove(BodyName.Base_vehicle)
+            name.remove(BodyName.Vehicle)
             if name[0] == BodyName.White_continuous_line:
                 self.on_white_continuous_line = True
             elif name[0] == BodyName.Yellow_continuous_line:
