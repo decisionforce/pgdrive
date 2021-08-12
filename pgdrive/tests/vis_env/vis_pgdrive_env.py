@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": .2,
+                "traffic_density": .0,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
                 # "_disable_detector_mask":True,
@@ -33,16 +33,16 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "SSSSSSS",
+                "map": "SCSSSSS",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
                     "show_lidar": True,
                     # "show_side_detector": True,
                     # "show_lane_line_detector": True,
-                    "side_detector": dict(num_lasers=2, distance=50),
-                    "lane_line_detector": dict(num_lasers=2, distance=50),
-                    # "show_line_to_dest": True,
+                    # "side_detector": dict(num_lasers=2, distance=50),
+                    # "lane_line_detector": dict(num_lasers=2, distance=50),
+                    # # "show_line_to_dest": True,
                     # "show_dest_mark": True
                 }
             }

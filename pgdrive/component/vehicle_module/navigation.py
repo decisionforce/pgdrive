@@ -163,8 +163,6 @@ class Navigation:
         long, _ = lane.local_coordinates(position)
         before_update = self._target_checkpoints_index
         self._update_target_checkpoints(lane_index, long)
-        if self._target_checkpoints_index == before_update:
-            return lane, lane_index
 
         assert len(self.checkpoints) > 2
 
