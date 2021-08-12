@@ -1,17 +1,7 @@
-from typing import Union
-import copy
-
-import numpy as np
-
-from pgdrive.component.highway_vehicle.behavior import IDMVehicle
-from pgdrive.component.lane.circular_lane import CircularLane
-from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.utils.space import Parameter
 from pgdrive.constants import CollisionGroup
 from pgdrive.engine.asset_loader import AssetLoader
-from pgdrive.engine.engine_utils import get_engine
-from pgdrive.manager.traffic_manager import TrafficManager
-from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 
 
 class TrafficVehicle(BaseVehicle):
@@ -40,6 +30,7 @@ class TrafficVehicle(BaseVehicle):
             carNP.setScale(scale)
             carNP.setH(H)
             carNP.setPos(x_y_z_offset)
+            carNP.setZ(-self.config[Parameter.tire_radius]-0.2)
             carNP.instanceTo(self.origin)
 
     def set_break_down(self, break_down=True):

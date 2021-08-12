@@ -93,7 +93,7 @@ class TrafficManager(BaseManager):
         """
         v_to_remove = []
         for v in self._traffic_vehicles:
-            if v.arrive_destination or v.crash_vehicle or v.crash_object:
+            if v.arrive_destination:
                 v_to_remove.append(v)
                 # lane = self.respawn_lanes[self.np_random.randint(0, len(self.respawn_lanes))]
                 # lane_idx = lane.index

@@ -490,18 +490,12 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         return vehicle_chassis
 
     def _add_visualization(self):
-        para = self.config
         if self.render:
 
             if self.MODEL is None:
                 model_path = 'models/ferra/scene.gltf'
                 self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
-
-                # self.MODEL.setZ(para[Parameter.vehicle_vis_z])
-                # self.MODEL.setY(para[Parameter.vehicle_vis_y])
-                # self.MODEL.setH(para[Parameter.vehicle_vis_h])
-                # self.MODEL.set_scale(para[Parameter.vehicle_vis_scale])
-
+                self.MODEL.setZ(-self.config[Parameter.tire_radius] - 0.2)
                 self.MODEL.set_scale(1)
 
             self.MODEL.instanceTo(self.origin)
