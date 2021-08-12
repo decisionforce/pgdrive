@@ -60,7 +60,7 @@ class StateObservation(ObservationBase):
         """
         # update out of road
         info = []
-        if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
+        if hasattr(vehicle, "side_detector") and vehicle.side_detector.available:
             info += vehicle.side_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points
         else:
             lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
@@ -95,7 +95,7 @@ class StateObservation(ObservationBase):
         # print(yaw_rate)
         info.append(clip(yaw_rate, 0.0, 1.0))
 
-        if vehicle.lane_line_detector is not None:
+        if vehicle.lane_line_detector.available:
             info += vehicle.lane_line_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points
         else:
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
@@ -154,7 +154,7 @@ class LidarStateObservation(ObservationBase):
 
     def lidar_observe(self, vehicle):
         other_v_info = []
-        if vehicle.lidar is not None:
+        if vehicle.lidar.available:
             cloud_points, detected_objects = vehicle.lidar.perceive(vehicle, )
             if self.config["lidar"]["num_others"] > 0:
                 other_v_info += vehicle.lidar.get_surrounding_vehicles_info(

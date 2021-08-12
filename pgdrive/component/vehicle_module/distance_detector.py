@@ -31,17 +31,16 @@ class DistanceDetector:
 
     def __init__(self, num_lasers: int = 16, distance: float = 50, enable_show=False):
         # properties
+        self.available = True if num_lasers>0 else False
         parent_node_np: NodePath = get_engine().render
-        if num_lasers <= 0:
-            num_lasers = 1
+        self.origin = parent_node_np.attachNewNode("Could_points")
         show = enable_show and (AssetLoader.loader is not None)
         self.dim = num_lasers
         self.num_lasers = num_lasers
         self.perceive_distance = distance
         self.height = self.DEFAULT_HEIGHT
-        self.radian_unit = 2 * np.pi / num_lasers
+        self.radian_unit = 2 * np.pi / num_lasers if self.num_lasers > 0 else None
         self.start_phase_offset = 0
-        self.origin = parent_node_np.attachNewNode("Could_points")
         self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
         # override these properties to decide which elements to detect and show
@@ -64,12 +63,13 @@ class DistanceDetector:
             # self.origin.flattenStrong()
 
     def perceive(self, base_vehicle, physics_world, detector_mask: np.ndarray = None):
+        assert self.available
         extra_filter_node = {base_vehicle.origin.node()}
         vehicle_position = base_vehicle.position
         heading_theta = base_vehicle.heading_theta
         assert not isinstance(detector_mask, str), "Please specify detector_mask either with None or a numpy array."
         cloud_points, detected_objects, colors = cutils.cutils_perceive(
-            cloud_points=np.ones((self.num_lasers,), dtype=float),
+            cloud_points=np.ones((self.num_lasers, ), dtype=float),
             detector_mask=detector_mask.astype(dtype=np.uint8) if detector_mask is not None else None,
             mask=self.mask,
             lidar_range=self._lidar_range,
@@ -119,8 +119,9 @@ class DistanceDetector:
         Change the start phase of lidar lasers
         :param angle: phasse offset in [degree]
         """
-        self.start_phase_offset = np.deg2rad(angle)
-        self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
+        if hasattr(self, "num_lasers"):
+            self.start_phase_offset = np.deg2rad(angle)
+            self._lidar_range = np.arange(0, self.num_lasers) * self.radian_unit + self.start_phase_offset
 
     def __del__(self):
         logging.debug("Lidar is destroyed.")

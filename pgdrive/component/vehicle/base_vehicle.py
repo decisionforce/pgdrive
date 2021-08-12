@@ -623,18 +623,12 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.navigation.destroy()
         self.navigation = None
 
-        if self.side_detector is not None:
-            self.side_detector.destroy()
-
-        if self.lane_line_detector is not None:
-            self.lane_line_detector.destroy()
-
+        self.side_detector.destroy()
+        self.lane_line_detector.destroy()
+        self.lidar.destroy()
         self.side_detector = None
         self.lane_line_detector = None
-
-        if self.lidar is not None:
-            self.lidar.destroy()
-            self.lidar = None
+        self.lidar = None
         if len(self.image_sensors) != 0:
             for sensor in self.image_sensors.values():
                 sensor.destroy()
@@ -675,7 +669,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.set_position(state["position"], height=0.28)
 
     def _update_overtake_stat(self):
-        if self.config["overtake_stat"] and self.lidar is not None:
+        if self.config["overtake_stat"] and self.lidar.available:
             surrounding_vs = self.lidar.get_surrounding_vehicles()
             routing = self.navigation
             ckpt_idx = routing._target_checkpoints_index

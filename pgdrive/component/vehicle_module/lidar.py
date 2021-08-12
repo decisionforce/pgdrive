@@ -26,7 +26,7 @@ class Lidar(DistanceDetector):
         self.mask = CollisionGroup.TrafficVehicle | CollisionGroup.EgoVehicle | CollisionGroup.InvisibleWall
 
         # lidar can calculate the detector mask by itself
-        self.angle_delta = 360 / self.num_lasers
+        self.angle_delta = 360 / num_lasers if num_lasers > 0 else None
         self.broad_detector = NodePath(BulletGhostNode("detector_mask"))
         self.broad_detector.node().addShape(BulletCylinderShape(self.BROAD_PHASE_EXTRA_DIST + distance, 5))
         self.broad_detector.node().setIntoCollideMask(CollisionGroup.LidarBroadDetector)

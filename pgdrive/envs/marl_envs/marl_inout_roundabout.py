@@ -74,7 +74,7 @@ class LidarStateObservationMARound(ObservationBase):
         num_others = self.config["lidar"]["num_others"]
         state = self.state_observe(vehicle)
         other_v_info = []
-        if vehicle.lidar is not None:
+        if vehicle.lidar.available:
             cloud_points, detected_objects = vehicle.lidar.perceive(vehicle)
             if self.config["lidar"]["num_others"] > 0:
                 surrounding_vehicles = list(vehicle.lidar.get_surrounding_vehicles(detected_objects))

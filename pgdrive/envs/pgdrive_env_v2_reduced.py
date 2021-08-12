@@ -59,7 +59,7 @@ class LidarStateObservationV2(LidarStateObservation):
         """
         # update out of road
         info = []
-        if hasattr(vehicle, "side_detector") and vehicle.side_detector is not None:
+        if hasattr(vehicle, "side_detector") and vehicle.side_detector.available:
             info += self._add_noise_to_cloud_points(
                 vehicle.side_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points,
                 gaussian_noise=self.config["side_detector"]["gaussian_noise"],
@@ -106,7 +106,7 @@ class LidarStateObservationV2(LidarStateObservation):
         # print(yaw_rate)
         info.append(clip(yaw_rate, 0.0, 1.0))
 
-        if vehicle.lane_line_detector is not None:
+        if vehicle.lane_line_detector.available:
             info += self._add_noise_to_cloud_points(
                 vehicle.lane_line_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points,
                 gaussian_noise=self.config["lane_line_detector"]["gaussian_noise"],
