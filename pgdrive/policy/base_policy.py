@@ -10,7 +10,7 @@ class BasePolicy(Randomizable, Configurable):
         self.engine = get_engine()
         self.control_object = control_object
 
-    def act(self):
+    def act(self, *args, **kwargs):
         pass
 
     def destroy(self):

@@ -117,16 +117,19 @@ class Navigation:
                         raise ValueError("Can not set a destination!")
             # choose negative road end node when current road is negative road
             final_road_node = socket.negative_road.end_node if current_road_negative else socket.positive_road.end_node
-        self.set_route(start_road_node, final_road_node)
+        self.set_route(current_lane_index, final_road_node)
 
-    def set_route(self, start_road_node: str, end_road_node: str):
+    def set_route(self, current_lane_index: str, end_road_node: str):
         """
-        Find a shorest path from start road to end road
-        :param start_road_node: start road node
+        Find a shortest path from start road to end road
+        :param current_lane_index: start road node
         :param end_road_node: end road node
         :return: None
         """
+        start_road_node = current_lane_index[0]
         self.checkpoints = self.map.road_network.shortest_path(start_road_node, end_road_node)
+        if len(self.checkpoints) == 0:
+            self.checkpoints = [current_lane_index[0], current_lane_index[1]]
         assert len(self.checkpoints) >= 2, "Can not find a route from {} to {}".format(start_road_node, end_road_node)
         # update routing info
         self.final_road = Road(self.checkpoints[-2], self.checkpoints[-1])

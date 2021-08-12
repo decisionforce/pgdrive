@@ -72,7 +72,7 @@ class AgentManager(BaseManager):
                 BaseVehicle, vehicle_config=v_config)
             ret[agent_id] = obj
             # note: agent.id = object id
-            self.engine.add_policy(obj.id, EnvInputPolicy(agent_id))
+            self.engine.add_policy(obj.id, EnvInputPolicy())
         return ret
 
     def init_space(self, init_observation_space, init_action_space):
@@ -239,7 +239,7 @@ class AgentManager(BaseManager):
         # not in replay mode
         step_infos = {}
         for agent_id in self.active_agents.keys():
-            a = self.engine.get_policy(self._agent_to_object[agent_id]).act()
+            a = self.engine.get_policy(self._agent_to_object[agent_id]).act(agent_id)
             step_infos[agent_id] = self.get_agent(agent_id).before_step(a)
 
         self._agents_finished_this_frame = dict()

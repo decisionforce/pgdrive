@@ -34,8 +34,8 @@ def test_base_vehicle():
         # v_config = BaseVehicle.get_vehicle_config(dict())
         v_config = Config(BASE_DEFAULT_CONFIG["vehicle_config"]).update(PGDriveEnvV1_DEFAULT_CONFIG["vehicle_config"])
         v_config.update({"use_render": False, "offscreen_render": False})
-        v = BaseVehicle(vehicle_config=v_config, random_seed=0)
-        v.lidar = Lidar()
+        v=engine.spawn_object(BaseVehicle, vehicle_config=v_config, random_seed=0)
+
         v.add_routing_localization(True)
         v.add_routing_localization(False)
         v.navigation.set_force_calculate_lane_index(True)

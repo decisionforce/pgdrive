@@ -53,7 +53,7 @@ class TrafficManager(BaseManager):
         logging.debug("load scene {}, {}".format(map.random_seed, "Use random traffic" if self.random_traffic else ""))
 
         # update vehicle list
-        self.block_triggered_vehicles = [] if self.mode != TrafficMode.Respawn else None
+        self.block_triggered_vehicles = []
 
         traffic_density = self.density
         if abs(traffic_density - 0.0) < 1e-2:

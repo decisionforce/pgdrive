@@ -189,7 +189,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             end_road = self.current_map.parking_space_manager.get_parking_space(vehicle_id)
         else:
             end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
-        vehicle.navigation.set_route(vehicle.lane_index[0], end_road.end_node)
+        vehicle.navigation.set_route(vehicle.lane_index, end_road.end_node)
 
     def _respawn_single_vehicle(self, randomize_position=False):
         """

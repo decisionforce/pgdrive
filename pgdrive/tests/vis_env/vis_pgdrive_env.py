@@ -8,7 +8,43 @@ class TestEnv(PGDriveEnv):
         TODO a small bug exists in scene 9 (30 blocks), traffic density > 0, respawn mode
         """
         super(TestEnv, self).__init__(
-            {"map": "C", "traffic_density": 1.0, "environment_num": 10, "use_render": False}
+            {
+                "environment_num": 1,
+                "traffic_density": .8,
+                "traffic_mode": "trigger",
+                "start_seed": 12,
+                "onscreen_message": True,
+                # "debug_physics_world": True,
+                "pstats": True,
+                "global_light": True,
+                # "debug_static_world":True,
+                "cull_scene": False,
+                # "controller":"joystick",
+                # "manual_control": True,
+                "use_render": True,
+                "decision_repeat": 5,
+                "rgb_clip": True,
+                "debug": True,
+                "fast": True,
+                # "map_config": {
+                #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                #     Map.GENERATE_CONFIG: "SXO",
+                #     Map.LANE_WIDTH: 3.5,
+                #     Map.LANE_NUM: 3,
+                # },
+                "map": "SSSSSSS",
+                "driving_reward": 1.0,
+                "vehicle_config": {
+                    "enable_reverse": True,
+                    # "show_lidar": True,
+                    # "show_side_detector": True,
+                    # "show_lane_line_detector": True,
+                    "side_detector": dict(num_lasers=2, distance=50),
+                    "lane_line_detector": dict(num_lasers=2, distance=50),
+                    # "show_line_to_dest": True,
+                    # "show_dest_mark": True
+                }
+            }
         )
 
 
@@ -21,7 +57,6 @@ if __name__ == "__main__":
     print(len(env.engine.traffic_manager._traffic_vehicles))
     for s in range(1, 100000):
         o, r, d, info = env.step([.0, 1.])
-        print(s)
         # info["fuel"] = env.vehicle.energy_consumption
         # # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
         # assert env.observation_space.contains(o)
