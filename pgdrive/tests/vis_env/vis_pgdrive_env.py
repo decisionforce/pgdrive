@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": .0,
+                "traffic_density": .6,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
                 # "_disable_detector_mask":True,
@@ -33,7 +33,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "SCSSSSS",
+                "map": "SCXOrRT",
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,

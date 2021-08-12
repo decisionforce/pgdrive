@@ -160,10 +160,9 @@ class Navigation:
                 lane_index, _ = self.map.road_network.get_closest_lane_index(position)
                 lane = self.map.road_network.get_lane(lane_index)
         long, _ = lane.local_coordinates(position)
-        before_update = self._target_checkpoints_index
         self._update_target_checkpoints(lane_index, long)
 
-        assert len(self.checkpoints) > 2
+        assert len(self.checkpoints) >= 2
 
         target_road_1_start = self.checkpoints[self._target_checkpoints_index[0]]
         target_road_1_end = self.checkpoints[self._target_checkpoints_index[0] + 1]
