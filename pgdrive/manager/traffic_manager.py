@@ -215,7 +215,7 @@ class TrafficManager(BaseManager):
                 }
             )
             from pgdrive.policy.idm_policy import IDMPolicy
-            self.engine.add_policy(random_v.id, IDMPolicy(random_v, self.randint()))
+            self.engine.add_policy(random_v.id, IDMPolicy(random_v, self.generate_seed()))
             _traffic_vehicles.append(random_v)
         return _traffic_vehicles
 

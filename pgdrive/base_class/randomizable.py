@@ -17,5 +17,5 @@ class Randomizable:
         self.random_seed = random_seed
         self.np_random = get_np_random(random_seed)
 
-    def randint(self):
+    def generate_seed(self):
         return self.np_random.randint(0, self.MAX_RAND_INT)

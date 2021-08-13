@@ -99,8 +99,9 @@ class BaseEngine(EngineCore, Randomizable):
         :return: object spawned
         """
         if "random_seed" not in kwargs:
-            kwargs["random_seed"] = self.randint()
-        if force_spawn or object_class.__name__ not in self._dying_objects:
+            kwargs["random_seed"] = self.generate_seed()
+        if force_spawn or object_class.__name__ not in self._dying_objects or len(self._dying_objects[
+            object_class.__name__]) == 0:
             obj = object_class(**kwargs)
         else:
             obj = self._dying_objects[object_class.__name__].pop()
@@ -130,15 +131,13 @@ class BaseEngine(EngineCore, Randomizable):
         else:
             raise ValueError("filter should be a list or a function")
 
-    def clear_objects(self, filter: Optional[Union[Callable, List]] = None, force_destroy=False):
+    def clear_objects(self, filter: Optional[Union[Callable, List]], force_destroy=False):
         """
         Destroy all self-generated objects or objects satisfying the filter condition
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
         If force_destroy=True, we will destroy this element instead of storing them for next time using
         """
-        if filter is None:
-            exclude_objects = self._spawned_objects
-        elif isinstance(filter, list):
+        if isinstance(filter, list):
             exclude_objects = {id: self._spawned_objects[id] for id in filter}
         elif callable(filter):
             exclude_objects = dict()
@@ -254,11 +253,14 @@ class BaseEngine(EngineCore, Randomizable):
         Instead of calling this func directly, close Engine by using engine_utils.close_engine
         """
         # clear all objects in spawned_object
-        self.clear_objects(force_destroy=True)
+        for id, obj in self._spawned_objects.items():
+            if id in self._object_policies:
+                self._object_policies.pop(id).destroy()
+            if id in self._object_tasks:
+                self._object_tasks.pop(id).destroy()
         for cls, pending_obj in self._dying_objects.items():
             for obj in pending_obj:
                 obj.destroy()
-            self._dying_objects.pop(cls)
         if self.main_camera is not None:
             self.main_camera.destroy()
         if len(self._managers) > 0:

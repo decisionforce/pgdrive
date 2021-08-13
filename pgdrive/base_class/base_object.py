@@ -123,7 +123,7 @@ class BaseObject(BaseRunnable):
         from pgdrive.engine.engine_utils import get_engine
         engine = get_engine()
         self.detach_from_world(engine.physics_world)
-        if hasattr(self.body, "object"):
+        if self._body is not None and hasattr(self.body, "object"):
             self.body.object = None
         if self.origin is not None:
             self.origin.removeNode()
