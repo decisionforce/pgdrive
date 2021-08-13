@@ -101,7 +101,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             self,
             vehicle_config: Union[dict, Config] = None,
             name: str = None,
-            am_i_the_special_one=False,
             random_seed=None,
     ):
         """
@@ -119,6 +118,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         BaseObject.__init__(self, name, random_seed, self.engine.global_config["vehicle_config"])
         BaseVehicleState.__init__(self)
         self.update_config(vehicle_config)
+        am_i_the_special_one=self.config["am_i_the_special_one"]
 
         # build vehicle physics model
         vehicle_chassis = self._create_vehicle_chassis()
@@ -584,10 +584,9 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             lane, new_l_index = possible_lanes[0][:-1]
         else:
             lane, new_l_index = possible_lanes[idx][:-1]
-        dest = self.config["destination_lane_index"]
+        dest = self.config["destination_node"]
         self.navigation.update(
-            map, current_lane_index=new_l_index, final_road_node=dest[1] if dest is not None else None
-        )
+            map, current_lane_index=new_l_index, final_road_node=dest if dest is not None else None)
         assert lane is not None, "spawn place is not on road!"
         self.lane_index = new_l_index
         self.lane = lane
