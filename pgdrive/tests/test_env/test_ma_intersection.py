@@ -177,7 +177,7 @@ def test_ma_intersection_reset():
         env.close()
 
     # Put vehicles to destination and then reset. This might cause error if agent is assigned destination BEFORE reset.
-    env = MultiAgentIntersectionEnv({"horizon": 100, "num_agents": 32, "success_reward": 777})
+    env = MultiAgentIntersectionEnv({"horizon": 100, "num_agents": 32, "success_reward": 777, "use_render":True})
     try:
         _check_spaces_before_reset(env)
         success_count = 0

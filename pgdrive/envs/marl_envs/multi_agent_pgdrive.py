@@ -160,7 +160,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
         return ret
 
-    def _before_reset(self):
+    def _reset_config(self):
         # update config (for new possible spawn places)
         for v_id, v in self.vehicles.items():
             if v_id in self.config["target_vehicle_configs"]:

@@ -128,7 +128,6 @@ class AgentManager(BaseManager):
             assert isinstance(action_space, Box)
 
     def reset(self):
-        self.for_each_active_agents(lambda v: v.reset())
         self._agents_finished_this_frame = dict()
 
         # Remove vehicles that are dying.
@@ -163,6 +162,7 @@ class AgentManager(BaseManager):
         # Note: We don't reset next_newly_added_agent_count here! Since it is always counting!
 
         self._allow_respawn = True if not self.never_allow_respawn else False
+        self.for_each_active_agents(lambda v: v.reset())
 
     def finish(self, agent_name, ignore_delay_done=False):
         """

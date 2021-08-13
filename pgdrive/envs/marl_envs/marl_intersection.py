@@ -196,7 +196,7 @@ def _vis():
                 "show_lidar": False,
             },
             # "fast": True,
-            # "use_render": True,
+            "use_render": True,
             "debug": True,
             "manual_control": True,
             "num_agents": 48,
@@ -224,7 +224,7 @@ def _vis():
         #     "alive": len(env.vehicles)
         # }
         # env.render(text=render_text)
-        env.render(mode="top_down")
+        # env.render(mode="top_down")
         if d["__all__"]:
             print(
                 "Finish! Current step {}. Group Reward: {}. Average reward: {}".format(
