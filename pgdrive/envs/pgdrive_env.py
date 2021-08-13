@@ -77,7 +77,6 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
         # ===== vehicle spawn and destination =====
         spawn_lane_index=(FirstPGBlock.NODE_1, FirstPGBlock.NODE_2, 0),
-        destination_lane_index=None,
         spawn_longitude=5.0,
         spawn_lateral=0.0,
         destination_node=None,
@@ -140,6 +139,7 @@ class PGDriveEnv(BasePGDriveEnv):
         config["map_config"] = parse_map_config(
             easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
+        config["vehicle_config"]["rgb_clip"] = config["rgb_clip"]
         return config
 
     def _after_lazy_init(self):
@@ -264,7 +264,7 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH
-                  ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+        ] = done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
         return done, done_info
 
     def cost_function(self, vehicle_id: str):

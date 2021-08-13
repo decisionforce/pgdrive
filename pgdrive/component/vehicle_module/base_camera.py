@@ -36,7 +36,7 @@ class BaseCamera(ImageBuffer):
         Borrow the camera to get observations
         """
         type(self)._singleton.origin.reparentTo(base_object.origin)
-        ret = super(BaseCamera, self).get_image()
+        ret = super(BaseCamera, type(self)._singleton).get_image()
         self.track(self.attached_object)
         return ret
 
