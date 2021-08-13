@@ -274,14 +274,12 @@ class BasePGDriveEnv(gym.Env):
         self._reset_config()
 
         self._update_map(episode_data)
+        self.engine.reset()
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
         self.episode_steps = 0
         self.episode_rewards = defaultdict(float)
         self.episode_lengths = defaultdict(int)
-
-        # generate new traffic according to the map
-        self.engine.reset()
 
         return self._get_reset_return()
 
