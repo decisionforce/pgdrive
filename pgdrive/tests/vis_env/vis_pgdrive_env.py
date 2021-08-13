@@ -68,6 +68,6 @@ if __name__ == "__main__":
         #             time.time() - start, (s + 1) / (time.time() - start)
         #         )
         #     )
-        if s%100 ==0:
+        if s % 100 == 0:
             env.close()
             env.reset()

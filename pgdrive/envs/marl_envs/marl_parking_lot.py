@@ -38,7 +38,6 @@ class ParkingSpaceManager(BaseManager):
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
-
     def __init__(self):
         super(ParkingSpaceManager, self).__init__()
         self.parking_space_available = set()
@@ -63,7 +62,7 @@ class ParkingSpaceManager(BaseManager):
             self.parking_space_available.add(dest)
 
     def reset(self):
-        self._parking_spaces=self.engine.map_manager.current_map.parking_space
+        self._parking_spaces = self.engine.map_manager.current_map.parking_space
         self.v_dest_pair = {}
         self.parking_space_available = set(copy.deepcopy(self._parking_spaces))
 
@@ -192,7 +191,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             end_road = self.engine.parking_space_manager.get_parking_space(vehicle_id)
         else:
             end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
-        vehicle_config["destination_node"]=end_road.end_node
+        vehicle_config["destination_node"] = end_road.end_node
         return vehicle_config
 
     def _respawn_single_vehicle(self, randomize_position=False):

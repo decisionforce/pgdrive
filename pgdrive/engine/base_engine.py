@@ -100,8 +100,8 @@ class BaseEngine(EngineCore, Randomizable):
         """
         if "random_seed" not in kwargs:
             kwargs["random_seed"] = self.generate_seed()
-        if force_spawn or object_class.__name__ not in self._dying_objects or len(self._dying_objects[
-            object_class.__name__]) == 0:
+        if force_spawn or object_class.__name__ not in self._dying_objects or len(
+                self._dying_objects[object_class.__name__]) == 0:
             obj = object_class(**kwargs)
         else:
             obj = self._dying_objects[object_class.__name__].pop()

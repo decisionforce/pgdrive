@@ -145,8 +145,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -163,8 +163,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def _reset_config(self):
         # update config (for new possible spawn places)
         for v_id, config in self.config["target_vehicle_configs"].items():
-            self.config["target_vehicle_configs"][v_id] = self._update_destination_for(v_id, self.config[
-                "target_vehicle_configs"][v_id])
+            self.config["target_vehicle_configs"][v_id] = self._update_destination_for(
+                v_id, self.config["target_vehicle_configs"][v_id]
+            )
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         if self.engine.replay_system is not None:

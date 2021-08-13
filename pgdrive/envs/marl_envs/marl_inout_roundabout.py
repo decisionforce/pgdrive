@@ -138,7 +138,7 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
     def _update_destination_for(self, vehicle_id, vehicle_config):
         end_roads = copy.deepcopy(self.spawn_roads)
         end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
-        vehicle_config["destination_node"]=end_road.end_node
+        vehicle_config["destination_node"] = end_road.end_node
         return vehicle_config
 
     def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
