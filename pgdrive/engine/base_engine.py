@@ -53,6 +53,9 @@ class BaseEngine(EngineCore, Randomizable):
         self._object_policies = dict()
         self._object_tasks = dict()
 
+        # the clear function is a fake clear, objects cleared is stored for future use
+        self._dying_objects = dict()
+
         # store external actions
         self.external_actions = None
 
@@ -86,17 +89,22 @@ class BaseEngine(EngineCore, Randomizable):
     def has_task(self, object_id):
         return True if object_id in self._object_tasks else False
 
-    def spawn_object(self, object_class, pbr_model=True, **kwargs):
+    def spawn_object(self, object_class, pbr_model=True, force_spawn=False, **kwargs):
         """
         Call this func to spawn one object
         :param object_class: object class
-        :param pbr_model:
+        :param pbr_model: if the visualization model is pbr model
+        :param force_spawn: spawn a new object instead of fetching from _dying_objects list
         :param kwargs: class init parameters
         :return: object spawned
         """
         if "random_seed" not in kwargs:
             kwargs["random_seed"] = self.randint()
-        obj = object_class(**kwargs)
+        if force_spawn or object_class.__name__ not in self._dying_objects:
+            obj = object_class(**kwargs)
+        else:
+            obj = self._dying_objects[object_class.__name__].pop()
+            obj.reset(**kwargs)
         self._spawned_objects[obj.id] = obj
         obj.attach_to_world(self.pbr_worldNP if pbr_model else self.worldNP, self.physics_world)
         return obj
@@ -122,10 +130,11 @@ class BaseEngine(EngineCore, Randomizable):
         else:
             raise ValueError("filter should be a list or a function")
 
-    def clear_objects(self, filter: Optional[Union[Callable, List]] = None):
+    def clear_objects(self, filter: Optional[Union[Callable, List]] = None, force_destroy=False):
         """
         Destroy all self-generated objects or objects satisfying the filter condition
         Since we don't expect a iterator, and the number of objects is not so large, we don't use built-in filter()
+        If force_destroy=True, we will destroy this element instead of storing them for next time using
         """
         if filter is None:
             exclude_objects = self._spawned_objects
@@ -145,7 +154,13 @@ class BaseEngine(EngineCore, Randomizable):
             if id in self._object_policies:
                 policy = self._object_policies.pop(id)
                 policy.destroy()
-            obj.destroy()
+            if force_destroy:
+                obj.destroy()
+            else:
+                obj.detach_from_world(self.physics_world)
+                if obj.class_name not in self._dying_objects:
+                    self._dying_objects[obj.class_name] = []
+                self._dying_objects[obj.class_name].append(obj)
 
     def reset(self):
         """
@@ -238,6 +253,12 @@ class BaseEngine(EngineCore, Randomizable):
         Note:
         Instead of calling this func directly, close Engine by using engine_utils.close_engine
         """
+        # clear all objects in spawned_object
+        self.clear_objects(force_destroy=True)
+        for cls, pending_obj in self._dying_objects.items():
+            for obj in pending_obj:
+                obj.destroy()
+            self._dying_objects.pop(cls)
         if self.main_camera is not None:
             self.main_camera.destroy()
         if len(self._managers) > 0:

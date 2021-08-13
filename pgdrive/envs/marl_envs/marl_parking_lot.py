@@ -230,7 +230,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]
         vehicle.config.update(new_spawn_place_config)
-        vehicle.reset(self.current_map)
+        vehicle.reset()
         self._update_destination_for(new_agent_id)
         vehicle.after_step()
         self.dones[new_agent_id] = False  # Put it in the internal dead-tracking dict.

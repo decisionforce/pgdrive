@@ -97,6 +97,9 @@ class BaseObject(BaseRunnable):
             return self._body
 
     def attach_to_world(self, parent_node_path: NodePath, physics_world: PhysicsWorld):
+        """
+        Load to world from memory
+        """
         if self.render:
             # double check :-)
             assert isinstance(self.origin, NodePath), "No render model on node_path in this Element"
@@ -106,7 +109,7 @@ class BaseObject(BaseRunnable):
 
     def detach_from_world(self, physics_world: PhysicsWorld):
         """
-        It is not fully remove, if this element is useless in the future, call Func delete()
+        It is not fully remove, it will be left in memory. if this element is useless in the future, call Func delete()
         """
         if self.origin is not None:
             self.origin.detachNode()
