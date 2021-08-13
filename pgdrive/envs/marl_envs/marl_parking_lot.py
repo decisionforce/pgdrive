@@ -44,9 +44,10 @@ class ParkingSpaceManager(BaseManager):
         self.parking_space_available = set()
         self._parking_spaces = None
         self.v_dest_pair = {}
-        self.reset()
 
     def get_parking_space(self, v_id):
+        if self._parking_spaces is None:
+            self.reset()
         parking_space_idx = get_np_random().choice([i for i in range(len(self.parking_space_available))])
         parking_space = list(self.parking_space_available)[parking_space_idx]
         self.parking_space_available.remove(parking_space)
@@ -62,7 +63,7 @@ class ParkingSpaceManager(BaseManager):
             self.parking_space_available.add(dest)
 
     def reset(self):
-        self._parking_spaces=self.engine.current_map.parking_space
+        self._parking_spaces=self.engine.map_manager.current_map.parking_space
         self.v_dest_pair = {}
         self.parking_space_available = set(copy.deepcopy(self._parking_spaces))
 
@@ -184,15 +185,15 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
             self.engine.map_manager.load_map(new_map)
             self.current_map.spawn_roads = self.spawn_roads
 
-    def _choose_destination_for(self, vehicle_id):
-        vehicle = self.vehicles[vehicle_id]
+    def _update_destination_for(self, vehicle_id, vehicle_config):
         # when agent re-joined to the game, call this to set the new route to destination
         end_roads = copy.deepcopy(self.in_spawn_roads)
-        if vehicle.navigation.current_road in end_roads:
+        if Road(*vehicle_config["spawn_lane_index"][:-1]) in end_roads:
             end_road = self.engine.parking_space_manager.get_parking_space(vehicle_id)
         else:
             end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
-        return end_road.end_node
+        vehicle_config["destination_node"]=end_road.end_node
+        return vehicle_config
 
     def _respawn_single_vehicle(self, randomize_position=False):
         """
@@ -234,7 +235,7 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
 
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]
-        new_spawn_place_config["destination_node"] = self._choose_destination_for(new_agent_id)
+        new_spawn_place_config = self._update_destination_for(new_agent_id, new_spawn_place_config)
         vehicle.config.update(new_spawn_place_config)
         vehicle.reset()
         vehicle.after_step()
@@ -259,8 +260,8 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         # return ret
 
     def setup_engine(self):
-        self.parking_space_manager = ParkingSpaceManager()
         super(MultiAgentParkingLotEnv, self).setup_engine()
+        self.parking_space_manager = ParkingSpaceManager()
         self.engine.register_manager("parking_space_manager", self.parking_space_manager)
 
 

@@ -162,7 +162,10 @@ class AgentManager(BaseManager):
         # Note: We don't reset next_newly_added_agent_count here! Since it is always counting!
 
         self._allow_respawn = True if not self.never_allow_respawn else False
-        self.for_each_active_agents(lambda v: v.reset())
+        self.for_each_active_agents(
+            lambda v: v.reset(
+                vehicle_config=self.engine.global_config["target_vehicle_configs"][self._object_to_agent[v.id]] if len(
+                    self.active_agents) > 1 else None))
 
     def finish(self, agent_name, ignore_delay_done=False):
         """

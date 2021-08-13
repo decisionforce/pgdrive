@@ -271,9 +271,9 @@ class BasePGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self._reset_global_seed(force_seed)
-        self._reset_config()
-
         self._update_map(episode_data)
+
+        self._reset_config()
         self.engine.reset()
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
