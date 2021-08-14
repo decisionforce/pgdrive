@@ -40,10 +40,7 @@ class IDMPolicy(BasePolicy):
     """Range of delta when chosen randomly."""
 
     # Lateral policy parameters
-    POLITENESS = 0.  # in [0, 1]
-    LANE_CHANGE_MIN_ACC_GAIN = 0.2  # [m/s2]
-    LANE_CHANGE_MAX_BRAKING_IMPOSED = 2.0  # [m/s2]
-    LANE_CHANGE_DELAY = 1.0  # [s]
+    LANE_CHANGE_FREQ = 100  # [s]
 
     # Normal speed
     NORMAL_SPEED = 30
@@ -62,6 +59,7 @@ class IDMPolicy(BasePolicy):
         self.steering_target_lane = None  #
         self.routing_target_lane = None
         self.available_routing_index_range = None
+        self.lane_change_timer = 0
 
         self.heading_pid = PIDController(1.7, 0.01, 3.5)
         self.lateral_pid = PIDController(0.3, .002, 0.05)
@@ -85,11 +83,14 @@ class IDMPolicy(BasePolicy):
         if self.routing_target_lane is None:
             self.routing_target_lane = self.control_object.lane
         if self.control_object.lane is not self.routing_target_lane:
-            if self.routing_target_lane.is_previous_lane_of(
-                    self.control_object.lane) and self.control_object.lane in current_lanes:
-                # two lanes connect
-                self.routing_target_lane = self.control_object.lane
-        # lane change for lane num change
+            for lane in current_lanes:
+                if self.routing_target_lane.is_previous_lane_of(
+                        lane):
+                    # two lanes connect
+                    self.routing_target_lane = lane
+                    self.steering_target_lane = lane
+                    return
+                    # lane change for lane num change
 
     def steering_control(self) -> float:
         # heading control following a lateral distance control
@@ -185,10 +186,11 @@ class IDMPolicy(BasePolicy):
             if abs(self.control_object.speed - self.NORMAL_SPEED) < 1 or front_objs[1] is None or abs(
                     front_objs[1].speed - self.NORMAL_SPEED) < 1 or (
                     dist[0] is not None and dist[0] < self.SAFE_LANE_CHANGE_DISTANCE and dist[-1] is not None and dist[
-                -1] < self.SAFE_LANE_CHANGE_DISTANCE):
+                -1] < self.SAFE_LANE_CHANGE_DISTANCE) or self.lane_change_timer < self.LANE_CHANGE_FREQ:
                 # already max speed lane follow
                 self.steering_target_lane = self.control_object.lane
                 self.target_speed = self.NORMAL_SPEED
+                self.lane_change_timer += 1
             else:
                 right_front_speed = front_objs[-1].speed if front_objs[-1] is not None else 1000 \
                     if dist[-1] is not None else None
@@ -196,20 +198,25 @@ class IDMPolicy(BasePolicy):
                     if dist[1] is not None else None
                 left_front_speed = front_objs[0].speed if front_objs[0] is not None else 1000 \
                     if dist[0] is not None else None
-                if right_front_speed is not None and right_front_speed > front_speed:
+                if left_front_speed is not None and left_front_speed > front_speed:
+                    # left overtake has a high priority
+                    expect_lane_idx = current_lanes.index(self.control_object.lane) - 1
+                    if expect_lane_idx in self.available_routing_index_range:
+                        self.steering_target_lane = current_lanes[expect_lane_idx]
+                        self.routing_target_lane = self.steering_target_lane
+                        self.lane_change_timer = 0
+                elif right_front_speed is not None and right_front_speed > front_speed:
                     expect_lane_idx = current_lanes.index(self.control_object.lane) + 1
                     if expect_lane_idx in self.available_routing_index_range:
                         self.steering_target_lane = current_lanes[expect_lane_idx]
                         self.routing_target_lane = self.steering_target_lane
-                elif left_front_speed is not None and left_front_speed > front_speed:
-                    expect_lane_idx = current_lanes.index(self.control_object.lane) - 1
-                    if expect_lane_idx in self.available_routing_index_range:
-                        self.steering_target_lane = current_lanes[expect_lane_idx]
-                    self.routing_target_lane = self.steering_target_lane
+                        self.lane_change_timer = 0
+
                 else:
                     # already max speed lane follow
                     self.steering_target_lane = self.control_object.lane
                     self.target_speed = self.NORMAL_SPEED
+                    self.lane_change_timer += 1
 
     def get_objects_on_lane(self, surrounding_objs, lane, distance=10):
         objs_on_routing_lane = []
