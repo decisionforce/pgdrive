@@ -81,10 +81,15 @@ class MapManager(BaseManager):
         self.restored_pg_map_configs = {}
         # for seed, map_dict in data["map_data"].items():
         for seed, config in data["map_data"].items():
-            map_config = {}
-            map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
-            map_config[BaseMap.GENERATE_CONFIG] = config
+            seed = int(seed)
+            map_config = maps_collection_config.copy()
+            # map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
+            # map_config[BaseMap.GENERATE_CONFIG] = config
+
+            map_config.update(config)
+
             self.restored_pg_map_configs[seed] = map_config
+            # self.restored_pg_map_configs[seed] = config
 
     def destroy(self):
         self.pg_maps = None
@@ -101,14 +106,16 @@ class MapManager(BaseManager):
             blocks_info = map_data[0]
 
             map_config = config["map_config"].copy()
-            map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
-            map_config[BaseMap.GENERATE_CONFIG] = blocks_info
+            # map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
+            # map_config[BaseMap.GENERATE_CONFIG] = blocks_info
+            map_config.update(map_data)
             self.spawn_object(PGMap, map_config=map_config)
             return
 
         # If we choose to load maps from json file.
         if config["load_map_from_json"] and self.current_map is None:
             assert config["_load_map_from_json"]
+            logging.info("Loading maps from: ", config["_load_map_from_json"])
             self.read_all_maps_from_json(config["_load_map_from_json"])
 
         # remove map from world before adding

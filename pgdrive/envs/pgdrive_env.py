@@ -20,7 +20,8 @@ from pgdrive.obs.state_obs import LidarStateObservation
 from pgdrive.utils import clip, Config, concat_step_infos
 from pgdrive.utils import get_np_random
 
-pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
+# pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "PGDrive-maps.json")
+pregenerated_map_file = osp.join(osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps", "20210814_generated_maps.json")
 
 PGDriveEnvV1_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
@@ -34,9 +35,6 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         BaseMap.GENERATE_CONFIG: None,  # it can be a file path / block num / block ID sequence
         BaseMap.LANE_WIDTH: 3.5,
         BaseMap.LANE_NUM: 3,
-        BaseMap.SEED: 10,
-        "draw_map_resolution": 1024,  # Drawing the map in a canvas of (x, x) pixels.
-        # "block_type_version": "v1",
         "exit_length": 50,
     },
     load_map_from_json=True,  # Whether to load maps from pre-generated file
@@ -353,7 +351,7 @@ class PGDriveEnv(BasePGDriveEnv):
             set_global_random_seed(seed)
             new_map = self.engine.map_manager.spawn_object(PGMap, map_config=map_config)
             self.engine.map_manager.unload_map(new_map)
-            logging.info("Finish generating map with seed: {}".format(seed))
+            print("Finish generating map with seed: {}".format(seed))
 
         map_data = dict()
         for seed, map in self.maps.items():
