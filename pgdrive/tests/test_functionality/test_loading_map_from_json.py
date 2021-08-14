@@ -26,12 +26,39 @@ def test_v1_v2_alignment():
             "If this assertion fail, it means you are not using the predefined maps. Please check the read_all_"
             "maps_from_json function in map_manager.py"
         )
-        map_data_realtime = e.current_map.save_map()
+        map_data_realtime_load = e.current_map.save_map()
         map_data_in_json = saved_v1["map_data"][str(seed)]
         e.close()
 
+        e = PGDriveEnv({
+            "start_seed": seed,
+            "environment_num": 1,
+            "load_map_from_json": False
+        })
+        e.reset()
+        map_data_realtime_generate = e.current_map.save_map()
+        e.close()
+
+        e = PGDriveEnv({
+            "start_seed": seed,
+            "environment_num": 10,
+            "load_map_from_json": False
+        })
+        e.reset(force_seed=seed)
+        map_data_realtime_generate_in_multiple_maps = e.current_map.save_map()
+        e.close()
+
+        # Assert v1 and v2 have same maps
         recursive_equal(saved_v1, saved_v2, True)
-        recursive_equal(map_data_in_json, map_data_realtime, True)
+
+        # Assert json and loaded maps are same
+        recursive_equal(map_data_in_json, map_data_realtime_load, True)
+
+        # Assert json and generated maps are same
+        recursive_equal(map_data_in_json, map_data_realtime_generate, True)
+
+        # Assert json and generated maps in
+        recursive_equal(map_data_in_json, map_data_realtime_generate_in_multiple_maps, True)
 
     print(saved_v1)
 
