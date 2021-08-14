@@ -269,7 +269,7 @@ class BasePGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self._reset_global_seed(force_seed)
-        self.engine.map_manager.update_map(self.config, self.current_seed, episode_data)
+        self._update_map(episode_data=episode_data)
 
         self._reset_config()
         self.engine.reset()
@@ -281,8 +281,11 @@ class BasePGDriveEnv(gym.Env):
 
         return self._get_reset_return()
 
-    def _update_map(self, episode_data: Union[None, dict] = None):
-        raise NotImplementedError()
+    def _update_map(self, episode_data: dict = None):
+        self.engine.map_manager.update_map(self.config, self.current_seed, episode_data)
+
+    # def _update_map(self, episode_data: Union[None, dict] = None):
+    #     raise NotImplementedError()
 
     def _get_reset_return(self):
         raise NotImplementedError()
