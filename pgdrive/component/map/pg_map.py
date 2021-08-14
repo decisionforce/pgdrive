@@ -33,7 +33,7 @@ class PGMap(BaseMap):
             self.road_network,
             parent_node_path,
             physics_world,
-            self._config["block_type_version"],
+            # self._config["block_type_version"],
             exit_length=self._config["exit_length"],
             random_seed=self.random_seed,
         )
@@ -48,7 +48,9 @@ class PGMap(BaseMap):
         )
         self.blocks.append(last_block)
         for block_index, b in enumerate(blocks_config[1:], 1):
-            block_type = PGBlockConfig.get_block(b.pop(self.BLOCK_ID), self._config["block_type_version"])
+            block_type = PGBlockConfig.get_block(b.pop(self.BLOCK_ID),
+                                                 # self._config["block_type_version"]
+                                                 )
             pre_block_socket_index = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
             last_block = block_type(block_index, last_block.get_socket(pre_block_socket_index), self.road_network)
             last_block.construct_from_config(b, parent_node_path, physics_world)
