@@ -338,41 +338,6 @@ class PGDriveEnv(BasePGDriveEnv):
             ret[v_id] = self.observations[v_id].observe(v)
         return ret if self.is_multi_agent else ret[DEFAULT_AGENT]
 
-    def _update_map(self, episode_data: dict = None):
-        map_manager = self.engine.map_manager
-        if episode_data is not None:
-            # TODO restore/replay here
-            # Since in episode data map data only contains one map, values()[0] is the map_parameters
-            map_data = episode_data["map_data"].values()
-            assert len(map_data) > 0, "Can not find map info in episode data"
-            blocks_info = map_data[0]
-
-            map_config = self.config["map_config"].copy()
-            map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
-            map_config[BaseMap.GENERATE_CONFIG] = blocks_info
-            map_manager.spawn_object(PGMap, map_config=map_config)
-            return
-
-        if self.config["load_map_from_json"] and self.current_map is None:
-            assert self.config["_load_map_from_json"]
-            map_manager.read_all_maps_from_json(self.config["_load_map_from_json"])
-
-        # remove map from world before adding
-        if self.current_map is not None:
-            map_manager.unload_map(self.current_map)
-
-        if map_manager.pg_maps[self.current_seed] is None:
-            if self.config["load_map_from_json"]:
-                map_config = map_manager.restored_pg_map_configs.get(self.current_seed, None)
-                assert map_config is not None
-            else:
-                map_config = self.config["map_config"]
-                map_config.update({"seed": self.current_seed})
-            map = map_manager.spawn_object(PGMap, map_config=map_config)
-        else:
-            map = map_manager.pg_maps[self.current_seed]
-        map_manager.load_map(map)
-
     def dump_all_maps(self):
         assert not engine_initialized(), \
             "We assume you generate map files in independent tasks (not in training). " \

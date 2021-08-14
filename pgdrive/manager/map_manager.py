@@ -6,6 +6,7 @@ from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod
 from pgdrive.manager.base_manager import BaseManager
 from pgdrive.utils import recursive_equal
 
+from pgdrive.component.map.pg_map import PGMap
 
 class MapManager(BaseManager):
     """
@@ -88,3 +89,42 @@ class MapManager(BaseManager):
         self.pg_maps = None
         self.restored_pg_map_configs = None
         super(MapManager, self).destroy()
+
+
+    def update_map(self, config, current_seed, episode_data: dict = None):
+        # TODO(pzh): Remove the config as the input args.
+        if episode_data is not None:
+            # TODO restore/replay here
+            # Since in episode data map data only contains one map, values()[0] is the map_parameters
+            map_data = episode_data["map_data"].values()
+            assert len(map_data) > 0, "Can not find map info in episode data"
+            blocks_info = map_data[0]
+
+            map_config = config["map_config"].copy()
+            map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
+            map_config[BaseMap.GENERATE_CONFIG] = blocks_info
+            self.spawn_object(PGMap, map_config=map_config)
+            return
+
+        # If we choose to load maps from json file.
+        if config["load_map_from_json"] and self.current_map is None:
+            assert config["_load_map_from_json"]
+            self.read_all_maps_from_json(config["_load_map_from_json"])
+
+        # remove map from world before adding
+        if self.current_map is not None:
+            self.unload_map(self.current_map)
+
+        if self.pg_maps[current_seed] is None:
+            if config["load_map_from_json"]:
+                map_config = self.restored_pg_map_configs.get(current_seed, None)
+                assert map_config is not None
+            else:
+                map_config = config["map_config"]
+                map_config.update({"seed": current_seed})
+            print("We are spawning new map. This is the config: ", current_seed, map_config)
+            map = self.spawn_object(PGMap, map_config=map_config)
+        else:
+            print("We are loading map from pg_maps: ", current_seed, len(self.pg_maps))
+            map = self.pg_maps[current_seed]
+        self.load_map(map)

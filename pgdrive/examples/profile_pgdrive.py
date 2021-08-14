@@ -3,11 +3,13 @@ import time
 from pgdrive import PGDriveEnvV2
 
 if __name__ == '__main__':
-    env = PGDriveEnvV2(dict(environment_num=1))
+    env = PGDriveEnvV2(dict(environment_num=300,
+                            # use_render=True, fast=True,
+                            start_seed=1010))
     obs = env.reset()
     start = time.time()
-    action = [0.0, 0.]
-    for s in range(10000):
+    action = [0.0, 1.]
+    for s in range(10000000):
         o, r, d, i = env.step(action)
         if d:
             env.reset()

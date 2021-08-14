@@ -272,7 +272,7 @@ class BasePGDriveEnv(gym.Env):
         """
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self._reset_global_seed(force_seed)
-        self._update_map(episode_data)
+        self.engine.map_manager.update_map(self.config, self.current_seed, episode_data)
 
         self._reset_config()
         self.engine.reset()
@@ -402,6 +402,7 @@ class BasePGDriveEnv(gym.Env):
 
     @property
     def current_map(self):
+        # TODO(pzh): Can we remove this?
         return self.engine.map_manager.current_map
 
     def _reset_global_seed(self, force_seed):
