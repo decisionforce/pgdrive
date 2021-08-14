@@ -1,10 +1,8 @@
 import copy
-import logging
 
 import numpy as np
-
-from pgdrive.component.algorithm.BIG import BigGenerateMethod
 from pgdrive.base_class.base_runnable import BaseRunnable
+from pgdrive.component.algorithm.BIG import BigGenerateMethod
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.blocks.pg_block import PGBlock
 from pgdrive.component.road.road import Road

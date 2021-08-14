@@ -27,7 +27,6 @@ class MapManager(BaseManager):
 
     def spawn_object(self, object_class, *args, **kwargs):
         map = self.engine.spawn_object(object_class, *args, **kwargs)
-        self.pg_maps[map.random_seed] = map
         return map
 
     def load_map(self, map):
@@ -132,7 +131,11 @@ class MapManager(BaseManager):
                     current_seed, map_config)
                 )
             map = self.spawn_object(PGMap, map_config=map_config, random_seed=None)
+            self.pg_maps[current_seed] = map
         else:
             logging.debug("We are loading map from pg_maps (seed {}): {}".format(current_seed, len(self.pg_maps)))
             map = self.pg_maps[current_seed]
+
+        print("WE ARE LOADING MAP SEED {}.".format(current_seed))
+
         self.load_map(map)
