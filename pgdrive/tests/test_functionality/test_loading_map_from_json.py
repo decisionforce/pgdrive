@@ -63,5 +63,19 @@ def test_v1_v2_alignment():
     print(saved_v1)
 
 
+def test_map_buffering():
+    env_config = {
+        "environment_num": 5
+    }
+    e = PGDriveEnv(env_config)
+    try:
+        for i in range(10):
+            e.reset()
+        assert any([v is not None for v in e.engine.map_manager.pg_maps.values()])
+    finally:
+        e.close()
+
+
 if __name__ == '__main__':
-    test_v1_v2_alignment()
+    # test_v1_v2_alignment()
+    test_map_buffering()
