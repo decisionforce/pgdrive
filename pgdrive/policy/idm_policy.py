@@ -67,17 +67,29 @@ class IDMPolicy(BasePolicy):
         self.lateral_pid = PIDController(0.3, .002, 0.05)
 
     def act(self, *args, **kwargs):
+        self.move_to_next_road()
         surrounding_objs = self.control_object.lidar.get_surrounding_objects(self.control_object)
-        idx = self.control_object.navigation.current_ref_lanes.index(self.routing_target_lane)
+        idx = self.routing_target_lane.index[-1]
         left_lane = self.control_object.navigation.current_ref_lanes[idx - 1] if idx > 0 else None
         right_lane = self.control_object.navigation.current_ref_lanes[idx + 1] if idx + 1 < len(
             self.control_object.navigation.current_ref_lanes) else None
-        front_objs, dist = self.find_front_objs(surrounding_objs, [left_lane, self.control_object.lane, right_lane],
+        front_objs, dist = self.find_front_objs(surrounding_objs, [left_lane, self.routing_target_lane, right_lane],
                                                 self.control_object.position)
         self.lane_change_policy(surrounding_objs, front_objs, dist)
         steering = self.steering_control()
         acc = self.acceleration(self.control_object, front_objs[1], dist[1])
         return [steering, acc]
+
+    def move_to_next_road(self):
+        current_lanes = self.control_object.navigation.current_ref_lanes
+        if self.routing_target_lane is None:
+            self.routing_target_lane = self.control_object.lane
+        if self.control_object.lane is not self.routing_target_lane:
+            if self.routing_target_lane.is_previous_lane_of(
+                    self.control_object.lane) and self.control_object.lane in current_lanes:
+                # two lanes connect
+                self.routing_target_lane = self.control_object.lane
+        # lane change for lane num change
 
     def steering_control(self) -> float:
         # heading control following a lateral distance control
@@ -138,13 +150,6 @@ class IDMPolicy(BasePolicy):
         self.lateral_pid.reset()
 
     def lane_change_policy(self, surrounding_objs, front_objs, dist):
-        if self.routing_target_lane is None:
-            self.routing_target_lane = self.control_object.lane
-        if self.control_object.lane is not self.routing_target_lane:
-            if self.routing_target_lane.is_previous_lane_of(self.control_object.lane):
-                # two lanes connect
-                self.routing_target_lane = self.control_object.lane
-        # lane change for lane num change
         current_lanes = self.control_object.navigation.current_ref_lanes
         self.available_routing_index_range = [i for i in range(len(current_lanes))]
         next_lanes = self.control_object.navigation.next_ref_lanes
@@ -156,14 +161,12 @@ class IDMPolicy(BasePolicy):
             else:
                 index_range = [i for i in range(lane_num_diff, len(current_lanes))]
             self.available_routing_index_range = index_range
-            if self.control_object.lane_index[-1] not in index_range:
+            if self.routing_target_lane.index[-1] not in index_range:
                 # change lane
-                if self.control_object.lane_index[-1] > index_range[-1]:
-                    self.routing_target_lane = current_lanes[self.control_object.lane_index[-1] - 1]
+                if self.routing_target_lane.index[-1] > index_range[-1]:
+                    self.routing_target_lane = current_lanes[self.routing_target_lane.index[-1] - 1]
                 else:
-                    self.routing_target_lane = current_lanes[self.control_object.lane_index[-1] + 1]
-        else:
-            self.routing_target_lane = self.control_object.lane
+                    self.routing_target_lane = current_lanes[self.routing_target_lane.index[-1] + 1]
 
         if self.routing_target_lane is not self.control_object.lane:
             # perform lane change at a proper time
