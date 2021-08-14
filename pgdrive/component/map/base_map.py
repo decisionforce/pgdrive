@@ -68,10 +68,11 @@ class BaseMap(BaseRunnable):
         """
         Map can be stored and recover to save time when we access the map encountered before
         """
-        assert random_seed == map_config[
-            self.SEED
-        ], "Global seed {} should equal to seed in map config {}".format(random_seed, map_config[self.SEED])
-        super(BaseMap, self).__init__(random_seed=map_config[self.SEED], config=map_config)
+        assert random_seed is None
+        # assert random_seed == map_config[
+        #     self.SEED
+        # ], "Global seed {} should equal to seed in map config {}".format(random_seed, map_config[self.SEED])
+        super(BaseMap, self).__init__(config=map_config)
         self.film_size = (get_global_config()["draw_map_resolution"], get_global_config()["draw_map_resolution"])
         self.road_network = RoadNetwork()
 
@@ -138,7 +139,3 @@ class BaseMap(BaseRunnable):
         for block in self.blocks:
             block.destroy()
         super(BaseMap, self).destroy()
-
-    def __del__(self):
-        describe = self.random_seed if self.random_seed is not None else "custom"
-        logging.debug("Scene {} is destroyed".format(describe))

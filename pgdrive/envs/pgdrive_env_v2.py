@@ -55,10 +55,7 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 ),
                 # map_config=dict(block_type_version="v2"),
 
-                # Disable map loading!
                 auto_termination=False,
-                load_map_from_json=False,
-                _load_map_from_json="",
             )
         )
         config.remove_keys([])

@@ -26,10 +26,7 @@ class MapManager(BaseManager):
         self.pg_maps = {_seed: None for _seed in range(start_seed, start_seed + env_num)}
 
     def spawn_object(self, object_class, *args, **kwargs):
-        if "random_seed" in kwargs:
-            assert kwargs["random_seed"] == self.random_seed, "The random seed assigned is not same as map.seed"
-            kwargs.pop("random_seed")
-        map = self.engine.spawn_object(object_class, random_seed=self.random_seed, *args, **kwargs)
+        map = self.engine.spawn_object(object_class, *args, **kwargs)
         self.pg_maps[map.random_seed] = map
         return map
 
@@ -43,7 +40,7 @@ class MapManager(BaseManager):
 
     def read_all_maps_from_json(self, path):
         assert path.endswith(".json")
-        assert osp.isfile(path)
+        assert osp.isfile(path), path
         with open(path, "r") as f:
             config_and_data = json.load(f)
         global_config = self.engine.global_config
@@ -83,10 +80,10 @@ class MapManager(BaseManager):
         for seed, config in data["map_data"].items():
             seed = int(seed)
             map_config = maps_collection_config.copy()
-            # map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
-            # map_config[BaseMap.GENERATE_CONFIG] = config
+            map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
+            map_config[BaseMap.GENERATE_CONFIG] = config
 
-            map_config.update(config)
+            # map_config.update(config)
 
             self.restored_pg_map_configs[seed] = map_config
             # self.restored_pg_map_configs[seed] = config
@@ -115,7 +112,7 @@ class MapManager(BaseManager):
         # If we choose to load maps from json file.
         if config["load_map_from_json"] and self.current_map is None:
             assert config["_load_map_from_json"]
-            logging.info("Loading maps from: ", config["_load_map_from_json"])
+            logging.info("Loading maps from: {}".format(config["_load_map_from_json"]))
             self.read_all_maps_from_json(config["_load_map_from_json"])
 
         # remove map from world before adding
@@ -126,12 +123,16 @@ class MapManager(BaseManager):
             if config["load_map_from_json"]:
                 map_config = self.restored_pg_map_configs.get(current_seed, None)
                 assert map_config is not None
+                logging.debug("We are spawning predefined map (seed {}). This is the config: {}".format(
+                    current_seed, map_config))
             else:
                 map_config = config["map_config"]
                 map_config.update({"seed": current_seed})
-            print("We are spawning new map. This is the config: ", current_seed, map_config)
-            map = self.spawn_object(PGMap, map_config=map_config)
+                logging.debug("We are spawning new map (seed {}). This is the config: {}".format(
+                    current_seed, map_config)
+                )
+            map = self.spawn_object(PGMap, map_config=map_config, random_seed=None)
         else:
-            print("We are loading map from pg_maps: ", current_seed, len(self.pg_maps))
+            logging.debug("We are loading map from pg_maps (seed {}): {}".format(current_seed, len(self.pg_maps)))
             map = self.pg_maps[current_seed]
         self.load_map(map)
