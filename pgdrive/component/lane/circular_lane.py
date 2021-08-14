@@ -10,18 +10,19 @@ from pgdrive.utils.math_utils import wrap_to_pi, norm, Vector
 
 class CircularLane(AbstractLane):
     """A lane going in circle arc."""
+
     def __init__(
-        self,
-        center: Vector,
-        radius: float,
-        start_phase: float,
-        end_phase: float,
-        clockwise: bool = True,
-        width: float = AbstractLane.DEFAULT_WIDTH,
-        line_types: Tuple[LineType, LineType] = (LineType.BROKEN, LineType.BROKEN),
-        forbidden: bool = False,
-        speed_limit: float = 1000,
-        priority: int = 0
+            self,
+            center: Vector,
+            radius: float,
+            start_phase: float,
+            end_phase: float,
+            clockwise: bool = True,
+            width: float = AbstractLane.DEFAULT_WIDTH,
+            line_types: Tuple[LineType, LineType] = (LineType.BROKEN, LineType.BROKEN),
+            forbidden: bool = False,
+            speed_limit: float = 1000,
+            priority: int = 0
     ) -> None:
         super().__init__()
         self.set_speed_limit(speed_limit)
@@ -35,6 +36,8 @@ class CircularLane(AbstractLane):
         self.forbidden = forbidden
         self.priority = priority
         self.length = self.radius * (self.end_phase - self.start_phase) * self.direction
+        self.start = self.position(0, 0)
+        self.end = self.position(self.length, 0)
 
     def update_properties(self):
         self.length = self.radius * (self.end_phase - self.start_phase) * self.direction

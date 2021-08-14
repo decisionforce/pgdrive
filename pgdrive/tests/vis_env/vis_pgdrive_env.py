@@ -10,7 +10,7 @@ class TestEnv(PGDriveEnv):
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,
-                "traffic_density": .2,
+                "traffic_density": .0,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
                 # "_disable_detector_mask":True,
@@ -38,6 +38,8 @@ class TestEnv(PGDriveEnv):
                 "vehicle_config": {
                     "enable_reverse": True,
                     "show_lidar": True,
+                    # "spawn_lane_index":("1r1_0_", "1r1_1_", 0)
+                    # "destination_node":"2R1_2_"
                     # "show_side_detector": True,
                     # "show_lane_line_detector": True,
                     # "side_detector": dict(num_lasers=2, distance=50),

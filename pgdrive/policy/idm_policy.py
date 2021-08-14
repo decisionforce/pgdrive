@@ -1,8 +1,9 @@
-from pgdrive.policy.base_policy import BasePolicy
-from pgdrive.utils.scene_utils import is_same_lane_index, is_following_lane_index
 import numpy as np
-from pgdrive.utils.math_utils import not_zero, wrap_to_pi
+
 from pgdrive.component.vehicle_module.PID_controller import PIDController
+from pgdrive.policy.base_policy import BasePolicy
+from pgdrive.utils.math_utils import not_zero, wrap_to_pi
+from pgdrive.utils.scene_utils import is_same_lane_index, is_following_lane_index
 
 
 class IDMPolicy(BasePolicy):
@@ -53,11 +54,7 @@ class IDMPolicy(BasePolicy):
         self.lateral_pid = PIDController(0.3, .002, 0.05)
 
     def act(self, *args, **kwargs):
-        if self.target_lane is None:
-            self.target_lane = self.control_object.lane
-        elif self.control_object.lane is not self.target_lane:
-            index = self.target_lane.index[-1]
-            self.target_lane = self.control_object.navigation.current_ref_lanes[index]
+        self.lane_change_policy()
         steering = self.steering_control(ego_vehicle=self.control_object)
         front_obj, dist = self.find_front_obj()
         acc = self.acceleration(self.control_object, front_obj, dist)
@@ -116,3 +113,28 @@ class IDMPolicy(BasePolicy):
     def reset(self):
         self.heading_pid.reset()
         self.lateral_pid.reset()
+
+    def lane_change_policy(self):
+        if self.target_lane is None:
+            self.target_lane = self.control_object.lane
+        if self.control_object.lane is not self.target_lane:
+            if self.target_lane.is_previous_lane_of(self.control_object.lane):
+                # two lanes connect
+                self.target_lane = self.control_object.lane
+        # lane change for lane num change
+        current_lanes = self.control_object.navigation.current_ref_lanes
+        next_lanes = self.control_object.navigation.next_ref_lanes
+        lane_num_diff = len(current_lanes) - len(next_lanes) if next_lanes is not None else 0
+        if lane_num_diff > 0:
+            # lane num decrease, lane change may be needed
+            if current_lanes[0].is_previous_lane_of(next_lanes[0]):
+                index_range = [i for i in range(len(next_lanes))]
+            else:
+                index_range = [i for i in range(lane_num_diff, len(current_lanes))]
+            if self.control_object.lane_index[-1] not in index_range:
+                # change lane
+                if self.control_object.lane_index[-1]>index_range[-1]:
+                    self.target_lane = current_lanes[index_range[-1]]
+                else:
+                    self.target_lane = current_lanes[index_range[0]]
+
