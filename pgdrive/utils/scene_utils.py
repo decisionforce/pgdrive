@@ -26,7 +26,7 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List["AbstractLan
 
 
 def block_socket_merge(
-    socket_1: "PGBlockSocket", socket_2: "PGBlockSocket", global_network: "RoadNetwork", positive_merge: False
+        socket_1: "PGBlockSocket", socket_2: "PGBlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
@@ -172,14 +172,14 @@ def ray_localization(heading: np.ndarray,
 
 
 def rect_region_detection(
-    engine: EngineCore,
-    position: Tuple,
-    heading: float,
-    heading_direction_length: float,
-    side_direction_width: float,
-    detection_group: int,
-    height=10,
-    in_static_world=False
+        engine: EngineCore,
+        position: Tuple,
+        heading: float,
+        heading_direction_length: float,
+        side_direction_width: float,
+        detection_group: int,
+        height=10,
+        in_static_world=False
 ):
     """
 
@@ -218,7 +218,7 @@ def rect_region_detection(
 
 
 def circle_region_detection(
-    engine: EngineCore, position: Tuple, radius: float, detection_group: int, height=10, in_static_world=False
+        engine: EngineCore, position: Tuple, radius: float, detection_group: int, height=10, in_static_world=False
 ):
     """
     :param engine: BaseEngine class
