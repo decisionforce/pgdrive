@@ -122,13 +122,14 @@ class MapManager(BaseManager):
             if config["load_map_from_json"]:
                 map_config = self.restored_pg_map_configs.get(current_seed, None)
                 assert map_config is not None
-                logging.debug("We are spawning predefined map (seed {}). This is the config: {}".format(
-                    current_seed, map_config))
+                logging.debug(
+                    "We are spawning predefined map (seed {}). This is the config: {}".format(current_seed, map_config)
+                )
             else:
                 map_config = config["map_config"]
                 map_config.update({"seed": current_seed})
-                logging.debug("We are spawning new map (seed {}). This is the config: {}".format(
-                    current_seed, map_config)
+                logging.debug(
+                    "We are spawning new map (seed {}). This is the config: {}".format(current_seed, map_config)
                 )
             map = self.spawn_object(PGMap, map_config=map_config, random_seed=None)
             self.pg_maps[current_seed] = map

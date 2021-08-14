@@ -16,8 +16,6 @@ from pgdrive.manager.agent_manager import AgentManager
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils import Config, merge_dicts, get_np_random
 
-
-
 BASE_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
     start_seed=0,

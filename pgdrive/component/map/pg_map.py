@@ -55,7 +55,9 @@ class PGMap(BaseMap):
             block_type = PGBlockConfig.get_block(b.pop(self.BLOCK_ID))
             pre_block_socket_index = b.pop(self.PRE_BLOCK_SOCKET_INDEX)
             last_block = block_type(
-                block_index, last_block.get_socket(pre_block_socket_index), self.road_network,
+                block_index,
+                last_block.get_socket(pre_block_socket_index),
+                self.road_network,
                 random_seed=self.random_seed
             )
             last_block.construct_from_config(b, parent_node_path, physics_world)

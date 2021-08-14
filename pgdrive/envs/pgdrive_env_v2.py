@@ -54,7 +54,6 @@ class PGDriveEnvV2(PGDriveEnvV1):
                     max_speed=80,
                 ),
                 # map_config=dict(block_type_version="v2"),
-
                 auto_termination=False,
             )
         )

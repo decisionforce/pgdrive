@@ -6,8 +6,8 @@ from pgdrive import PGDriveEnv
 root = osp.dirname(osp.dirname(osp.abspath(__file__)))
 asset_path = osp.join(root, "assets", "maps")
 
-
 # The test script of this file is in pgdrive/tests/test_functionality/test_loading_map_from_json.py
+
 
 def generate_maps(env_class, env_config, json_file_path):
     assert env_config.get("load_map_from_json", False) is False
@@ -27,7 +27,6 @@ if __name__ == '__main__':
         "environment_num": 30000,
     }
     generate_maps(
-        PGDriveEnv,
-        to_generate_map_config,
+        PGDriveEnv, to_generate_map_config,
         osp.join(asset_path, "20210814_generated_maps_start_seed_0_environment_num_30000.json")
     )
