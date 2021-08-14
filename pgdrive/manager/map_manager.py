@@ -8,6 +8,7 @@ from pgdrive.utils import recursive_equal
 
 from pgdrive.component.map.pg_map import PGMap
 
+
 class MapManager(BaseManager):
     """
     MapManager contains a list of maps
@@ -89,7 +90,6 @@ class MapManager(BaseManager):
         self.pg_maps = None
         self.restored_pg_map_configs = None
         super(MapManager, self).destroy()
-
 
     def update_map(self, config, current_seed, episode_data: dict = None):
         # TODO(pzh): Remove the config as the input args.

@@ -54,7 +54,7 @@ def norm(x, y):
 
 def distance_greater(vec1, vec2, length):
     """Return whether the distance between two vectors is greater than the given length."""
-    return ((vec1[0] - vec2[0]) ** 2 + (vec1[1] - vec2[1]) ** 2) > length ** 2
+    return ((vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2) > length**2
 
 
 def clip(a, low, high):
@@ -160,6 +160,7 @@ def get_points_bounding_box(line_points):
     new_y_max = new_line_points[:, 1].max()
     new_y_min = new_line_points[:, 1].min()
     return new_x_max, new_x_min, new_y_max, new_y_min
+
 
 def get_boxes_bounding_box(boxes):
     """
