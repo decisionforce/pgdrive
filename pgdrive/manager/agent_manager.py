@@ -71,7 +71,7 @@ class AgentManager(BaseManager):
             obj = self.engine.spawn_object(BaseVehicle, vehicle_config=v_config)
             ret[agent_id] = obj
             # note: agent.id = object id
-            self.engine.add_policy(obj.id, EnvInputPolicy())
+            self.engine.add_policy(obj.id, IDMPolicy(obj, self.generate_seed()))
         return ret
 
     def init_space(self, init_observation_space, init_action_space):

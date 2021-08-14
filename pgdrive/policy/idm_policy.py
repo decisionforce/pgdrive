@@ -52,7 +52,7 @@ class IDMPolicy(BasePolicy):
         self.heading_pid = PIDController(1.7, 0.01, 3.5)
         self.lateral_pid = PIDController(0.3, .002, 0.05)
 
-    def act(self):
+    def act(self, *args, **kwargs):
         if self.target_lane is None:
             self.target_lane = self.control_object.lane
         elif self.control_object.lane is not self.target_lane:
