@@ -87,16 +87,17 @@ class BaseEngine(EngineCore, Randomizable):
     def has_task(self, object_id):
         return True if object_id in self._object_tasks else False
 
-    def spawn_object(self, object_class, pbr_model=True, force_spawn=False, **kwargs):
+    def spawn_object(self, object_class, pbr_model=True, force_spawn=False, auto_fill_random_seed=True, **kwargs):
         """
         Call this func to spawn one object
         :param object_class: object class
         :param pbr_model: if the visualization model is pbr model
         :param force_spawn: spawn a new object instead of fetching from _dying_objects list
+        :param auto_fill_random_seed: whether to set random seed using purely random integer
         :param kwargs: class init parameters
         :return: object spawned
         """
-        if "random_seed" not in kwargs:
+        if ("random_seed" not in kwargs) and auto_fill_random_seed:
             kwargs["random_seed"] = self.generate_seed()
         if force_spawn or object_class.__name__ not in self._dying_objects or len(
                 self._dying_objects[object_class.__name__]) == 0:

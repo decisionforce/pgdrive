@@ -3,10 +3,9 @@ import logging
 import os.path as osp
 
 from pgdrive.component.map.base_map import BaseMap, MapGenerateMethod
+from pgdrive.component.map.pg_map import PGMap
 from pgdrive.manager.base_manager import BaseManager
 from pgdrive.utils import recursive_equal
-
-from pgdrive.component.map.pg_map import PGMap
 
 
 class MapManager(BaseManager):
@@ -29,7 +28,7 @@ class MapManager(BaseManager):
         self.single_block_class = single_block
 
     def spawn_object(self, object_class, *args, **kwargs):
-        map = self.engine.spawn_object(object_class, *args, **kwargs)
+        map = self.engine.spawn_object(object_class, auto_fill_random_seed=False, *args, **kwargs)
         return map
 
     def load_map(self, map):
@@ -149,7 +148,5 @@ class MapManager(BaseManager):
         else:
             logging.debug("We are loading map from pg_maps (seed {}): {}".format(current_seed, len(self.pg_maps)))
             map = self.pg_maps[current_seed]
-
-        print("WE ARE LOADING MAP SEED {}.".format(current_seed))
-
+        # print("WE ARE LOADING MAP SEED {}.".format(current_seed))
         self.load_map(map)
