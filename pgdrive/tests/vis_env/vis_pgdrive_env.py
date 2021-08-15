@@ -9,7 +9,7 @@ class TestEnv(PGDriveEnv):
         """
         super(TestEnv, self).__init__(
             {
-                "environment_num": 1,
+                "environment_num": 10,
                 "traffic_density": .2,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
@@ -33,12 +33,12 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": 5,
+                "map": 8,
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
                     # "show_lidar": True,
-                    # "spawn_lane_index":f("1r1_0_", "1r1_1_", 0),
+                    # "spawn_lane_index":("1r1_0_", "1r1_1_", 0),
                     # "destination_node":"2R1_3_",
                     # "show_side_detector": True,
                     # "show_lane_line_detector": True,
@@ -61,12 +61,12 @@ if __name__ == "__main__":
     for s in range(1, 100000):
         o, r, d, info = env.step([.0, 1.])
         # info["fuel"] = env.vehicle.energy_consumption
-        # # env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
+        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
         # assert env.observation_space.contains(o)
         # if (s + 1) % 100 == 0:
         #     print(
         #         "Finish {}/10000 simulation steps. Time elapse: {:.4f}. Average FPS: {:.4f}".format(
-        #             s + 1,
+        #             s + 1,f
         #             time.time() - start, (s + 1) / (time.time() - start)
         #         )
         #     )
