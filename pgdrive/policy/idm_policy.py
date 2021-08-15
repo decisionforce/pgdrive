@@ -198,7 +198,10 @@ class IDMPolicy(BasePolicy):
             else:
                 # can not find routing target lane
                 surrounding_objects = FrontBackObjects.get_find_front_back_objs(
-                    all_objects, self.routing_target_lane, self.control_object.position, max_distance=self.MAX_LONG_DIST
+                    all_objects,
+                    self.routing_target_lane,
+                    self.control_object.position,
+                    max_distance=self.MAX_LONG_DIST
                 )
                 acc_front_obj = surrounding_objects.front_object()
                 acc_front_dist = surrounding_objects.front_min_distance()
