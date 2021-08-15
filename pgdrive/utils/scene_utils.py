@@ -1,9 +1,11 @@
 import math
+from pgdrive.constants import CollisionGroup
+from pgdrive.engine.physics_node import BaseRigidBodyNode
 from typing import List, TYPE_CHECKING, Tuple, Union
 
 import numpy as np
 from panda3d.bullet import BulletBoxShape, BulletCylinderShape, ZUp
-from panda3d.core import TransformState
+from panda3d.core import TransformState, NodePath
 from panda3d.core import Vec3
 
 from pgdrive.component.lane.abs_lane import AbstractLane
@@ -26,7 +28,7 @@ def get_lanes_on_road(road: "Road", roadnet: "RoadNetwork") -> List["AbstractLan
 
 
 def block_socket_merge(
-    socket_1: "PGBlockSocket", socket_2: "PGBlockSocket", global_network: "RoadNetwork", positive_merge: False
+        socket_1: "PGBlockSocket", socket_2: "PGBlockSocket", global_network: "RoadNetwork", positive_merge: False
 ):
     global_network.graph[socket_1.positive_road.start_node][socket_2.negative_road.start_node] = \
         global_network.graph[socket_1.positive_road.start_node].pop(socket_1.positive_road.end_node)
@@ -157,7 +159,7 @@ def ray_localization(heading: tuple,
 
                 dot_result = math.cos(lane_heading) * heading[0] + math.sin(lane_heading) * heading[1]
                 cosangle = dot_result / (
-                    norm(math.cos(lane_heading), math.sin(lane_heading)) * norm(heading[0], heading[1])
+                        norm(math.cos(lane_heading), math.sin(lane_heading)) * norm(heading[0], heading[1])
                 )
 
                 if cosangle > 0:
@@ -179,14 +181,14 @@ def ray_localization(heading: tuple,
 
 
 def rect_region_detection(
-    engine: EngineCore,
-    position: Tuple,
-    heading: float,
-    heading_direction_length: float,
-    side_direction_width: float,
-    detection_group: int,
-    height=10,
-    in_static_world=False
+        engine: EngineCore,
+        position: Tuple,
+        heading: float,
+        heading_direction_length: float,
+        side_direction_width: float,
+        detection_group: int,
+        height=10,
+        in_static_world=False
 ):
     """
 
@@ -225,7 +227,7 @@ def rect_region_detection(
 
 
 def circle_region_detection(
-    engine: EngineCore, position: Tuple, radius: float, detection_group: int, height=10, in_static_world=False
+        engine: EngineCore, position: Tuple, radius: float, detection_group: int, height=10, in_static_world=False
 ):
     """
     :param engine: BaseEngine class
@@ -248,6 +250,44 @@ def circle_region_detection(
 
     result = physics_world.sweep_test_closest(shape, tsFrom, tsTo, detection_group, penetration)
     return result
+
+
+def generate_invisible_static_wall(
+        heading_length: float,
+        side_width: float,
+        height=10,
+        object_id=None,
+        type_name=BodyName.InvisibleWall,
+        collision_group=CollisionGroup.InvisibleWall
+):
+    """
+    Add an invisible physics wall to physics world
+    You can add some building models to the same location, add make it be detected by lidar
+    ----------------------------------
+    |               *                |  --->>>
+    ----------------------------------
+    * position
+    --->>> heading direction
+    ------ longitude length
+    | lateral width
+
+    **CAUTION**: position is the middle point of longitude edge
+    :param heading_length: rect length in heading direction
+    :param side_width: rect width in side direction
+    :param height: the detect will be executed from this height to 0
+    :param object_id: name of this invisible wall
+    :param type_name: default invisible wall
+    :param collision_group: control the collision of this static wall and other elements
+    :return node_path
+    """
+    shape = BulletBoxShape(Vec3(heading_length / 2, side_width / 2, height))
+    body_node = BaseRigidBodyNode(object_id, type_name)
+    body_node.setActive(False)
+    body_node.setKinematic(False)
+    body_node.setStatic(True)
+    body_node.addShape(shape)
+    body_node.setIntoCollideMask(collision_group)
+    return body_node
 
 
 def is_same_lane_index(lane_index_1, lane_index_2):
