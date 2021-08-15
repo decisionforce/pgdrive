@@ -20,7 +20,6 @@ def setup_logger(debug=False):
 
 
 def recursive_equal(data1, data2, need_assert=False):
-
     from pgdrive.utils.config import Config
     if isinstance(data1, Config):
         data1 = data1.get_dict()
@@ -98,12 +97,12 @@ def merge_dicts(old_dict, new_dict, allow_new_keys=False, without_copy=False):
 
 
 def _deep_update(
-    original,
-    new_dict,
-    new_keys_allowed=False,
-    allow_new_subkey_list=None,
-    override_all_if_type_changes=None,
-    raise_error=True
+        original,
+        new_dict,
+        new_keys_allowed=False,
+        allow_new_subkey_list=None,
+        override_all_if_type_changes=None,
+        raise_error=True
 ):
     allow_new_subkey_list = allow_new_subkey_list or []
     override_all_if_type_changes = override_all_if_type_changes or []
@@ -161,4 +160,9 @@ def get_object_from_node(node: BulletBodyNode):
     """
     if node.getPythonTag(node.getName()) is None:
         return None
-    return node.getPythonTag(node.getName()).object
+    from pgdrive.engine.engine_utils import get_object
+    ret = node.getPythonTag(node.getName()).base_object_name
+    if isinstance(ret, str):
+        return get_object(ret)[ret]
+    else:
+        return ret
