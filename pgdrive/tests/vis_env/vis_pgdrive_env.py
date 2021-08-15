@@ -20,7 +20,7 @@ class TestEnv(PGDriveEnv):
                 "global_light": True,
                 # "debug_static_world":True,
                 "cull_scene": False,
-                "controller":"joystick",
+                "controller": "joystick",
                 # "manual_control": True,
                 "use_render": True,
                 "decision_repeat": 5,

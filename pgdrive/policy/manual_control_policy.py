@@ -4,7 +4,6 @@ from pgdrive.engine.engine_utils import get_global_config
 
 
 class ManualControlPolicy(BasePolicy):
-
     def __init__(self):
         super(ManualControlPolicy, self).__init__(control_object=None)
         config = get_global_config()
