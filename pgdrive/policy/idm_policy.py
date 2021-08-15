@@ -40,7 +40,8 @@ class IDMPolicy(BasePolicy):
     """Range of delta when chosen randomly."""
 
     # Lateral policy parameters
-    LANE_CHANGE_FREQ = 100  # [s]
+    LANE_CHANGE_FREQ = 15  # [s]
+    LANE_CHANGE_SPEED_INCREASE = 5
 
     # Normal speed
     NORMAL_SPEED = 30
@@ -59,7 +60,7 @@ class IDMPolicy(BasePolicy):
         self.steering_target_lane = None  #
         self.routing_target_lane = None
         self.available_routing_index_range = None
-        self.lane_change_timer = 0
+        self.lane_change_timer = self.np_random.randint(0, self.LANE_CHANGE_FREQ)
 
         self.heading_pid = PIDController(1.7, 0.01, 3.5)
         self.lateral_pid = PIDController(0.3, .002, 0.05)
@@ -123,6 +124,9 @@ class IDMPolicy(BasePolicy):
 
     @staticmethod
     def find_front_objs(objs, lanes, position):
+        """
+        Find objects in front of lanes, return objs, dist
+        """
         min_long = [1000 if lane is not None else None for lane in lanes]
         ret = [None, None, None]
         find_in_current_lane = [False, False, False]
@@ -149,6 +153,11 @@ class IDMPolicy(BasePolicy):
     def reset(self):
         self.heading_pid.reset()
         self.lateral_pid.reset()
+        self.target_speed = self.NORMAL_SPEED
+        self.steering_target_lane = None  #
+        self.routing_target_lane = None
+        self.available_routing_index_range = None
+        self.lane_change_timer = self.np_random.randint(0, self.LANE_CHANGE_FREQ)
 
     def lane_change_policy(self, surrounding_objs, front_objs, dist):
         current_lanes = self.control_object.navigation.current_ref_lanes
@@ -192,20 +201,21 @@ class IDMPolicy(BasePolicy):
                 self.target_speed = self.NORMAL_SPEED
                 self.lane_change_timer += 1
             else:
+                # may lane change
                 right_front_speed = front_objs[-1].speed if front_objs[-1] is not None else 1000 \
                     if dist[-1] is not None else None
                 front_speed = front_objs[1].speed if front_objs[1] is not None else 1000 \
                     if dist[1] is not None else None
                 left_front_speed = front_objs[0].speed if front_objs[0] is not None else 1000 \
                     if dist[0] is not None else None
-                if left_front_speed is not None and left_front_speed > front_speed:
+                if left_front_speed is not None and left_front_speed - front_speed > self.LANE_CHANGE_SPEED_INCREASE:
                     # left overtake has a high priority
                     expect_lane_idx = current_lanes.index(self.control_object.lane) - 1
                     if expect_lane_idx in self.available_routing_index_range:
                         self.steering_target_lane = current_lanes[expect_lane_idx]
                         self.routing_target_lane = self.steering_target_lane
                         self.lane_change_timer = 0
-                elif right_front_speed is not None and right_front_speed > front_speed:
+                elif right_front_speed is not None and right_front_speed - front_speed > self.LANE_CHANGE_SPEED_INCREASE:
                     expect_lane_idx = current_lanes.index(self.control_object.lane) + 1
                     if expect_lane_idx in self.available_routing_index_range:
                         self.steering_target_lane = current_lanes[expect_lane_idx]
@@ -213,7 +223,7 @@ class IDMPolicy(BasePolicy):
                         self.lane_change_timer = 0
 
                 else:
-                    # already max speed lane follow
+                    # keep current lane
                     self.steering_target_lane = self.control_object.lane
                     self.target_speed = self.NORMAL_SPEED
                     self.lane_change_timer += 1
