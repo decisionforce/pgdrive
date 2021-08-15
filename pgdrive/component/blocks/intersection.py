@@ -71,9 +71,19 @@ class InterSection(PGBlock):
                 lane_num = self.positive_lane_num if i == 1 else self.lane_num_intersect
                 exit_road = Road(self.road_node(i, 0), self.road_node(i, 1))
                 no_cross = CreateRoadFrom(
-                    right_lane, lane_num, exit_road, self.block_network, self._global_network,ignore_intersection_checking=self.ignore_intersection_checking
+                    right_lane,
+                    lane_num,
+                    exit_road,
+                    self.block_network,
+                    self._global_network,
+                    ignore_intersection_checking=self.ignore_intersection_checking
                 ) and no_cross
-                no_cross = CreateAdverseRoad(exit_road, self.block_network, self._global_network,ignore_intersection_checking=self.ignore_intersection_checking) and no_cross
+                no_cross = CreateAdverseRoad(
+                    exit_road,
+                    self.block_network,
+                    self._global_network,
+                    ignore_intersection_checking=self.ignore_intersection_checking
+                ) and no_cross
                 socket = PGBlockSocket(exit_road, -exit_road)
                 self.add_respawn_roads(socket.negative_road)
                 self.add_sockets(socket)
@@ -111,7 +121,11 @@ class InterSection(PGBlock):
             (LineType.NONE, LineType.SIDE)
         )
 
-        non_cross = (not check_lane_on_road(self._global_network, right_bend, 1,ignore_intersection_checking=self.ignore_intersection_checking)) and non_cross
+        non_cross = (
+            not check_lane_on_road(
+                self._global_network, right_bend, 1, ignore_intersection_checking=self.ignore_intersection_checking
+            )
+        ) and non_cross
         CreateRoadFrom(
             right_bend,
             min(self.positive_lane_num, self.lane_num_intersect),

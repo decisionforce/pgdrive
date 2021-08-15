@@ -37,7 +37,9 @@ def block_socket_merge(
         global_network.graph[socket_2.positive_road.start_node].pop(socket_2.positive_road.end_node)
 
 
-def check_lane_on_road(road_network: "RoadNetwork", lane, positive: float = 0, ignored=None, ignore_intersection_checking=None) -> bool:
+def check_lane_on_road(
+    road_network: "RoadNetwork", lane, positive: float = 0, ignored=None, ignore_intersection_checking=None
+) -> bool:
     """
     Calculate if the new lane intersects with other lanes in current road network
     The return Value is True when cross
