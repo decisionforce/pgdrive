@@ -72,6 +72,8 @@ class TollGate(PGBlock):
             if idx % 2 == 1:
                 # add toll
                 position = lane.position(lane.length / 2, 0)
-                building = get_engine().spawn_object(TollGateBuilding, lane=lane, position=position, heading=lane.heading_at(0))
+                building = get_engine().spawn_object(
+                    TollGateBuilding, lane=lane, position=position, heading=lane.heading_at(0)
+                )
                 self.dynamic_nodes.append(building.body)
                 self._block_objects.append(building)
