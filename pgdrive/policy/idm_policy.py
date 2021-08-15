@@ -194,9 +194,9 @@ class IDMPolicy(BasePolicy):
             acc_front_obj, acc_front_dist, steering_target_lane = self.lane_change_policy(all_objects)
         else:
             # can not find routing target lane
-            surrounding_objects = FrontBackObjects.get_find_front_back_objs(all_objects, self.routing_target_lane,
-                                                                            self.control_object.position,
-                                                                            max_distance=self.MAX_LONG_DIST)
+            surrounding_objects = FrontBackObjects.get_find_front_back_objs(
+                all_objects, self.routing_target_lane, self.control_object.position, max_distance=self.MAX_LONG_DIST
+            )
             acc_front_obj = surrounding_objects.front_object()
             acc_front_dist = surrounding_objects.front_min_distance()
             steering_target_lane = self.routing_target_lane
@@ -245,7 +245,7 @@ class IDMPolicy(BasePolicy):
         if front_obj:
             d = dist_to_front
             speed_diff = self.desired_gap(ego_vehicle, front_obj) / not_zero(d)
-            acceleration -= self.ACC_FACTOR * (speed_diff ** 2)
+            acceleration -= self.ACC_FACTOR * (speed_diff**2)
         return acceleration
 
     def desired_gap(self, ego_vehicle, front_obj, projected: bool = True) -> float:
@@ -267,9 +267,9 @@ class IDMPolicy(BasePolicy):
 
     def lane_change_policy(self, all_objects):
         current_lanes = self.control_object.navigation.current_ref_lanes
-        surrounding_objects = FrontBackObjects.get_find_front_back_objs(all_objects, self.routing_target_lane,
-                                                                        self.control_object.position,
-                                                                        self.MAX_LONG_DIST, current_lanes)
+        surrounding_objects = FrontBackObjects.get_find_front_back_objs(
+            all_objects, self.routing_target_lane, self.control_object.position, self.MAX_LONG_DIST, current_lanes
+        )
         self.available_routing_index_range = [i for i in range(len(current_lanes))]
         next_lanes = self.control_object.navigation.next_ref_lanes
         lane_num_diff = len(current_lanes) - len(next_lanes) if next_lanes is not None else 0
@@ -286,10 +286,12 @@ class IDMPolicy(BasePolicy):
                 # not on suitable lane do lane change !!!
                 if self.routing_target_lane.index[-1] > index_range[-1]:
                     # change to left
-                    if surrounding_objects.left_back_min_distance() < self.SAFE_LANE_CHANGE_DISTANCE or surrounding_objects.left_front_min_distance() < 5:
+                    if surrounding_objects.left_back_min_distance(
+                    ) < self.SAFE_LANE_CHANGE_DISTANCE or surrounding_objects.left_front_min_distance() < 5:
                         # creep to wait
                         self.target_speed = self.CREEP_SPEED
-                        return surrounding_objects.front_object(), surrounding_objects.front_min_distance(), self.routing_target_lane
+                        return surrounding_objects.front_object(), surrounding_objects.front_min_distance(
+                        ), self.routing_target_lane
                     else:
                         # it is time to change lane!
                         self.target_speed = self.NORMAL_SPEED
@@ -297,10 +299,12 @@ class IDMPolicy(BasePolicy):
                                current_lanes[self.routing_target_lane.index[-1] - 1]
                 else:
                     # change to right
-                    if surrounding_objects.right_back_min_distance() < self.SAFE_LANE_CHANGE_DISTANCE or surrounding_objects.right_front_min_distance() < 5:
+                    if surrounding_objects.right_back_min_distance(
+                    ) < self.SAFE_LANE_CHANGE_DISTANCE or surrounding_objects.right_front_min_distance() < 5:
                         # unsafe, creep and wait
                         self.target_speed = self.CREEP_SPEED
-                        return surrounding_objects.front_object(), surrounding_objects.front_min_distance(), self.routing_target_lane,
+                        return surrounding_objects.front_object(), surrounding_objects.front_min_distance(
+                        ), self.routing_target_lane,
                     else:
                         # change lane
                         self.target_speed = self.NORMAL_SPEED
@@ -308,12 +312,14 @@ class IDMPolicy(BasePolicy):
                                current_lanes[self.routing_target_lane.index[-1] + 1]
 
         # lane follow or active change lane/overtake for high driving speed
-        if abs(self.control_object.speed - self.NORMAL_SPEED) > 3 and surrounding_objects.has_front_object() and abs(
-                surrounding_objects.front_object().speed - self.NORMAL_SPEED) > 3 and self.overtake_timer > self.LANE_CHANGE_FREQ:
+        if abs(self.control_object.speed - self.NORMAL_SPEED) > 3 and surrounding_objects.has_front_object(
+        ) and abs(surrounding_objects.front_object().speed -
+                  self.NORMAL_SPEED) > 3 and self.overtake_timer > self.LANE_CHANGE_FREQ:
             # may lane change
             right_front_speed = surrounding_objects.right_front_object().speed if surrounding_objects.has_right_front_object() else self.MAX_SPEED \
                 if surrounding_objects.right_lane_exist() and surrounding_objects.right_front_min_distance() > self.SAFE_LANE_CHANGE_DISTANCE and surrounding_objects.right_back_min_distance() > self.SAFE_LANE_CHANGE_DISTANCE else None
-            front_speed = surrounding_objects.front_object().speed if surrounding_objects.has_front_object() else self.MAX_SPEED
+            front_speed = surrounding_objects.front_object().speed if surrounding_objects.has_front_object(
+            ) else self.MAX_SPEED
             left_front_speed = surrounding_objects.left_front_object().speed if surrounding_objects.has_left_front_object() else self.MAX_SPEED \
                 if surrounding_objects.left_lane_exist() and surrounding_objects.left_front_min_distance() > self.SAFE_LANE_CHANGE_DISTANCE and surrounding_objects.left_back_min_distance() > self.SAFE_LANE_CHANGE_DISTANCE else None
             if left_front_speed is not None and left_front_speed - front_speed > self.LANE_CHANGE_SPEED_INCREASE:

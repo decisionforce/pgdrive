@@ -59,7 +59,7 @@ def point_distance(x, y):
 
 def distance_greater(vec1, vec2, length):
     """Return whether the distance between two vectors is greater than the given length."""
-    return ((vec1[0] - vec2[0]) ** 2 + (vec1[1] - vec2[1]) ** 2) > length ** 2
+    return ((vec1[0] - vec2[0])**2 + (vec1[1] - vec2[1])**2) > length**2
 
 
 def clip(a, low, high):
