@@ -20,6 +20,12 @@ def setup_logger(debug=False):
 
 
 def recursive_equal(data1, data2, need_assert=False):
+    from pgdrive.utils.config import Config
+    if isinstance(data1, Config):
+        data1 = data1.get_dict()
+    if isinstance(data2, Config):
+        data2 = data2.get_dict()
+
     if isinstance(data1, dict):
         is_ins = isinstance(data2, dict)
         key_right = set(data1.keys()) == set(data2.keys())
@@ -154,4 +160,9 @@ def get_object_from_node(node: BulletBodyNode):
     """
     if node.getPythonTag(node.getName()) is None:
         return None
-    return node.getPythonTag(node.getName()).object
+    from pgdrive.engine.engine_utils import get_object
+    ret = node.getPythonTag(node.getName()).base_object_name
+    if isinstance(ret, str):
+        return get_object(ret)[ret]
+    else:
+        return ret
