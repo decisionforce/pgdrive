@@ -58,7 +58,7 @@ def test_expert_with_traffic(use_render=False):
             fast=use_render,
             vehicle_config=dict(show_lidar=True)
         ),
-        num_episode=3
+        num_episode=20
     )
     assert 350 < ep_reward < 370, ep_reward
     assert success_rate == 1.0, success_rate

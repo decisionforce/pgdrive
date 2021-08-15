@@ -114,7 +114,7 @@ class BaseMap(BaseRunnable):
             json_config[self.PRE_BLOCK_SOCKET_INDEX] = b.pre_block_socket_index
             map_config.append(json_config)
 
-        saved_data = copy.deepcopy({self.SEED: self.random_seed, self.BLOCK_SEQUENCE: map_config})
+        saved_data = copy.deepcopy({self.BLOCK_SEQUENCE: map_config})
         return saved_data
 
     def read_map(self, map_config: dict):
