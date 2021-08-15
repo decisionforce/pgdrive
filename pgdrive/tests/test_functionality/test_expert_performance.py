@@ -55,6 +55,7 @@ def test_expert_with_traffic(use_render=False):
             load_map_from_json=False,
             random_traffic=False,
             use_render=use_render,
+            fast=use_render,
             vehicle_config=dict(show_lidar=True)
         ),
         num_episode=3
