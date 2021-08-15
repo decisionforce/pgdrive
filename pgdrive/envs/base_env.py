@@ -139,7 +139,7 @@ class BasePGDriveEnv(gym.Env):
         self.engine: Optional[BaseEngine] = None
         self.controller = None
         self.episode_steps = 0
-        self.current_seed = None
+        # self.current_seed = None
 
         # In MARL envs with respawn mechanism, varying episode lengths might happen.
         self.dones = None
@@ -336,7 +336,10 @@ class BasePGDriveEnv(gym.Env):
     def seed(self, seed=None):
         if seed is not None:
             set_global_random_seed(seed)
-            self.current_seed = seed
+
+    @property
+    def current_seed(self):
+        return self.engine.global_random_seed
 
     @property
     def observations(self):

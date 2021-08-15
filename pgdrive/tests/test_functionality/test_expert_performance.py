@@ -83,4 +83,4 @@ def test_expert_without_traffic():
 
 if __name__ == '__main__':
     # test_expert_without_traffic()
-    test_expert_with_traffic(use_render=True)
+    test_expert_with_traffic(use_render=False)

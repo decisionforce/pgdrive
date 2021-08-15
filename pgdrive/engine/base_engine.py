@@ -1,14 +1,12 @@
 import logging
 import time
-from typing import Callable, Optional, Union, List
 from collections import OrderedDict
-from typing import Dict, AnyStr
-from pgdrive.base_class.randomizable import Randomizable
-import numpy as np
+from typing import Callable, Optional, Union, List, Dict, AnyStr
 
+import numpy as np
+from pgdrive.base_class.randomizable import Randomizable
 from pgdrive.engine.core.engine_core import EngineCore
 from pgdrive.engine.interface import Interface
-from pgdrive.engine.scene_cull import SceneCull
 from pgdrive.manager.base_manager import BaseManager
 
 logger = logging.getLogger(__name__)
@@ -319,3 +317,11 @@ class BaseEngine(EngineCore, Randomizable):
             return MainCamera(self, self.global_config["camera_height"], self.global_config["camera_dist"])
         else:
             return None
+
+    @property
+    def current_seed(self):
+        return self.global_random_seed
+
+    @property
+    def global_seed(self):
+        return self.global_random_seed
