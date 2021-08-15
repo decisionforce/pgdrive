@@ -574,9 +574,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         :param map: new map
         :return: None
         """
-        possible_lanes = ray_localization(
-            np.array(self.heading.tolist()), np.array(self.spawn_place), self.engine, return_all_result=True
-        )
+        possible_lanes = ray_localization(self.heading, self.spawn_place, self.engine, return_all_result=True)
         possible_lane_indexes = [lane_index for lane, lane_index, dist in possible_lanes]
         try:
             idx = possible_lane_indexes.index(self.config["spawn_lane_index"])
