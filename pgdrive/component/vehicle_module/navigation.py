@@ -29,12 +29,12 @@ class Navigation:
     LINE_TO_DEST_HEIGHT = 0.6
 
     def __init__(
-        self,
-        engine,
-        show_navi_mark: bool = False,
-        random_navi_mark_color=False,
-        show_dest_mark=False,
-        show_line_to_dest=False
+            self,
+            engine,
+            show_navi_mark: bool = False,
+            random_navi_mark_color=False,
+            show_dest_mark=False,
+            show_line_to_dest=False
     ):
         """
         This class define a helper for localizing vehicles and retrieving navigation information.
@@ -49,12 +49,13 @@ class Navigation:
         self.current_road = None
         self.next_road = None
         self._target_checkpoints_index = None
-        self._navi_info = np.zeros((self.navigation_info_dim, ))  # navi information res
+        self._navi_info = np.zeros((self.navigation_info_dim,))  # navi information res
 
         # Vis
+        self._show_navi_info = (engine.mode == RENDER_MODE_ONSCREEN and not engine.global_config["debug_physics_world"])
+        self.origin = engine.render.attachNewNode("navigation_sign") if self._show_navi_info else None
         self.navi_mark_color = (0.6, 0.8, 0.5) if not random_navi_mark_color else get_np_random().rand(3)
         self.navi_arrow_dir = None
-        self._show_navi_info = (engine.mode == RENDER_MODE_ONSCREEN and not engine.global_config["debug_physics_world"])
         self._dest_node_path = None
         self._goal_node_path = None
 
@@ -62,9 +63,9 @@ class Navigation:
         self._show_line_to_dest = show_line_to_dest
         if self._show_navi_info:
             # nodepath
-            self._line_to_dest = engine.render.attachNewNode("line")
-            self._goal_node_path = engine.render.attachNewNode("target")
-            self._dest_node_path = engine.render.attachNewNode("dest")
+            self._line_to_dest = self.origin.attachNewNode("line")
+            self._goal_node_path = self.origin.attachNewNode("target")
+            self._dest_node_path = self.origin.attachNewNode("dest")
 
             if show_navi_mark:
                 navi_point_model = AssetLoader.loader.loadModel(AssetLoader.file_path("models", "box.bam"))
@@ -77,7 +78,7 @@ class Navigation:
                 line_seg.setColor(self.navi_mark_color[0], self.navi_mark_color[1], self.navi_mark_color[2], 0.7)
                 line_seg.setThickness(2)
                 self._dynamic_line_np = NodePath(line_seg.create(True))
-                self._dynamic_line_np.reparentTo(engine.render)
+                self._dynamic_line_np.reparentTo(self.origin)
                 self._line_to_dest = line_seg
 
             self._goal_node_path.setTransparency(TransparencyAttrib.M_alpha)
@@ -143,7 +144,7 @@ class Navigation:
         target_road_1_end = self.checkpoints[1]
         self.current_ref_lanes = self.map.road_network.graph[target_road_1_start][target_road_1_end]
         self.next_ref_lanes = self.map.road_network.graph[self.checkpoints[1]][self.checkpoints[2]
-                                                                               ] if len(self.checkpoints) > 2 else None
+        ] if len(self.checkpoints) > 2 else None
         self.current_road = Road(target_road_1_start, target_road_1_end)
         self.next_road = Road(self.checkpoints[1], self.checkpoints[2]) if len(self.checkpoints) > 2 else None
         if self._dest_node_path is not None:
@@ -225,8 +226,8 @@ class Navigation:
         angle = 0.0
         if isinstance(ref_lane, CircularLane):
             bendradius = ref_lane.radius / (
-                BlockParameterSpace.CURVE[Parameter.radius].max +
-                self.get_current_lane_num() * self.get_current_lane_width()
+                    BlockParameterSpace.CURVE[Parameter.radius].max +
+                    self.get_current_lane_num() * self.get_current_lane_width()
             )
             dir = ref_lane.direction
             if dir == 1:
@@ -234,11 +235,11 @@ class Navigation:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
-            clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
-        ), lanes_heading, check_point
+                   clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                        1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
+                                   1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+                   clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
+               ), lanes_heading, check_point
 
     def _update_target_checkpoints(self, ego_lane_index, ego_lane_longitude):
         """
@@ -351,4 +352,11 @@ class Navigation:
         self._dynamic_line_np.removeNode()
         self._dynamic_line_np = NodePath(line_seg.create(False))
         self._dynamic_line_np.hide(CamMask.Shadow | CamMask.RgbCam)
-        self._dynamic_line_np.reparentTo(engine.render)
+        self._dynamic_line_np.reparentTo(self.origin)
+
+    def detach_from_world(self):
+        if isinstance(self.origin, NodePath):
+            self.origin.detachNode()
+
+    def attach_to_world(self, engine):
+        self.origin.reparentTo(engine.render)
