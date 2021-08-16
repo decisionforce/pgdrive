@@ -108,7 +108,7 @@ class BIG:
         socket = self.np_random.choice(self.blocks[-1].get_socket_indices())
         block = block_type(
             len(self.blocks), self.blocks[-1].get_socket(socket), self._global_network,
-            self.np_random.randint(0, 10000)
+            self.np_random.randint(0, 10000), ignore_intersection_checking=False
         )
         return block
 
