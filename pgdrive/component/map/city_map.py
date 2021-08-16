@@ -87,7 +87,7 @@ class CityBIG(BIG):
             socket,
             self._global_network,
             self.np_random.randint(0, 10000),
-            ignore_intersection_checking=True
+            ignore_intersection_checking=False
         )
         return block
 
