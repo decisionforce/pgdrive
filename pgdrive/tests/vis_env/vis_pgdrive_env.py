@@ -27,6 +27,7 @@ class TestEnv(PGDriveEnv):
                 "rgb_clip": True,
                 "debug": True,
                 "fast": True,
+
                 # "map_config": {
                 #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
                 #     Map.GENERATE_CONFIG: "SXO",
@@ -37,6 +38,7 @@ class TestEnv(PGDriveEnv):
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
+                    "random_color": True
                     # "show_lidar": True,
                     # "spawn_lane_index":("1r1_0_", "1r1_1_", 0),
                     # "destination_node":"2R1_3_",

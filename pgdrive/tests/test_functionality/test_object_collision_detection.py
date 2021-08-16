@@ -1,4 +1,4 @@
-from pgdrive.component.vehicle.traffic_vehicle_type import LVehicle
+from pgdrive.component.vehicle.vehicle_type import LVehicle
 from pgdrive.component.static_object.traffic_object import TrafficCone, TrafficTriangle
 from pgdrive.constants import BodyName, TerminationState, DEFAULT_AGENT
 from pgdrive.envs import PGDriveEnv
@@ -62,7 +62,7 @@ class TestEnv(PGDriveEnv):
 
         for p in pos:
             cone = self.engine.spawn_object(TrafficCone, lane=lane, longitude=p[0], lateral=p[1])
-        from pgdrive.component.vehicle.traffic_vehicle_type import SVehicle, XLVehicle
+        from pgdrive.component.vehicle.vehicle_type import SVehicle, XLVehicle
         v_pos = [8, 14]
         v_type = [SVehicle, XLVehicle]
         for v_long, v_t in zip(v_pos, v_type):

@@ -78,20 +78,19 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     """
     COLLISION_MASK = CollisionGroup.Vehicle
 
-    LENGTH = 4.51
-    WIDTH = 1.852
-    HEIGHT = 1.19
-    TIRE_RADIUS = 0.313
-    MASS = 1300
-    LATERAL_TIRE_TO_CENTER = 0.815
-    FRONT_WHEELBASE = 1.05234
-    REAR_WHEELBASE = 1.4166
+    LENGTH = None
+    WIDTH = None
+    HEIGHT = None
+    TIRE_RADIUS = None
+    LATERAL_TIRE_TO_CENTER = None
+    FRONT_WHEELBASE = None
+    REAR_WHEELBASE = None
+    MASS = None
     CHASSIS_TO_WHEEL_AXIS = 0.2
     SUSPENSION_LENGTH = 40
     SUSPENSION_STIFFNESS = 30
 
     # for random color choosing
-    MODEL = None
     MATERIAL_COLOR_COEFF = 10  # to resist other factors, since other setting may make color dark
     MATERIAL_METAL_COEFF = 1  # 0-1
     MATERIAL_ROUGHNESS = 0.8  # smaller to make it more smooth, and reflect more light
@@ -101,11 +100,15 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     # control
     STEERING_INCREMENT = 0.05
 
+    # save memory, load model once
+    model_collection = {}
+    path = None
+
     def __init__(
-            self,
-            vehicle_config: Union[dict, Config] = None,
-            name: str = None,
-            random_seed=None,
+        self,
+        vehicle_config: Union[dict, Config] = None,
+        name: str = None,
+        random_seed=None,
     ):
         """
         This Vehicle Config is different from self.get_config(), and it is used to define which modules to use, and
@@ -177,6 +180,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self._expert_takeover = False
         self.energy_consumption = 0
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
+        self.break_down = False
 
         # overtake_stat
         self.front_vehicles = set()
@@ -438,8 +442,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         if not lateral_norm * forward_direction_norm:
             return 0
         cos = (
-                (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
-                (lateral_norm * forward_direction_norm)
+            (forward_direction[0] * lateral[0] + forward_direction[1] * lateral[1]) /
+            (lateral_norm * forward_direction_norm)
         )
         # return cos
         # Normalize to 0, 1
@@ -497,14 +501,17 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def _add_visualization(self):
         if self.render:
-
-            if self.MODEL is None:
-                model_path = 'models/ferra/scene.gltf'
-                self.MODEL = self.loader.loadModel(AssetLoader.file_path(model_path))
-                self.MODEL.setZ(-self.TIRE_RADIUS - self.CHASSIS_TO_WHEEL_AXIS)
-                self.MODEL.set_scale(1)
-
-            self.MODEL.instanceTo(self.origin)
+            [path, scale, x_y_z_offset, H] = self.path[self.np_random.randint(0, len(self.path))]
+            if path not in BaseVehicle.model_collection:
+                car_model = self.loader.loadModel(AssetLoader.file_path("models", path))
+                BaseVehicle.model_collection[path] = car_model
+            else:
+                car_model = BaseVehicle.model_collection[path]
+            car_model.setScale(scale)
+            car_model.setH(H)
+            car_model.setPos(x_y_z_offset)
+            car_model.setZ(-self.TIRE_RADIUS - self.CHASSIS_TO_WHEEL_AXIS + x_y_z_offset[-1])
+            car_model.instanceTo(self.origin)
             if self.config["random_color"]:
                 material = Material()
                 material.setBaseColor(
@@ -682,7 +689,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             ckpt_idx = routing._target_checkpoints_index
             for surrounding_v in surrounding_vs:
                 if surrounding_v.lane_index[:-1] == (routing.checkpoints[ckpt_idx[0]], routing.checkpoints[ckpt_idx[1]
-                ]):
+                                                                                                           ]):
                     if self.lane.local_coordinates(self.position)[0] - \
                             self.lane.local_coordinates(surrounding_v.position)[0] < 0:
                         self.front_vehicles.add(surrounding_v)
@@ -697,7 +704,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     @classmethod
     def get_action_space_before_init(cls, extra_action_dim: int = 0):
-        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim,), dtype=np.float32)
+        return gym.spaces.Box(-1.0, 1.0, shape=(2 + extra_action_dim, ), dtype=np.float32)
 
     def __del__(self):
         super(BaseVehicle, self).__del__()
@@ -712,8 +719,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def arrive_destination(self):
         long, lat = self.navigation.final_lane.local_coordinates(self.position)
         flag = (self.navigation.final_lane.length - 5 < long < self.navigation.final_lane.length + 5) and (
-                self.navigation.get_current_lane_width() / 2 >= lat >=
-                (0.5 - self.navigation.get_current_lane_num()) * self.navigation.get_current_lane_width()
+            self.navigation.get_current_lane_width() / 2 >= lat >=
+            (0.5 - self.navigation.get_current_lane_num()) * self.navigation.get_current_lane_width()
         )
         return flag
 
@@ -736,9 +743,9 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     @property
     def replay_done(self):
         return self._replay_done if hasattr(self, "_replay_done") else (
-                self.crash_building or self.crash_vehicle or
-                # self.on_white_continuous_line or
-                self.on_yellow_continuous_line
+            self.crash_building or self.crash_vehicle or
+            # self.on_white_continuous_line or
+            self.on_yellow_continuous_line
         )
 
     @property
@@ -756,3 +763,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     def attach_to_world(self, parent_node_path, physics_world):
         super(BaseVehicle, self).attach_to_world(parent_node_path, physics_world)
         self.navigation.attach_to_world(self.engine)
+
+    def set_break_down(self, break_down=True):
+        self.break_down = break_down
+        self.set_static(True)
