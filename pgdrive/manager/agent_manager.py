@@ -170,7 +170,9 @@ class AgentManager(BaseManager):
         self.for_each_active_agents(
             lambda v: v.reset(
                 vehicle_config=self.engine.global_config["target_vehicle_configs"][self._object_to_agent[v.id]]
-                if len(self.active_agents) > 1 else None))
+                if len(self.active_agents) > 1 else None
+            )
+        )
         for obj in self._active_objects.keys():
             self.engine.get_policy(obj).reset()
 
