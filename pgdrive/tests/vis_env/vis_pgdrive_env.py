@@ -16,7 +16,6 @@ class TestEnv(PGDriveEnv):
                 # "_disable_detector_mask":True,
                 "onscreen_message": True,
                 # "debug_physics_world": True,
-                "pstats": True,
                 "global_light": True,
                 # "debug_static_world":True,
                 "cull_scene": False,
@@ -25,8 +24,8 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "debug": True,
-                "fast": True,
+                # "debug": True,
+                # "fast": True,
 
                 # "map_config": {
                 #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
@@ -34,11 +33,12 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": 2,
+                # "map": 2,
+                "pstats":True,
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
-                    "random_color": True
+                    # "random_color": True
                     # "show_lidar": True,
                     # "spawn_lane_index":("1r1_0_", "1r1_1_", 0),
                     # "destination_node":"2R1_3_",
