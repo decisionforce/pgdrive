@@ -133,10 +133,11 @@ class TestEnv(PGDriveEnv):
         return ret
 
 
-def test_object_collision_detection(render=True):
+def test_object_collision_detection(render=False):
     env = TestEnv(
         {
             "manual_control": True,
+            "traffic_density":0.0,
             "use_render": render,
             "debug": False,
             "vehicle_config": {

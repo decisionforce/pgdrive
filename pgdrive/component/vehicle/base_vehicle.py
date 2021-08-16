@@ -766,4 +766,4 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def set_break_down(self, break_down=True):
         self.break_down = break_down
-        self.set_static(True)
+        # self.set_static(True)
