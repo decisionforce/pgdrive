@@ -3,7 +3,7 @@ import time
 from pgdrive import PGDriveEnvV2
 
 if __name__ == '__main__':
-    env = PGDriveEnvV2(dict(environment_num=10))
+    env = PGDriveEnvV2(dict(environment_num=1))
     obs = env.reset()
     start = time.time()
     action = [0.0, 0.1]
