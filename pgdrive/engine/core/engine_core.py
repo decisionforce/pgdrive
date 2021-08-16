@@ -26,6 +26,7 @@ def _suppress_warning():
     loadPrcFileData("", "notify-level-pgraph fatal")
     loadPrcFileData("", "notify-level-pnmimage fatal")
     loadPrcFileData("", "notify-level-thread fatal")
+    loadPrcFileData("", "notify-level-bullet fatal")
 
 
 def _free_warning():
