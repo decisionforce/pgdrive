@@ -233,9 +233,9 @@ class BaseEngine(EngineCore, Randomizable):
         self.interface.after_step()
 
         # cull distant blocks
-        poses = [v.position for v in self.agent_manager.active_agents.values()]
-        if self.cull_scene and False:
-            SceneCull.cull_distant_blocks(self, self.current_map.blocks, poses, self.global_config["max_distance"])
+        # poses = [v.position for v in self.agent_manager.active_agents.values()]
+        # if self.cull_scene and False:
+        #     SceneCull.cull_distant_blocks(self, self.current_map.blocks, poses, self.global_config["max_distance"])
         return step_infos
 
     def dump_episode(self) -> None:
