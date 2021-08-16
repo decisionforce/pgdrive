@@ -29,11 +29,11 @@ class TestEnv(PGDriveEnv):
 
                 # "map_config": {
                 #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-                #     Map.GENERATE_CONFIG: "SXO",
+                #     Map.GENERATE_CONFIG: "OXO",
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                "map": "XOTX",
+                "map": "O",
                 "pstats": True,
                 "driving_reward": 1.0,
                 "vehicle_config": {
@@ -72,6 +72,6 @@ if __name__ == "__main__":
         #             time.time() - start, (s + 1) / (time.time() - start)
         #         )
         #     )
-        # if s % 100 == 0:
-        #     env.close()
-        #     env.reset()
+        if d:
+            # env.close()
+            env.reset()
