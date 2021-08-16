@@ -84,10 +84,6 @@ def CreateRoadFrom(
     Usage: give the far left lane, then create lane_num lanes including itself
     :return if the lanes created cross other lanes
     """
-
-    # TODO(pzh) remove None
-    assert ignore_intersection_checking is not None
-
     lane_num -= 1  # include lane itself
     origin_lane = lane
     lanes = []
