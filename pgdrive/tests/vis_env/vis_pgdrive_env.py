@@ -24,8 +24,8 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                # "debug": True,
-                # "fast": True,
+                "debug": True,
+                "fast": True,
 
                 # "map_config": {
                 #     Map.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
@@ -33,7 +33,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_WIDTH: 3.5,
                 #     Map.LANE_NUM: 3,
                 # },
-                # "map": 2,
+                "map": "XOTX",
                 "pstats": True,
                 "driving_reward": 1.0,
                 "vehicle_config": {

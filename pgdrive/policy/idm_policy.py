@@ -162,8 +162,8 @@ class IDMPolicy(BasePolicy):
 
     # Lateral policy parameters
     LANE_CHANGE_FREQ = 50  # [step]
-    LANE_CHANGE_SPEED_INCREASE = 5
-    SAFE_LANE_CHANGE_DISTANCE = 20
+    LANE_CHANGE_SPEED_INCREASE = 10
+    SAFE_LANE_CHANGE_DISTANCE = 15
     MAX_LONG_DIST = 30
     MAX_SPEED = 100
 
