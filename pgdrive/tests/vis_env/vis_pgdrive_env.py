@@ -34,7 +34,7 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_NUM: 3,
                 # },
                 # "map": 2,
-                "pstats":True,
+                "pstats": True,
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,

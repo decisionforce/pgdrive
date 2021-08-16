@@ -231,7 +231,7 @@ class BaseEngine(EngineCore, Randomizable):
         for manager in self._managers.values():
             step_infos.update(manager.after_step())
         self.interface.after_step()
-        
+
         # cull distant blocks
         poses = [v.position for v in self.agent_manager.active_agents.values()]
         if self.cull_scene and False:
