@@ -209,6 +209,7 @@ class InRampOnStraight(Ramp):
         assert sum([abs(l.length - InRampOnStraight.RAMP_LEN) <= 0.1 for ls in respawn_lanes for l in ls]) == 1
         return respawn_lanes
 
+
 class OutRampOnStraight(Ramp):
     ID = "R"
     EXTRA_LEN = 15
