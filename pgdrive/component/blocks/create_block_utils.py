@@ -244,7 +244,7 @@ def CreateTwoWayRoad(
     center_line_type=LineType.CONTINUOUS,  # Identical to Block.CENTER_LINE_TYPE
     side_lane_line_type=LineType.SIDE,
     inner_lane_line_type=LineType.BROKEN,
-        ignore_intersection_checking=None
+    ignore_intersection_checking=None
 ) -> bool:
     """
     This function will add a new road in reverse direction to the road network

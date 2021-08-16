@@ -95,7 +95,9 @@ class MAParkingLotMap(PGMap):
 
         # Build ParkingLot
         TInterSection.EXIT_PART_LENGTH = 10
-        last_block = TInterSection(2, last_block.get_socket(index=0), self.road_network, random_seed=1, ignore_intersection_checking=False)
+        last_block = TInterSection(
+            2, last_block.get_socket(index=0), self.road_network, random_seed=1, ignore_intersection_checking=False
+        )
         last_block.construct_block(
             parent_node_path,
             physics_world,
