@@ -220,9 +220,6 @@ class TrafficManager(BaseManager):
         return _traffic_vehicles
 
     def _propose_vehicle_configs(self, lane: AbstractLane):
-        # from pgdrive.component.blocks.ramp import InRampOnStraight
-        # FIXME(lqy) We don't deal with InRamp here!! 0816
-
         potential_vehicle_configs = []
         total_num = int(lane.length / self.VEHICLE_GAP)
         vehicle_longs = [i * self.VEHICLE_GAP for i in range(total_num)]
