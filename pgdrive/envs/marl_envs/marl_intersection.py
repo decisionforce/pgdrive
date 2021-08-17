@@ -201,7 +201,7 @@ def _vis():
             # "fast": True,
             "use_render": True,
             "debug": True,
-            "allow_respawn":False,
+            "allow_respawn": False,
             "manual_control": True,
             "num_agents": 2,
             "delay_done": 2,

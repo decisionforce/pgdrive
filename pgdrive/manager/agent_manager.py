@@ -38,8 +38,10 @@ class AgentManager(BaseManager):
         self.observations = copy.copy(init_observations)  # its value is map<agent_id, obs> before init() is called
         self._init_observations = init_observations  # map <agent_id, observation>
         # init spaces before initializing env.engine
-        observation_space = {agent_id: single_obs.observation_space for agent_id, single_obs in
-                             init_observations.items()}
+        observation_space = {
+            agent_id: single_obs.observation_space
+            for agent_id, single_obs in init_observations.items()
+        }
         assert isinstance(init_action_space, dict)
         assert isinstance(observation_space, dict)
         self._init_observation_spaces = observation_space
@@ -87,12 +89,14 @@ class AgentManager(BaseManager):
         self._allow_respawn = config["allow_respawn"]
         self.engine.clear_objects([k for k in self._active_objects.keys()] + [k for k in self._dying_objects.keys()])
         init_vehicles = self._get_vehicles(
-            config_dict=self.engine.global_config["target_vehicle_configs"] if self.engine.global_config[
-                "is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]})
+            config_dict=self.engine.global_config["target_vehicle_configs"] if self.engine.
+            global_config["is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]}
+        )
         vehicles_created = set(init_vehicles.keys())
         vehicles_in_config = set(self._init_observations.keys())
         assert vehicles_created == vehicles_in_config, "{} not defined in target vehicles config".format(
-            vehicles_created.difference(vehicles_in_config))
+            vehicles_created.difference(vehicles_in_config)
+        )
 
         # it is used when reset() is called to reset its original agent_id
         self._agent_to_object = {agent_id: vehicle.name for agent_id, vehicle in init_vehicles.items()}

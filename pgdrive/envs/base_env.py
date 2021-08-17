@@ -121,8 +121,9 @@ class BasePGDriveEnv(gym.Env):
         assert isinstance(self.num_agents, int) and (self.num_agents > 0 or self.num_agents == -1)
 
         # observation and action space
-        self.agent_manager = AgentManager(init_observations=self._get_observations(),
-                                          init_action_space=self._get_action_space())
+        self.agent_manager = AgentManager(
+            init_observations=self._get_observations(), init_action_space=self._get_action_space()
+        )
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -159,8 +160,11 @@ class BasePGDriveEnv(gym.Env):
                 for v_id in self.config["target_vehicle_configs"].keys()
             }
         else:
-            return {DEFAULT_AGENT: BaseVehicle.get_action_space_before_init(
-                self.config["vehicle_config"]["extra_action_dim"])}
+            return {
+                DEFAULT_AGENT: BaseVehicle.get_action_space_before_init(
+                    self.config["vehicle_config"]["extra_action_dim"]
+                )
+            }
 
     def lazy_init(self):
         """
