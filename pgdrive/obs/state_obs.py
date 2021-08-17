@@ -66,7 +66,7 @@ class StateObservation(ObservationBase):
         else:
             lateral_to_left, lateral_to_right, = vehicle.dist_to_left_side, vehicle.dist_to_right_side
             total_width = float(
-                (vehicle.navigation.get_current_lane_num() + 1) * vehicle.navigation.get_current_lane_width()
+                (vehicle.navigation.get_current_lane_num() + 1) * vehicle.navigation.map.MAX_LANE_WIDTH
             )
             lateral_to_left /= total_width
             lateral_to_right /= total_width
@@ -82,7 +82,7 @@ class StateObservation(ObservationBase):
             vehicle.heading_diff(current_reference_lane),
             # Note: speed can be negative denoting free fall. This happen when emergency brake.
             clip((vehicle.speed + 1) / (vehicle.max_speed + 1), 0.0, 1.0),
-            clip((vehicle.steering / vehicle.max_steering + 1) / 2, 0.0, 1.0),
+            clip((vehicle.steering / vehicle.MAX_STEERING + 1) / 2, 0.0, 1.0),
             clip((vehicle.last_current_action[0][0] + 1) / 2, 0.0, 1.0),
             clip((vehicle.last_current_action[0][1] + 1) / 2, 0.0, 1.0)
         ]
@@ -99,7 +99,7 @@ class StateObservation(ObservationBase):
             info += vehicle.lane_line_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points
         else:
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
-            info.append(clip((lateral * 2 / vehicle.navigation.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
+            info.append(clip((lateral * 2 / vehicle.navigation.navigation.map.MAX_LANE_WIDTH + 1.0) / 2.0, 0.0, 1.0))
 
         # add vehicle length/width
         info.append(clip(vehicle.LENGTH / vehicle.MAX_LENGTH, 0.0, 1.0))

@@ -82,6 +82,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     PARAMETER_SPACE = ParameterSpace(VehicleParameterSpace.BASE_VEHICLE)
     MAX_LENGTH = 10
     MAX_WIDTH = 2.5
+    MAX_STEERING = 60
 
     LENGTH = None
     WIDTH = None
