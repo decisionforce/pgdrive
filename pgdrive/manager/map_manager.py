@@ -28,7 +28,7 @@ class MapManager(BaseManager):
         self.single_block_class = single_block
 
     def spawn_object(self, object_class, *args, **kwargs):
-        map = self.spawn_object(object_class, auto_fill_random_seed=False, *args, **kwargs)
+        map = self.engine.spawn_object(object_class, auto_fill_random_seed=False, *args, **kwargs)
         return map
 
     def load_map(self, map):

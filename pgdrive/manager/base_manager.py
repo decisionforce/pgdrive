@@ -59,7 +59,7 @@ class BaseManager(Randomizable):
         self.engine = None
         self._spawned_objects = None
 
-    def spawn_objects(self, *args, **kwargs):
-        object = self.spawn_objects(*args, **kwargs)
+    def spawn_object(self, *args, **kwargs):
+        object = self.engine.spawn_object(*args, **kwargs)
         self._spawned_objects[object.id] = object
         return object
