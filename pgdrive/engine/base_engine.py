@@ -185,6 +185,14 @@ class BaseEngine(EngineCore, Randomizable):
                 current_track_vehicle = vehicles[0]
                 self.main_camera.set_follow_lane(self.global_config["use_chase_camera_follow_lane"])
                 self.main_camera.track(current_track_vehicle)
+                if self.global_config["is_multi_agent"]:
+                    # Use top-down view by default
+                    top_down_camera_height = self.global_config["top_down_camera_initial_z"]
+                    self.main_camera.camera.setPos(0, 0, top_down_camera_height)
+                    self.main_camera.top_down_camera_height = top_down_camera_height
+                    self.main_camera.stop_track()
+                    self.main_camera.camera_x += self.global_config["top_down_camera_initial_x"]
+                    self.main_camera.camera_y += self.global_config["top_down_camera_initial_y"]
 
     def before_step(self, external_actions: Dict[AnyStr, np.array]):
         """

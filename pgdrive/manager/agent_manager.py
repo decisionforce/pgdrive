@@ -139,27 +139,21 @@ class AgentManager(BaseManager):
 
     def propose_new_vehicle(self):
         # Create a new vehicle.
-        new_v, agent_name = self._add_new_vehicle()
-        self._check()
-        vehicle = new_v
-        vehicle.before_step([0, 0])
-        vehicle.set_static(False)
-        self._active_objects[vehicle.name] = vehicle
-        self._check()
-        return agent_name, vehicle
-
-    def _add_new_vehicle(self):
         agent_name = self.next_agent_id()
         next_config = self.engine.global_config["target_vehicle_configs"]["agent0"]
-        new_v = self._get_vehicles({agent_name: next_config})[agent_name]
-        new_v_name = new_v.name
+        vehicle = self._get_vehicles({agent_name: next_config})[agent_name]
+        new_v_name = vehicle.name
         self._agent_to_object[agent_name] = new_v_name
         self._object_to_agent[new_v_name] = agent_name
         self.observations[new_v_name] = self._init_observations["agent0"]
-        self.observations[new_v_name].reset(new_v)
+        self.observations[new_v_name].reset(vehicle)
         self.observation_spaces[new_v_name] = self._init_observation_spaces["agent0"]
         self.action_spaces[new_v_name] = self._init_action_spaces["agent0"]
-        return new_v, agent_name
+        self._active_objects[vehicle.name] = vehicle
+        self._check()
+        vehicle.before_step([0, 0])
+        vehicle.set_static(False)
+        return agent_name, vehicle
 
     def next_agent_id(self):
         ret = "agent{}".format(self.next_agent_count)
@@ -298,14 +292,17 @@ class AgentManager(BaseManager):
         vehicle_name = vehicle.name
         assert vehicle_name not in self._active_objects
         self.engine.clear_objects([vehicle_name])
-
-    def has_pending_objects(self):
-        # If infinite_agents, then we pretend always has available agents to be re-spawn.
-        return self._infinite_agents
+        self._agent_to_object.pop(self._object_to_agent[vehicle_name])
+        self._object_to_agent.pop(vehicle_name)
 
     @property
     def allow_respawn(self):
-        return self.has_pending_objects() and self._allow_respawn
+        if self._allow_respawn:
+            return True
+        if len(self._active_objects)+len(self._dying_objects) < self.engine.global_config["num_agents"]:
+            return True
+        else:
+            return False
 
     def for_each_active_agents(self, func, *args, **kwargs):
         """

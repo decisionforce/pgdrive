@@ -184,14 +184,12 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         for dead_vehicle_id, done in dones.items():
             if done:
                 self.agent_manager.finish(
-                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False)
-                )
+                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False))
                 self._update_camera_after_finish(dead_vehicle_id)
         return obs, reward, dones, info
 
     def _update_camera_after_finish(self, dead_vehicle_id):
-        if self.main_camera is not None and dead_vehicle_id == self.agent_manager.object_to_agent(
-                self.current_track_vehicle.name) \
+        if self.main_camera is not None and self.current_track_vehicle is None \
                 and self.engine.task_manager.hasTaskNamed(self.main_camera.CHASE_TASK_NAME):
             self.chase_camera()
 
@@ -208,21 +206,9 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
         return Config(vehicle_config)
 
-    def _after_lazy_init(self):
-        super(MultiAgentPGDrive, self)._after_lazy_init()
-
-        # Use top-down view by default
-        if hasattr(self, "main_camera") and self.main_camera is not None:
-            top_down_camera_height = self.config["top_down_camera_initial_z"]
-            self.main_camera.camera.setPos(0, 0, top_down_camera_height)
-            self.main_camera.top_down_camera_height = top_down_camera_height
-            self.main_camera.stop_track()
-            self.main_camera.camera_x += self.config["top_down_camera_initial_x"]
-            self.main_camera.camera_y += self.config["top_down_camera_initial_y"]
-
     def _respawn_vehicles(self, randomize_position=False):
         new_obs_dict = {}
-        if not self.agent_manager.has_pending_objects():
+        if not self.agent_manager.allow_respawn:
             return new_obs_dict
         while True:
             new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
