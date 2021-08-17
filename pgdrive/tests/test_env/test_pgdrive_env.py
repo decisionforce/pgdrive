@@ -103,7 +103,7 @@ def test_zombie():
                 middle_lane = final_lanes[1]
 
                 # Current recorded lane of ego should be exactly the same as the final-middle-lane.
-                assert  env.vehicle.lane in final_lanes
+                assert env.vehicle.lane in final_lanes
 
                 # Ego should in the utmost location of the final-middle-lane
                 assert abs(middle_lane.local_coordinates(env.vehicle.position)[0] - middle_lane.length) < 10

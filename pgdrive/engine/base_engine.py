@@ -349,7 +349,8 @@ class BaseEngine(EngineCore, Randomizable):
                 assert len(manager.spawned_objects) == 0
 
             objs_need_to_release = self.get_objects(
-                filter=lambda obj: isinstance(obj, BaseVehicle) or isinstance(obj, BaseStaticObject))
+                filter=lambda obj: isinstance(obj, BaseVehicle) or isinstance(obj, BaseStaticObject)
+            )
             assert len(
                 objs_need_to_release) == 0, "You should clear all generated objects by using engine.clear_objects " \
                                             "in each manager.before_step()"

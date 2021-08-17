@@ -9,8 +9,8 @@ class TestEnv(SafePGDriveEnv):
                 "use_render": False,
                 "environment_num": 100,
                 "accident_prob": .8,
-                "traffic_density":0.5,
-                "debug":True
+                "traffic_density": 0.5,
+                "debug": True
             }
         )
 

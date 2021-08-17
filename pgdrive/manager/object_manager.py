@@ -88,8 +88,9 @@ class TrafficSignManager(BaseManager):
 
     def break_down_scene(self, lane: AbstractLane, longitude: float):
         v_config = {"spawn_lane_index": lane.index, "spawn_longitude": longitude}
-        breakdown_vehicle = self.spawn_object(self.engine.traffic_manager.random_vehicle_type(),
-                                                     vehicle_config=v_config)
+        breakdown_vehicle = self.spawn_object(
+            self.engine.traffic_manager.random_vehicle_type(), vehicle_config=v_config
+        )
         breakdown_vehicle.set_break_down()
         self.spawn_object(TrafficTriangle, lane=lane, longitude=longitude - self.ALERT_DIST, lateral=0)
 
@@ -118,4 +119,3 @@ class TrafficSignManager(BaseManager):
             p_ = (p[0] + longitude_position, left * p[1])
             cone = self.spawn_object(TrafficCone, lane=lane, longitude=p_[0], lateral=p_[1])
             cone
-
