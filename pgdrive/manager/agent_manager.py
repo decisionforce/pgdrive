@@ -77,13 +77,13 @@ class AgentManager(BaseManager):
         """
         if not self.INITIALIZED:
             super(AgentManager, self).__init__()
-            config = self.engine.global_config
-            self._allow_respawn = True if config["allow_respawn"] else False
-            self._debug = config["debug"]
-            self._delay_done = config["delay_done"]
-            self._infinite_agents = config["num_agents"] == -1
             self.INITIALIZED = True
 
+        config = self.engine.global_config
+        self._debug = config["debug"]
+        self._delay_done = config["delay_done"]
+        self._infinite_agents = config["num_agents"] == -1
+        self._allow_respawn = config["allow_respawn"]
         self.engine.clear_objects([k for k in self._active_objects.keys()] + [k for k in self._dying_objects.keys()])
         init_vehicles = self._get_vehicles(
             config_dict=self.engine.global_config["target_vehicle_configs"] if self.engine.global_config[
@@ -297,9 +297,10 @@ class AgentManager(BaseManager):
 
     @property
     def allow_respawn(self):
-        if self._allow_respawn:
-            return True
-        if len(self._active_objects)+len(self._dying_objects) < self.engine.global_config["num_agents"]:
+        if not self._allow_respawn:
+            return False
+        if len(self._active_objects) + len(self._dying_objects) < self.engine.global_config["num_agents"] \
+                or self._infinite_agents:
             return True
         else:
             return False
