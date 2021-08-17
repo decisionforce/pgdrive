@@ -75,6 +75,7 @@ class Config:
     For these <key, value> items, use Config["your key"] = None to init your PgConfig, then it will not implement
     type check at the first time. key "config" in map.py and key "force_fps" in world.py are good examples.
     """
+
     def __init__(self, config: Union[dict, "Config"], unchangeable=False):
         self._unchangeable = False
         if isinstance(config, Config):
@@ -305,3 +306,13 @@ def _is_identical(k1, v1, k2, v2):
         if v1 != v2:
             return False
     return True
+
+
+def filter_none(config):
+    to_remove = []
+    for k, v in config.items():
+        if v is None:
+            to_remove.append(k)
+    for k in to_remove:
+        config.pop(k)
+    return config
