@@ -28,6 +28,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
 
     # ===== Map Config =====
     map=3,  # int or string: an easy way to fill map_config
+    random_lane_width=True,
     map_config={
         BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_NUM,
         BaseMap.GENERATE_CONFIG: None,  # it can be a file path / block num / block ID sequence
@@ -35,7 +36,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         BaseMap.LANE_NUM: 3,
         "exit_length": 50,
     },
-    load_map_from_json=True,  # Whether to load maps from pre-generated file
+    load_map_from_json=False,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
     # ===== Observation =====
