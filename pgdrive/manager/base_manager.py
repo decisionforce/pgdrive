@@ -12,6 +12,7 @@ class BaseManager(Randomizable):
         assert engine_initialized(), "You should not create manager before the initialization of BaseEngine"
         self.engine = get_engine()
         Randomizable.__init__(self, self.engine.global_random_seed)
+        self._spawned_objects = {}
 
     def before_step(self, *args, **kwargs) -> dict:
         """
@@ -35,7 +36,8 @@ class BaseManager(Randomizable):
         """
         Update episode level config to this manager and clean element or detach element
         """
-        pass
+        self.engine.clear_objects([object_id for object_id in self._spawned_objects])
+        self._spawned_objects = {}
 
     def reset(self):
         """
@@ -55,3 +57,9 @@ class BaseManager(Randomizable):
         Destroy manager
         """
         self.engine = None
+        self._spawned_objects = None
+
+    def spawn_objects(self, *args, **kwargs):
+        object = self.spawn_objects(*args, **kwargs)
+        self._spawned_objects[object.id] = object
+        return object

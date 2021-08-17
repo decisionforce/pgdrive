@@ -64,7 +64,7 @@ class AgentManager(BaseManager):
         ret = {}
         p = only_default_agent if not self.engine.global_config["random_agent_model"] else None
         for agent_id, v_config in config_dict.items():
-            obj = self.engine.spawn_object(random_vehicle_type(self.np_random, p), vehicle_config=v_config)
+            obj = self.spawn_object(random_vehicle_type(self.np_random, p), vehicle_config=v_config)
             ret[agent_id] = obj
             # note: agent.id = object id
             if self.engine.global_config["manual_control"] and self.engine.global_config["use_render"]:
@@ -74,20 +74,21 @@ class AgentManager(BaseManager):
             self.engine.add_policy(obj.id, policy)
         return ret
 
+    def before_reset(self):
+        if not self.INITIALIZED:
+            super(AgentManager, self).__init__()
+            self.INITIALIZED = True
+        super(AgentManager, self).before_reset()
+
     def reset(self):
         """
         Agent manager is really initialized after the BaseVehicle Instances are created
         """
-        if not self.INITIALIZED:
-            super(AgentManager, self).__init__()
-            self.INITIALIZED = True
-
         config = self.engine.global_config
         self._debug = config["debug"]
         self._delay_done = config["delay_done"]
         self._infinite_agents = config["num_agents"] == -1
         self._allow_respawn = config["allow_respawn"]
-        self.engine.clear_objects([k for k in self._active_objects.keys()] + [k for k in self._dying_objects.keys()])
         init_vehicles = self._get_vehicles(
             config_dict=self.engine.global_config["target_vehicle_configs"] if self.engine.
             global_config["is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]}
