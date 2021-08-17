@@ -298,7 +298,7 @@ class AgentManager(BaseManager):
     def _remove_vehicle(self, vehicle):
         vehicle_name = vehicle.name
         assert vehicle_name not in self._active_objects
-        self.engine.clear_objects([vehicle_name])
+        self.clear_objects([vehicle_name])
         self._agent_to_object.pop(self._object_to_agent[vehicle_name])
         self._object_to_agent.pop(vehicle_name)
 

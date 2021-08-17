@@ -104,7 +104,7 @@ class TrafficManager(BaseManager):
                 # v.reset(self.current_map)
                 # self.engine.get_policy(v.id).reset()
         for v in v_to_remove:
-            self.engine.clear_objects([v.id])
+            self.clear_objects([v.id])
             self._traffic_vehicles.remove(v)
         return dict()
 
@@ -204,7 +204,7 @@ class TrafficManager(BaseManager):
             #     # Do special handling for ramp, and there must be vehicles created there
             #     continue
             vehicle_type = self.random_vehicle_type()
-            random_v = self.spawn_object_for_debug(
+            random_v = self.spawn_object(
                 vehicle_type,
                 vehicle_config={
                     "spawn_lane_index": lane.index,
@@ -305,7 +305,7 @@ class TrafficManager(BaseManager):
         Destory func, release resource
         :return: None
         """
-        self.engine.clear_objects([v.id for v in self._traffic_vehicles])
+        self.clear_objects([v.id for v in self._traffic_vehicles])
         self._traffic_vehicles = []
         # current map
 
