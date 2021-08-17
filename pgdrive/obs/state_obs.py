@@ -7,7 +7,7 @@ from pgdrive.utils.math_utils import clip, norm
 
 
 class StateObservation(ObservationBase):
-    ego_state_obs_dim = 8
+    ego_state_obs_dim = 6
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
@@ -19,6 +19,8 @@ class StateObservation(ObservationBase):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + Navigation.navigation_info_dim + self.get_side_detector_dim()
+        if self.config["random_agent_model"]:
+            shape+=2
         return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
@@ -54,8 +56,8 @@ class StateObservation(ObservationBase):
         ego_state = self.vehicle_state(vehicle)
         return np.concatenate([ego_state, navi_info])
 
-    @staticmethod
-    def vehicle_state(vehicle):
+
+    def vehicle_state(self, vehicle):
         """
         Wrap vehicle states to list
         """
@@ -99,11 +101,12 @@ class StateObservation(ObservationBase):
             info += vehicle.lane_line_detector.perceive(vehicle, vehicle.engine.physics_world.static_world).cloud_points
         else:
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
-            info.append(clip((lateral * 2 / vehicle.navigation.navigation.map.MAX_LANE_WIDTH + 1.0) / 2.0, 0.0, 1.0))
+            info.append(clip((lateral * 2 / vehicle.navigation.map.MAX_LANE_WIDTH + 1.0) / 2.0, 0.0, 1.0))
 
         # add vehicle length/width
-        info.append(clip(vehicle.LENGTH / vehicle.MAX_LENGTH, 0.0, 1.0))
-        info.append(clip(vehicle.WIDTH / vehicle.MAX_WIDTH, 0.0, 1.0))
+        if self.config["random_agent_model"]:
+            info.append(clip(vehicle.LENGTH / vehicle.MAX_LENGTH, 0.0, 1.0))
+            info.append(clip(vehicle.WIDTH / vehicle.MAX_WIDTH, 0.0, 1.0))
         return info
 
     def get_side_detector_dim(self):

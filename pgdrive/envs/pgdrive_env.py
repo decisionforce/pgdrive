@@ -36,7 +36,7 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         BaseMap.LANE_NUM: 3,
         "exit_length": 50,
     },
-    load_map_from_json=False,  # Whether to load maps from pre-generated file
+    load_map_from_json=True,  # Whether to load maps from pre-generated file
     _load_map_from_json=pregenerated_map_file,  # The path to the pre-generated file
 
     # ===== Observation =====
@@ -137,6 +137,7 @@ class PGDriveEnv(BasePGDriveEnv):
             easy_map_config=config["map"], new_map_config=config["map_config"], default_config=self.default_config_copy
         )
         config["vehicle_config"]["rgb_clip"] = config["rgb_clip"]
+        config["vehicle_config"]["random_agent_model"] = config["random_agent_model"]
         return config
 
     def _get_observations(self):

@@ -25,7 +25,7 @@ class TestEnv(PGDriveEnv):
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 # "debug": True,
-                "random_lane_width":True,
+                # "random_lane_width":True,
                 "fast": True,
 
                 # "map_config": {

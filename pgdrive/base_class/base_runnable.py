@@ -24,13 +24,8 @@ class BaseRunnable(Configurable, Nameable, Randomizable):
             self.PARAMETER_SPACE, ParameterSpace
         ), "Using PGSpace to define parameter spaces of " + self.class_name
         self.sample_parameters()
-        if config is not None:
-            # filter none,
-            for para in self.PARAMETER_SPACE.parameters:
-                if config[para] is None:
-                    config[para] = self.config[para]
-            # use external config update to overwrite sampled parameters, except None
-            self.update_config(config, allow_add_new_key=True)
+        # use external config update to overwrite sampled parameters, except None
+        self.update_config(config, allow_add_new_key=True)
 
     def get_state(self) -> Dict:
         """
