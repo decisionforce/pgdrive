@@ -24,7 +24,7 @@ class TestEnv(PGDriveEnv):
                 "use_render": True,
                 "decision_repeat": 5,
                 "rgb_clip": True,
-                "debug": True,
+                # "debug": True,
                 "fast": True,
 
                 # "map_config": {
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     import time
     start = time.time()
     o = env.reset()
-    print(len(env.engine.traffic_manager._traffic_vehicles))
+
     for s in range(1, 100000):
         o, r, d, info = env.step([.0, 0.])
         # info["fuel"] = env.vehicle.energy_consumption
@@ -74,4 +74,5 @@ if __name__ == "__main__":
         #     )
         if d:
             # env.close()
+            print(len(env.engine._spawned_objects))
             env.reset()

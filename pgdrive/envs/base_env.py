@@ -172,13 +172,8 @@ class BasePGDriveEnv(gym.Env):
         self.engine = initialize_engine(self.config)
         # engine setup
         self.setup_engine()
-        # init agent
-        self.agent_manager.init(config_dict=self._get_target_vehicle_config())
         # other optional initialization
         self._after_lazy_init()
-
-    def _get_target_vehicle_config(self):
-        return {self.DEFAULT_AGENT: self.config["vehicle_config"]}
 
     def _after_lazy_init(self):
         pass
@@ -371,16 +366,6 @@ class BasePGDriveEnv(gym.Env):
         :return: Dict[agent_id:vehicle]
         """
         return self.agent_manager.active_agents
-
-    @property
-    def pending_vehicles(self):
-        """
-        Return pending BaseVehicles, it takes effect in MARL-env
-        :return: Dict[agent_id: pending_vehicles]
-        """
-        if not self.is_multi_agent:
-            raise ValueError("Pending agents is not available in single-agent env")
-        return self.agent_manager.pending_objects
 
     def setup_engine(self):
         """

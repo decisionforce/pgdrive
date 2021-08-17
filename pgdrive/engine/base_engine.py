@@ -180,6 +180,11 @@ class BaseEngine(EngineCore, Randomizable):
 
         if self.main_camera is not None:
             self.main_camera.reset()
+            if hasattr(self, "agent_manager"):
+                vehicles = self.agent_manager.get_vehicle_list()
+                current_track_vehicle = vehicles[0]
+                self.main_camera.set_follow_lane(self.global_config["use_chase_camera_follow_lane"])
+                self.main_camera.track(current_track_vehicle)
 
     def before_step(self, external_actions: Dict[AnyStr, np.array]):
         """

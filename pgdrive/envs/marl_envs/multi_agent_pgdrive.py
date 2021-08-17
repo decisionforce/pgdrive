@@ -105,8 +105,10 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         )
 
         self._spawn_manager.set_spawn_roads(self.spawn_roads)
-
         ret_config = self._update_agent_pos_configs(ret_config)
+
+        if "prefer_track_agent" in config and config["prefer_track_agent"]:
+            ret_config["target_vehicle_configs"][config["prefer_track_agent"]]["am_i_the_special_one"] = True
         return ret_config
 
     def _update_agent_pos_configs(self, config):
@@ -148,8 +150,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -192,15 +194,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 self.current_track_vehicle.name) \
                 and self.engine.task_manager.hasTaskNamed(self.main_camera.CHASE_TASK_NAME):
             self.chase_camera()
-
-    def _get_target_vehicle_config(self):
-        ret = {
-            name: self._get_single_vehicle_config(new_config)
-            for name, new_config in self.config["target_vehicle_configs"].items()
-        }
-        if "prefer_track_agent" in self.config and self.config["prefer_track_agent"]:
-            ret[self.config["prefer_track_agent"]]["am_i_the_special_one"] = True
-        return ret
 
     def _get_observations(self):
         return {
