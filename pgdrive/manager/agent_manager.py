@@ -60,11 +60,12 @@ class AgentManager(BaseManager):
         self._infinite_agents = None
 
     def _get_vehicles(self, config_dict: dict):
-        from pgdrive.component.vehicle.vehicle_type import random_vehicle_type, only_default_agent
+        from pgdrive.component.vehicle.vehicle_type import random_vehicle_type, vehicle_type
         ret = {}
-        p = only_default_agent if not self.engine.global_config["random_agent_model"] else None
+        v_type = random_vehicle_type(self.np_random) if self.engine.global_config["random_agent_model"] else \
+            vehicle_type[self.engine.global_config["vehicle_config"]["vehicle_model"]]
         for agent_id, v_config in config_dict.items():
-            obj = self.spawn_object(random_vehicle_type(self.np_random, p), vehicle_config=v_config)
+            obj = self.spawn_object(v_type, vehicle_config=v_config)
             ret[agent_id] = obj
             # note: agent.id = object id
             if self.engine.global_config["manual_control"] and self.engine.global_config["use_render"]:
@@ -91,7 +92,7 @@ class AgentManager(BaseManager):
         self._allow_respawn = config["allow_respawn"]
         init_vehicles = self._get_vehicles(
             config_dict=self.engine.global_config["target_vehicle_configs"] if self.engine.
-            global_config["is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]}
+                global_config["is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]}
         )
         vehicles_created = set(init_vehicles.keys())
         vehicles_in_config = set(self._init_observations.keys())

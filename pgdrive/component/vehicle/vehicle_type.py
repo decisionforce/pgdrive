@@ -73,7 +73,6 @@ class SVehicle(BaseVehicle):
 
 
 vehicle_type = {"s": SVehicle, "m": MVehicle, "l": LVehicle, "xl": XLVehicle, "default": DefaultVehicle}
-only_default_agent = [0, 0, 0, 0, 1]
 
 
 def random_vehicle_type(np_random, p=None):

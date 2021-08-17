@@ -48,6 +48,7 @@ BASE_DEFAULT_CONFIG = dict(
     # ===== Vehicle =====
     vehicle_config=dict(
         increment_steering=False,
+        vehicle_model="default",
         show_navi_mark=True,
         wheel_friction=0.6,
         max_engine_force=500,
