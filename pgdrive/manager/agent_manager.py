@@ -58,10 +58,11 @@ class AgentManager(BaseManager):
         self._infinite_agents = None
 
     def _get_vehicles(self, config_dict: dict):
-        from pgdrive.component.vehicle.vehicle_type import DefaultVehicle
+        from pgdrive.component.vehicle.vehicle_type import random_vehicle_type, only_default_agent
         ret = {}
+        p = only_default_agent if not self.engine.global_config["random_agent_model"] else None
         for agent_id, v_config in config_dict.items():
-            obj = self.engine.spawn_object(DefaultVehicle, vehicle_config=v_config)
+            obj = self.engine.spawn_object(random_vehicle_type(self.np_random, p), vehicle_config=v_config)
             ret[agent_id] = obj
             # note: agent.id = object id
             if self.engine.global_config["manual_control"] and self.engine.global_config["use_render"]:
@@ -282,6 +283,7 @@ class AgentManager(BaseManager):
         self.action_spaces = {}
 
         self.next_agent_count = 0
+        self.INITIALIZED = False
 
     def _put_to_dying_queue(self, v):
         vehicle_name = v.name

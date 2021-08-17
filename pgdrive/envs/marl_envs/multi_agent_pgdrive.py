@@ -14,6 +14,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
     is_multi_agent=True,
     num_agents=2,  # If num_agents is set to None, then endless vehicles will be added only the empty spawn points exist
+    random_agent_model=False,
 
     # Whether to terminate a vehicle if it crash with others. Since in MA env the crash is extremely dense, so
     # frequently done might not be a good idea.
