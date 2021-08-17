@@ -7,10 +7,11 @@ from pgdrive.utils.math_utils import clip, norm
 
 
 class StateObservation(ObservationBase):
-    ego_state_obs_dim = 6
+    ego_state_obs_dim = 8
     """
     Use vehicle state info, navigation info and lidar point clouds info as input
     """
+
     def __init__(self, config):
         super(StateObservation, self).__init__(config)
 
@@ -18,7 +19,7 @@ class StateObservation(ObservationBase):
     def observation_space(self):
         # Navi info + Other states
         shape = self.ego_state_obs_dim + Navigation.navigation_info_dim + self.get_side_detector_dim()
-        return gym.spaces.Box(-0.0, 1.0, shape=(shape, ), dtype=np.float32)
+        return gym.spaces.Box(-0.0, 1.0, shape=(shape,), dtype=np.float32)
 
     def observe(self, vehicle):
         """
@@ -100,6 +101,9 @@ class StateObservation(ObservationBase):
             _, lateral = vehicle.lane.local_coordinates(vehicle.position)
             info.append(clip((lateral * 2 / vehicle.navigation.get_current_lane_width() + 1.0) / 2.0, 0.0, 1.0))
 
+        # add vehicle length/width
+        info.append(clip(vehicle.LENGTH / vehicle.MAX_LENGTH, 0.0, 1.0))
+        info.append(clip(vehicle.WIDTH / vehicle.MAX_WIDTH, 0.0, 1.0))
         return info
 
     def get_side_detector_dim(self):

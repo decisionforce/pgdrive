@@ -80,6 +80,8 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     """
     COLLISION_MASK = CollisionGroup.Vehicle
     PARAMETER_SPACE = ParameterSpace(VehicleParameterSpace.BASE_VEHICLE)
+    MAX_LENGTH = 10
+    MAX_WIDTH = 2.5
 
     LENGTH = None
     WIDTH = None
@@ -481,11 +483,11 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     """-------------------------------------- for vehicle making ------------------------------------------"""
 
     def _create_vehicle_chassis(self):
-        para = self.get_config()
-
         self.LENGTH = type(self).LENGTH
         self.WIDTH = type(self).WIDTH
         self.HEIGHT = type(self).HEIGHT
+        assert self.LENGTH < BaseVehicle.MAX_LENGTH, "Vehicle is too large!"
+        assert self.WIDTH < BaseVehicle.MAX_WIDTH, "Vehicle is too large!"
 
         chassis = BaseRigidBodyNode(self.name, BodyName.Vehicle)
         chassis.setIntoCollideMask(CollisionGroup.Vehicle)
