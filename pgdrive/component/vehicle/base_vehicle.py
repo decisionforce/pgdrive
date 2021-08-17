@@ -1,4 +1,5 @@
 import math
+from pgdrive.utils.space import VehicleParameterSpace, ParameterSpace
 from collections import deque
 from typing import Union, Optional
 
@@ -70,6 +71,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
     Vehicle chassis and its wheels index
                     0       1
                     II-----II
+                    II-----II
                         |
                         |  <---chassis/wheelbase
                         |
@@ -77,6 +79,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
                     2       3
     """
     COLLISION_MASK = CollisionGroup.Vehicle
+    PARAMETER_SPACE = ParameterSpace(VehicleParameterSpace.BASE_VEHICLE)
 
     LENGTH = None
     WIDTH = None
@@ -563,7 +566,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         wheel.setWheelsDampingRelaxation(4.8)
         wheel.setWheelsDampingCompression(1.2)
         wheel.setFrictionSlip(self.config["wheel_friction"])
-        wheel.setRollInfluence(1.5)
+        wheel.setRollInfluence(0.5)
         return wheel
 
     def add_image_sensor(self, name: str, sensor: ImageBuffer):

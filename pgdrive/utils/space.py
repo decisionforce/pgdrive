@@ -24,6 +24,7 @@ class Space:
     code that applies to any Env. For example, you can choose a random
     action.
     """
+
     def __init__(self, shape=None, dtype=None):
         import numpy as np  # takes about 300-400ms to import, so we load lazily
         self.shape = None if shape is None else tuple(shape)
@@ -93,6 +94,7 @@ class Dict(Space):
         })
     })
     """
+
     def __init__(self, spaces=None, **spaces_kwargs):
         assert (spaces is None) or (not spaces_kwargs), 'Use either Dict(spaces=dict(...)) or Dict(foo=x, bar=z)'
         if spaces is None:
@@ -155,6 +157,7 @@ class ParameterSpace(Dict):
     Usage:
     PGSpace({"lane_length":length})
     """
+
     def __init__(self, our_config: tp.Dict[str, tp.Union[BoxSpace, DiscreteSpace, ConstantSpace]]):
         super(ParameterSpace, self).__init__(ParameterSpace.wrap2gym_space(our_config))
         self.parameters = set(our_config.keys())
@@ -164,11 +167,11 @@ class ParameterSpace(Dict):
         ret = dict()
         for key, value in our_config.items():
             if isinstance(value, BoxSpace):
-                ret[key] = Box(low=value.min, high=value.max, shape=(1, ))
+                ret[key] = Box(low=value.min, high=value.max, shape=(1,))
             elif isinstance(value, DiscreteSpace):
-                ret[key] = Box(low=value.min, high=value.max, shape=(1, ), dtype=np.int64)
+                ret[key] = Box(low=value.min, high=value.max, shape=(1,), dtype=np.int64)
             elif isinstance(value, ConstantSpace):
-                ret[key] = Box(low=value.value, high=value.value, shape=(1, ))
+                ret[key] = Box(low=value.value, high=value.value, shape=(1,))
             else:
                 raise ValueError("{} can not be wrapped in gym space".format(key))
         return ret
@@ -217,22 +220,42 @@ class Parameter:
 
 
 class VehicleParameterSpace:
-    BASE_VEHICLE = {
-        # Now the parameter sample is not available and thus the value space is incorrect
-        Parameter.vehicle_height: ConstantSpace(1),
-        Parameter.front_tire_longitude: ConstantSpace(1.05),
-        Parameter.rear_tire_longitude: ConstantSpace(1.17),
-        Parameter.tire_lateral: ConstantSpace(0.8),
-        Parameter.tire_radius: ConstantSpace(0.25),
-        Parameter.mass: ConstantSpace(800.0),
-        Parameter.heading: ConstantSpace(0.0),
-
-        # visualization
-        Parameter.vehicle_vis_h: ConstantSpace(0),
-        Parameter.vehicle_vis_y: ConstantSpace(0),
-        Parameter.vehicle_vis_z: ConstantSpace(0),
-        Parameter.vehicle_vis_scale: ConstantSpace(1),
-    }
+    BASE_VEHICLE = dict(
+        wheel_friction=ConstantSpace(0.9),
+        max_engine_force=ConstantSpace(800),
+        max_brake_force=ConstantSpace(150),
+        max_steering=ConstantSpace(40),
+        max_speed=ConstantSpace(120),
+    )
+    DEFAULT_VEHICLE = BASE_VEHICLE
+    S_VEHICLE = dict(
+        wheel_friction=ConstantSpace(0.9),
+        max_engine_force=ConstantSpace(450),
+        max_brake_force=ConstantSpace(55),
+        max_steering=ConstantSpace(50),
+        max_speed=ConstantSpace(100),
+    )
+    M_VEHICLE = dict(
+        wheel_friction=ConstantSpace(0.75),
+        max_engine_force=ConstantSpace(750),
+        max_brake_force=ConstantSpace(90),
+        max_steering=ConstantSpace(45),
+        max_speed=ConstantSpace(100),
+    )
+    L_VEHICLE = dict(
+        wheel_friction=ConstantSpace(0.8),
+        max_engine_force=ConstantSpace(550),
+        max_brake_force=ConstantSpace(70),
+        max_steering=ConstantSpace(40),
+        max_speed=ConstantSpace(100),
+    )
+    XL_VEHICLE = dict(
+        wheel_friction=ConstantSpace(0.7),
+        max_engine_force=ConstantSpace(600),
+        max_brake_force=ConstantSpace(70),
+        max_steering=ConstantSpace(35),
+        max_speed=ConstantSpace(100),
+    )
 
 
 class BlockParameterSpace:
@@ -297,6 +320,7 @@ class Discrete(Space):
         >>> Discrete(2)
 
     """
+
     def __init__(self, n):
         assert n >= 0
         self.n = n
@@ -340,6 +364,7 @@ class Box(Space):
         Box(2,)
 
     """
+
     def __init__(self, low, high, shape=None, dtype=np.float32):
         assert dtype is not None, 'dtype must be explicitly provided. '
         self.dtype = np.dtype(dtype)
