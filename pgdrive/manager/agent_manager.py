@@ -22,14 +22,10 @@ class AgentManager(BaseManager):
     INITIALIZED = False  # when vehicles instances are created, it will be set to True
     HELL_POSITION = (-999, -999, -999)  # a place to store pending vehicles
 
-    def __init__(self, init_observations, never_allow_respawn, debug=False, delay_done=0, infinite_agents=False):
+    def __init__(self, init_observations, init_action_space):
         """
         The real init is happened in self.init(), in which super().__init__() will be called
         """
-        # when new agent joins in the game, we only change this two maps.
-        self._agent_to_object = {}
-        self._object_to_agent = {}
-
         # BaseVehicles which can be controlled by policies when env.step() called
         self._active_objects = {}
 
@@ -44,11 +40,6 @@ class AgentManager(BaseManager):
 
         self.next_agent_count = 0
         self.next_newly_added_agent_count = -1
-        self._allow_respawn = True if not never_allow_respawn else False
-        self.never_allow_respawn = never_allow_respawn
-        self._debug = debug
-        self._delay_done = delay_done
-        self._infinite_agents = infinite_agents
         self._init_config_dict = None
 
         self._init_object_to_agent = None
@@ -65,7 +56,26 @@ class AgentManager(BaseManager):
         self._agent_to_object = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
         self._object_to_agent = {k: k for k in self.observations.keys()}  # no target vehicles created, fake init
 
+        # get the value in init()
+        self._allow_respawn = None
+        self.never_allow_respawn = None
+        self._debug = None
+        self._delay_done = None
+        self._infinite_agents = None
+
+        # init spaces before initializing env.engine
+        observation_space = {agent_id: single_obs.observation_space for agent_id, single_obs in
+                             init_observations.items()}
+        assert isinstance(init_action_space, dict)
+        assert isinstance(observation_space, dict)
+        self._init_observation_spaces = observation_space
+        self.observation_spaces = copy.copy(observation_space)
+
+        self._init_action_spaces = init_action_space
+        self.action_spaces = copy.copy(init_action_space)
+
     def _get_vehicles(self, config_dict: dict):
+        # TODO rename to spawn_object
         from pgdrive.component.vehicle.vehicle_type import DefaultVehicle
         ret = {}
         for agent_id, v_config in config_dict.items():
@@ -79,23 +89,18 @@ class AgentManager(BaseManager):
             self.engine.add_policy(obj.id, policy)
         return ret
 
-    def init_space(self, init_observation_space, init_action_space):
-        """
-        For getting env.observation_space/action_space before making vehicles
-        """
-        assert isinstance(init_action_space, dict)
-        assert isinstance(init_observation_space, dict)
-        self._init_observation_spaces = init_observation_space
-        self.observation_spaces = copy.copy(init_observation_space)
-
-        self._init_action_spaces = init_action_space
-        self.action_spaces = copy.copy(init_action_space)
-
     def init(self, config_dict: dict):
         """
         Agent manager is really initialized after the BaseVehicle Instances are created
         """
         super(AgentManager, self).__init__()
+        config = self.engine.global_config
+        self._allow_respawn = True if config["allow_respawn"] else False
+        self.never_allow_respawn = not config["allow_respawn"]
+        self._debug = config["debug"]
+        self._delay_done = config["delay_done"]
+        self._infinite_agents = config["num_agents"] == -1
+
         self._init_config_dict = config_dict
         init_vehicles = self._get_vehicles(config_dict=config_dict)
         vehicles_created = set(init_vehicles.keys())

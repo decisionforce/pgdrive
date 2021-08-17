@@ -120,16 +120,8 @@ class BasePGDriveEnv(gym.Env):
         assert isinstance(self.num_agents, int) and (self.num_agents > 0 or self.num_agents == -1)
 
         # observation and action space
-        self.agent_manager = AgentManager(
-            init_observations=self._get_observations(),
-            never_allow_respawn=not self.config["allow_respawn"],
-            debug=self.config["debug"],
-            delay_done=self.config["delay_done"],
-            infinite_agents=self.num_agents == -1
-        )
-        self.agent_manager.init_space(
-            init_observation_space=self._get_observation_space(), init_action_space=self._get_action_space()
-        )
+        self.agent_manager = AgentManager(init_observations=self._get_observations(),
+                                          init_action_space=self._get_action_space())
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -160,10 +152,14 @@ class BasePGDriveEnv(gym.Env):
         return {v_id: obs.observation_space for v_id, obs in self.observations.items()}
 
     def _get_action_space(self):
-        return {
-            v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"])
-            for v_id in self.observations.keys()
-        }
+        if self.is_multi_agent:
+            return {
+                v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"])
+                for v_id in self.config["target_vehicle_configs"].keys()
+            }
+        else:
+            return {DEFAULT_AGENT: BaseVehicle.get_action_space_before_init(
+                self.config["vehicle_config"]["extra_action_dim"])}
 
     def lazy_init(self):
         """
