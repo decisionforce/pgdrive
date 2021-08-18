@@ -96,9 +96,10 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     crash_vehicle_penalty=5.0,
     crash_object_penalty=5.0,
     acceleration_penalty=0.0,
+    low_speed_penalty=0.0,
     driving_reward=1.0,
     general_penalty=0.0,
-    speed_reward=0.5,
+    speed_reward=0.1,
     use_lateral=False,
 
     # ===== Cost Scheme =====
