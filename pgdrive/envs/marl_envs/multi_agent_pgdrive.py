@@ -12,12 +12,12 @@ from pgdrive.utils.config import merge_dicts
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
     is_multi_agent=True,
-    num_agents=2,  # If num_agents is set to None, then endless vehicles will be added only the empty spawn points exist
+    num_agents=20,  # If num_agents is set to None, then endless vehicles will be added only the empty spawn points exist
     random_agent_model=False,
 
     # Whether to terminate a vehicle if it crash with others. Since in MA env the crash is extremely dense, so
     # frequently done might not be a good idea.
-    crash_done=False,
+    crash_done=True,
     out_of_road_done=True,
     delay_done=25,  # Wait for 5 seconds in real world.
 
