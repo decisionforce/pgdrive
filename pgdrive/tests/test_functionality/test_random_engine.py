@@ -103,14 +103,16 @@ def test_random_traffic():
 
 
 def test_random_lane_width():
-    env = PGDriveEnv({
-        "environment_num": 5,
-        "traffic_density": .2,
-        "traffic_mode": "trigger",
-        "start_seed": 12,
-        "random_lane_width": True,
-        "load_map_from_json": False
-    })
+    env = PGDriveEnv(
+        {
+            "environment_num": 5,
+            "traffic_density": .2,
+            "traffic_mode": "trigger",
+            "start_seed": 12,
+            "random_lane_width": True,
+            "load_map_from_json": False
+        }
+    )
     try:
         o = env.reset(force_seed=12)
         old_config_1 = env.vehicle.lane.width
@@ -129,14 +131,16 @@ def test_random_lane_width():
 
 
 def test_random_lane_num():
-    env = PGDriveEnv({
-        "environment_num": 5,
-        "traffic_density": .2,
-        "traffic_mode": "trigger",
-        "start_seed": 12,
-        "load_map_from_json": False,
-        "random_lane_num": True,
-    })
+    env = PGDriveEnv(
+        {
+            "environment_num": 5,
+            "traffic_density": .2,
+            "traffic_mode": "trigger",
+            "start_seed": 12,
+            "load_map_from_json": False,
+            "random_lane_num": True,
+        }
+    )
     try:
         o = env.reset(force_seed=12)
         old_config_1 = env.vehicle.navigation.get_current_lane_num()
@@ -160,13 +164,15 @@ def test_random_lane_num():
 
 
 def test_random_vehicle_parameter():
-    env = PGDriveEnv({
-        "environment_num": 5,
-        "traffic_density": .2,
-        "traffic_mode": "trigger",
-        "start_seed": 12,
-        "random_agent_model": True
-    })
+    env = PGDriveEnv(
+        {
+            "environment_num": 5,
+            "traffic_density": .2,
+            "traffic_mode": "trigger",
+            "start_seed": 12,
+            "random_agent_model": True
+        }
+    )
     try:
         o = env.reset(force_seed=12)
         old_config_1 = env.vehicle.get_config(True)

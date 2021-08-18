@@ -25,9 +25,9 @@ class TestEnv(PGDriveEnv):
                 "decision_repeat": 5,
                 "rgb_clip": True,
                 # "debug": True,
-                "random_lane_width":True,
-                "load_map_from_json":False,
-                "random_lane_num":True,
+                "random_lane_width": True,
+                "load_map_from_json": False,
+                "random_lane_num": True,
                 "fast": True,
 
                 # "map_config": {
@@ -65,10 +65,14 @@ if __name__ == "__main__":
     for s in range(1, 100000):
         o, r, d, info = env.step([.0, 1.])
         # info["fuel"] = env.vehicle.energy_consumption
-        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane),
-                         "engine_force":env.vehicle.config["max_engine_force"],
-                         "current_seed":env.current_seed,
-                         "lane_width":env.vehicle.lane.width})
+        env.render(
+            text={
+                "heading_diff": env.vehicle.heading_diff(env.vehicle.lane),
+                "engine_force": env.vehicle.config["max_engine_force"],
+                "current_seed": env.current_seed,
+                "lane_width": env.vehicle.lane.width
+            }
+        )
         # assert env.observation_space.contains(o)
         # if (s + 1) % 100 == 0:
         #     print(
