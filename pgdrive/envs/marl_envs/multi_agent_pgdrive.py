@@ -4,7 +4,6 @@ import logging
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.road.road import Road
 from pgdrive.constants import TerminationState
-from pgdrive.envs.base_env import BasePGDriveEnv
 from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
 from pgdrive.manager.spawn_manager import SpawnManager
 from pgdrive.utils import setup_logger, get_np_random, Config
