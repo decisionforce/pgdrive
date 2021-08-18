@@ -45,26 +45,26 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
     # ===== Traffic =====
     traffic_density=0.1,
     traffic_mode=TrafficMode.Trigger,  # "Respawn", "Trigger", "Hybrid"
-    random_traffic=False,  # Traffic is randomized at default.
+    random_traffic=True,  # Traffic is randomized at default.
 
     # ===== Object =====
     accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
 
     # ===== Others =====
-    auto_termination=True,  # Whether to done the environment after 250*(num_blocks+1) steps.
+    auto_termination=False,  # Whether to done the environment after 250*(num_blocks+1) steps.
 
     # ===== Single-agent vehicle config =====
     vehicle_config=dict(
         # ===== vehicle module config =====
         # laser num, distance, other vehicle info num
         lidar=dict(num_lasers=240, distance=50, num_others=4, gaussian_noise=0.0, dropout_prob=0.0),
+        side_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
+        lane_line_detector=dict(num_lasers=0, distance=20, gaussian_noise=0.0, dropout_prob=0.0),
         show_lidar=False,
         mini_map=(84, 84, 250),  # buffer length, width
         rgb_camera=(84, 84),  # buffer length, width
         depth_camera=(84, 84, True),  # buffer length, width, view_ground
-        side_detector=dict(num_lasers=0, distance=50),  # laser num, distance
         show_side_detector=False,
-        lane_line_detector=dict(num_lasers=0, distance=20),  # laser num, distance
         show_lane_line_detector=False,
 
         # ===== use image =====
@@ -86,18 +86,21 @@ PGDriveEnvV1_DEFAULT_CONFIG = dict(
         random_color=False,
     ),
     rgb_clip=True,
+    gaussian_noise=0.0,
+    dropout_prob=0.0,
 
     # ===== Reward Scheme =====
-    success_reward=20,
-    out_of_road_penalty=5,
-    crash_vehicle_penalty=10,
-    crash_object_penalty=2,
+    # See: https://github.com/decisionforce/pgdrive/issues/283
+    success_reward=10.0,
+    out_of_road_penalty=5.0,
+    crash_vehicle_penalty=5.0,
+    crash_object_penalty=5.0,
     acceleration_penalty=0.0,
-    steering_penalty=0.1,
-    low_speed_penalty=0.0,
     driving_reward=1.0,
     general_penalty=0.0,
-    speed_reward=0.1,
+    speed_reward=0.5,
+    use_lateral=False,
+
 
     # ===== Cost Scheme =====
     crash_vehicle_cost=1,
@@ -136,6 +139,20 @@ class PGDriveEnv(BasePGDriveEnv):
         )
         config["vehicle_config"]["rgb_clip"] = config["rgb_clip"]
         config["vehicle_config"]["random_agent_model"] = config["random_agent_model"]
+        if config.get("gaussian_noise", 0) > 0:
+            assert config["vehicle_config"]["lidar"]["gaussian_noise"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["side_detector"]["gaussian_noise"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["lane_line_detector"]["gaussian_noise"] == 0, "You already provide config!"
+            config["vehicle_config"]["lidar"]["gaussian_noise"] = config["gaussian_noise"]
+            config["vehicle_config"]["side_detector"]["gaussian_noise"] = config["gaussian_noise"]
+            config["vehicle_config"]["lane_line_detector"]["gaussian_noise"] = config["gaussian_noise"]
+        if config.get("dropout_prob", 0) > 0:
+            assert config["vehicle_config"]["lidar"]["dropout_prob"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["side_detector"]["dropout_prob"] == 0, "You already provide config!"
+            assert config["vehicle_config"]["lane_line_detector"]["dropout_prob"] == 0, "You already provide config!"
+            config["vehicle_config"]["lidar"]["dropout_prob"] = config["dropout_prob"]
+            config["vehicle_config"]["side_detector"]["dropout_prob"] = config["dropout_prob"]
+            config["vehicle_config"]["lane_line_detector"]["dropout_prob"] = config["dropout_prob"]
         return config
 
     def _get_observations(self):
