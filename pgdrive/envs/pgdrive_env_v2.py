@@ -48,10 +48,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
                     lane_line_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
 
                     # Following the examples: https://docs.panda3d.org/1.10/python/programming/physics/bullet/vehicles
-                    max_engine_force=1000,
-                    max_brake_force=100,
-                    max_steering=40,
-                    max_speed=80,
+                    # max_engine_force=1000,
+                    # max_brake_force=100,
+                    # max_steering=40,
+                    # max_speed=80,
                 ),
                 # map_config=dict(block_type_version="v2"),
                 auto_termination=False,
@@ -62,6 +62,9 @@ class PGDriveEnvV2(PGDriveEnvV1):
 
     def __init__(self, config: dict = None):
         super(PGDriveEnvV2, self).__init__(config=config)
+
+        print("Hi everyone!! This is PGDRIVE V2. Our config is now: ", self.config["load_map_from_json"], self.config["start_seed"], self.config["environment_num"], self.config["random_agent_model"])
+
 
     def _post_process_config(self, config):
         config = super(PGDriveEnvV2, self)._post_process_config(config)
