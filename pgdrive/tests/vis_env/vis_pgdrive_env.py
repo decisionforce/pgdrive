@@ -35,6 +35,10 @@ class TestEnv(PGDriveEnv):
                 #     Map.LANE_NUM: 3,
                 # },
                 "pstats": True,
+                "random_traffic":False,
+                "random_lane_width":True,
+                "random_agent_model":True,
+                "load_map_from_json":False,
                 "driving_reward": 1.0,
                 "vehicle_config": {
                     "enable_reverse": True,
@@ -63,7 +67,9 @@ if __name__ == "__main__":
     for s in range(1, 100000):
         o, r, d, info = env.step([.0, 1.])
         # info["fuel"] = env.vehicle.energy_consumption
-        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
+        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane),
+                         "lane_width":env.vehicle.lane.width,
+                         "max_engine_force":env.vehicle.config["max_engine_force"]})
         # assert env.observation_space.contains(o)
         # if (s + 1) % 100 == 0:
         #     print(

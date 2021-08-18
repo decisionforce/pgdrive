@@ -267,7 +267,8 @@ class BasePGDriveEnv(gym.Env):
 
         self._reset_config()
         self.engine.reset()
-        self._top_down_renderer.reset(self.current_map)
+        if self._top_down_renderer is not None:
+            self._top_down_renderer.reset(self.current_map)
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
         self.episode_steps = 0
