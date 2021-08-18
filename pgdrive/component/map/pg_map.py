@@ -19,18 +19,6 @@ class PGMap(BaseMap):
         """
         We can override this function to introduce other methods!
         """
-        if self.engine.global_config["random_lane_width"]:
-            assert not self.engine.global_config["load_map_from_json"
-                                                 ], "You are supposed to turn off the load_map_from_json"
-            self._config[self.LANE_WIDTH
-                         ] = self.np_random.rand() * (self.MAX_LANE_WIDTH - self.MIN_LANE_WIDTH) + self.MIN_LANE_WIDTH
-
-        if self.engine.global_config["random_lane_num"]:
-            assert not self.engine.global_config["load_map_from_json"
-                                                 ], "You are supposed to turn off the load_map_from_json"
-            self._config[self.LANE_NUM
-                         ] = self.np_random.randint(self.MIN_LANE_NUM, self.MAX_LANE_NUM)
-
         parent_node_path, physics_world = self.engine.worldNP, self.engine.physics_world
         generate_type = self._config[self.GENERATE_TYPE]
         if generate_type == BigGenerateMethod.BLOCK_NUM or generate_type == BigGenerateMethod.BLOCK_SEQUENCE:

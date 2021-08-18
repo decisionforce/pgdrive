@@ -9,7 +9,7 @@ class TestEnv(PGDriveEnv):
         """
         super(TestEnv, self).__init__(
             {
-                "environment_num": 5,
+                "environment_num": 1,
                 "traffic_density": .2,
                 "traffic_mode": "trigger",
                 "start_seed": 12,
@@ -67,7 +67,8 @@ if __name__ == "__main__":
         # info["fuel"] = env.vehicle.energy_consumption
         env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane),
                          "engine_force":env.vehicle.config["max_engine_force"],
-                         "current_seed":env.current_seed})
+                         "current_seed":env.current_seed,
+                         "lane_width":env.vehicle.lane.width})
         # assert env.observation_space.contains(o)
         # if (s + 1) % 100 == 0:
         #     print(
