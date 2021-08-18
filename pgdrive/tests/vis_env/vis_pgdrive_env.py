@@ -63,7 +63,9 @@ if __name__ == "__main__":
     for s in range(1, 100000):
         o, r, d, info = env.step([.0, 1.])
         # info["fuel"] = env.vehicle.energy_consumption
-        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane)})
+        env.render(text={"heading_diff": env.vehicle.heading_diff(env.vehicle.lane),
+                         "engine_force":env.vehicle.config["max_engine_force"],
+                         "current_seed":env.current_seed})
         # assert env.observation_space.contains(o)
         # if (s + 1) % 100 == 0:
         #     print(
