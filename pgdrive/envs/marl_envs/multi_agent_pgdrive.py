@@ -30,6 +30,9 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # horizon is also this value.
     horizon=1000,
 
+    # Use to determine what neighborhood means
+    neighbours_distance=10,
+
     # ===== Vehicle Setting =====
     vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0), random_color=True),
     target_vehicle_configs=dict(),
