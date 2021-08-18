@@ -40,18 +40,10 @@ class PGDriveEnvV2(PGDriveEnvV1):
                 gaussian_noise=0.0,
                 dropout_prob=0.0,
                 vehicle_config=dict(
-                    wheel_friction=0.8,
-
                     # See: https://github.com/decisionforce/pgdrive/issues/297
                     lidar=dict(num_lasers=240, distance=50, num_others=4, gaussian_noise=0.0, dropout_prob=0.0),
                     side_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
                     lane_line_detector=dict(num_lasers=0, distance=50, gaussian_noise=0.0, dropout_prob=0.0),
-
-                    # Following the examples: https://docs.panda3d.org/1.10/python/programming/physics/bullet/vehicles
-                    # max_engine_force=1000,
-                    # max_brake_force=100,
-                    # max_steering=40,
-                    # max_speed=80,
                 ),
                 # map_config=dict(block_type_version="v2"),
                 auto_termination=False,
