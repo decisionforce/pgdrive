@@ -43,9 +43,6 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     out_of_road_cost=0,  # Do not count out of road into cost!
 
     # ===== Environmental Setting =====
-    top_down_camera_initial_x=0,
-    top_down_camera_initial_y=0,
-    top_down_camera_initial_z=120,  # height
     traffic_density=0.,
     auto_termination=False,
     camera_height=4,
