@@ -328,7 +328,6 @@ def _vis():
         {
             "use_render": True,
             "fast": True,
-
             "num_agents": 5,
             "start_seed": 8000,
             "environment_num": 100
