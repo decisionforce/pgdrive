@@ -1,4 +1,5 @@
 import os.path as osp
+import copy
 import sys
 import time
 from collections import defaultdict
@@ -46,7 +47,7 @@ BASE_DEFAULT_CONFIG = dict(
     draw_map_resolution=1024,  # Drawing the map in a canvas of (x, x) pixels.
     top_down_camera_initial_x=0,
     top_down_camera_initial_y=0,
-    top_down_camera_initial_z=120,  # height
+    top_down_camera_initial_z=200,  # height
 
     # ===== Vehicle =====
     vehicle_config=dict(
@@ -66,8 +67,6 @@ BASE_DEFAULT_CONFIG = dict(
     physics_world_step_size=2e-2,
     show_fps=True,
     global_light=False,
-
-    # show message when render is called
     onscreen_message=True,
 
     # limit the render fps
@@ -107,6 +106,7 @@ class BasePGDriveEnv(gym.Env):
 
     # ===== Intialization =====
     def __init__(self, config: dict = None):
+        self._raw_input_config = copy.deepcopy(config)
         self.default_config_copy = Config(self.default_config(), unchangeable=True)
         merged_config = self._merge_extra_config(config)
         global_config = self._post_process_config(merged_config)
@@ -121,8 +121,7 @@ class BasePGDriveEnv(gym.Env):
 
         # observation and action space
         self.agent_manager = AgentManager(
-            init_observations=self._get_observations(), init_action_space=self._get_action_space()
-        )
+            init_observations=self._get_observations(), init_action_space=self._get_action_space())
 
         # map setting
         self.start_seed = self.config["start_seed"]
@@ -130,6 +129,7 @@ class BasePGDriveEnv(gym.Env):
 
         # lazy initialization, create the main vehicle in the lazy_init() func
         self.engine: Optional[BaseEngine] = None
+        self._top_down_renderer = None
         self.episode_steps = 0
         # self.current_seed = None
 
@@ -267,6 +267,7 @@ class BasePGDriveEnv(gym.Env):
 
         self._reset_config()
         self.engine.reset()
+        self._top_down_renderer.reset(self.current_map)
 
         self.dones = {agent_id: False for agent_id in self.vehicles.keys()}
         self.episode_steps = 0
@@ -287,6 +288,8 @@ class BasePGDriveEnv(gym.Env):
     def close(self):
         if self.engine is not None:
             close_engine()
+        if self._top_down_renderer is not None:
+            self._top_down_renderer.close()
 
     def force_close(self):
         print("Closing environment ... Please wait")
@@ -385,7 +388,6 @@ class BasePGDriveEnv(gym.Env):
 
     @property
     def current_map(self):
-        # TODO(pzh): Can we remove this?
         return self.engine.map_manager.current_map
 
     def _reset_global_seed(self, force_seed):
@@ -406,3 +408,10 @@ class BasePGDriveEnv(gym.Env):
         You may need to modify the global config in the new episode, do it here
         """
         pass
+
+    def _render_topdown(self, *args, **kwargs):
+        # dones = kwargs.pop("dones")
+        if self._top_down_renderer is None:
+            from pgdrive.obs.top_down_renderer import TopDownRenderer
+            self._top_down_renderer = TopDownRenderer(self, self.current_map, *args, **kwargs)
+        return self._top_down_renderer.render(list(self.vehicles.values()), self.agent_manager)

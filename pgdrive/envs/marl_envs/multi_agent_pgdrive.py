@@ -45,9 +45,6 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     out_of_road_cost=0,  # Do not count out of road into cost!
 
     # ===== Environmental Setting =====
-    top_down_camera_initial_x=0,
-    top_down_camera_initial_y=0,
-    top_down_camera_initial_z=200,  # height
     traffic_density=0.,
     auto_termination=False,
     camera_height=4,
@@ -63,20 +60,13 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     # A list of road instances denoting which roads afford spawn points. If not set, then search for all
     # possible roads and spawn new agents in them if possible.
-    spawn_roads = [
-        Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3),
-    ]
+    spawn_roads = [Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3)]
 
     @staticmethod
     def default_config() -> Config:
         config = PGDriveEnvV2.default_config()
         config.update(MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG)
         return config
-
-    def __init__(self, config=None):
-        self._raw_input_config = copy.deepcopy(config)
-        super(MultiAgentPGDrive, self).__init__(config)
-        self._top_down_renderer = None
 
     def _merge_extra_config(self, config) -> "Config":
         ret_config = self.default_config().update(
@@ -165,8 +155,6 @@ class MultiAgentPGDrive(PGDriveEnvV2):
     def reset(self, *args, **kwargs):
         self.config.update(self._update_agent_pos_configs(self.config))
         ret = super(MultiAgentPGDrive, self).reset(*args, **kwargs)
-        if self._top_down_renderer is not None:
-            self._top_down_renderer.reset(self.current_map)
         assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
         return ret
 
@@ -275,23 +263,11 @@ class MultiAgentPGDrive(PGDriveEnvV2):
             ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
         return ret
 
-    def _render_topdown(self, *args, **kwargs):
-        # dones = kwargs.pop("dones")
-        if self._top_down_renderer is None:
-            from pgdrive.obs.top_down_renderer import TopDownRenderer
-            self._top_down_renderer = TopDownRenderer(self, self.current_map, *args, **kwargs)
-        return self._top_down_renderer.render(list(self.vehicles.values()), self.agent_manager)
-
     def close_and_reset_num_agents(self, num_agents):
         config = copy.deepcopy(self._raw_input_config)
         self.close()
         config["num_agents"] = num_agents
         super(MultiAgentPGDrive, self).__init__(config)
-
-    def close(self):
-        super(MultiAgentPGDrive, self).close()
-        if self._top_down_renderer is not None:
-            self._top_down_renderer.close()
 
 
 def _test():
