@@ -4,9 +4,6 @@ from pgdrive.utils import setup_logger
 
 class TestEnv(PGDriveEnv):
     def __init__(self):
-        """
-        TODO a small bug exists in scene 9 (30 blocks), traffic density > 0, respawn mode
-        """
         super(TestEnv, self).__init__(
             {
                 "environment_num": 1,

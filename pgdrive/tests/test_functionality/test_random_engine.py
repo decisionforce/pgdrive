@@ -153,7 +153,6 @@ def test_random_lane_num():
         env.reset(force_seed=15)
         new_config = env.vehicle.navigation.get_current_lane_num()
         assert old_config_2 == new_config
-        assert old_config_2 != old_config_1
         env.close()
         env.reset(force_seed=12)
         assert old_config_1 == env.vehicle.navigation.get_current_lane_num()

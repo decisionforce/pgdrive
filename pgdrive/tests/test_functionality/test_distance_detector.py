@@ -5,14 +5,9 @@ from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import setup_logger
 
 
-class TestEnv(PGDriveEnv):
-    def __init__(self, config):
-        super(TestEnv, self).__init__(config)
-
-
 def test_original_lidar(render=False):
     setup_logger(debug=True)
-    env = TestEnv(
+    env = PGDriveEnv(
         {
             "use_render": render,
             "manual_control": render,
@@ -36,8 +31,8 @@ def test_original_lidar(render=False):
         another_v.reset()
         objs = env.vehicle.side_detector.perceive(env.vehicle, env.vehicle.engine.physics_world.static_world
                                                   ).detected_objects + env.vehicle.lane_line_detector.perceive(
-                                                      env.vehicle, env.vehicle.engine.physics_world.static_world
-                                                  ).detected_objects
+            env.vehicle, env.vehicle.engine.physics_world.static_world
+        ).detected_objects
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
@@ -64,7 +59,7 @@ def test_original_lidar(render=False):
 
 def test_lidar_with_mask(render=False):
     setup_logger(debug=True)
-    env = TestEnv(
+    env = PGDriveEnv(
         {
             "use_render": render,
             "manual_control": render,
@@ -89,8 +84,8 @@ def test_lidar_with_mask(render=False):
         # for test
         objs = env.vehicle.side_detector.perceive(env.vehicle, env.vehicle.engine.physics_world.static_world
                                                   ).detected_objects + env.vehicle.lane_line_detector.perceive(
-                                                      env.vehicle, env.vehicle.engine.physics_world.static_world
-                                                  ).detected_objects
+            env.vehicle, env.vehicle.engine.physics_world.static_world
+        ).detected_objects
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
