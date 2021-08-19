@@ -121,7 +121,8 @@ class BasePGDriveEnv(gym.Env):
 
         # observation and action space
         self.agent_manager = AgentManager(
-            init_observations=self._get_observations(), init_action_space=self._get_action_space())
+            init_observations=self._get_observations(), init_action_space=self._get_action_space()
+        )
 
         # map setting
         self.start_seed = self.config["start_seed"]

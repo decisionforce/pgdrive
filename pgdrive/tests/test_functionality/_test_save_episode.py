@@ -12,21 +12,23 @@ def test_save_episode(vis=False):
     test_dump = True
     save_episode = True,
     vis = True
-    env = PGDriveEnv({
-        "environment_num": 1,
-        "traffic_density": 0.1,
-        "start_seed": 5,
-        # "manual_control": vis,
-        "use_render": vis,
-        "traffic_mode": TrafficMode.Trigger,
-        "record_episode": save_episode,
-        "map_config": {
-            BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
-            BaseMap.GENERATE_CONFIG: "XTXTXTXTXT",
-            BaseMap.LANE_WIDTH: 3.5,
-            BaseMap.LANE_NUM: 3,
+    env = PGDriveEnv(
+        {
+            "environment_num": 1,
+            "traffic_density": 0.1,
+            "start_seed": 5,
+            # "manual_control": vis,
+            "use_render": vis,
+            "traffic_mode": TrafficMode.Trigger,
+            "record_episode": save_episode,
+            "map_config": {
+                BaseMap.GENERATE_TYPE: MapGenerateMethod.BIG_BLOCK_SEQUENCE,
+                BaseMap.GENERATE_CONFIG: "XTXTXTXTXT",
+                BaseMap.LANE_WIDTH: 3.5,
+                BaseMap.LANE_NUM: 3,
+            }
         }
-    })
+    )
     try:
         o = env.reset()
         epi_info = None

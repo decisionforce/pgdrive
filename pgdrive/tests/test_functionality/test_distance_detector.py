@@ -31,8 +31,8 @@ def test_original_lidar(render=False):
         another_v.reset()
         objs = env.vehicle.side_detector.perceive(env.vehicle, env.vehicle.engine.physics_world.static_world
                                                   ).detected_objects + env.vehicle.lane_line_detector.perceive(
-            env.vehicle, env.vehicle.engine.physics_world.static_world
-        ).detected_objects
+                                                      env.vehicle, env.vehicle.engine.physics_world.static_world
+                                                  ).detected_objects
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
@@ -84,8 +84,8 @@ def test_lidar_with_mask(render=False):
         # for test
         objs = env.vehicle.side_detector.perceive(env.vehicle, env.vehicle.engine.physics_world.static_world
                                                   ).detected_objects + env.vehicle.lane_line_detector.perceive(
-            env.vehicle, env.vehicle.engine.physics_world.static_world
-        ).detected_objects
+                                                      env.vehicle, env.vehicle.engine.physics_world.static_world
+                                                  ).detected_objects
         yellow = 0
         for obj in objs:
             if obj.getNode().getName() == BodyName.Yellow_continuous_line:
