@@ -283,7 +283,12 @@ class BasePGDriveEnv(gym.Env):
         self.engine.map_manager.update_map(self.config, self.current_seed, episode_data)
 
     def _get_reset_return(self):
-        raise NotImplementedError()
+        ret = {}
+        self.engine.after_step()
+        for v_id, v in self.vehicles.items():
+            self.observations[v_id].reset(self, v)
+            ret[v_id] = self.observations[v_id].observe(v)
+        return ret if self.is_multi_agent else self._wrap_as_single_agent(ret)
 
     def _get_step_return(self, actions, step_infos):
         # update obs, dones, rewards, costs, calculate done at first !
@@ -454,8 +459,15 @@ class BasePGDriveEnv(gym.Env):
         pass
 
     def _render_topdown(self, *args, **kwargs):
-        # dones = kwargs.pop("dones")
         if self._top_down_renderer is None:
             from pgdrive.obs.top_down_renderer import TopDownRenderer
             self._top_down_renderer = TopDownRenderer(self, self.current_map, *args, **kwargs)
         return self._top_down_renderer.render(list(self.vehicles.values()), self.agent_manager)
+
+    @property
+    def main_camera(self):
+        return self.engine.main_camera
+
+    @property
+    def current_track_vehicle(self):
+        return self.engine.current_track_vehicle

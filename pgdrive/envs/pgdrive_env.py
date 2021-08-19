@@ -253,14 +253,6 @@ class PGDriveEnv(BasePGDriveEnv):
             reward = -self.config["crash_object_penalty"]
         return reward, step_info
 
-    def _get_reset_return(self):
-        ret = {}
-        self.engine.after_step()
-        for v_id, v in self.vehicles.items():
-            self.observations[v_id].reset(self, v)
-            ret[v_id] = self.observations[v_id].observe(v)
-        return ret if self.is_multi_agent else self._wrap_as_single_agent(ret)
-
     def dump_all_maps(self):
         assert not engine_initialized(), \
             "We assume you generate map files in independent tasks (not in training). " \
@@ -340,14 +332,6 @@ class PGDriveEnv(BasePGDriveEnv):
         from pgdrive.manager.traffic_manager import TrafficManager
         self.engine.register_manager("traffic_manager", TrafficManager())
         self.engine.register_manager("object_manager", TrafficSignManager())
-
-    @property
-    def main_camera(self):
-        return self.engine.main_camera
-
-    @property
-    def current_track_vehicle(self):
-        return self.engine.current_track_vehicle
 
 
 if __name__ == '__main__':

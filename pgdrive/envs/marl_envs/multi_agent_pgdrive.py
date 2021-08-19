@@ -190,8 +190,7 @@ class MultiAgentPGDrive(PGDriveEnv):
     def _get_observations(self):
         return {
             name: self.get_single_observation(self._get_single_vehicle_config(new_config))
-            for name, new_config in self.config["target_vehicle_configs"].items()
-        }
+            for name, new_config in self.config["target_vehicle_configs"].items()}
 
     def _get_single_vehicle_config(self, extra_config: dict):
         """
