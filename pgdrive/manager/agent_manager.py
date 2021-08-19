@@ -3,6 +3,7 @@ from pgdrive.constants import DEFAULT_AGENT
 from pgdrive.policy.env_input_policy import EnvInputPolicy
 from pgdrive.policy.idm_policy import IDMPolicy
 from pgdrive.policy.manual_control_policy import ManualControlPolicy
+from pgdrive.policy.AI_protect_policy import AIProtectPolicy
 import logging
 from typing import Dict
 
@@ -67,13 +68,19 @@ class AgentManager(BaseManager):
         for agent_id, v_config in config_dict.items():
             obj = self.spawn_object(v_type, vehicle_config=v_config)
             ret[agent_id] = obj
-            # note: agent.id = object id
-            if self.engine.global_config["manual_control"] and self.engine.global_config["use_render"]:
-                policy = ManualControlPolicy()
-            else:
-                policy = EnvInputPolicy()
+            policy = self._get_policy(obj)
             self.engine.add_policy(obj.id, policy)
         return ret
+
+    def _get_policy(self, obj):
+        # note: agent.id = object id
+        if self.engine.global_config["manual_control"] and self.engine.global_config["use_render"]:
+            policy = AIProtectPolicy() if self.engine.global_config.get("use_saver", False) else ManualControlPolicy()
+        elif self.engine.global_config["IDM_agent"]:
+            policy = IDMPolicy(obj, self.generate_seed())
+        else:
+            policy = EnvInputPolicy()
+        return policy
 
     def before_reset(self):
         if not self.INITIALIZED:
@@ -92,7 +99,7 @@ class AgentManager(BaseManager):
         self._allow_respawn = config["allow_respawn"]
         init_vehicles = self._get_vehicles(
             config_dict=self.engine.global_config["target_vehicle_configs"] if self.engine.
-            global_config["is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]}
+                global_config["is_multi_agent"] else {DEFAULT_AGENT: self.engine.global_config["vehicle_config"]}
         )
         vehicles_created = set(init_vehicles.keys())
         vehicles_in_config = set(self._init_observations.keys())
@@ -175,8 +182,10 @@ class AgentManager(BaseManager):
         self._agents_finished_this_frame = dict()
         step_infos = {}
         for agent_id in self.active_agents.keys():
-            a = self.engine.get_policy(self._agent_to_object[agent_id]).act(agent_id)
-            step_infos[agent_id] = self.get_agent(agent_id).before_step(a)
+            policy = self.engine.get_policy(self._agent_to_object[agent_id])
+            action = policy.act(agent_id)
+            step_infos[agent_id] = policy.get_action_info()
+            step_infos[agent_id].update(self.get_agent(agent_id).before_step(action))
 
         finished = set()
         for v_name in self._dying_objects.keys():

@@ -1,5 +1,3 @@
-import os.path as osp
-import copy
 import sys
 import time
 from collections import defaultdict
@@ -8,6 +6,7 @@ from typing import Union, Dict, AnyStr, Optional, Tuple
 import gym
 import numpy as np
 from panda3d.core import PNMImage
+
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from pgdrive.constants import RENDER_MODE_NONE, DEFAULT_AGENT
 from pgdrive.engine.base_engine import BaseEngine
@@ -16,6 +15,8 @@ from pgdrive.engine.engine_utils import initialize_engine, close_engine, \
 from pgdrive.manager.agent_manager import AgentManager
 from pgdrive.obs.observation_base import ObservationBase
 from pgdrive.utils import Config, merge_dicts, get_np_random
+from pgdrive.utils import concat_step_infos
+from pgdrive.utils.utils import auto_termination
 
 BASE_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
@@ -28,6 +29,7 @@ BASE_DEFAULT_CONFIG = dict(
     allow_respawn=False,
     delay_done=0,  # How many steps for the agent to stay static at the death place after done.
     random_agent_model=False,
+    IDM_agent=False,
 
     # ===== Action =====
     decision_repeat=5,
@@ -89,6 +91,7 @@ BASE_DEFAULT_CONFIG = dict(
 class BasePGDriveEnv(gym.Env):
     # Force to use this seed if necessary. Note that the recipient of the forced seed should be explicitly implemented.
     _DEBUG_RANDOM_SEED = None
+    DEFAULT_AGENT = DEFAULT_AGENT
 
     @classmethod
     def default_config(cls) -> "Config":
@@ -174,32 +177,41 @@ class BasePGDriveEnv(gym.Env):
     # ===== Run-time =====
     def step(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]):
         self.episode_steps += 1
-        actions, action_infos = self._preprocess_actions(actions)
-        step_infos = self._step_simulator(actions, action_infos)
+        actions = self._preprocess_actions(actions)
+        step_infos = self._step_simulator(actions)
         o, r, d, i = self._get_step_return(actions, step_infos)
         # return o, copy.deepcopy(r), copy.deepcopy(d), copy.deepcopy(i)
         return o, r, d, i
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
-            -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:
-        raise NotImplementedError()
+            -> Union[np.ndarray, Dict[AnyStr, np.ndarray]]:
+        if not self.is_multi_agent:
+            actions = {v_id: actions for v_id in self.vehicles.keys()}
+        else:
+            if self.config["vehicle_config"]["action_check"]:
+                # Check whether some actions are not provided.
+                given_keys = set(actions.keys())
+                have_keys = set(self.vehicles.keys())
+                assert given_keys == have_keys, "The input actions: {} have incompatible keys with existing {}!".format(
+                    given_keys, have_keys
+                )
+            else:
+                # That would be OK if extra actions is given. This is because, when evaluate a policy with naive
+                # implementation, the "termination observation" will still be given in T=t-1. And at T=t, when you
+                # collect action from policy(last_obs) without masking, then the action for "termination observation"
+                # will still be computed. We just filter it out here.
+                actions = {v_id: actions[v_id] for v_id in self.vehicles.keys()}
+        return actions
 
-    def _step_simulator(self, actions, action_infos):
+    def _step_simulator(self, actions):
         # Note that we use shallow update for info dict in this function! This will accelerate system.
-        scene_manager_infos = self.engine.before_step(actions)
-        action_infos = merge_dicts(action_infos, scene_manager_infos, allow_new_keys=True, without_copy=True)
-
+        scene_manager_before_step_infos = self.engine.before_step(actions)
         # step all entities
         self.engine.step(self.config["decision_repeat"])
-
         # update states, if restore from episode data, position and heading will be force set in update_state() function
-        scene_manager_step_infos = self.engine.after_step()
-        action_infos = merge_dicts(action_infos, scene_manager_step_infos, allow_new_keys=True, without_copy=True)
-        return action_infos
-
-    def _get_step_return(self, actions, step_infos):
-        """Return a tuple of obs, reward, dones, infos"""
-        raise NotImplementedError()
+        scene_manager_after_step_infos = self.engine.after_step()
+        return merge_dicts(scene_manager_after_step_infos, scene_manager_before_step_infos, allow_new_keys=True,
+                           without_copy=True)
 
     def reward_function(self, vehicle_id: str) -> Tuple[float, Dict]:
         """
@@ -272,6 +284,50 @@ class BasePGDriveEnv(gym.Env):
 
     def _get_reset_return(self):
         raise NotImplementedError()
+
+    def _get_step_return(self, actions, step_infos):
+        # update obs, dones, rewards, costs, calculate done at first !
+        obses = {}
+        done_infos = {}
+        cost_infos = {}
+        reward_infos = {}
+        rewards = {}
+        for v_id, v in self.vehicles.items():
+            obses[v_id] = self.observations[v_id].observe(v)
+            done_function_result, done_infos[v_id] = self.done_function(v_id)
+            rewards[v_id], reward_infos[v_id] = self.reward_function(v_id)
+            _, cost_infos[v_id] = self.cost_function(v_id)
+            done = done_function_result or self.dones[v_id]
+            self.dones[v_id] = done
+
+        should_done = self.config["auto_termination"] and (
+                self.episode_steps >= (self.current_map.num_blocks * 250))
+
+        termination_infos = self.for_each_vehicle(auto_termination, should_done)
+
+        step_infos = concat_step_infos([
+            step_infos,
+            done_infos,
+            reward_infos,
+            cost_infos,
+            termination_infos,
+        ])
+
+        if should_done:
+            for k in self.dones:
+                self.dones[k] = True
+
+        dones = {k: self.dones[k] for k in self.vehicles.keys()}
+        for v_id, r in rewards.items():
+            self.episode_rewards[v_id] += r
+            step_infos[v_id]["episode_reward"] = self.episode_rewards[v_id]
+            self.episode_lengths[v_id] += 1
+            step_infos[v_id]["episode_length"] = self.episode_lengths[v_id]
+        if not self.is_multi_agent:
+            return self._wrap_as_single_agent(obses), self._wrap_as_single_agent(rewards), \
+                   self._wrap_as_single_agent(dones), self._wrap_as_single_agent(step_infos)
+        else:
+            return obses, rewards, dones, step_infos
 
     def close(self):
         if self.engine is not None:

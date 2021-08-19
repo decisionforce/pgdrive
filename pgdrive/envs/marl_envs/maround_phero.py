@@ -20,7 +20,7 @@ class PheroObs(LidarStateObservationMARound):
         space = Box(
             low=np.array([space.low[0]] * length),
             high=np.array([space.high[0]] * length),
-            shape=(length, ),
+            shape=(length,),
             dtype=space.dtype
         )
         return space
@@ -84,8 +84,8 @@ class MARoundPhero(MARound):
         ret = {v_id: self._add_phero(v_id, obs) for v_id, obs in obses.items()}
         return ret
 
-    def _step_simulator(self, actions, action_infos):
-        ret = super(MARoundPhero, self)._step_simulator(actions, action_infos)
+    def _step_simulator(self, actions):
+        ret = super(MARoundPhero, self)._step_simulator(actions)
         for v_id, act in actions.items():
             self.phero_map.add(self.vehicles[v_id].position, act[2:])
         self.phero_map.step()
@@ -98,7 +98,7 @@ class MARoundPhero(MARound):
 
     def _add_phero(self, v_id, o):
         if v_id not in self.vehicles:
-            ret = np.zeros((self.config["num_neighbours"] * self.config["num_channels"], ))
+            ret = np.zeros((self.config["num_neighbours"] * self.config["num_channels"],))
         else:
             ret = self.phero_map.get_nearest_pheromone(self.vehicles[v_id].position, self.config["num_neighbours"])
         return np.concatenate([o, ret])

@@ -157,9 +157,10 @@ def _expert():
                     "num_others": 4,
                     "distance": 50
                 },
-                "use_saver": True,
-                "save_level": 1.
+
             },
+            "use_saver": True,
+            "save_level": 1.,
             "debug_physics_world": True,
             "fast": True,
             # "use_render": True,

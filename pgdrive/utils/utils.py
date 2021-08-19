@@ -1,4 +1,5 @@
 import copy
+from pgdrive.constants import TerminationState
 import logging
 import os
 import sys
@@ -63,7 +64,6 @@ def is_mac():
 
 def is_win():
     return sys.platform == "win32"
-
 
 def concat_step_infos(step_info_list):
     """We only conduct simply shallow update here!"""
@@ -166,3 +166,7 @@ def get_object_from_node(node: BulletBodyNode):
         return get_object(ret)[ret]
     else:
         return ret
+
+
+def auto_termination(vehicle, should_done):
+    return {TerminationState.MAX_STEP: True if should_done else False}
