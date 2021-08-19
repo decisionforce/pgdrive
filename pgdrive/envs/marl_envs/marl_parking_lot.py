@@ -229,10 +229,6 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
         bp_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
         new_spawn_place = safe_places_dict[bp_index]
 
-        if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] is not None:
-            if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] != self.agent_manager.next_agent_id():
-                return None, None
-
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]
         new_spawn_place_config = self._update_destination_for(new_agent_id, new_spawn_place_config)

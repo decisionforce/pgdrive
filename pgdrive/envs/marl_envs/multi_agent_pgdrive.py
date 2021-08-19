@@ -23,6 +23,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
 
     # Whether the vehicle can rejoin the episode
     allow_respawn=True,
+    spawn_road=[Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3)],
 
     # The maximum length of the episode. If allow respawn, then this is the maximum step that respawn can happen. After
     # that, the episode won't terminate until all existing vehicles reach their horizon or done. The vehicle specified
@@ -60,7 +61,6 @@ class MultiAgentPGDrive(PGDriveEnv):
 
     # A list of road instances denoting which roads afford spawn points. If not set, then search for all
     # possible roads and spawn new agents in them if possible.
-    spawn_roads = [Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3)]
 
     @staticmethod
     def default_config() -> Config:
@@ -75,9 +75,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         if not ret_config["crash_done"] and ret_config["crash_vehicle_penalty"] > 2:
             logging.warning(
                 "Are you sure you wish to set crash_vehicle_penalty={} when crash_done=False?".format(
-                    ret_config["crash_vehicle_penalty"]
-                )
-            )
+                    ret_config["crash_vehicle_penalty"]))
         if ret_config["use_render"] and ret_config["fast"]:
             logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
 
@@ -88,20 +86,13 @@ class MultiAgentPGDrive(PGDriveEnv):
                 new = old.update(v)
                 ret_config["target_vehicle_configs"][k] = new
 
-        self._spawn_manager = SpawnManager(
-            exit_length=ret_config["map_config"]["exit_length"],
-            lane_num=ret_config["map_config"]["lane_num"],
-            num_agents=ret_config["num_agents"],
-            vehicle_config=ret_config["vehicle_config"],
-            target_vehicle_configs=ret_config["target_vehicle_configs"],
-            seed=self._DEBUG_RANDOM_SEED
-        )
+        if "prefer_track_agent" in config and config["prefer_track_agent"]:
+            ret_config["target_vehicle_configs"][config["prefer_track_agent"]]["am_i_the_special_one"] = True
+
+        self._spawn_manager = SpawnManager()
 
         self._spawn_manager.set_spawn_roads(self.spawn_roads)
         ret_config = self._update_agent_pos_configs(ret_config)
-
-        if "prefer_track_agent" in config and config["prefer_track_agent"]:
-            ret_config["target_vehicle_configs"][config["prefer_track_agent"]]["am_i_the_special_one"] = True
         return ret_config
 
     def _update_agent_pos_configs(self, config):
@@ -162,8 +153,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         # update config (for new possible spawn places)
         for v_id, config in self.config["target_vehicle_configs"].items():
             self.config["target_vehicle_configs"][v_id] = self._update_destination_for(
-                v_id, self.config["target_vehicle_configs"][v_id]
-            )
+                v_id, self.config["target_vehicle_configs"][v_id])
 
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         if self.engine.replay_system is not None:
@@ -177,12 +167,11 @@ class MultiAgentPGDrive(PGDriveEnv):
         for dead_vehicle_id, done in dones.items():
             if done:
                 self.agent_manager.finish(
-                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False)
-                )
-                self._update_camera_after_finish(dead_vehicle_id)
+                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False))
+                self._update_camera_after_finish()
         return obs, reward, dones, info
 
-    def _update_camera_after_finish(self, dead_vehicle_id):
+    def _update_camera_after_finish(self):
         if self.main_camera is not None and self.current_track_vehicle is None \
                 and self.engine.task_manager.hasTaskNamed(self.main_camera.CHASE_TASK_NAME):
             self.chase_camera()
@@ -211,32 +200,16 @@ class MultiAgentPGDrive(PGDriveEnv):
                 break
         return new_obs_dict
 
-    def _force_respawn(self, agent_name, randomize_position=False):
-        """
-        This function can force a given vehicle to respawn!
-        """
-        self.agent_manager.finish(agent_name, ignore_delay_done=True)
-        self._update_camera_after_finish(agent_name)
-        new_id, new_obs = self._respawn_single_vehicle(randomize_position=randomize_position)
-        return new_id, new_obs
-
     def _respawn_single_vehicle(self, randomize_position=False):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
         safe_places_dict = self._spawn_manager.get_available_respawn_places(
-            self.current_map, randomize=randomize_position
-        )
-        if len(safe_places_dict) == 0 or not self.agent_manager.allow_respawn:
-            # No more run, just wait!
+            self.current_map, randomize=randomize_position)
+        if len(safe_places_dict) == 0:
             return None, None
-        assert len(safe_places_dict) > 0
-        bp_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
-        new_spawn_place = safe_places_dict[bp_index]
-
-        if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] is not None:
-            if new_spawn_place[self._spawn_manager.FORCE_AGENT_NAME] != self.agent_manager.next_agent_id():
-                return None, None
+        born_place_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]
+        new_spawn_place = safe_places_dict[born_place_index]
 
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]

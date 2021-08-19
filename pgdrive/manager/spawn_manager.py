@@ -1,65 +1,59 @@
 import copy
+from pgdrive.component.vehicle.base_vehicle import BaseVehicle
 from math import floor
-
+from typing import Union, List, Dict
 import numpy as np
 from panda3d.bullet import BulletBoxShape, BulletGhostNode
 from panda3d.core import Vec3
 
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.lane.straight_lane import StraightLane
-from pgdrive.constants import Mask
 from pgdrive.constants import CollisionGroup
 from pgdrive.engine.engine_utils import get_engine
 from pgdrive.utils import Config, get_np_random
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.scene_utils import rect_region_detection
-from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.manager.base_manager import BaseManager
 
 
-class SpawnManager:
+class SpawnManager(BaseManager):
     """
-    This class maintain a list of possible spawn places.
+    This class maintain a list of possible spawn places for MARL respawn
     """
-    FORCE_AGENT_NAME = "force_agent_name"
     REGION_DETECT_HEIGHT = 10
     RESPAWN_REGION_LONGITUDE = 8.
     RESPAWN_REGION_LATERAL = 3.
-    MAX_LENGTH = 6
-    MAX_WIDTH = 2.0
+    MAX_VEHICLE_LENGTH = BaseVehicle.MAX_LENGTH
+    MAX_VEHICLE_WIDTH = BaseVehicle.MAX_WIDTH
 
-    def __init__(self, exit_length, lane_num, num_agents, vehicle_config, target_vehicle_configs=None, seed=None):
-        self.num_agents = num_agents
-        self.exit_length = (exit_length - FirstPGBlock.ENTRANCE_LENGTH)
+    def __init__(self):
+        self.num_agents = self.engine.global_config["num_agents"]
+        self.exit_length = (self.engine.global_config["map_config"]["exit_length"] - FirstPGBlock.ENTRANCE_LENGTH)
         assert self.exit_length >= self.RESPAWN_REGION_LONGITUDE, (
             "The exist length {} should greater than minimal longitude interval {}.".format(
                 self.exit_length, self.RESPAWN_REGION_LONGITUDE
             )
         )
-        self.lane_num = lane_num
-        self.config = vehicle_config
+        self.lane_num = self.engine.global_config["map_config"]["lane_num"]
         self.spawn_roads = []
-        self.target_vehicle_configs = []
         self.safe_spawn_places = {}
         self.need_update_spawn_places = True
         self.initialized = False
-        self.target_vehicle_configs = target_vehicle_configs
         self.spawn_places_used = []
 
-        self.vehicle_length = self.MAX_LENGTH
-        self.vehicle_width = self.MAX_WIDTH
-
+        target_vehicle_configs = self.engine.global_config["target_vehicle_configs"],
+        self.target_vehicle_configs:Union[List, Dict] = target_vehicle_configs
         self.custom_target_vehicle_config = True if target_vehicle_configs is not None and len(
-            target_vehicle_configs
-        ) > 0 else False
-        self._seed = seed
+            target_vehicle_configs) > 0 else False
+        if self.custom_target_vehicle_config:
+            assert len(self.target_vehicle_configs) == self.engine.global_config["num_agents"]
 
         if self.num_agents is None:
             assert not self.target_vehicle_configs, (
-                "You should now specify config if requiring infinite number of vehicles."
-            )
+                "You should now specify config if requiring infinite number of vehicles.")
 
-    def set_spawn_roads(self, spawn_roads, force_update_all=False):
-        if self.target_vehicle_configs and not force_update_all:
+        spawn_roads = self.engine.global_config["spawn_roads"]
+        if self.target_vehicle_configs:
             target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_with_configs(spawn_roads)
         else:
             target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_randomly(spawn_roads)
@@ -67,7 +61,6 @@ class SpawnManager:
         self.safe_spawn_places = {place["identifier"]: place for place in safe_spawn_places}
         self.spawn_roads = spawn_roads
         self.need_update_spawn_places = True
-        self.initialized = True
 
     def _update_spawn_roads_with_configs(self, spawn_roads=None):
         assert self.num_agents <= len(self.target_vehicle_configs), (
@@ -83,12 +76,17 @@ class SpawnManager:
             lane_tuple = v_config["spawn_lane_index"]
             target_vehicle_configs.append(
                 Config(
-                    dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config, force_agent_name=v_id),
+                    dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config),
                     unchangeable=True
                 )
             )
             safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
+
+    def reset(self):
+        if not self.initialized:
+            super(SpawnManager, self).__init__()
+            self.initialized = True
 
     def _update_spawn_roads_randomly(self, spawn_roads):
         assert not self.custom_target_vehicle_config, "This will overwrite your custom target vehicle config"
@@ -127,7 +125,6 @@ class SpawnManager:
                                     "spawn_longitude": long,
                                     "spawn_lateral": 0
                                 },
-                                force_agent_name=None
                             ),
                             unchangeable=True
                         )
@@ -220,8 +217,8 @@ class SpawnManager:
 
     def _randomize_position_in_slot(self, target_vehicle_config):
         vehicle_config = copy.deepcopy(target_vehicle_config)
-        long = self.RESPAWN_REGION_LONGITUDE - self.vehicle_length
-        lat = self.RESPAWN_REGION_LATERAL - self.vehicle_width
+        long = self.RESPAWN_REGION_LONGITUDE - self.MAX_VEHICLE_LENGTH
+        lat = self.RESPAWN_REGION_LATERAL - self.MAX_VEHICLE_WIDTH
         vehicle_config["spawn_longitude"] += get_np_random(self._seed).uniform(-long / 2, long / 2)
         vehicle_config["spawn_lateral"] += get_np_random(self._seed).uniform(-lat / 2, lat / 2)
         return vehicle_config
