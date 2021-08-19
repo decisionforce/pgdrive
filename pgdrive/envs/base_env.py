@@ -62,32 +62,24 @@ BASE_DEFAULT_CONFIG = dict(
         am_i_the_special_one=False
     ),
 
-    # ===== Others =====
+    # ===== Engine Core config =====
     window_size=(1200, 900),  # width, height
     physics_world_step_size=2e-2,
     show_fps=True,
     global_light=False,
     onscreen_message=True,
-
-    # limit the render fps
-    # Press "f" to switch FPS, this config is deprecated!
-    # force_fps=None,
-
     # only render physics world without model, a special debug option
     debug_physics_world=False,
-
     # debug static world
     debug_static_world=False,
-
     # set to true only when on headless machine and use rgb image!!!!!!
     headless_machine_render=False,
-
     # turn on to profile the efficiency
     pstats=False,
 
+    # ===== Others =====
     # The maximum distance used in PGLOD. Set to None will use the default values.
     max_distance=None,
-
     # Force to generate objects in the left lane.
     _debug_crash_object=False,
     record_episode=False,
@@ -95,8 +87,6 @@ BASE_DEFAULT_CONFIG = dict(
 
 
 class BasePGDriveEnv(gym.Env):
-    DEFAULT_AGENT = DEFAULT_AGENT
-
     # Force to use this seed if necessary. Note that the recipient of the forced seed should be explicitly implemented.
     _DEBUG_RANDOM_SEED = None
 
@@ -106,8 +96,6 @@ class BasePGDriveEnv(gym.Env):
 
     # ===== Intialization =====
     def __init__(self, config: dict = None):
-        self._raw_input_config = copy.deepcopy(config)
-        self.default_config_copy = Config(self.default_config(), unchangeable=True)
         merged_config = self._merge_extra_config(config)
         global_config = self._post_process_config(merged_config)
         self.config = global_config
@@ -268,6 +256,7 @@ class BasePGDriveEnv(gym.Env):
 
         self._reset_config()
         self.engine.reset()
+        # TODO clean me
         if self._top_down_renderer is not None:
             self._top_down_renderer.reset(self.current_map)
 
@@ -280,9 +269,6 @@ class BasePGDriveEnv(gym.Env):
 
     def _update_map(self, episode_data: dict = None):
         self.engine.map_manager.update_map(self.config, self.current_seed, episode_data)
-
-    # def _update_map(self, episode_data: Union[None, dict] = None):
-    #     raise NotImplementedError()
 
     def _get_reset_return(self):
         raise NotImplementedError()

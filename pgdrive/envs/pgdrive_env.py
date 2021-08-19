@@ -120,6 +120,7 @@ class PGDriveEnv(BasePGDriveEnv):
         return config
 
     def __init__(self, config: dict = None):
+        self.default_config_copy = Config(self.default_config(), unchangeable=True)
         super(PGDriveEnv, self).__init__(config)
 
     def _merge_extra_config(self, config: Union[dict, "Config"]) -> "Config":
@@ -157,7 +158,7 @@ class PGDriveEnv(BasePGDriveEnv):
         return config
 
     def _get_observations(self):
-        return {self.DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
+        return {DEFAULT_AGENT: self.get_single_observation(self.config["vehicle_config"])}
 
     def _preprocess_actions(self, actions: Union[np.ndarray, Dict[AnyStr, np.ndarray]]) \
             -> Tuple[Union[np.ndarray, Dict[AnyStr, np.ndarray]], Dict]:

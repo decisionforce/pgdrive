@@ -263,12 +263,6 @@ class MultiAgentPGDrive(PGDriveEnv):
             ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
         return ret
 
-    def close_and_reset_num_agents(self, num_agents):
-        config = copy.deepcopy(self._raw_input_config)
-        self.close()
-        config["num_agents"] = num_agents
-        super(MultiAgentPGDrive, self).__init__(config)
-
 
 def _test():
     setup_logger(True)
