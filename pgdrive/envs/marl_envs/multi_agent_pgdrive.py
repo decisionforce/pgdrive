@@ -4,7 +4,7 @@ import logging
 from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.road.road import Road
 from pgdrive.constants import TerminationState
-from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
+from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.manager.spawn_manager import SpawnManager
 from pgdrive.utils import setup_logger, get_np_random, Config
 from pgdrive.utils.config import merge_dicts
@@ -53,7 +53,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
 )
 
 
-class MultiAgentPGDrive(PGDriveEnvV2):
+class MultiAgentPGDrive(PGDriveEnv):
     """
     This serve as the base class for Multi-agent PGDrive!
     """
@@ -64,7 +64,7 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
     @staticmethod
     def default_config() -> Config:
-        config = PGDriveEnvV2.default_config()
+        config = PGDriveEnv.default_config()
         config.update(MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG)
         return config
 

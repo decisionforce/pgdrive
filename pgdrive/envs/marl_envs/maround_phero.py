@@ -125,7 +125,7 @@ def _profile():
                     time.time() - start, (s + 1) / (time.time() - start)
                 )
             )
-    print(f"(PGDriveEnvV2) Total Time Elapse: {time.time() - start}")
+    print(f"(PGDriveEnv) Total Time Elapse: {time.time() - start}")
 
 
 def _test():

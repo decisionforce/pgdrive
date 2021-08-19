@@ -19,7 +19,7 @@ pregenerated_map_file = osp.join(
     osp.dirname(osp.dirname(osp.abspath(__file__))), "assets", "maps",
     "20210814_generated_maps_start_seed_0_environment_num_30000.json"
 )
-PGDriveEnvV1_DEFAULT_CONFIG = dict(
+PGDriveEnv_DEFAULT_CONFIG = dict(
     # ===== Generalization =====
     start_seed=0,
     environment_num=1,
@@ -114,7 +114,7 @@ class PGDriveEnv(BasePGDriveEnv):
     @classmethod
     def default_config(cls) -> "Config":
         config = super(PGDriveEnv, cls).default_config()
-        config.update(PGDriveEnvV1_DEFAULT_CONFIG)
+        config.update(PGDriveEnv_DEFAULT_CONFIG)
         config.register_type("map", str, int)
         config["map_config"].register_type("config", None)
         return config

@@ -1,8 +1,8 @@
 from pgdrive.constants import TerminationState
-from pgdrive.envs.pgdrive_env_v2 import PGDriveEnvV2
+from pgdrive.envs.pgdrive_env import PGDriveEnv
 
 if __name__ == "__main__":
-    env = PGDriveEnvV2(
+    env = PGDriveEnv(
         {
             "environment_num": 1,
             "traffic_density": 0.3,
