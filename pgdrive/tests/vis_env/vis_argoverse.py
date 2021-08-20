@@ -2,6 +2,7 @@ from pgdrive.component.map.argoverse_map import ArgoverseMap
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 
 
+
 class ArgoverseEnv(PGDriveEnv):
     def _post_process_config(self, config):
         config = super(ArgoverseEnv, self)._post_process_config(config)
@@ -16,7 +17,7 @@ class ArgoverseEnv(PGDriveEnv):
                 {
                     "city": "PIT",
                     # "draw_map_resolution": 1024,
-                    "center": [xcenter, ycenter],
+                    "center": ArgoverseMap.pgdrive_position([xcenter, ycenter]),
                     "radius": 100
                 }
             )
