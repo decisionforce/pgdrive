@@ -466,13 +466,12 @@ def test_ma_bottleneck_reward_sign():
     class TestEnv(MultiAgentBottleneckEnv):
         _respawn_count = 0
 
-        def _update_agent_pos_configs(self, config):
-            config = super(TestEnv, self)._update_agent_pos_configs(config)
+        @property
+        def _safe_places(self):
             safe_places = []
-            for c, bid in enumerate(self._spawn_manager.safe_spawn_places.keys()):
-                safe_places.append((bid, self._spawn_manager.safe_spawn_places[bid]))
-            self._safe_places = safe_places
-            return config
+            for c, bid in enumerate(self.engine.spawn_manager.safe_spawn_places.keys()):
+                safe_places.append((bid, self.engine.spawn_manager.safe_spawn_places[bid]))
+            return safe_places
 
     env = TestEnv({"num_agents": 1})
     try:

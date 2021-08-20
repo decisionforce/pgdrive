@@ -18,7 +18,7 @@ from pgdrive.manager.base_manager import BaseManager
 
 class SpawnManager(BaseManager):
     """
-    This class maintain a list of possible spawn places for MARL respawn
+    This class maintain a list of possible spawn places/destination for MARL respawn
     """
     # it needs to fill the config at first
     PRIORITY = 0
@@ -186,3 +186,13 @@ class SpawnManager(BaseManager):
         vehicle_config["spawn_longitude"] += self.np_random.uniform(-long / 2, long / 2)
         vehicle_config["spawn_lateral"] += self.np_random.uniform(-lat / 2, lat / 2)
         return vehicle_config
+
+    def seed(self, random_seed):
+        # this class is used to ranomly choose the spawn places, which will not be controlled by any seed
+        return
+
+    def _update_destination(self, vehicle_config):
+        """
+        Choose a destination for agent
+        """
+        pass

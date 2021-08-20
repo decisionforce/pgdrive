@@ -203,8 +203,8 @@ def test_ma_parking_lot_reset():
                     long, lat = v.navigation.final_lane.local_coordinates(v.position)
                     flag1 = (v.navigation.final_lane.length - 5 < long < v.navigation.final_lane.length + 5)
                     flag2 = (
-                        v.navigation.get_current_lane_width() / 2 >= lat >=
-                        (0.5 - v.navigation.get_current_lane_num()) * v.navigation.get_current_lane_width()
+                            v.navigation.get_current_lane_width() / 2 >= lat >=
+                            (0.5 - v.navigation.get_current_lane_num()) * v.navigation.get_current_lane_width()
                     )
                     if not v.arrive_destination:
                         print('sss')
@@ -273,7 +273,8 @@ def test_ma_parking_lot_close_spawn():
 
 def test_ma_parking_lot_reward_done_alignment():
     # out of road
-    env = MultiAgentParkingLotEnv({"horizon": 200, "num_agents": 11, "out_of_road_penalty": 777, "crash_done": False})
+    env = MultiAgentParkingLotEnv(
+        {"horizon": 200, "num_agents": 11, "out_of_road_penalty": 777, "crash_done": False, "use_render": True})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()

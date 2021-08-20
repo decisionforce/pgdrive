@@ -227,13 +227,15 @@ class BasePGDriveEnv(gym.Env):
     def done_function(self, vehicle_id: str) -> Tuple[bool, Dict]:
         raise NotImplementedError()
 
-    def render(self, mode='human', text: Optional[Union[dict, str]] = None) -> Optional[np.ndarray]:
+    def render(self, mode='human', text: Optional[Union[dict, str]] = None, *args, **kwargs) -> Optional[np.ndarray]:
         """
         This is a pseudo-render function, only used to update onscreen message when using panda3d backend
         :param mode: 'rgb'/'human'
         :param text:text to show
         :return: when mode is 'rgb', image array is returned
         """
+        if mode == "top_down":
+            return self._render_topdown(*args, **kwargs)
         assert self.config["use_render"] or self.engine.mode != RENDER_MODE_NONE, ("render is off now, can not render")
         self.engine.render_frame(text)
         if mode != "human" and self.config["offscreen_render"]:
@@ -265,10 +267,7 @@ class BasePGDriveEnv(gym.Env):
         self.lazy_init()  # it only works the first time when reset() is called to avoid the error when render
         self._reset_global_seed(force_seed)
         self._update_map(episode_data=episode_data)
-
-        self._reset_config()
         self.engine.reset()
-        # TODO clean me
         if self._top_down_renderer is not None:
             self._top_down_renderer.reset(self.current_map)
 
@@ -452,12 +451,6 @@ class BasePGDriveEnv(gym.Env):
     @property
     def maps(self):
         return self.engine.map_manager.pg_maps
-
-    def _reset_config(self):
-        """
-        You may need to modify the global config in the new episode, do it here
-        """
-        pass
 
     def _render_topdown(self, *args, **kwargs):
         if self._top_down_renderer is None:

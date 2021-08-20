@@ -12,7 +12,8 @@ from pgdrive.utils.config import merge_dicts
 MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     # ===== Multi-agent =====
     is_multi_agent=True,
-    num_agents=15,  # If num_agents is set to None, then endless vehicles will be added only the empty spawn points exist
+    num_agents=15,
+    # If num_agents is set to None, then endless vehicles will be added only the empty spawn points exist
     random_agent_model=False,
 
     # Whether to terminate a vehicle if it crash with others. Since in MA env the crash is extremely dense, so
@@ -79,15 +80,9 @@ class MultiAgentPGDrive(PGDriveEnv):
         if ret_config["use_render"] and ret_config["fast"]:
             logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
 
-        # Workaround
-        if ret_config["target_vehicle_configs"]:
-            for k, v in ret_config["target_vehicle_configs"].items():
-                old = ret_config["vehicle_config"].copy()
-                new = old.update(v)
-                ret_config["target_vehicle_configs"][k] = new
-
         if "prefer_track_agent" in config and config["prefer_track_agent"]:
             ret_config["target_vehicle_configs"][config["prefer_track_agent"]]["am_i_the_special_one"] = True
+        ret_config["vehicle_config"]["random_agent_model"] = ret_config["random_agent_model"]
 
         # merge basic vehicle config into target vehicle config
         target_vehicle_configs = dict()
@@ -96,10 +91,10 @@ class MultiAgentPGDrive(PGDriveEnv):
             if agent_id in ret_config["target_vehicle_configs"]:
                 config = ret_config["target_vehicle_configs"][agent_id]
             else:
-                config=dict()
+                config = dict()
             config.update(ret_config["vehicle_config"])
             target_vehicle_configs[agent_id] = config
-        ret_config["target_vehicle_configs"]=target_vehicle_configs
+        ret_config["target_vehicle_configs"] = target_vehicle_configs
         return ret_config
 
     def done_function(self, vehicle_id):
@@ -136,8 +131,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -168,7 +163,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         return obs, reward, dones, info
 
     def _update_camera_after_finish(self):
-        if self.main_camera is not None and self.current_track_vehicle is None \
+        if self.main_camera is not None and self.current_track_vehicle.id not in self.engine.agent_manager._active_objects \
                 and self.engine.task_manager.hasTaskNamed(self.main_camera.CHASE_TASK_NAME):
             self.chase_camera()
 
@@ -193,7 +188,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         """
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
-        safe_places_dict = self._spawn_manager.get_available_respawn_places(
+        safe_places_dict = self.engine.spawn_manager.get_available_respawn_places(
             self.current_map, randomize=randomize_position)
         if len(safe_places_dict) == 0:
             return None, None
@@ -217,16 +212,10 @@ class MultiAgentPGDrive(PGDriveEnv):
         # vehicle.navigation.set_route(vehicle.lane_index[0], end_road.end_node)
         return vehicle_config
 
-    def render(self, mode='human', text=None, *args, **kwargs):
-        if mode == "top_down":
-            ret = self._render_topdown(*args, **kwargs)
-        else:
-            ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
-        return ret
-
     def setup_engine(self):
         super(MultiAgentPGDrive, self).setup_engine()
-        self.engine.register_manager("spawn_manager",SpawnManager())
+        self.engine.register_manager("spawn_manager", SpawnManager())
+
 
 def _test():
     setup_logger(True)
