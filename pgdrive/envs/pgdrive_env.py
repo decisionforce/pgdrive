@@ -328,10 +328,10 @@ class PGDriveEnv(BasePGDriveEnv):
         self.engine.accept("b", self.bird_view_camera)
         self.engine.accept("q", self.chase_camera)
 
-        from pgdrive.manager.object_manager import TrafficSignManager
+        from pgdrive.manager.object_manager import TrafficObjectManager
         from pgdrive.manager.traffic_manager import TrafficManager
         self.engine.register_manager("traffic_manager", TrafficManager())
-        self.engine.register_manager("object_manager", TrafficSignManager())
+        self.engine.register_manager("object_manager", TrafficObjectManager())
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 from pgdrive.constants import TerminationState
+from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.utils import Config
 from pgdrive.utils.math_utils import clip
@@ -10,7 +11,7 @@ class SafePGDriveEnv(PGDriveEnv):
         config.update(
             {
                 "environment_num": 100,
-                "accident_prob": 0.5,
+                "accident_prob": 1.0,
                 "safe_rl_env": True,  # Should always be True. But we just leave it here for historical reason.
 
                 # ===== reward scheme =====
@@ -18,11 +19,10 @@ class SafePGDriveEnv(PGDriveEnv):
                 "crash_object_penalty": 0.,
                 "out_of_road_penalty": 0.,
 
-                # ===== cost scheme
+                # ===== cost scheme =====
                 "crash_vehicle_cost": 1,
-                "crash_object_cost": 0.5,
+                "crash_object_cost": 1,
                 "out_of_road_cost": 1.,  # only give penalty for out_of_road
-                "traffic_density": 0.2,
                 "use_lateral": False
             },
             allow_add_new_key=True
@@ -93,7 +93,7 @@ class SafePGDriveEnv(PGDriveEnv):
             step_info["cost"] = self.config["crash_vehicle_cost"]
         elif vehicle.crash_object:
             step_info["cost"] = self.config["crash_object_cost"]
-        elif vehicle.out_of_route or vehicle.crash_sidewalk:
+        elif vehicle.out_of_route:
             step_info["cost"] = self.config["out_of_road_cost"]
         return step_info['cost'], step_info
 
@@ -101,20 +101,26 @@ class SafePGDriveEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = SafePGDriveEnv(
         {
-            "accident_prob": 1.0,
+            # "accident_prob": 1.0,
             "manual_control": True,
             "use_render": True,
-            "environment_num": 1,
-            "start_seed": 187,
-            "out_of_road_cost": 1,
             "debug": True,
-            "cull_scene": True,
+            'environment_num': 1,
+            "start_seed": 22,
+            "traffic_density": 0.2,
+            # "environment_num": 1,
+            # # "start_seed": 187,
+            # "out_of_road_cost": 1,
+            # "debug": True,
+            # "map": "CCC",
+            # # "cull_scene": True,
             "vehicle_config": {
-                "show_lidar": True,
-                "show_side_detector": True,
-                "show_lane_line_detector": True,
-                "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
-                "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
+                "spawn_lane_index": (FirstPGBlock.NODE_2, FirstPGBlock.NODE_3, 2)
+                # "show_lidar": True,
+                # "show_side_detector": True,
+                # "show_lane_line_detector": True,
+                # "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
+                # "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
             }
         }
     )
@@ -122,7 +128,7 @@ if __name__ == "__main__":
     o = env.reset()
     total_cost = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step([0, 1])
+        o, r, d, info = env.step([0, 0])
         total_cost += info["cost"]
         env.render(text={"cost": total_cost, "seed": env.current_seed, "reward": r})
         print(len(env.engine.traffic_manager.traffic_vehicles))
