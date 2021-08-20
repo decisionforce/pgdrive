@@ -1,4 +1,5 @@
 import logging
+from pgdrive.manager.map_manager import MapManager
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -41,7 +42,7 @@ class ArgoverseMap(BaseMap):
         assert map_config["city"] in self.SUPPORTED_MAPS, "City generation of {} is not supported (We support {} now)". \
             format(map_config["city"], self.SUPPORTED_MAPS)
         self.city = map_config["city"]
-        super(ArgoverseMap, self).__init__(map_config=map_config, random_seed=random_seed)
+        super(ArgoverseMap, self).__init__(map_config=map_config, random_seed=None)
         self.lane_id_lane = None
 
     def _generate(self):
@@ -75,7 +76,6 @@ class ArgoverseMap(BaseMap):
         self._construct_road_network([lane_objs[k] for k in lane_ids])
 
     def _construct_road_network(self, lanes: list):
-        # TODO split the blocks in the future, if we need the whole map
         chosen_lanes = lanes
         for lane in lanes:
             self._post_process_lane(lane)
@@ -168,7 +168,7 @@ if __name__ == "__main__":
             "radius": 100
         }
     )
-    engine.map_manager.load_map(map)
+    map.attach_to_world(engine.worldNP, physics_world=engine.physics_world)
     engine.enableMouse()
 
     # argoverse data set is as the same coordinates as panda3d
