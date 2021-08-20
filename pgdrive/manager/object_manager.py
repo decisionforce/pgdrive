@@ -28,7 +28,7 @@ class TrafficSignManager(BaseManager):
     # distance between two cones
     CONE_LONGITUDE = 2
     CONE_LATERAL = 1
-    PROHIBIT_SCENE_PROB = 0.5  # the reset is the probability of break_down_scene
+    PROHIBIT_SCENE_PROB = 0.5 # the reset is the probability of break_down_scene
 
     def __init__(self):
         super(TrafficSignManager, self).__init__()

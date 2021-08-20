@@ -11,7 +11,6 @@ class SafePGDriveEnv(PGDriveEnv):
             {
                 "environment_num": 100,
                 "accident_prob": 1.0,
-                "traffic_density": 0.15,
                 "safe_rl_env": True,  # Should always be True. But we just leave it here for historical reason.
 
                 # ===== reward scheme =====
@@ -108,7 +107,7 @@ if __name__ == "__main__":
             # "start_seed": 187,
             "out_of_road_cost": 1,
             "debug": True,
-
+            "map":"CCC",
             # "cull_scene": True,
             "vehicle_config": {
                 # "show_lidar": True,
