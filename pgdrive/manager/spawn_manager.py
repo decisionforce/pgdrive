@@ -10,7 +10,7 @@ from pgdrive.component.blocks.first_block import FirstPGBlock
 from pgdrive.component.lane.straight_lane import StraightLane
 from pgdrive.constants import CollisionGroup
 from pgdrive.engine.engine_utils import get_engine
-from pgdrive.utils import Config, get_np_random
+from pgdrive.utils import Config
 from pgdrive.utils.coordinates_shift import panda_position, panda_heading
 from pgdrive.utils.scene_utils import rect_region_detection
 from pgdrive.manager.base_manager import BaseManager
@@ -20,13 +20,22 @@ class SpawnManager(BaseManager):
     """
     This class maintain a list of possible spawn places for MARL respawn
     """
+    # it needs to fill the config at first
+    PRIORITY = 0
+
     REGION_DETECT_HEIGHT = 10
     RESPAWN_REGION_LONGITUDE = 8.
     RESPAWN_REGION_LATERAL = 3.
     MAX_VEHICLE_LENGTH = BaseVehicle.MAX_LENGTH
     MAX_VEHICLE_WIDTH = BaseVehicle.MAX_WIDTH
 
+    # lazy init now
+    initialized = False
+
     def __init__(self):
+        # Lazy init~
+        super(SpawnManager, self).__init__()
+        self.initialized = True
         self.num_agents = self.engine.global_config["num_agents"]
         self.exit_length = (self.engine.global_config["map_config"]["exit_length"] - FirstPGBlock.ENTRANCE_LENGTH)
         assert self.exit_length >= self.RESPAWN_REGION_LONGITUDE, (
@@ -38,58 +47,43 @@ class SpawnManager(BaseManager):
         self.spawn_roads = []
         self.safe_spawn_places = {}
         self.need_update_spawn_places = True
-        self.initialized = False
         self.spawn_places_used = []
 
         target_vehicle_configs = self.engine.global_config["target_vehicle_configs"],
-        self.target_vehicle_configs:Union[List, Dict] = target_vehicle_configs
-        self.custom_target_vehicle_config = True if target_vehicle_configs is not None and len(
-            target_vehicle_configs) > 0 else False
-        if self.custom_target_vehicle_config:
-            assert len(self.target_vehicle_configs) == self.engine.global_config["num_agents"]
-
-        if self.num_agents is None:
-            assert not self.target_vehicle_configs, (
-                "You should now specify config if requiring infinite number of vehicles.")
+        self.target_vehicle_configs: Union[List, Dict] = target_vehicle_configs
 
         spawn_roads = self.engine.global_config["spawn_roads"]
-        if self.target_vehicle_configs:
-            target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_with_configs(spawn_roads)
-        else:
-            target_vehicle_configs, safe_spawn_places = self._update_spawn_roads_randomly(spawn_roads)
+        target_vehicle_configs, safe_spawn_places = self._auto_fill_spawn_roads_randomly(spawn_roads)
         self.target_vehicle_configs = target_vehicle_configs
         self.safe_spawn_places = {place["identifier"]: place for place in safe_spawn_places}
         self.spawn_roads = spawn_roads
         self.need_update_spawn_places = True
 
-    def _update_spawn_roads_with_configs(self, spawn_roads=None):
-        assert self.num_agents <= len(self.target_vehicle_configs), (
-            "Too many agents! We only accept {} agents, which is specified by the number of configs in "
-            "target_vehicle_configs, but you have {} agents! "
-            "You should require less agent or not to specify the target_vehicle_configs!".format(
-                len(self.target_vehicle_configs), self.num_agents
-            )
-        )
-        target_vehicle_configs = []
-        safe_spawn_places = []
-        for v_id, v_config in self.target_vehicle_configs.items():
-            lane_tuple = v_config["spawn_lane_index"]
-            target_vehicle_configs.append(
-                Config(
-                    dict(identifier="|".join((str(s) for s in lane_tuple)), config=v_config),
-                    unchangeable=True
-                )
-            )
-            safe_spawn_places.append(target_vehicle_configs[-1].copy())
-        return target_vehicle_configs, safe_spawn_places
-
     def reset(self):
-        if not self.initialized:
-            super(SpawnManager, self).__init__()
-            self.initialized = True
+        # random assign spawn points
+        num_agents = self.num_agents if self.num_agents is not None else len(self.target_vehicle_configs)
+        assert len(self.target_vehicle_configs) > 0
 
-    def _update_spawn_roads_randomly(self, spawn_roads):
-        assert not self.custom_target_vehicle_config, "This will overwrite your custom target vehicle config"
+        if num_agents == -1:  # Infinite number of agents
+            target_agents = list(range(len(self.target_vehicle_configs)))
+        else:
+            target_agents = self.np_random.choice(
+                [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
+            )
+
+        # for rllib compatibility
+        ret = {}
+        if len(target_agents) > 1:
+            for real_idx, idx in enumerate(target_agents):
+                v_config = self.target_vehicle_configs[idx]["config"]
+                v_config = self._randomize_position_in_slot(v_config)
+                ret["agent{}".format(real_idx)] = v_config
+        else:
+            ret["agent0"] = self._randomize_position_in_slot(self.target_vehicle_configs[0]["config"])
+        self.engine.global_config["target_vehicle_configs"] = copy.deepcopy(ret)
+
+    def _auto_fill_spawn_roads_randomly(self, spawn_roads):
+        """It is used for shuffling the config"""
         assert len(spawn_roads) > 0
         interval = self.RESPAWN_REGION_LONGITUDE
         num_slots = int(floor(self.exit_length / interval))
@@ -119,7 +113,7 @@ class SpawnManager(BaseManager):
                     target_vehicle_configs.append(
                         Config(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
@@ -132,36 +126,6 @@ class SpawnManager(BaseManager):
                     if j == 0:
                         safe_spawn_places.append(target_vehicle_configs[-1].copy())
         return target_vehicle_configs, safe_spawn_places
-
-    def get_target_vehicle_configs(self, seed=None):
-        # don't overwrite
-        if self.custom_target_vehicle_config:
-            ret = {}
-            for bp in self.target_vehicle_configs:
-                v_config = bp["config"]
-                ret[bp["force_agent_name"]] = v_config
-            return copy.deepcopy(ret)
-
-        num_agents = self.num_agents if self.num_agents is not None else len(self.target_vehicle_configs)
-        assert len(self.target_vehicle_configs) > 0
-
-        if num_agents == -1:  # Infinite number of agents
-            target_agents = list(range(len(self.target_vehicle_configs)))
-        else:
-            target_agents = get_np_random(seed).choice(
-                [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
-            )
-
-        # for rllib compatibility
-        ret = {}
-        if len(target_agents) > 1:
-            for real_idx, idx in enumerate(target_agents):
-                v_config = self.target_vehicle_configs[idx]["config"]
-                v_config = self._randomize_position_in_slot(v_config)
-                ret["agent{}".format(real_idx)] = v_config
-        else:
-            ret["agent0"] = self._randomize_position_in_slot(self.target_vehicle_configs[0]["config"])
-        return copy.deepcopy(ret)
 
     def step(self):
         self.spawn_places_used = []
@@ -219,6 +183,6 @@ class SpawnManager(BaseManager):
         vehicle_config = copy.deepcopy(target_vehicle_config)
         long = self.RESPAWN_REGION_LONGITUDE - self.MAX_VEHICLE_LENGTH
         lat = self.RESPAWN_REGION_LATERAL - self.MAX_VEHICLE_WIDTH
-        vehicle_config["spawn_longitude"] += get_np_random(self._seed).uniform(-long / 2, long / 2)
-        vehicle_config["spawn_lateral"] += get_np_random(self._seed).uniform(-lat / 2, lat / 2)
+        vehicle_config["spawn_longitude"] += self.np_random.uniform(-long / 2, long / 2)
+        vehicle_config["spawn_lateral"] += self.np_random.uniform(-lat / 2, lat / 2)
         return vehicle_config

@@ -23,7 +23,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
 
     # Whether the vehicle can rejoin the episode
     allow_respawn=True,
-    spawn_road=[Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3)],
+    spawn_roads=[Road(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3)],
 
     # The maximum length of the episode. If allow respawn, then this is the maximum step that respawn can happen. After
     # that, the episode won't terminate until all existing vehicles reach their horizon or done. The vehicle specified
@@ -89,15 +89,18 @@ class MultiAgentPGDrive(PGDriveEnv):
         if "prefer_track_agent" in config and config["prefer_track_agent"]:
             ret_config["target_vehicle_configs"][config["prefer_track_agent"]]["am_i_the_special_one"] = True
 
-        self._spawn_manager = SpawnManager()
-
-        self._spawn_manager.set_spawn_roads(self.spawn_roads)
-        ret_config = self._update_agent_pos_configs(ret_config)
+        # merge basic vehicle config into target vehicle config
+        target_vehicle_configs = dict()
+        for id in range(ret_config["num_agents"]):
+            agent_id = "agent{}".format(id)
+            if agent_id in ret_config["target_vehicle_configs"]:
+                config = ret_config["target_vehicle_configs"][agent_id]
+            else:
+                config=dict()
+            config.update(ret_config["vehicle_config"])
+            target_vehicle_configs[agent_id] = config
+        ret_config["target_vehicle_configs"]=target_vehicle_configs
         return ret_config
-
-    def _update_agent_pos_configs(self, config):
-        config["target_vehicle_configs"] = self._spawn_manager.get_target_vehicle_configs(seed=self._DEBUG_RANDOM_SEED)
-        return config
 
     def done_function(self, vehicle_id):
         done, done_info = super(MultiAgentPGDrive, self).done_function(vehicle_id)
@@ -123,7 +126,6 @@ class MultiAgentPGDrive(PGDriveEnv):
         # Update respawn manager
         if self.episode_steps >= self.config["horizon"] or self.engine.replay_system is not None:
             self.agent_manager.set_allow_respawn(False)
-        self._spawn_manager.step()
         new_obs_dict = self._respawn_vehicles(randomize_position=self.config["random_traffic"])
         if new_obs_dict:
             for new_id, new_obs in new_obs_dict.items():
@@ -142,12 +144,6 @@ class MultiAgentPGDrive(PGDriveEnv):
                 d[k] = True
 
         return o, r, d, i
-
-    def reset(self, *args, **kwargs):
-        self.config.update(self._update_agent_pos_configs(self.config))
-        ret = super(MultiAgentPGDrive, self).reset(*args, **kwargs)
-        assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
-        return ret
 
     def _reset_config(self):
         # update config (for new possible spawn places)
@@ -178,15 +174,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
     def _get_observations(self):
         return {
-            name: self.get_single_observation(self._get_single_vehicle_config(new_config))
+            name: self.get_single_observation(new_config)
             for name, new_config in self.config["target_vehicle_configs"].items()}
-
-    def _get_single_vehicle_config(self, extra_config: dict):
-        """
-        Newly introduce method
-        """
-        vehicle_config = merge_dicts(self.config["vehicle_config"], extra_config, allow_new_keys=False)
-        return Config(vehicle_config)
 
     def _respawn_vehicles(self, randomize_position=False):
         new_obs_dict = {}
@@ -235,6 +224,9 @@ class MultiAgentPGDrive(PGDriveEnv):
             ret = super(MultiAgentPGDrive, self).render(mode=mode, text=text)
         return ret
 
+    def setup_engine(self):
+        super(MultiAgentPGDrive, self).setup_engine()
+        self.engine.register_manager("spawn_manager",SpawnManager())
 
 def _test():
     setup_logger(True)
