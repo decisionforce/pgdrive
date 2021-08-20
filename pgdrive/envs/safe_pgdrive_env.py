@@ -20,9 +20,8 @@ class SafePGDriveEnv(PGDriveEnv):
 
                 # ===== cost scheme
                 "crash_vehicle_cost": 1,
-                "crash_object_cost": 0.5,
+                "crash_object_cost": 1,
                 "out_of_road_cost": 1.,  # only give penalty for out_of_road
-                "traffic_density": 0.2,
                 "use_lateral": False
             },
             allow_add_new_key=True
@@ -101,20 +100,20 @@ class SafePGDriveEnv(PGDriveEnv):
 if __name__ == "__main__":
     env = SafePGDriveEnv(
         {
-            "accident_prob": 1.0,
+            # "accident_prob": 1.0,
             "manual_control": True,
             "use_render": True,
-            "environment_num": 1,
-            "start_seed": 187,
+            # "environment_num": 1,
+            # "start_seed": 187,
             "out_of_road_cost": 1,
             "debug": True,
-            "cull_scene": True,
+            # "cull_scene": True,
             "vehicle_config": {
-                "show_lidar": True,
-                "show_side_detector": True,
-                "show_lane_line_detector": True,
-                "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
-                "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
+                # "show_lidar": True,
+                # "show_side_detector": True,
+                # "show_lane_line_detector": True,
+                # "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
+                # "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
             }
         }
     )
