@@ -104,10 +104,10 @@ if __name__ == "__main__":
             # "accident_prob": 1.0,
             "manual_control": True,
             "use_render": True,
-            "debug":True,
-            'environment_num':1,
-            "start_seed":22,
-            "traffic_density":0.2,
+            "debug": True,
+            'environment_num': 1,
+            "start_seed": 22,
+            "traffic_density": 0.2,
             # "environment_num": 1,
             # # "start_seed": 187,
             # "out_of_road_cost": 1,
@@ -115,14 +115,14 @@ if __name__ == "__main__":
             # "map": "CCC",
             # # "cull_scene": True,
             "vehicle_config": {
-                "spawn_lane_index":(FirstPGBlock.NODE_2, FirstPGBlock.NODE_3, 2)
+                "spawn_lane_index": (FirstPGBlock.NODE_2, FirstPGBlock.NODE_3, 2)
                 # "show_lidar": True,
                 # "show_side_detector": True,
                 # "show_lane_line_detector": True,
                 # "side_detector": dict(num_lasers=2, distance=50),  # laser num, distance
                 # "lane_line_detector": dict(num_lasers=2, distance=20),  # laser num, distance
-
-        }}
+            }
+        }
     )
 
     o = env.reset()
