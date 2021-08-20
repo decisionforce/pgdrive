@@ -10,7 +10,8 @@ class SafePGDriveEnv(PGDriveEnv):
         config.update(
             {
                 "environment_num": 100,
-                "accident_prob": 0.5,
+                "accident_prob": 1.0,
+                "traffic_density": 0.15,
                 "safe_rl_env": True,  # Should always be True. But we just leave it here for historical reason.
 
                 # ===== reward scheme =====
@@ -107,6 +108,7 @@ if __name__ == "__main__":
             # "start_seed": 187,
             "out_of_road_cost": 1,
             "debug": True,
+
             # "cull_scene": True,
             "vehicle_config": {
                 # "show_lidar": True,
@@ -121,7 +123,7 @@ if __name__ == "__main__":
     o = env.reset()
     total_cost = 0
     for i in range(1, 100000):
-        o, r, d, info = env.step([0, 1])
+        o, r, d, info = env.step([0, 0])
         total_cost += info["cost"]
         env.render(text={"cost": total_cost, "seed": env.current_seed, "reward": r})
         print(len(env.engine.traffic_manager.traffic_vehicles))
