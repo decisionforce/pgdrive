@@ -140,12 +140,6 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         return o, r, d, i
 
-    def _reset_config(self):
-        # update config (for new possible spawn places)
-        for v_id, config in self.config["target_vehicle_configs"].items():
-            self.config["target_vehicle_configs"][v_id] = self._update_destination_for(
-                v_id, self.config["target_vehicle_configs"][v_id])
-
     def _after_vehicle_done(self, obs=None, reward=None, dones: dict = None, info=None):
         if self.engine.replay_system is not None:
             return obs, reward, dones, info
@@ -197,7 +191,7 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         new_agent_id, vehicle = self.agent_manager.propose_new_vehicle()
         new_spawn_place_config = new_spawn_place["config"]
-        new_spawn_place_config = self._update_destination_for(new_agent_id, new_spawn_place_config)
+        new_spawn_place_config = self.engine.spawn_manager.update_destination_for(new_agent_id, new_spawn_place_config)
         vehicle.config.update(new_spawn_place_config)
         vehicle.reset()
         vehicle.after_step()
@@ -205,12 +199,6 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         new_obs = self.observations[new_agent_id].observe(vehicle)
         return new_agent_id, new_obs
-
-    def _update_destination_for(self, vehicle_id, vehicle_config):
-        # when agent re-joined to the game, call this to set the new route to destination
-        # end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(self.spawn_roads)  # Use negative road!
-        # vehicle.navigation.set_route(vehicle.lane_index[0], end_road.end_node)
-        return vehicle_config
 
     def setup_engine(self):
         super(MultiAgentPGDrive, self).setup_engine()
@@ -271,7 +259,7 @@ def _vis():
         # o, r, d, info = env.step([0,1])
         # d.update({"total_r": total_r})
         env.render(mode="top_down")
-        env.reset()
+        # env.reset()
         if len(env.vehicles) == 0:
             total_r = 0
             print("Reset")

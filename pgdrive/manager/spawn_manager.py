@@ -71,7 +71,7 @@ class SpawnManager(BaseManager):
                 [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
             )
 
-        # for rllib compatibility
+        # set the spawn road
         ret = {}
         if len(target_agents) > 1:
             for real_idx, idx in enumerate(target_agents):
@@ -80,7 +80,14 @@ class SpawnManager(BaseManager):
                 ret["agent{}".format(real_idx)] = v_config
         else:
             ret["agent0"] = self._randomize_position_in_slot(self.target_vehicle_configs[0]["config"])
-        self.engine.global_config["target_vehicle_configs"] = copy.deepcopy(ret)
+
+        # set the destination
+        target_vehicle_configs = {}
+        for agent_id, config in ret.items():
+            config = self.update_destination_for(agent_id, config)
+            target_vehicle_configs[agent_id] = config
+
+        self.engine.global_config["target_vehicle_configs"] = copy.deepcopy(target_vehicle_configs)
 
     def _auto_fill_spawn_roads_randomly(self, spawn_roads):
         """It is used for shuffling the config"""
@@ -191,8 +198,8 @@ class SpawnManager(BaseManager):
         # this class is used to ranomly choose the spawn places, which will not be controlled by any seed
         return
 
-    def _update_destination(self, vehicle_config):
+    def update_destination_for(self,agent_id, vehicle_config):
         """
         Choose a destination for agent
         """
-        pass
+        return vehicle_config

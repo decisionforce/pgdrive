@@ -274,7 +274,7 @@ def test_ma_parking_lot_close_spawn():
 def test_ma_parking_lot_reward_done_alignment():
     # out of road
     env = MultiAgentParkingLotEnv(
-        {"horizon": 200, "num_agents": 11, "out_of_road_penalty": 777, "crash_done": False, "use_render": True})
+        {"horizon": 200, "num_agents": 11, "out_of_road_penalty": 777, "crash_done": False})
     try:
         _check_spaces_before_reset(env)
         obs = env.reset()
