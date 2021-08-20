@@ -107,7 +107,7 @@ if __name__ == "__main__":
             # "start_seed": 187,
             "out_of_road_cost": 1,
             "debug": True,
-            "map":"CCC",
+            "map": "CCC",
             # "cull_scene": True,
             "vehicle_config": {
                 # "show_lidar": True,
