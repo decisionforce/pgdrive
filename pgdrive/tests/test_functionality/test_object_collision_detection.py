@@ -160,7 +160,7 @@ def test_object_collision_detection(render=False):
         for i in range(1, 100000 if render else 2000):
             o, r, d, info = env.step([0, 1])
             for obj in env.observations[DEFAULT_AGENT].detected_objects:
-                if obj.getNode().hasPythonTag(BodyName.Traffic_cone):
+                if isinstance(obj, TrafficCone):
                     detect_obj = True
             if render:
                 env.render()
