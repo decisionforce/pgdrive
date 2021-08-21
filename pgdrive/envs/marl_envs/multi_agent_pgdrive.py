@@ -88,6 +88,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         return ret_config
 
     def _post_process_config(self, config):
+        config=super(MultiAgentPGDrive, self)._post_process_config(config)
         ret_config = config
         # merge basic vehicle config into target vehicle config
         target_vehicle_configs = dict()
@@ -251,7 +252,8 @@ def _vis():
             "fast": True,
             "num_agents": 5,
             "start_seed": 8000,
-            "environment_num": 100
+            "environment_num": 1,
+            "map" : "SSS",
 
             # "allow_respawn": False,
             # "manual_control": True,
