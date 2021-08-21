@@ -235,9 +235,9 @@ class Navigation:
             elif dir == -1:
                 angle = ref_lane.start_phase - ref_lane.end_phase
         return (
-            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                 1.0), clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0,
-                            1.0), clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
+            clip((proj_heading / self.NAVI_POINT_DIST + 1) / 2, 0.0, 1.0),
+            clip((proj_side / self.NAVI_POINT_DIST + 1) / 2, 0.0, 1.0),
+            clip(bendradius, 0.0, 1.0), clip((dir + 1) / 2, 0.0, 1.0),
             clip((np.rad2deg(angle) / BlockParameterSpace.CURVE[Parameter.angle].max + 1) / 2, 0.0, 1.0)
         ), lanes_heading, check_point
 
