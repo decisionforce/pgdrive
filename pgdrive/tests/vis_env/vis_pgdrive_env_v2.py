@@ -11,8 +11,12 @@ if __name__ == "__main__":
             "use_render": True,
             "manual_control": True,
             "vehicle_config": {
-                "side_detector": {"num_lasers": 120},
-                "lane_line_detector": {"num_lasers": 120},
+                "side_detector": {
+                    "num_lasers": 120
+                },
+                "lane_line_detector": {
+                    "num_lasers": 120
+                },
                 "show_side_detector": True,
                 "show_lane_line_detector": True,
                 "show_navi_mark": True,
