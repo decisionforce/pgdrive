@@ -159,7 +159,6 @@ class MATollGateMap(PGMap):
 
 
 class MultiAgentTollgateEnv(MultiAgentPGDrive):
-
     def __init__(self, config):
         super(MultiAgentTollgateEnv, self).__init__(config)
         self.stay_time_manager = StayTimeManager()

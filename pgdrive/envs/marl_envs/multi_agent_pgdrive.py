@@ -76,7 +76,9 @@ class MultiAgentPGDrive(PGDriveEnv):
         if not ret_config["crash_done"] and ret_config["crash_vehicle_penalty"] > 2:
             logging.warning(
                 "Are you sure you wish to set crash_vehicle_penalty={} when crash_done=False?".format(
-                    ret_config["crash_vehicle_penalty"]))
+                    ret_config["crash_vehicle_penalty"]
+                )
+            )
         if ret_config["use_render"] and ret_config["fast"]:
             logging.warning("Turn fast=False can accelerate Multi-agent rendering performance!")
 
@@ -131,8 +133,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -152,7 +154,8 @@ class MultiAgentPGDrive(PGDriveEnv):
         for dead_vehicle_id, done in dones.items():
             if done:
                 self.agent_manager.finish(
-                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False))
+                    dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False)
+                )
                 self._update_camera_after_finish()
         return obs, reward, dones, info
 
@@ -164,7 +167,8 @@ class MultiAgentPGDrive(PGDriveEnv):
     def _get_observations(self):
         return {
             name: self.get_single_observation(new_config)
-            for name, new_config in self.config["target_vehicle_configs"].items()}
+            for name, new_config in self.config["target_vehicle_configs"].items()
+        }
 
     def _respawn_vehicles(self, randomize_position=False):
         new_obs_dict = {}
@@ -183,7 +187,8 @@ class MultiAgentPGDrive(PGDriveEnv):
         Arbitrary insert a new vehicle to a new spawn place if possible.
         """
         safe_places_dict = self.engine.spawn_manager.get_available_respawn_places(
-            self.current_map, randomize=randomize_position)
+            self.current_map, randomize=randomize_position
+        )
         if len(safe_places_dict) == 0:
             return None, None
         born_place_index = get_np_random(self._DEBUG_RANDOM_SEED).choice(list(safe_places_dict.keys()), 1)[0]

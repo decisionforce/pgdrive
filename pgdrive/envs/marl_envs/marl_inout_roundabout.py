@@ -131,7 +131,6 @@ class RoundaboutSpawnManager(SpawnManager):
 
 
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
-
     @staticmethod
     def default_config() -> Config:
         return MultiAgentPGDrive.default_config().update(MARoundaboutConfig, allow_add_new_key=True)
@@ -174,7 +173,6 @@ def _expert():
                     "num_others": 4,
                     "distance": 50
                 },
-
             },
             "use_saver": True,
             "save_level": 1.,

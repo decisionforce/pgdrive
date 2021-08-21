@@ -65,6 +65,7 @@ def is_mac():
 def is_win():
     return sys.platform == "win32"
 
+
 def concat_step_infos(step_info_list):
     """We only conduct simply shallow update here!"""
     old_dict = dict()

@@ -5,7 +5,6 @@ class AIProtectPolicy(ManualControlPolicy):
     """
     This policy can protect Manual control and EnvInputControl
     """
-
     def act(self, agent_id):
         action = super(AIProtectPolicy, self).act(agent_id)
         vehicle = self.engine.agent_manager.active_agents[agent_id]

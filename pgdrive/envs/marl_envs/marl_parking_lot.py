@@ -44,7 +44,6 @@ class ParkingLotSpawnManager(SpawnManager):
     parking space and entrances of parking lot, vehicle can not respawn in parking space which has been assigned to a
     vehicle who drives into this parking lot.
     """
-
     def __init__(self):
         super(ParkingLotSpawnManager, self).__init__()
         self.parking_space_available = set()
@@ -75,7 +74,6 @@ class ParkingLotSpawnManager(SpawnManager):
         self.v_dest_pair = {}
         self.parking_space_available = set(copy.deepcopy(self._parking_spaces))
         super(ParkingLotSpawnManager, self).reset()
-
 
     def update_destination_for(self, vehicle_id, vehicle_config):
         # when agent re-joined to the game, call this to set the new route to destination
@@ -135,7 +133,6 @@ class MultiAgentParkingLotEnv(MultiAgentPGDrive):
     """
     Env will be done when vehicle is on yellow or white continuous lane line!
     """
-
     @staticmethod
     def default_config() -> Config:
         return MultiAgentPGDrive.default_config().update(MAParkingLotConfig, allow_add_new_key=True)

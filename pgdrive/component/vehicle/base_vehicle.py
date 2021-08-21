@@ -632,7 +632,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         res = rect_region_detection(
             self.engine, self.position, np.rad2deg(self.heading_theta), self.LENGTH, self.WIDTH, CollisionGroup.Sidewalk
         )
-        if res.hasHit() and res.getNode().getName()==CollisionGroup.Sidewalk:
+        if res.hasHit() and res.getNode().getName() == CollisionGroup.Sidewalk:
             self.crash_sidewalk = True
             contacts.add(BodyName.Sidewalk)
         self.contact_results = contacts

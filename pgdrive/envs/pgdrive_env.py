@@ -187,8 +187,8 @@ class PGDriveEnv(BasePGDriveEnv):
         # for compatibility
         # crash almost equals to crashing with vehicles
         done_info[TerminationState.CRASH] = (
-                done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
-                or done_info[TerminationState.CRASH_BUILDING]
+            done_info[TerminationState.CRASH_VEHICLE] or done_info[TerminationState.CRASH_OBJECT]
+            or done_info[TerminationState.CRASH_BUILDING]
         )
         return done, done_info
 
@@ -342,7 +342,6 @@ if __name__ == '__main__':
         assert env.observation_space.contains(obs)
         assert np.isscalar(reward)
         assert isinstance(info, dict)
-
 
     env = PGDriveEnv()
     try:

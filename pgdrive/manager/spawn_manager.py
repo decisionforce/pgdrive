@@ -120,7 +120,7 @@ class SpawnManager(BaseManager):
                     target_vehicle_configs.append(
                         Config(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
@@ -198,7 +198,7 @@ class SpawnManager(BaseManager):
         # this class is used to ranomly choose the spawn places, which will not be controlled by any seed
         return
 
-    def update_destination_for(self,agent_id, vehicle_config):
+    def update_destination_for(self, agent_id, vehicle_config):
         """
         Choose a destination for agent
         """

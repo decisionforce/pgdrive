@@ -15,7 +15,7 @@ def test_ma_env_force_reset():
     e.reset()
     assert len(e.vehicles) == e.num_agents == len(e.config["target_vehicle_configs"]) == 1
 
-    close_and_reset_num_agents(e,num_agents=2, raw_input_config=_raw_input_config)
+    close_and_reset_num_agents(e, num_agents=2, raw_input_config=_raw_input_config)
     e.reset()
     assert len(e.vehicles) == e.num_agents == len(e.config["target_vehicle_configs"]) == 2
 

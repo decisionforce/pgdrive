@@ -68,7 +68,6 @@ class MABottleneckMap(PGMap):
 
 
 class MultiAgentBottleneckEnv(MultiAgentPGDrive):
-
     @staticmethod
     def default_config() -> Config:
         assert MABottleneckConfig["vehicle_config"]["side_detector"]["num_lasers"] > 2
@@ -157,7 +156,6 @@ def _expert():
                     "num_others": 4,
                     "distance": 50
                 },
-
             },
             "use_saver": True,
             "save_level": 1.,
@@ -279,7 +277,7 @@ def _vis():
             "cam_x": env.main_camera.camera_x,
             "cam_y": env.main_camera.camera_y,
             "cam_z": env.main_camera.top_down_camera_height,
-            "current_track_v":env.agent_manager.object_to_agent(env.current_track_vehicle.name)
+            "current_track_v": env.agent_manager.object_to_agent(env.current_track_vehicle.name)
         }
         track_v = env.agent_manager.object_to_agent(env.current_track_vehicle.name)
         render_text["tack_v_reward"] = r[track_v]

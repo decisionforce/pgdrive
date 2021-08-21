@@ -210,8 +210,9 @@ class BasePGDriveEnv(gym.Env):
         self.engine.step(self.config["decision_repeat"])
         # update states, if restore from episode data, position and heading will be force set in update_state() function
         scene_manager_after_step_infos = self.engine.after_step()
-        return merge_dicts(scene_manager_after_step_infos, scene_manager_before_step_infos, allow_new_keys=True,
-                           without_copy=True)
+        return merge_dicts(
+            scene_manager_after_step_infos, scene_manager_before_step_infos, allow_new_keys=True, without_copy=True
+        )
 
     def reward_function(self, vehicle_id: str) -> Tuple[float, Dict]:
         """
@@ -305,8 +306,7 @@ class BasePGDriveEnv(gym.Env):
             done = done_function_result or self.dones[v_id]
             self.dones[v_id] = done
 
-        should_done = self.config["auto_termination"] and (
-                self.episode_steps >= (self.current_map.num_blocks * 250))
+        should_done = self.config["auto_termination"] and (self.episode_steps >= (self.current_map.num_blocks * 250))
 
         termination_infos = self.for_each_vehicle(auto_termination, should_done)
 
