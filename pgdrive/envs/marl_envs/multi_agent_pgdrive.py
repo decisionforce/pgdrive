@@ -85,7 +85,10 @@ class MultiAgentPGDrive(PGDriveEnv):
         if "prefer_track_agent" in config and config["prefer_track_agent"]:
             ret_config["target_vehicle_configs"][config["prefer_track_agent"]]["am_i_the_special_one"] = True
         ret_config["vehicle_config"]["random_agent_model"] = ret_config["random_agent_model"]
+        return ret_config
 
+    def _post_process_config(self, config):
+        ret_config = config
         # merge basic vehicle config into target vehicle config
         target_vehicle_configs = dict()
         for id in range(ret_config["num_agents"]):
