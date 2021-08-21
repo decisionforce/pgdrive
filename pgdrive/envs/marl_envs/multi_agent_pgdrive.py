@@ -88,11 +88,14 @@ class MultiAgentPGDrive(PGDriveEnv):
         return ret_config
 
     def _post_process_config(self, config):
-        config=super(MultiAgentPGDrive, self)._post_process_config(config)
+        from pgdrive.manager.spawn_manager import SpawnManager
+        config = super(MultiAgentPGDrive, self)._post_process_config(config)
         ret_config = config
         # merge basic vehicle config into target vehicle config
         target_vehicle_configs = dict()
-        for id in range(ret_config["num_agents"]):
+        num_agents = ret_config["num_agents"] if ret_config["num_agents"] != -1 else SpawnManager.max_capacity(
+            config["spawn_roads"], config["map_config"]["exit_length"], config["map_config"]["lane_num"])
+        for id in range(num_agents):
             agent_id = "agent{}".format(id)
             if agent_id in ret_config["target_vehicle_configs"]:
                 config = ret_config["target_vehicle_configs"][agent_id]
@@ -137,8 +140,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
@@ -253,7 +256,7 @@ def _vis():
             "num_agents": 5,
             "start_seed": 8000,
             "environment_num": 1,
-            "map" : "SSS",
+            "map": "SSS",
 
             # "allow_respawn": False,
             # "manual_control": True,

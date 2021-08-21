@@ -89,23 +89,27 @@ class SpawnManager(BaseManager):
 
         self.engine.global_config["target_vehicle_configs"] = copy.deepcopy(target_vehicle_configs)
 
+    @staticmethod
+    def max_capacity(spawn_roads, exit_length, lane_num):
+        assert len(spawn_roads) > 0
+        interval = SpawnManager.RESPAWN_REGION_LONGITUDE
+        num_slots = int(floor(exit_length / interval))
+        assert num_slots > 0, "The exist length {} should greater than minimal longitude interval {}.".format(
+            exit_length, interval
+        )
+        return lane_num * len(spawn_roads) * num_slots
+
     def _auto_fill_spawn_roads_randomly(self, spawn_roads):
         """It is used for shuffling the config"""
-        assert len(spawn_roads) > 0
-        interval = self.RESPAWN_REGION_LONGITUDE
-        num_slots = int(floor(self.exit_length / interval))
-        assert num_slots > 0, "The exist length {} should greater than minimal longitude interval {}.".format(
-            self.exit_length, interval
-        )
+
+        num_slots = int(floor(self.exit_length / SpawnManager.RESPAWN_REGION_LONGITUDE))
         interval = self.exit_length / num_slots
         self._longitude_spawn_interval = interval
         if self.num_agents is not None:
             assert self.num_agents > 0 or self.num_agents == -1
-            assert self.num_agents <= self.lane_num * len(spawn_roads) * num_slots, (
+            assert self.num_agents <= self.max_capacity(spawn_roads, self.exit_length, self.lane_num), (
                 "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                    self.lane_num * len(spawn_roads) * num_slots, self.num_agents
-                )
-            )
+                    self.lane_num * len(spawn_roads) * num_slots, self.num_agents))
 
         # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be respawn,
         # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
@@ -120,7 +124,7 @@ class SpawnManager(BaseManager):
                     target_vehicle_configs.append(
                         Config(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
