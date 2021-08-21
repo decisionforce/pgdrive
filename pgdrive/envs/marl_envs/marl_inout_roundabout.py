@@ -1,4 +1,5 @@
 import copy
+from pgdrive.manager.spawn_manager import SpawnManager
 
 import gym
 import numpy as np
@@ -121,6 +122,14 @@ class LidarStateObservationMARound(ObservationBase):
         return list(points)
 
 
+class RoundaboutSpawnManager(SpawnManager):
+    def update_destination_for(self, vehicle_id, vehicle_config):
+        end_roads = copy.deepcopy(self.engine.global_config["spawn_roads"])
+        end_road = -self.np_random.choice(end_roads)  # Use negative road!
+        vehicle_config["destination_node"] = end_road.end_node
+        return vehicle_config
+
+
 class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
 
     @staticmethod
@@ -136,14 +145,13 @@ class MultiAgentRoundaboutEnv(MultiAgentPGDrive):
             spawn_roads=self.config["spawn_roads"]
         )
 
-    def _update_destination_for(self, vehicle_id, vehicle_config):
-        end_roads = copy.deepcopy(self.config["spawn_roads"])
-        end_road = -get_np_random(self._DEBUG_RANDOM_SEED).choice(end_roads)  # Use negative road!
-        vehicle_config["destination_node"] = end_road.end_node
-        return vehicle_config
-
     def get_single_observation(self, vehicle_config: "Config") -> "ObservationBase":
         return LidarStateObservationMARound(vehicle_config)
+
+    def setup_engine(self):
+        from pgdrive.envs.pgdrive_env import PGDriveEnv
+        PGDriveEnv.setup_engine(self)
+        self.engine.register_manager("spawn_manager", RoundaboutSpawnManager())
 
 
 def _draw():
