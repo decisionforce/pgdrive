@@ -128,6 +128,7 @@ class PGDriveEnv(BasePGDriveEnv):
         return config
 
     def _post_process_config(self, config):
+        config = super(PGDriveEnv, self)._post_process_config(config)
         if not config["rgb_clip"]:
             logging.warning(
                 "You have set rgb_clip = False, which means the observation will be uint8 values in [0, 255]. "

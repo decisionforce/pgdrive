@@ -33,6 +33,9 @@ BASE_DEFAULT_CONFIG = dict(
 
     # ===== Action =====
     decision_repeat=5,
+    discrete_action=False,
+    discrete_steering_dim=5,
+    discrete_throttle_dim=5,
 
     # ===== Rendering =====
     use_render=False,  # pop a window to render or not
@@ -147,13 +150,19 @@ class BasePGDriveEnv(gym.Env):
     def _get_action_space(self):
         if self.is_multi_agent:
             return {
-                v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"])
+                v_id: BaseVehicle.get_action_space_before_init(self.config["vehicle_config"]["extra_action_dim"],
+                                                               self.config["discrete_action"],
+                                                               self.config["discrete_steering_dim"],
+                                                               self.config["discrete_throttle_dim"])
                 for v_id in self.config["target_vehicle_configs"].keys()
             }
         else:
             return {
                 DEFAULT_AGENT: BaseVehicle.get_action_space_before_init(
-                    self.config["vehicle_config"]["extra_action_dim"]
+                    self.config["vehicle_config"]["extra_action_dim"],
+                    self.config["discrete_action"],
+                    self.config["discrete_steering_dim"],
+                    self.config["discrete_throttle_dim"]
                 )
             }
 

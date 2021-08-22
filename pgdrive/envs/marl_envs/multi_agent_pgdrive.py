@@ -98,7 +98,7 @@ class MultiAgentPGDrive(PGDriveEnv):
         )
         for id in range(num_agents):
             agent_id = "agent{}".format(id)
-            config = ret_config["vehicle_config"]
+            config = copy.copy(ret_config["vehicle_config"])
             if agent_id in ret_config["target_vehicle_configs"]:
                 config.update(ret_config["target_vehicle_configs"][agent_id])
                 config["not_randomize"] = True
