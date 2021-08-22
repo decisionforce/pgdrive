@@ -91,9 +91,9 @@ class SpawnManager(BaseManager):
 
     @staticmethod
     def max_capacity(spawn_roads, exit_length, lane_num):
+        exit_length -= FirstPGBlock.ENTRANCE_LENGTH
         assert len(spawn_roads) > 0
-        interval = SpawnManager.RESPAWN_REGION_LONGITUDE
-        num_slots = int(floor(exit_length / interval))
+        num_slots = int(floor(exit_length / SpawnManager.RESPAWN_REGION_LONGITUDE))
         assert num_slots > 0, "The exist length {} should greater than minimal longitude interval {}.".format(
             exit_length, interval
         )
