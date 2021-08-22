@@ -11,7 +11,7 @@ class SafePGDriveEnv(PGDriveEnv):
             {
                 "environment_num": 100,
                 "accident_prob": 0.5,
-                "traffic_density":0.1,
+                "traffic_density": 0.1,
                 "safe_rl_env": True,  # Should always be True. But we just leave it here for historical reason.
                 "cost_to_reward": False,
 

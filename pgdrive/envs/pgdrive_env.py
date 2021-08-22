@@ -46,7 +46,7 @@ PGDriveEnv_DEFAULT_CONFIG = dict(
     # ===== Traffic =====
     traffic_density=0.1,
     traffic_mode=TrafficMode.Trigger,  # "Respawn", "Trigger", "Hybrid"
-    random_traffic=True,  # Traffic is randomized at default.
+    random_traffic=False,  # Traffic is randomized at default.
 
     # ===== Object =====
     accident_prob=0.,  # accident may happen on each block with this probability, except multi-exits block
