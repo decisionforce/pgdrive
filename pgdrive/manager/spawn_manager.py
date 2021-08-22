@@ -151,7 +151,7 @@ class SpawnManager(BaseManager):
                         )
                     )  # lock the spawn positions
                     if j == 0:
-                        safe_spawn_places.append(target_vehicle_configs[-1].copy())
+                        safe_spawn_places.append(copy.deepcopy(target_vehicle_configs[-1]))
         return target_vehicle_configs, safe_spawn_places
 
     def step(self):
