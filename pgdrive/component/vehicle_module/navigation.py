@@ -108,7 +108,7 @@ class Navigation:
             # choose first block when born on negative road
             block = map.blocks[0] if current_road_negative else map.blocks[-1]
             sockets = block.get_socket_list()
-            socket = get_np_random(map.config[BaseMap.SEED]).choice(sockets)
+            socket = get_np_random(random_seed).choice(sockets)
             while True:
                 if not socket.is_socket_node(start_road_node) or len(sockets) == 1:
                     break
