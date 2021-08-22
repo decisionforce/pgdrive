@@ -51,7 +51,7 @@ class SpawnManager(BaseManager):
 
         target_vehicle_configs = copy.copy(self.engine.global_config["target_vehicle_configs"])
         self.available_target_vehicle_configs: Union[List, Dict] = target_vehicle_configs
-        self._init_target_vehicle_configs = target_vehicle_configs
+        self._init_target_vehicle_configs = self.get_not_randomize_vehicle_configs(target_vehicle_configs)
 
         spawn_roads = self.engine.global_config["spawn_roads"]
         target_vehicle_configs, safe_spawn_places = self._auto_fill_spawn_roads_randomly(spawn_roads)
@@ -59,6 +59,14 @@ class SpawnManager(BaseManager):
         self.safe_spawn_places = {place["identifier"]: place for place in safe_spawn_places}
         self.spawn_roads = spawn_roads
         self.need_update_spawn_places = True
+
+    @staticmethod
+    def get_not_randomize_vehicle_configs(configs):
+        ret = {}
+        for id, config in configs.items():
+            if config["not_randomize"]:
+                ret[id] = config
+        return ret
 
     def reset(self):
         # random assign spawn points
@@ -132,7 +140,7 @@ class SpawnManager(BaseManager):
                     target_vehicle_configs.append(
                         Config(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,

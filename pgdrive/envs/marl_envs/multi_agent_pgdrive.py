@@ -35,7 +35,7 @@ MULTI_AGENT_PGDRIVE_DEFAULT_CONFIG = dict(
     neighbours_distance=10,
 
     # ===== Vehicle Setting =====
-    vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0), random_color=True),
+    vehicle_config=dict(lidar=dict(num_lasers=72, distance=40, num_others=0), random_color=True, not_randomize=False),
     target_vehicle_configs=dict(),
 
     # ===== New Reward Setting =====
@@ -98,11 +98,10 @@ class MultiAgentPGDrive(PGDriveEnv):
         )
         for id in range(num_agents):
             agent_id = "agent{}".format(id)
+            config = ret_config["vehicle_config"]
             if agent_id in ret_config["target_vehicle_configs"]:
-                config = ret_config["target_vehicle_configs"][agent_id]
-            else:
-                config = dict()
-            config.update(ret_config["vehicle_config"])
+                config.update(ret_config["target_vehicle_configs"][agent_id])
+                config["not_randomize"] = True
             target_vehicle_configs[agent_id] = config
         ret_config["target_vehicle_configs"] = target_vehicle_configs
         return ret_config
@@ -141,8 +140,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         # Update __all__
         d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():
