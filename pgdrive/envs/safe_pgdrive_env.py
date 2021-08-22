@@ -53,7 +53,7 @@ class SafePGDriveEnv(PGDriveEnv):
         self.engine.register_manager("object_manager", TrafficObjectManager())
 
     def _is_out_of_road(self, vehicle):
-        return  vehicle.out_of_route
+        return vehicle.out_of_route
 
 
 if __name__ == "__main__":
