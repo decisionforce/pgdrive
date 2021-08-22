@@ -82,8 +82,10 @@ class SpawnManager(BaseManager):
             ret["agent0"] = self._randomize_position_in_slot(self.target_vehicle_configs[0]["config"])
 
         # set the destination
-        target_vehicle_configs = {}
+        target_vehicle_configs = copy.copy(self.engine.global_config["target_vehicle_configs"])
         for agent_id, config in ret.items():
+            if agent_id in target_vehicle_configs:
+                config = target_vehicle_configs[agent_id]
             config = self.update_destination_for(agent_id, config)
             target_vehicle_configs[agent_id] = config
 
@@ -95,7 +97,7 @@ class SpawnManager(BaseManager):
         assert len(spawn_roads) > 0
         num_slots = int(floor(exit_length / SpawnManager.RESPAWN_REGION_LONGITUDE))
         assert num_slots > 0, "The exist length {} should greater than minimal longitude interval {}.".format(
-            exit_length, interval
+            exit_length, SpawnManager.RESPAWN_REGION_LONGITUDE+FirstPGBlock.ENTRANCE_LENGTH
         )
         return lane_num * len(spawn_roads) * num_slots
 
@@ -107,7 +109,7 @@ class SpawnManager(BaseManager):
         self._longitude_spawn_interval = interval
         if self.num_agents is not None:
             assert self.num_agents > 0 or self.num_agents == -1
-            assert self.num_agents <= self.max_capacity(spawn_roads, self.exit_length, self.lane_num), (
+            assert self.num_agents <= self.max_capacity(spawn_roads, self.exit_length+FirstPGBlock.ENTRANCE_LENGTH, self.lane_num), (
                 "Too many agents! We only accepet {} agents, but you have {} agents!".format(
                     self.lane_num * len(spawn_roads) * num_slots, self.num_agents))
 
