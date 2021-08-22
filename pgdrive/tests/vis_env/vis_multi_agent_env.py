@@ -6,14 +6,14 @@ class TestEnv(MultiAgentRoundaboutEnv):
     def __init__(self):
         super(TestEnv, self).__init__(
             config={
-                "use_render":True,
+                "use_render": True,
                 "map": "SSS",
                 "num_agents": 4,
-                "manual_control":True,
+                "manual_control": True,
                 "target_vehicle_configs": {"agent{}".format(i): {
                     "spawn_longitude": i * 5
                 }
-                    for i in range(4)}
+                                           for i in range(4)}
             }
         )
 
