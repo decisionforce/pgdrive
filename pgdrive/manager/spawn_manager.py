@@ -49,44 +49,46 @@ class SpawnManager(BaseManager):
         self.need_update_spawn_places = True
         self.spawn_places_used = []
 
-        target_vehicle_configs = self.engine.global_config["target_vehicle_configs"],
-        self.target_vehicle_configs: Union[List, Dict] = target_vehicle_configs
+        target_vehicle_configs = copy.copy(self.engine.global_config["target_vehicle_configs"])
+        self.available_target_vehicle_configs: Union[List, Dict] = target_vehicle_configs
+        self._init_target_vehicle_configs = target_vehicle_configs
 
         spawn_roads = self.engine.global_config["spawn_roads"]
         target_vehicle_configs, safe_spawn_places = self._auto_fill_spawn_roads_randomly(spawn_roads)
-        self.target_vehicle_configs = target_vehicle_configs
+        self.available_target_vehicle_configs = target_vehicle_configs
         self.safe_spawn_places = {place["identifier"]: place for place in safe_spawn_places}
         self.spawn_roads = spawn_roads
         self.need_update_spawn_places = True
 
     def reset(self):
         # random assign spawn points
-        num_agents = self.num_agents if self.num_agents is not None else len(self.target_vehicle_configs)
-        assert len(self.target_vehicle_configs) > 0
+        num_agents = self.num_agents if self.num_agents is not None else len(self.available_target_vehicle_configs)
+        assert len(self.available_target_vehicle_configs) > 0
 
         if num_agents == -1:  # Infinite number of agents
-            target_agents = list(range(len(self.target_vehicle_configs)))
+            target_agents = list(range(len(self.available_target_vehicle_configs)))
         else:
             target_agents = self.np_random.choice(
-                [i for i in range(len(self.target_vehicle_configs))], num_agents, replace=False
+                [i for i in range(len(self.available_target_vehicle_configs))], num_agents, replace=False
             )
 
         # set the spawn road
         ret = {}
         if len(target_agents) > 1:
             for real_idx, idx in enumerate(target_agents):
-                v_config = self.target_vehicle_configs[idx]["config"]
+                v_config = self.available_target_vehicle_configs[idx]["config"]
                 v_config = self._randomize_position_in_slot(v_config)
                 ret["agent{}".format(real_idx)] = v_config
         else:
-            ret["agent0"] = self._randomize_position_in_slot(self.target_vehicle_configs[0]["config"])
+            ret["agent0"] = self._randomize_position_in_slot(self.available_target_vehicle_configs[0]["config"])
 
         # set the destination
-        target_vehicle_configs = copy.copy(self.engine.global_config["target_vehicle_configs"])
+        target_vehicle_configs = {}
         for agent_id, config in ret.items():
-            if agent_id in target_vehicle_configs:
-                config = target_vehicle_configs[agent_id]
-            config = self.update_destination_for(agent_id, config)
+            if agent_id in self._init_target_vehicle_configs:
+                config = self._init_target_vehicle_configs[agent_id]
+            if not config.get("destination_node", False) or config["destination_node"] is None:
+                config = self.update_destination_for(agent_id, config)
             target_vehicle_configs[agent_id] = config
 
         self.engine.global_config["target_vehicle_configs"] = copy.deepcopy(target_vehicle_configs)
@@ -205,7 +207,7 @@ class SpawnManager(BaseManager):
         return vehicle_config
 
     def seed(self, random_seed):
-        # this class is used to ranomly choose the spawn places, which will not be controlled by any seed
+        """this class is used to ranomly choose the spawn places, which will not be controlled by any seed"""
         return
 
     def update_destination_for(self, agent_id, vehicle_config):
