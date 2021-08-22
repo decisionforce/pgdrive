@@ -94,7 +94,8 @@ class MultiAgentPGDrive(PGDriveEnv):
         # merge basic vehicle config into target vehicle config
         target_vehicle_configs = dict()
         num_agents = ret_config["num_agents"] if ret_config["num_agents"] != -1 else SpawnManager.max_capacity(
-            config["spawn_roads"], config["map_config"]["exit_length"], config["map_config"]["lane_num"])
+            config["spawn_roads"], config["map_config"]["exit_length"], config["map_config"]["lane_num"]
+        )
         for id in range(num_agents):
             agent_id = "agent{}".format(id)
             if agent_id in ret_config["target_vehicle_configs"]:
@@ -140,8 +141,8 @@ class MultiAgentPGDrive(PGDriveEnv):
 
         # Update __all__
         d["__all__"] = (
-                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-                or (self.episode_steps >= 5 * self.config["horizon"])
+            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+            or (self.episode_steps >= 5 * self.config["horizon"])
         )
         if d["__all__"]:
             for k in d.keys():

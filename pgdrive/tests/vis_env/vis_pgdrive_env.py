@@ -31,7 +31,7 @@ if __name__ == "__main__":
             #     Map.LANE_NUM: 3,
             # },
             "pstats": True,
-            "map":"SSS",
+            "map": "SSS",
             "random_traffic": False,
             "random_lane_width": True,
             "random_agent_model": True,

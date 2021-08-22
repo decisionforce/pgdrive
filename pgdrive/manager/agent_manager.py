@@ -104,7 +104,8 @@ class AgentManager(BaseManager):
         vehicles_created = set(init_vehicles.keys())
         vehicles_in_config = set(self._init_observations.keys())
         assert vehicles_created == vehicles_in_config, "{} not defined in target vehicles config".format(
-            vehicles_created.difference(vehicles_in_config))
+            vehicles_created.difference(vehicles_in_config)
+        )
 
         # it is used when reset() is called to reset its original agent_id
         self._agent_to_object = {agent_id: vehicle.name for agent_id, vehicle in init_vehicles.items()}

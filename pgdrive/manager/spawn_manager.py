@@ -97,7 +97,7 @@ class SpawnManager(BaseManager):
         assert len(spawn_roads) > 0
         num_slots = int(floor(exit_length / SpawnManager.RESPAWN_REGION_LONGITUDE))
         assert num_slots > 0, "The exist length {} should greater than minimal longitude interval {}.".format(
-            exit_length, SpawnManager.RESPAWN_REGION_LONGITUDE+FirstPGBlock.ENTRANCE_LENGTH
+            exit_length, SpawnManager.RESPAWN_REGION_LONGITUDE + FirstPGBlock.ENTRANCE_LENGTH
         )
         return lane_num * len(spawn_roads) * num_slots
 
@@ -109,9 +109,13 @@ class SpawnManager(BaseManager):
         self._longitude_spawn_interval = interval
         if self.num_agents is not None:
             assert self.num_agents > 0 or self.num_agents == -1
-            assert self.num_agents <= self.max_capacity(spawn_roads, self.exit_length+FirstPGBlock.ENTRANCE_LENGTH, self.lane_num), (
+            assert self.num_agents <= self.max_capacity(
+                spawn_roads, self.exit_length + FirstPGBlock.ENTRANCE_LENGTH, self.lane_num
+            ), (
                 "Too many agents! We only accepet {} agents, but you have {} agents!".format(
-                    self.lane_num * len(spawn_roads) * num_slots, self.num_agents))
+                    self.lane_num * len(spawn_roads) * num_slots, self.num_agents
+                )
+            )
 
         # We can spawn agents in the middle of road at the initial time, but when some vehicles need to be respawn,
         # then we have to set it to the farthest places to ensure safety (otherwise the new vehicles may suddenly
@@ -126,7 +130,7 @@ class SpawnManager(BaseManager):
                     target_vehicle_configs.append(
                         Config(
                             dict(
-                                identifier="|".join((str(s) for s in lane_tuple + (j,))),
+                                identifier="|".join((str(s) for s in lane_tuple + (j, ))),
                                 config={
                                     "spawn_lane_index": lane_tuple,
                                     "spawn_longitude": long,
