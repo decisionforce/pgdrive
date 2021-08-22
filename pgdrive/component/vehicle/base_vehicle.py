@@ -187,9 +187,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.energy_consumption = 0
         self.action_space = self.get_action_space_before_init(extra_action_dim=self.config["extra_action_dim"])
         self.break_down = False
-        self.discrete_action = self.engine.global_config["discrete_action"]
-        self.steering_unit = 2.0 / self.engine.global_config["discrete_steering_dim"]  # for discrete actions space
-        self.throttle_unit = 2.0 / self.engine.global_config["discrete_throttle_dim"]  # for discrete actions space
 
         # overtake_stat
         self.front_vehicles = set()
@@ -232,12 +229,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             assert self.action_space.contains(action), "Input {} is not compatible with action space {}!".format(
                 action, self.action_space
             )
-        if not self.discrete_action:
-            action = safe_clip_for_small_array(
-                action, min_val=self.action_space.low[0], max_val=self.action_space.high[0]
-            )
-        else:
-            action = self.convert_to_continuous_action(action)
         return action, {'raw_action': (action[0], action[1])}
 
     def before_step(self, action):
@@ -786,7 +777,4 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.break_down = break_down
         # self.set_static(True)
 
-    def convert_to_continuous_action(self, action):
-        steering = action[0] * self.steering_unit - 1.0
-        throttle = action[1] * self.throttle_unit - 1.0
-        return steering, throttle
+

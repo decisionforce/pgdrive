@@ -16,7 +16,7 @@ if __name__ == "__main__":
             # "debug_static_world":True,
             "cull_scene": False,
             # "controller": "joystick",
-            "manual_control": True,
+            # "manual_control": True,
             "use_render": True,
             "decision_repeat": 5,
             "rgb_clip": True,
@@ -31,6 +31,7 @@ if __name__ == "__main__":
             #     Map.LANE_NUM: 3,
             # },
             "pstats": True,
+            "discrete_action":True,
             "map": "SSS",
             "random_traffic": False,
             "random_lane_width": True,
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     o = env.reset()
 
     for s in range(1, 100000):
-        o, r, d, info = env.step([.0, 1.])
+        o, r, d, info = env.step([2, 4])
         # info["fuel"] = env.vehicle.energy_consumption
         env.render(
             text={
@@ -76,7 +77,7 @@ if __name__ == "__main__":
         #             time.time() - start, (s + 1) / (time.time() - start)
         #         )
         #     )
-        if d:
-            # env.close()
-            print(len(env.engine._spawned_objects))
-            env.reset()
+        # if d:
+        #     # env.close()
+        #     print(len(env.engine._spawned_objects))
+        #     env.reset()
