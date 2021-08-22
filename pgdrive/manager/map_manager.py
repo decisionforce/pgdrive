@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os.path as osp
@@ -80,7 +81,7 @@ class MapManager(BaseManager):
         # for seed, map_dict in data["map_data"].items():
         for seed, config in data["map_data"].items():
             seed = int(seed)
-            map_config = maps_collection_config.copy()
+            map_config = copy.deepcopy(maps_collection_config)
             map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
             map_config[BaseMap.GENERATE_CONFIG] = config
 
@@ -103,7 +104,7 @@ class MapManager(BaseManager):
             assert len(map_data) > 0, "Can not find map info in episode data"
             blocks_info = map_data[0]
 
-            map_config = config["map_config"].copy()
+            map_config = copy.deepcopy(config["map_config"])
             # map_config[BaseMap.GENERATE_TYPE] = MapGenerateMethod.PG_MAP_FILE
             # map_config[BaseMap.GENERATE_CONFIG] = blocks_info
             map_config.update(map_data)
@@ -156,13 +157,13 @@ class MapManager(BaseManager):
     def add_random_to_map(self, map_config):
         if self.engine.global_config["random_lane_width"]:
             assert not self.engine.global_config["load_map_from_json"
-                                                 ], "You are supposed to turn off the load_map_from_json"
+            ], "You are supposed to turn off the load_map_from_json"
             map_config[PGMap.LANE_WIDTH
-                       ] = self.np_random.rand() * (PGMap.MAX_LANE_WIDTH - PGMap.MIN_LANE_WIDTH) + PGMap.MIN_LANE_WIDTH
+            ] = self.np_random.rand() * (PGMap.MAX_LANE_WIDTH - PGMap.MIN_LANE_WIDTH) + PGMap.MIN_LANE_WIDTH
 
         if self.engine.global_config["random_lane_num"]:
             assert not self.engine.global_config["load_map_from_json"
-                                                 ], "You are supposed to turn off the load_map_from_json"
+            ], "You are supposed to turn off the load_map_from_json"
             map_config[PGMap.LANE_NUM] = self.np_random.randint(PGMap.MIN_LANE_NUM, PGMap.MAX_LANE_NUM)
 
         return map_config
