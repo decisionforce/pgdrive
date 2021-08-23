@@ -1,5 +1,5 @@
 from pgdrive.envs.pgdrive_env import PGDriveEnv
-from pgdrive.tests.test_env.test_pgdrive_env import _act
+from drivingforce.generation_envs.test_pgdrive_env import _act
 
 
 def test_pgdrive_env_rgb():
