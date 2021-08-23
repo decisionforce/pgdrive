@@ -1,8 +1,10 @@
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
+from pgdrive.component.vehicle.vehicle_type import SVehicle
 import copy
 import logging
 from collections import namedtuple, deque
 from typing import Tuple, Dict
+import numpy as np
 
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.map.base_map import BaseMap
@@ -25,6 +27,9 @@ class TrafficMode:
 
     # Hybrid, some vehicles are triggered once on map and disappear when arriving at destination, others exist all time
     Hybrid = "hybrid"
+
+    # Traffic vehicles are triggered according to real data
+    Real = "Real"
 
 
 class TrafficManager(BaseManager):
@@ -65,6 +70,8 @@ class TrafficManager(BaseManager):
             self._create_respawn_vehicles(map, traffic_density)
         elif self.mode == TrafficMode.Trigger or self.mode == TrafficMode.Hybrid:
             self._create_vehicles_once(map, traffic_density)
+        elif self.mode == TrafficMode.Real:
+            self._create_argoverse_vehicles_once(map)
         else:
             raise ValueError("No such mode named {}".format(self.mode))
 
@@ -75,7 +82,7 @@ class TrafficManager(BaseManager):
         """
         # trigger vehicles
         engine = self.engine
-        if self.mode != TrafficMode.Respawn:
+        if self.mode == TrafficMode.Trigger or self.mode == TrafficMode.Hybrid:
             for v in engine.agent_manager.active_objects.values():
                 ego_lane_idx = v.lane_index[:-1]
                 ego_road = Road(ego_lane_idx[0], ego_lane_idx[1])
@@ -83,7 +90,10 @@ class TrafficManager(BaseManager):
                         ego_road == self.block_triggered_vehicles[-1].trigger_road:
                     block_vehicles = self.block_triggered_vehicles.pop()
                     self._traffic_vehicles += block_vehicles.vehicles
+        elif self.mode == TrafficMode.Real:
+            self._traffic_vehicles = [i.vehicles[0] for i in self.block_triggered_vehicles]
         for v in self._traffic_vehicles:
+            print(len(self._traffic_vehicles))
             p = self.engine.get_policy(v.name)
             v.before_step(p.act())
         return dict()
@@ -231,6 +241,64 @@ class TrafficManager(BaseManager):
         respawn_lanes = self._get_available_respawn_lanes(map)
         for lane in respawn_lanes:
             self._traffic_vehicles += self._create_vehicles_on_lane(traffic_density, lane, True)
+
+    def _create_argoverse_vehicles_once(self, map: BaseMap) -> None:
+        """
+        Trigger mode, vehicles will be triggered only once, and disappear when arriving destination
+        :param map: Map map.road_network[index]
+        :param traffic_density: it can be adjusted each episode
+        :return: None
+        """
+        targ_pos = [
+            [2664.22738495,-1268.70517618],
+            [2641.72502815,-1246.74679168],
+            [2724.95828433,-1322.73837157],
+            [2659.99634364,-1250.87465116],
+            [2574.95538612,-1180.80127476],
+            [2675.57697058,-1273.77912716],
+            [2601.48620995,-1205.02277673],
+        ]
+        block = map.blocks[0]
+        lanes = block.argo_lanes
+        roads = block.block_network.get_roads(direction='positive', lane_num = 1)
+        potential_vehicle_configs = []
+        for l in lanes:
+            if l in self.engine.object_manager.accident_lanes:
+                continue
+            start = np.max(l.centerline, axis=0)
+            end = np.min(l.centerline, axis=0)
+            for targ in targ_pos:
+                if start[0] > targ[0] > end[0] and start[1] > targ[1] > end[1]:
+                    long, lat = l.local_coordinates(targ)
+                    config = {
+                        #* 如何控制出生车道?
+                        "spawn_lane_index": l.index,
+                        "spawn_longitude": long,
+                        # "spawn_lateral": lat,
+                        "enable_reverse": False,
+                    }
+                    potential_vehicle_configs.append(config)
+                    targ_pos.remove(targ)
+                    break
+
+        #* 为何这个ReplayPolicy.act没有被调用?
+        from pgdrive.policy.replay_policy import ReplayPolicy
+        vehicle_type = SVehicle
+            # vehicle_type = self.random_vehicle_type()
+            # 车辆初始的位置是在哪里决定的?
+        for road in roads:
+            for v_config in potential_vehicle_configs:
+                v_start = v_config["spawn_lane_index"][0]
+                v_end   = v_config["spawn_lane_index"][1]
+                if road.start_node == v_start and road.end_node == v_end:
+                    generated_v = self.spawn_object(vehicle_type, vehicle_config=v_config)
+                    self.engine.add_policy(generated_v.id, ReplayPolicy(generated_v))
+                    block_vehicles = BlockVehicles(trigger_road=road, vehicles=[generated_v])
+                    self.block_triggered_vehicles.append(block_vehicles)
+                    potential_vehicle_configs.remove(v_config)
+                    break
+        self.block_triggered_vehicles.reverse()
+
 
     def _create_vehicles_once(self, map: BaseMap, traffic_density: float) -> None:
         """
