@@ -86,7 +86,6 @@ BASE_DEFAULT_CONFIG = dict(
     # Force to generate objects in the left lane.
     _debug_crash_object=False,
     record_episode=False,
-
     horizon=None,  # The maximum length of each episode. Set to None to remove system.
 )
 
