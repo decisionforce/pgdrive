@@ -1,6 +1,8 @@
 from argoverse.data_loading.frame_label_accumulator import PerFrameLabelAccumulator
 import numpy as np
 from pgdrive.constants import ARGOVERSE_AGENT_ID
+import os
+import pickle
 
 def parse_tracking_data(dataset_dir, log_id):
     pfa = PerFrameLabelAccumulator(dataset_dir, dataset_dir, "")
@@ -13,10 +15,8 @@ def parse_tracking_data(dataset_dir, log_id):
     self_id = ARGOVERSE_AGENT_ID
     locate_info = {}
     locate_info[self_id] = {
-        "start_t": 0,
-        "end_t": len(timesteps)-1,
         "init_pos": None,
-        "traj": []
+        "traj": {}
     }
 
     for timestep_index, timestep in enumerate(timesteps):
@@ -25,7 +25,7 @@ def parse_tracking_data(dataset_dir, log_id):
         if locate_info[self_id]["init_pos"] is None:
             locate_info[self_id]["init_pos"] = np.array([xcenter, -ycenter])
         else:
-            locate_info[self_id]["traj"].append(np.array([xcenter, -ycenter]))
+            locate_info[self_id]["traj"][timestep_index] = np.array([xcenter, -ycenter])
         
         for i, frame_rec in enumerate(log_timestamp_dict[timestep]):
             bbox_city_fr = frame_rec.bbox_city_fr
@@ -36,15 +36,11 @@ def parse_tracking_data(dataset_dir, log_id):
             center_point *= np.array([1, -1])
             if uuid not in list(locate_info.keys()):
                 locate_info[uuid] = {
-                    # TODO: change to relative timestep. The agent appears at timestep 0.
-                    "start_t": timestep_index,
-                    "end_t": timestep_index,
                     "init_pos": center_point,
                     "traj": []
                 }
                 continue
-            locate_info[uuid]["traj"].append(center_point)
-            locate_info[uuid]["end_t"] = timestep_index
+            locate_info[uuid]["traj"][timestep_index] = center_point
 
     moving_obj_threshold = 10
     for key in list(locate_info.keys()):
@@ -59,14 +55,22 @@ def parse_tracking_data(dataset_dir, log_id):
         # Remove objects that reappears
         crit2 = int((info['end_t'] - info['start_t']) / 1e8) != len(info['traj']) 
         # if crit1 or crit2:
-        if crit1:
-            locate_info.pop(key)
+        # if crit1:
+            # locate_info.pop(key)
 
-    for key in list(locate_info.keys()):
-        info = locate_info[key]
-        # compute policy inc
-        info["traj"] = np.diff(np.vstack((info["init_pos"], info["traj"])), axis=0)
+    # for key in list(locate_info.keys()):
+        # info = locate_info[key]
+        # # compute policy inc
+        # info["traj"] = np.diff(np.vstack((info["init_pos"], info["traj"])), axis=0)
     return locate_info
 
 if __name__ == '__main__':
-    locate_info = parse_tracking_data("/home/xzh/Research/code/argoverse-api/argoverse-tracking/sample", "c6911883-1843-3727-8eaa-41dc8cda8993")
+    file_path = "/home/xuezhenghai/argoverse-api/argoverse-tracking/train1/"
+    output_path = "/home/xuezhenghai/argoverse-api/argoverse-tracking/train_parsed"
+    if not os.path.isdir(output_path):
+        os.mkdir(output_path)
+    for log in os.listdir(file_path):
+        print("Parsing log {}".format(log))
+        locate_info = parse_tracking_data(file_path, log)
+        with open(os.path.join(output_path, "{}.pkl".format(log)), 'wb') as f:
+            pickle.dump(locate_info, f)
