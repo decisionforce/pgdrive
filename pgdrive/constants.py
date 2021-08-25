@@ -264,3 +264,5 @@ class DrivableAreaProperty:
 
     #  when set to True, Vehicles will not generate on this block
     PROHIBIT_TRAFFIC_GENERATION = False
+
+ARGOVERSE_AGENT_ID = "00000000-0000-0000-0000-000000000000"

@@ -9,10 +9,10 @@ import numpy as np
 from pgdrive.component.lane.abs_lane import AbstractLane
 from pgdrive.component.map.base_map import BaseMap
 from pgdrive.component.road.road import Road
-from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT
+from pgdrive.constants import TARGET_VEHICLES, TRAFFIC_VEHICLES, OBJECT_TO_AGENT, AGENT_TO_OBJECT, ARGOVERSE_AGENT_ID
 from pgdrive.engine.engine_utils import get_engine
 from pgdrive.manager.base_manager import BaseManager
-from pgdrive.utils import norm, merge_dicts
+from pgdrive.utils import norm, merge_dicts, parse_tracking_data
 import math
 
 BlockVehicles = namedtuple("block_vehicles", "trigger_road vehicles")
@@ -72,6 +72,7 @@ class TrafficManager(BaseManager):
             self._create_vehicles_once(map, traffic_density)
         elif self.mode == TrafficMode.Real:
             self._create_argoverse_vehicles_once(map)
+            self._traffic_vehicles_inited = False
         else:
             raise ValueError("No such mode named {}".format(self.mode))
 
@@ -91,9 +92,11 @@ class TrafficManager(BaseManager):
                     block_vehicles = self.block_triggered_vehicles.pop()
                     self._traffic_vehicles += block_vehicles.vehicles
         elif self.mode == TrafficMode.Real:
-            self._traffic_vehicles = [i.vehicles[0] for i in self.block_triggered_vehicles]
+            if not self._traffic_vehicles_inited:
+                self._traffic_vehicles = [i.vehicles[0] for i in self.block_triggered_vehicles]
+                self._traffic_vehicles_inited = True
+
         for v in self._traffic_vehicles:
-            print(len(self._traffic_vehicles))
             p = self.engine.get_policy(v.name)
             v.before_step(p.act())
         return dict()
@@ -113,9 +116,9 @@ class TrafficManager(BaseManager):
                 # v.update_config({"spawn_lane_index": lane_idx, "spawn_longitude": long})
                 # v.reset(self.current_map)
                 # self.engine.get_policy(v.id).reset()
-        for v in v_to_remove:
-            self.clear_objects([v.id])
-            self._traffic_vehicles.remove(v)
+        # for v in v_to_remove:
+        #     self.clear_objects([v.id])
+        #     self._traffic_vehicles.remove(v)
         return dict()
 
     def before_reset(self) -> None:
@@ -249,15 +252,12 @@ class TrafficManager(BaseManager):
         :param traffic_density: it can be adjusted each episode
         :return: None
         """
-        targ_pos = [
-            [2664.22738495,-1268.70517618],
-            [2641.72502815,-1246.74679168],
-            [2724.95828433,-1322.73837157],
-            [2659.99634364,-1250.87465116],
-            [2574.95538612,-1180.80127476],
-            [2675.57697058,-1273.77912716],
-            [2601.48620995,-1205.02277673],
-        ]
+        real_data_config = self.engine.global_config["real_data_config"]
+        locate_info = parse_tracking_data(real_data_config["data_path"], real_data_config["log_id"])
+        if real_data_config["replay_agent"]:
+            del locate_info[ARGOVERSE_AGENT_ID]
+        pos_dict = {i:j["init_pos"] for i,j in zip(locate_info.keys(), locate_info.values())}
+        
         block = map.blocks[0]
         lanes = block.argo_lanes
         roads = block.block_network.get_roads(direction='positive', lane_num = 1)
@@ -267,35 +267,36 @@ class TrafficManager(BaseManager):
                 continue
             start = np.max(l.centerline, axis=0)
             end = np.min(l.centerline, axis=0)
-            for targ in targ_pos:
-                if start[0] > targ[0] > end[0] and start[1] > targ[1] > end[1]:
-                    long, lat = l.local_coordinates(targ)
+            for idx, pos in zip(pos_dict.keys(), pos_dict.values()):
+                if start[0] > pos[0] > end[0] and start[1] > pos[1] > end[1]:
+                    long, lat = l.local_coordinates(pos)
                     config = {
                         #* 如何控制出生车道?
-                        "spawn_lane_index": l.index,
-                        "spawn_longitude": long,
-                        # "spawn_lateral": lat,
-                        "enable_reverse": False,
+                        "id": idx,
+                        "v_config": {
+                            "spawn_lane_index": l.index,
+                            "spawn_longitude": long,
+                            # "spawn_lateral": lat,
+                            "enable_reverse": False,
+                        }
                     }
                     potential_vehicle_configs.append(config)
-                    targ_pos.remove(targ)
+                    pos_dict.pop(idx, None)
                     break
 
-        #* 为何这个ReplayPolicy.act没有被调用?
         from pgdrive.policy.replay_policy import ReplayPolicy
         vehicle_type = SVehicle
-            # vehicle_type = self.random_vehicle_type()
-            # 车辆初始的位置是在哪里决定的?
         for road in roads:
-            for v_config in potential_vehicle_configs:
+            for config in potential_vehicle_configs:
+                v_config = config["v_config"]
                 v_start = v_config["spawn_lane_index"][0]
                 v_end   = v_config["spawn_lane_index"][1]
                 if road.start_node == v_start and road.end_node == v_end:
                     generated_v = self.spawn_object(vehicle_type, vehicle_config=v_config)
-                    self.engine.add_policy(generated_v.id, ReplayPolicy(generated_v))
+                    self.engine.add_policy(generated_v.id, ReplayPolicy(generated_v, locate_info[config["id"]]))
                     block_vehicles = BlockVehicles(trigger_road=road, vehicles=[generated_v])
                     self.block_triggered_vehicles.append(block_vehicles)
-                    potential_vehicle_configs.remove(v_config)
+                    potential_vehicle_configs.remove(config)
                     break
         self.block_triggered_vehicles.reverse()
 
