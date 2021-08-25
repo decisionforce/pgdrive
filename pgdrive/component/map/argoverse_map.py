@@ -33,6 +33,11 @@ class ArgoverseMap(BaseMap):
     # block size
     BLOCK_LANE_NUM = 40
 
+    MAX_LANE_NUM = 2
+    MIN_LANE_NUM = 1
+    MAX_LANE_WIDTH = 4.5
+    MIN_LANE_WIDTH = 3.0
+
     # origin ag map
     AGMap = AGMap()
 
@@ -155,17 +160,13 @@ if __name__ == "__main__":
     engine = initialize_engine(default_config)
 
     # in argoverse coordinates
-    xcenter, ycenter = 2599.5505965123866, 1200.0214763629717
-    xmin = xcenter - 80  # 150
-    xmax = xcenter + 80  # 150
-    ymin = ycenter - 80  # 150
-    ymax = ycenter + 80  # 150
+    xcenter, ycenter = 2647.745783746136, 1253.652566359981
     map = ArgoverseMap(
         {
             "city": "PIT",
             # "draw_map_resolution": 1024,
             "center": ArgoverseMap.pgdrive_position([xcenter, ycenter]),
-            "radius": 100
+            "radius": 150
         }
     )
     map.attach_to_world(engine.worldNP, physics_world=engine.physics_world)
