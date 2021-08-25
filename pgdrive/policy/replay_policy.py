@@ -6,7 +6,6 @@ class ReplayPolicy(BasePolicy):
         super(ReplayPolicy, self).__init__(control_object=control_object)
         self.traj_info = locate_info["traj"]
         self.start_index = min(self.traj_info.keys())
-        print(self.start_index)
         self.init_pos = locate_info["init_pos"]
         self.timestep = 0
         self.damp = 0
@@ -21,17 +20,17 @@ class ReplayPolicy(BasePolicy):
         else:
             return [0,0]
 
-        if self.timestep == self.start_index:
+        if str(self.timestep) == self.start_index:
             self.control_object.set_position(self.init_pos)
-        elif self.timestep in self.traj_info.keys():
-            self.control_object.set_position(self.traj_info[self.timestep])
-        else:
-            self.control_object.set_position((0, 0)
+        elif str(self.timestep) in self.traj_info.keys():
+            self.control_object.set_position(self.traj_info[str(self.timestep)])
+        # else:
+        #     self.control_object.set_position((0, 0))
             
 
         # TODO: set precise heading
         lane = self.control_object.lane
-        heading = lane.heading_at(lane.local_coordinates(self.cur_pos)[0])
+        heading = lane.heading_at(lane.local_coordinates(self.control_object.position)[0])
         self.control_object.set_heading(heading)
 
         return [0, 0]

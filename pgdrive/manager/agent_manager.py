@@ -69,12 +69,8 @@ class AgentManager(BaseManager):
             ret[agent_id] = obj
             # note: agent.id = object id
             if self.engine.global_config["real_data_config"]["replay_agent"]:
-                from pgdrive.utils import parse_tracking_data
                 from pgdrive.policy.replay_policy import ReplayPolicy
-                from pgdrive.constants import ARGOVERSE_AGENT_ID 
-                
-                real_data_config = self.engine.global_config["real_data_config"]
-                locate_info = parse_tracking_data(real_data_config["data_path"], real_data_config["log_id"])[ARGOVERSE_AGENT_ID]
+                locate_info = self.engine.global_config["real_data_config"]["agent_locate_info"]
                 policy = ReplayPolicy(obj, locate_info)
             elif self.engine.global_config["manual_control"] and self.engine.global_config["use_render"]:
                 policy = ManualControlPolicy()

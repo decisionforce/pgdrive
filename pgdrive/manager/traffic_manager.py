@@ -253,9 +253,7 @@ class TrafficManager(BaseManager):
         :return: None
         """
         real_data_config = self.engine.global_config["real_data_config"]
-        locate_info = parse_tracking_data(real_data_config["data_path"], real_data_config["log_id"])
-        if real_data_config["replay_agent"]:
-            del locate_info[ARGOVERSE_AGENT_ID]
+        locate_info = real_data_config["locate_info"]
         pos_dict = {i:j["init_pos"] for i,j in zip(locate_info.keys(), locate_info.values())}
         
         block = map.blocks[0]
@@ -283,7 +281,6 @@ class TrafficManager(BaseManager):
                     potential_vehicle_configs.append(config)
                     pos_dict.pop(idx, None)
                     break
-
         from pgdrive.policy.replay_policy import ReplayPolicy
         vehicle_type = SVehicle
         for road in roads:
