@@ -12,7 +12,7 @@ class ArgoverseEnv(PGDriveEnv):
         data_path = "/home/xzh/Research/code/argoverse-api/argoverse-tracking/sample"
         # data_path = "/home/xzh/Research/code/argoverse-api/argoverse-tracking/train_parsed"
         # log_id = "10b3a1d8-e56c-38be-aaf7-ef2f862a5c4e"
-        # log_id = "6f153f9c-edc5-389f-ac6f-40705c30d97e"
+        # log_id = "a073e840-6319-3f0b-843e-f6dccdcc7b77"
         log_id = "c6911883-1843-3727-8eaa-41dc8cda8993"
         data_parsed = False
         self.replay_agent = True
@@ -62,7 +62,7 @@ class ArgoverseEnv(PGDriveEnv):
             map = ArgoverseMap(self.config["map_config"])
             self.engine.map_manager.load_map(map)
             self.config["vehicle_config"]["spawn_lane_index"] = map.blocks[0].argo_lanes[0].index
-            self.config["vehicle_config"]["destination_node"] = map.blocks[0].argo_lanes[0].index[0]
+            self.config["vehicle_config"]["destination_node"] = map.blocks[0].argo_lanes[-1].index[0]
 
 
 class TestEnv(ArgoverseEnv):

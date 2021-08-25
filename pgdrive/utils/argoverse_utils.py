@@ -9,10 +9,6 @@ def parse_tracking_data(dataset_dir, log_id):
     pfa.accumulate_per_log_data(log_id = log_id)
     log_egopose_dict = pfa.log_egopose_dict[log_id]
     log_timestamp_dict = pfa.log_timestamp_dict[log_id]
-    per_city_traj_dict = pfa.per_city_traj_dict
-    for city, traj in zip(per_city_traj_dict.keys(), per_city_traj_dict.values()):
-        if len(traj) != 0:
-            targ_city = city
 
     timesteps = sorted(log_egopose_dict.keys())
 
@@ -66,7 +62,10 @@ def parse_tracking_data(dataset_dir, log_id):
         # info = locate_info[key]
         # # compute policy inc
         # info["traj"] = np.diff(np.vstack((info["init_pos"], info["traj"])), axis=0)
-    return locate_info, targ_city
+    with open(os.path.join(dataset_dir, log_id, "city_info.json"), 'r') as f:
+        city_info = eval(f.readline())
+    city = city_info["city_name"]
+    return locate_info, city
 
 if __name__ == '__main__':
     file_path = "/home/xuezhenghai/argoverse-api/argoverse-tracking/train1/"
