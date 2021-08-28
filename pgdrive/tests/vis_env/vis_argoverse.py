@@ -1,18 +1,19 @@
 from pgdrive.component.map.argoverse_map import ArgoverseMap
 from pgdrive.envs.pgdrive_env import PGDriveEnv
 from pgdrive.constants import ARGOVERSE_AGENT_ID
-from pgdrive.utils.argoverse_utils import parse_tracking_data
+from panda3d.core import PNMImage
+from pgdrive.utils.argoverse_utils import parse_tracking_data, parse_forcasting_data
 import numpy as np
 
 RENDER = True
-EXPERT = True
+EXPERT = False
 
 class ArgoverseEnv(PGDriveEnv):
     def __init__(self, *args, **kwargs):
         data_path = "/home/xzh/Research/code/argoverse-api/argoverse-tracking/sample"
         # data_path = "/home/xzh/Research/code/argoverse-api/argoverse-tracking/train_parsed"
         # log_id = "10b3a1d8-e56c-38be-aaf7-ef2f862a5c4e"
-        # log_id = "a073e840-6319-3f0b-843e-f6dccdcc7b77"
+        # log_id = "6f153f9c-edc5-389f-ac6f-40705c30d97e"
         log_id = "c6911883-1843-3727-8eaa-41dc8cda8993"
         data_parsed = False
         self.replay_agent = True
@@ -24,6 +25,8 @@ class ArgoverseEnv(PGDriveEnv):
                 self.locate_info, self.city = pickle.load(f)
         else:
             self.locate_info, self.city = parse_tracking_data(data_path, log_id)
+            # self.locate_info, self.city = parse_forcasting_data("../argoverse-api/forecasting_sample/data/3828.csv")
+
 
         self.map_center = self.locate_info[ARGOVERSE_AGENT_ID]["init_pos"] * np.array([1, -1])
         
@@ -85,6 +88,8 @@ class TestEnv(ArgoverseEnv):
                 "fast": False,
                 "vehicle_config": {
                     "enable_reverse": True,
+                    "rgb_camera": (1920, 1200),
+                    "show_navi_mark": False,
                 #     "side_detector": dict(num_lasers=2, distance=50),
                 #     "lane_line_detector": dict(num_lasers=2, distance=50),
                 }
@@ -97,7 +102,16 @@ if __name__ == "__main__":
     from pgdrive.examples import expert
 
     o = env.reset()
-    for i in range(1, 100000):
+    # env.engine.accept(
+    #     "m", , extraArgs=[env.vehicle]
+    # )
+    for i in range(1, 150):
+        if i == 112:
+            env.vehicle.image_sensors[env.vehicle.config["image_source"]].save_image(env.vehicle, name="pgdrive_first_view.jpg")
+            img = PNMImage()
+            env.engine.win.getScreenshot(img)
+            img.write("pgdrive_topdown.png")
+            print("Image written!")
         action = expert(o) if EXPERT else [0, 0]
         o, r, d, info = env.step(action)
         info = {}

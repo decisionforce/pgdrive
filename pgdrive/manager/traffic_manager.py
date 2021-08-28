@@ -1,5 +1,5 @@
 from pgdrive.component.vehicle.base_vehicle import BaseVehicle
-from pgdrive.component.vehicle.vehicle_type import SVehicle
+from pgdrive.component.vehicle.vehicle_type import *
 import copy
 import logging
 from collections import namedtuple, deque
@@ -254,7 +254,7 @@ class TrafficManager(BaseManager):
         """
         real_data_config = self.engine.global_config["real_data_config"]
         locate_info = real_data_config["locate_info"]
-        pos_dict = {i:j["init_pos"] for i,j in zip(locate_info.keys(), locate_info.values())}
+        pos_dict = {i:(j["init_pos"], j["diag_len"]) for i,j in zip(locate_info.keys(), locate_info.values())}
         
         block = map.blocks[0]
         lanes = block.argo_lanes
@@ -265,12 +265,22 @@ class TrafficManager(BaseManager):
                 continue
             start = np.max(l.centerline, axis=0)
             end = np.min(l.centerline, axis=0)
-            for idx, pos in zip(pos_dict.keys(), pos_dict.values()):
+            for idx, info in zip(pos_dict.keys(), pos_dict.values()):
+                pos, diag_len = info
+                if diag_len < 4.5:
+                    v_type = SVehicle
+                elif 4.5 <= diag_len < 5:
+                    v_type = MVehicle
+                elif 6 <= diag_len <= 8:
+                    v_type = LVehicle
+                else:
+                    v_type = XLVehicle
                 if start[0] > pos[0] > end[0] and start[1] > pos[1] > end[1]:
                     long, lat = l.local_coordinates(pos)
                     config = {
                         #* 如何控制出生车道?
                         "id": idx,
+                        "type": v_type,
                         "v_config": {
                             "spawn_lane_index": l.index,
                             "spawn_longitude": long,
@@ -282,14 +292,14 @@ class TrafficManager(BaseManager):
                     pos_dict.pop(idx, None)
                     break
         from pgdrive.policy.replay_policy import ReplayPolicy
-        vehicle_type = SVehicle
+        # vehicle_type = SVehicle
         for road in roads:
             for config in potential_vehicle_configs:
                 v_config = config["v_config"]
                 v_start = v_config["spawn_lane_index"][0]
                 v_end   = v_config["spawn_lane_index"][1]
                 if road.start_node == v_start and road.end_node == v_end:
-                    generated_v = self.spawn_object(vehicle_type, vehicle_config=v_config)
+                    generated_v = self.spawn_object(config["type"], vehicle_config=v_config)
                     self.engine.add_policy(generated_v.id, ReplayPolicy(generated_v, locate_info[config["id"]]))
                     block_vehicles = BlockVehicles(trigger_road=road, vehicles=[generated_v])
                     self.block_triggered_vehicles.append(block_vehicles)

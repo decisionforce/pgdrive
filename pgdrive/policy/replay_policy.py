@@ -1,5 +1,6 @@
 from pgdrive.policy.base_policy import BasePolicy
 from copy import deepcopy
+has_rendered = False
 
 class ReplayPolicy(BasePolicy):
     def __init__(self, control_object, locate_info):
