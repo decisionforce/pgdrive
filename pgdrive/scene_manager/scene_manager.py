@@ -51,6 +51,13 @@ class SceneManager:
         self.cull_scene = cull_scene
         self.detector_mask = None
 
+        self.x = 0
+        self.y = 0
+        self.radius = 40
+        self.height = 50
+        self.theta = 0
+        self.speed = 0.002
+
     def _get_traffic_manager(self, traffic_config):
         return TrafficManager(self, traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
@@ -67,6 +74,7 @@ class SceneManager:
         self.x = (res[0] + res[1]) / 2
         self.y = (res[2] + res[3]) / 2
         self.radius = 40
+        self.height = 50
         self.theta = 0
 
         self.traffic_manager.reset(pg_world, map, traffic_density)
@@ -126,8 +134,8 @@ class SceneManager:
         dt = pg_world.world_config["physics_world_step_size"]
         for i in range(step_num):
 
-            self.theta += 0.002
-            self.pg_world.cam.setPos(self.x + self.radius * np.cos(self.theta), self.y - self.radius * np.sin(self.theta), 50)
+            self.theta += self.speed
+            self.pg_world.cam.setPos(self.x + self.radius * np.cos(self.theta), self.y - self.radius * np.sin(self.theta), self.height)
             self.pg_world.cam.lookAt(self.x, self.y, 0)
             # simulate or replay
             if self.replay_system is None:
