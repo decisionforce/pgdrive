@@ -63,6 +63,11 @@ class SceneManager:
         """
         pg_world = self.pg_world
         self.map = map
+        res = self.map.road_network.get_bounding_box()
+        self.x = (res[0] + res[1]) / 2
+        self.y = (res[2] + res[3]) / 2
+        self.radius = 40
+        self.theta = 0
 
         self.traffic_manager.reset(pg_world, map, traffic_density)
         self.object_manager.reset(pg_world, map, accident_prob)
@@ -120,6 +125,10 @@ class SceneManager:
         pg_world = self.pg_world
         dt = pg_world.world_config["physics_world_step_size"]
         for i in range(step_num):
+
+            self.theta += 0.002
+            self.pg_world.cam.setPos(self.x + self.radius * np.cos(self.theta), self.y - self.radius * np.sin(self.theta), 50)
+            self.pg_world.cam.lookAt(self.x, self.y, 0)
             # simulate or replay
             if self.replay_system is None:
                 # not in replay mode

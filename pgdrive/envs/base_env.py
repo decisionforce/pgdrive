@@ -46,7 +46,7 @@ BASE_DEFAULT_CONFIG = dict(
 
     # ===== Vehicle =====
     vehicle_config=dict(
-        show_navi_mark=True,
+        show_navi_mark=False,
         wheel_friction=0.6,
         max_engine_force=500,
         max_brake_force=40,
@@ -64,8 +64,8 @@ BASE_DEFAULT_CONFIG = dict(
     pg_world_config=dict(
         window_size=(1200, 900),  # width, height
         physics_world_step_size=2e-2,
-        show_fps=True,
-        global_light=False,
+        show_fps=False,
+        global_light=True,
 
         # show message when render is called
         onscreen_message=True,

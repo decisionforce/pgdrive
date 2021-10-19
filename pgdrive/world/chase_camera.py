@@ -181,7 +181,7 @@ class ChaseCamera:
             self.camera_x -= 1.0
         if self.inputs.isSet("right"):
             self.camera_x += 1.0
-        self.camera.setPos(self.camera_x, self.camera_y, self.top_down_camera_height)
+        # self.camera.setPos(self.camera_x, self.camera_y, self.top_down_camera_height)
         return task.cont
 
     def _update_height(self, height):
