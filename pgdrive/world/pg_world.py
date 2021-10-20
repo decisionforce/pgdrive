@@ -114,22 +114,25 @@ class PGWorld(ShowBase.ShowBase):
                 pass
             else:
                 loadPrcFileData("", "compressed-textures 1")  # Default to compress
-            h = self.pipe.getDisplayHeight()
-            w = self.pipe.getDisplayWidth()
-            if self.world_config["window_size"][0] > 0.9 * w or self.world_config["window_size"][1] > 0.9 * h:
-                old_scale = self.world_config["window_size"][0] / self.world_config["window_size"][1]
-                new_w = int(min(0.9 * w, 0.9 * h * old_scale))
-                new_h = int(min(0.9 * h, 0.9 * w / old_scale))
-                self.world_config["window_size"] = tuple([new_w, new_h])
-                from panda3d.core import WindowProperties
-                props = WindowProperties()
-                props.setSize(self.world_config["window_size"][0], self.world_config["window_size"][1])
-                self.win.requestProperties(props)
-                logging.warning(
-                    "Since your screen is too small ({}, {}), we resize the window to {}.".format(
-                        w, h, self.world_config["window_size"]
-                    )
-                )
+
+            # h = self.pipe.getDisplayHeight()
+            # w = self.pipe.getDisplayWidth()
+            # if self.world_config["window_size"][0] > 0.9 * w or self.world_config["window_size"][1] > 0.9 * h:
+            #     old_scale = self.world_config["window_size"][0] / self.world_config["window_size"][1]
+            #     new_w = int(min(0.9 * w, 0.9 * h * old_scale))
+            #     new_h = int(min(0.9 * h, 0.9 * w / old_scale))
+            #     self.world_config["window_size"] = tuple([new_w, new_h])
+            #     from panda3d.core import WindowProperties
+            #     props = WindowProperties()
+            #     props.setSize(self.world_config["window_size"][0], self.world_config["window_size"][1])
+            #     self.win.requestProperties(props)
+            #     logging.warning(
+            #         "Since your screen is too small ({}, {}), we resize the window to {}.".format(
+            #             w, h, self.world_config["window_size"]
+            #         )
+            #     )
+
+
             # main_window_position = (
             #     (w - self.world_config["window_size"][0]) / 2, (h - self.world_config["window_size"][1]) / 2
             # )

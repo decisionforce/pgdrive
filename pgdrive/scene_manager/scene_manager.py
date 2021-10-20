@@ -10,6 +10,7 @@ from pgdrive.scene_manager.replay_record_system import PGReplayer, PGRecorder
 from pgdrive.scene_manager.traffic_manager import TrafficManager
 from pgdrive.utils import PGConfig
 from pgdrive.world.pg_world import PGWorld
+from panda3d.core import PNMImage
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class SceneManager:
         record_episode: bool,
         cull_scene: bool,
         agent_manager: "AgentManager",
+            folder_name
     ):
         """
         :param traffic_mode: respawn/trigger mode
@@ -58,6 +60,9 @@ class SceneManager:
         self.theta = 0
         self.speed = 0.002
 
+        self._step_count = 0
+        self.folder_name = folder_name
+
     def _get_traffic_manager(self, traffic_config):
         return TrafficManager(self, traffic_config["traffic_mode"], traffic_config["random_traffic"])
 
@@ -76,6 +81,8 @@ class SceneManager:
         self.radius = 40
         self.height = 50
         self.theta = 0
+
+        self._step_count = 0
 
         self.traffic_manager.reset(pg_world, map, traffic_density)
         self.object_manager.reset(pg_world, map, accident_prob)
@@ -154,6 +161,14 @@ class SceneManager:
             if pg_world.force_fps.real_time_simulation and i < step_num - 1:
                 # insert frame to render in min step_size
                 pg_world.taskMgr.step()
+
+
+            img = PNMImage()
+            self.pg_world.win.getScreenshot(img)
+            img.write("{}/{:05d}.jpg".format(self.folder_name, self._step_count))
+
+            self._step_count += 1
+
         #  panda3d render and garbage collecting loop
         pg_world.taskMgr.step()
 

@@ -34,7 +34,7 @@ BASE_DEFAULT_CONFIG = dict(
     use_render=False,  # pop a window to render or not
     # force_fps=None,
     debug=False,
-    fast=False,  # disable compression if you wish to launch the window quicker.
+    fast=True,  # disable compression if you wish to launch the window quicker.
     cull_scene=True,  # only for debug use
     manual_control=False,
     controller="keyboard",  # "joystick" or "keyboard"
@@ -43,6 +43,8 @@ BASE_DEFAULT_CONFIG = dict(
     camera_height=1.8,
     camera_dist=7,
     prefer_track_agent=None,
+
+    folder_name="video_frame",
 
     # ===== Vehicle =====
     vehicle_config=dict(
@@ -62,7 +64,7 @@ BASE_DEFAULT_CONFIG = dict(
 
     # ===== Others =====
     pg_world_config=dict(
-        window_size=(1200, 900),  # width, height
+        window_size=(2000, 1500),  # width, height
         physics_world_step_size=2e-2,
         show_fps=False,
         global_light=True,
@@ -183,7 +185,8 @@ class BasePGDriveEnv(gym.Env):
             traffic_config=traffic_config,
             record_episode=self.config["record_episode"],
             cull_scene=self.config["cull_scene"],
-            agent_manager=self.agent_manager
+            agent_manager=self.agent_manager,
+            folder_name=self.config["folder_name"]
         )
         return manager
 
