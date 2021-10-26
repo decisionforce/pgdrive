@@ -3,11 +3,13 @@ from typing import Optional, Union, Iterable
 
 import cv2
 import numpy as np
+import seaborn as sns
 
 from pgdrive.constants import Decoration, TARGET_VEHICLES
 from pgdrive.obs.top_down_obs_impl import WorldSurface, VehicleGraphics, LaneGraphics
 from pgdrive.utils.utils import import_pygame
 
+colorblind_color = sns.color_palette("colorblind")
 pygame = import_pygame()
 
 color_white = (255, 255, 255)
@@ -15,13 +17,13 @@ history_vehicle = namedtuple("history_vehicle", "name position heading_theta WID
 
 
 def draw_top_down_map(
-    map,
-    resolution: Iterable = (512, 512),
-    simple_draw=True,
-    return_surface=False,
-    film_size=None,
-    reverse_color=False,
-    road_color=color_white
+        map,
+        resolution: Iterable = (512, 512),
+        simple_draw=True,
+        return_surface=False,
+        film_size=None,
+        reverse_color=False,
+        road_color=color_white
 ) -> Optional[Union[np.ndarray, pygame.Surface]]:
     film_size = film_size or map.film_size
     surface = WorldSurface(film_size, 0, pygame.Surface(film_size))
@@ -54,7 +56,7 @@ def draw_top_down_map(
 
 
 def draw_top_down_trajectory(
-    surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
+        surface: WorldSurface, episode_data: dict, entry_differ_color=False, exit_differ_color=False, color_list=None
 ):
     if entry_differ_color or exit_differ_color:
         assert color_list is not None
@@ -113,18 +115,18 @@ def draw_top_down_trajectory(
 
 class TopDownRenderer:
     def __init__(
-        self,
-        env,
-        map,
-        film_size=None,
-        screen_size=None,
-        light_background=True,
-        zoomin=None,
-        num_stack=15,
-        history_smooth=0,
-        road_color=(255, 255, 255),
-        show_agent_name=False,
-        track=False
+            self,
+            env,
+            map,
+            film_size=None,
+            screen_size=None,
+            light_background=True,
+            zoomin=None,
+            num_stack=15,
+            history_smooth=0,
+            road_color=(255, 255, 255),
+            show_agent_name=False,
+            track=False
     ):
         self.follow_agent = track
         self.show_agent_name = show_agent_name
@@ -140,6 +142,7 @@ class TopDownRenderer:
         self.stack_frames = deque(maxlen=num_stack)
         self.history_vehicles = deque(maxlen=num_stack)
         self.cam_smooth = deque(maxlen=10)
+        self.cam_smooth_last_v = None
         self.history_smooth = history_smooth
 
         self._background = draw_top_down_map(
@@ -150,7 +153,7 @@ class TopDownRenderer:
         self._light_background = light_background
         if self._light_background:
             pixels = pygame.surfarray.pixels2d(self._background)
-            pixels ^= 2**32 - 1
+            pixels ^= 2 ** 32 - 1
             del pixels
 
         self._runtime = self._background.copy()
@@ -161,7 +164,6 @@ class TopDownRenderer:
 
         self._screen = pygame.display.set_mode(self._screen_size if self._screen_size is not None else self._film_size)
         self.canvas = pygame.Surface(self._screen.get_size())
-
 
         self._rotate_medium = pygame.Surface([x * 2 for x in self._screen.get_size()])
 
@@ -175,6 +177,9 @@ class TopDownRenderer:
             screen_size[1]
         )
         self.blit()
+
+    def reset(self):
+        self.cam_smooth.clear()
 
     def refresh(self):
         # self._runtime.blit(self._background, self._blit_rect)
@@ -239,6 +244,11 @@ class TopDownRenderer:
         return frame_vehicles
 
     def _draw_history_vehicles(self):
+        self._env.current_track_vehicle.color = [cc * 255 for cc in colorblind_color[2]]
+        if self.cam_smooth_last_v != self._env.current_track_vehicle and hasattr(self, "_old_color"):
+            self.cam_smooth_last_v.color = self._old_color
+        self._old_color = self._env.current_track_vehicle.color
+
         if len(self.history_vehicles) == 0:
             return
         for i, vehicles in enumerate(self.history_vehicles):
@@ -246,7 +256,13 @@ class TopDownRenderer:
             if self.history_smooth != 0 and (i % self.history_smooth != 0):
                 continue
             for v in vehicles:
+
+
                 c = v.color
+
+                if v.name == self._env.agent_manager.object_to_agent(self._env.current_track_vehicle.name):
+                    c = [cc * 255 for cc in colorblind_color[2]]
+
                 h = v.heading_theta
                 h = h if abs(h) > 2 * np.pi / 180 else 0
                 x = abs(int(i))
@@ -265,6 +281,11 @@ class TopDownRenderer:
         for v in self.history_vehicles[i]:
             h = v.heading_theta
             c = v.color
+
+            if v.name == self._env.agent_manager.object_to_agent(self._env.current_track_vehicle.name):
+                c = [cc * 255 for cc in colorblind_color[2]]
+
+
             h = h if abs(h) > 2 * np.pi / 180 else 0
             # x = abs(int(i))
             # alpha_f = x / len(self.history_vehicles)
@@ -281,25 +302,25 @@ class TopDownRenderer:
         if not hasattr(self, "_deads"):
             self._deads = []
 
-        for v in self._deads:
-            pygame.draw.circle(
-                self._runtime,
-                (255, 0, 0),
-                self._runtime.pos2pix(v.position[0], v.position[1]),
-                # self._runtime.pix(v.WIDTH)
-                5
-            )
+        # for v in self._deads:
+        #     pygame.draw.circle(
+        #         self._runtime,
+        #         (255, 0, 0),
+        #         self._runtime.pos2pix(v.position[0], v.position[1]),
+        #         # self._runtime.pix(v.WIDTH)
+        #         5
+        #     )
 
-        for v in self.history_vehicles[i]:
-            if v.done:
-                pygame.draw.circle(
-                    self._runtime,
-                    (255, 0, 0),
-                    self._runtime.pos2pix(v.position[0], v.position[1]),
-                    # self._runtime.pix(v.WIDTH)
-                    5
-                )
-                self._deads.append(v)
+        # for v in self.history_vehicles[i]:
+        #     if v.done:
+        #         pygame.draw.circle(
+        #             self._runtime,
+        #             (255, 0, 0),
+        #             self._runtime.pos2pix(v.position[0], v.position[1]),
+        #             # self._runtime.pix(v.WIDTH)
+        #             5
+        #         )
+        #         self._deads.append(v)
 
         # Tracking Vehicle1
         # heading = 30
@@ -314,21 +335,26 @@ class TopDownRenderer:
             field = self.canvas.get_width()
             position = self._runtime.pos2pix(*v.position)
 
-            if True: # Rotate
+            if self.cam_smooth_last_v != v:
+                self.cam_smooth.clear()
+
+            self.cam_smooth_last_v = v
+
+            if True:  # Rotate
                 off = [position[0] - field, position[1] - field]
                 self._rotate_medium.blit(canvas, (0, 0), (off[0], off[1], field * 2, field * 2))
-                t = np.pi / 2 + v.heading_theta
+                t = v.heading_theta
+                print(v)
                 self.cam_smooth.append(t)
-                t = np.mean(self.cam_smooth)
+                t = np.pi / 2 + np.mean(self.cam_smooth)
                 canvas = pygame.transform.rotozoom(self._rotate_medium, np.rad2deg(t), 1.0)
                 self.canvas.blit(canvas, (0, 0), (
-                    (canvas.get_size()[0] - field)/2,
-                    (canvas.get_size()[1] - field)/2 - 0.1 * field,
+                    (canvas.get_size()[0] - field) / 2,
+                    (canvas.get_size()[1] - field) / 2 - 0.1 * field,
                     field,
                     field
                 ))
             else:
-
 
                 off = (position[0] - field / 2, position[1] - field / 2)
                 self.canvas.blit(canvas, (0, 0), (off[0], off[1], field, field))
@@ -407,7 +433,7 @@ class PheromoneRenderer(TopDownRenderer):
             self._pheromone_surface = pygame.Surface(phero.shape[:2])
 
         if self._color_map is None:
-            color_map = np.zeros(phero.shape[:2] + (3, ), dtype=np.uint8)
+            color_map = np.zeros(phero.shape[:2] + (3,), dtype=np.uint8)
             color_map[0:100, :70] = (255, 150, 255)
             color_map[100:120, :70] = (155, 92, 155)
             color_map[120:140, :70] = (55, 32, 55)

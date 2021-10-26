@@ -159,6 +159,8 @@ class MultiAgentPGDrive(PGDriveEnvV2):
         self.config = self._update_agent_pos_configs(self.config)
         ret = super(MultiAgentPGDrive, self).reset(*args, **kwargs)
         assert (len(self.vehicles) == self.num_agents) or (self.num_agents == -1)
+        if hasattr(self, "_top_down_renderer") and self._top_down_renderer is not None:
+            self._top_down_renderer.reset()
         return ret
 
     def _reset_agents(self):
@@ -331,7 +333,7 @@ def _test():
     import numpy as np
     for i in range(1, 100000):
         # o, r, d, info = env.step(env.action_space.sample())
-        o, r, d, info = env.step({v_id: [-0.1 if v_count % 2 else 0.1, 0.1] for v_count, v_id in enumerate(env.vehicles.keys())})
+        o, r, d, info = env.step({v_id: [-0.1 if v_count % 2 else 0.0, 0.1] for v_count, v_id in enumerate(env.vehicles.keys())})
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])
