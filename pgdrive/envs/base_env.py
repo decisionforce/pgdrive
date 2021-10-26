@@ -44,7 +44,7 @@ BASE_DEFAULT_CONFIG = dict(
     camera_dist=7,
     prefer_track_agent=None,
 
-    folder_name="video_frame",
+    folder_name="",
 
     # ===== Vehicle =====
     vehicle_config=dict(

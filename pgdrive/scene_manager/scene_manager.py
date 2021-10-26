@@ -141,13 +141,13 @@ class SceneManager:
         dt = pg_world.world_config["physics_world_step_size"]
         for i in range(step_num):
 
-            self.theta += self.speed
-            self.pg_world.cam.setPos(self.x + self.radius * np.cos(self.theta), self.y - self.radius * np.sin(self.theta), self.height)
+            # self.theta += self.speed
+            # self.pg_world.cam.setPos(self.x + self.radius * np.cos(self.theta), self.y - self.radius * np.sin(self.theta), self.height)
+            # lr = 1
+            # lx = self.x + lr * np.cos(self.theta)
+            # ly = self.y - lr * np.sin(self.theta)
+            # self.pg_world.cam.lookAt(lx, ly, 0)
 
-            lr = 1
-            lx = self.x + lr * np.cos(self.theta)
-            ly = self.y - lr * np.sin(self.theta)
-            self.pg_world.cam.lookAt(lx, ly, 0)
             # simulate or replay
             if self.replay_system is None:
                 # not in replay mode
@@ -166,10 +166,10 @@ class SceneManager:
                 # insert frame to render in min step_size
                 pg_world.taskMgr.step()
 
-
-            img = PNMImage()
-            self.pg_world.win.getScreenshot(img)
-            img.write("{}/{:05d}.jpg".format(self.folder_name, self._step_count))
+            if self.folder_name:
+                img = PNMImage()
+                self.pg_world.win.getScreenshot(img)
+                img.write("{}/{:05d}.jpg".format(self.folder_name, self._step_count))
 
             self._step_count += 1
 

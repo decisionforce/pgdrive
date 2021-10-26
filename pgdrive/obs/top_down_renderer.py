@@ -161,6 +161,9 @@ class TopDownRenderer:
         self._screen = pygame.display.set_mode(self._screen_size if self._screen_size is not None else self._film_size)
         self.canvas = pygame.Surface(self._screen.get_size())
 
+
+        self._rotate_medium = pygame.Surface([x * 2 for x in self._screen.get_size()])
+
         self._screen.set_alpha(None)
         self._screen.fill(color_white)
 
@@ -176,6 +179,7 @@ class TopDownRenderer:
         # self._runtime.blit(self._background, self._blit_rect)
         self._runtime.blit(self._background, (0, 0))
         self.canvas.fill((255, 255, 255))
+        self._rotate_medium.fill((255, 255, 255))
 
     def render(self, vehicles, agent_manager, *args, **kwargs):
         self.refresh()
@@ -296,7 +300,7 @@ class TopDownRenderer:
                 )
                 self._deads.append(v)
 
-        # Tracking Vehicle
+        # Tracking Vehicle1
         # heading = 30
         # rotation = np.rad2deg(heading) + 90
         # heading = self._env.current_track_vehicle.heading_theta
@@ -305,10 +309,26 @@ class TopDownRenderer:
         if self.follow_agent:
             v = self._env.current_track_vehicle
             canvas = self._runtime
+
             field = self.canvas.get_width()
             position = self._runtime.pos2pix(*v.position)
-            off = (position[0] - field / 2, position[1] - field / 2)
-            self.canvas.blit(canvas, (0, 0), (off[0], off[1], field, field))
+
+            if True: # Rotate
+                off = [position[0] - field, position[1] - field]
+                self._rotate_medium.blit(canvas, (0, 0), (off[0], off[1], field * 2, field * 2))
+                t = np.pi / 2 + v.heading_theta
+                canvas = pygame.transform.rotozoom(self._rotate_medium, np.rad2deg(t), 1.0)
+                self.canvas.blit(canvas, (0, 0), (
+                    (canvas.get_size()[0] - field)/2,
+                    (canvas.get_size()[1] - field)/2 - 0.1 * field,
+                    field,
+                    field
+                ))
+            else:
+
+
+                off = (position[0] - field / 2, position[1] - field / 2)
+                self.canvas.blit(canvas, (0, 0), (off[0], off[1], field, field))
         else:
             self.canvas.blit(self._runtime, (0, 0))
             off = (0, 0)

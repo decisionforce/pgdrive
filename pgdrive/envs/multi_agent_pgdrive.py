@@ -220,12 +220,13 @@ class MultiAgentPGDrive(PGDriveEnvV2):
 
         # Use top-down view by default
         if hasattr(self, "main_camera") and self.main_camera is not None:
-            top_down_camera_height = self.config["top_down_camera_initial_z"]
-            self.main_camera.camera.setPos(0, 0, top_down_camera_height)
-            self.main_camera.top_down_camera_height = top_down_camera_height
-            self.main_camera.stop_track(self.pg_world, self.current_track_vehicle)
-            self.main_camera.camera_x += self.config["top_down_camera_initial_x"]
-            self.main_camera.camera_y += self.config["top_down_camera_initial_y"]
+            self.current_track_vehicle.remove_display_region()
+        #     top_down_camera_height = self.config["top_down_camera_initial_z"]
+        #     self.main_camera.camera.setPos(0, 0, top_down_camera_height)
+        #     self.main_camera.top_down_camera_height = top_down_camera_height
+        #     self.main_camera.stop_track(self.pg_world, self.current_track_vehicle)
+        #     self.main_camera.camera_x += self.config["top_down_camera_initial_x"]
+        #     self.main_camera.camera_y += self.config["top_down_camera_initial_y"]
 
     def _respawn_vehicles(self, randomize_position=False):
         new_obs_dict = {}
@@ -314,9 +315,9 @@ def _test():
     setup_logger(True)
     env = MultiAgentPGDrive(
         {
-            "num_agents": 12,
+            "num_agents": 1,
             "allow_respawn": False,
-            "use_render": True,
+            "use_render": False,
             "debug": False,
             "fast": True,
             "manual_control": True,
@@ -327,15 +328,31 @@ def _test():
     )
     o = env.reset()
     total_r = 0
+    import numpy as np
     for i in range(1, 100000):
         # o, r, d, info = env.step(env.action_space.sample())
-        o, r, d, info = env.step({v_id: [0, 1] for v_id in env.vehicles.keys()})
+        o, r, d, info = env.step({v_id: [-0.1 if v_count % 2 else 0.1, 0.1] for v_count, v_id in enumerate(env.vehicles.keys())})
         for r_ in r.values():
             total_r += r_
         # o, r, d, info = env.step([0,1])
         d.update({"total_r": total_r})
         # env.render(text=d)
-        env.render(mode="top_down")
+        env.render(mode="top_down",
+
+                   show_agent_name=False,
+
+                   # film_size=(6000, 6000),
+                   # screen_size=(2000, 2000),
+
+                   film_size=(3000, 3000),
+                   screen_size=(1000, 1000),
+
+
+                   road_color=(35, 35, 35),
+                   track=True,
+
+                   num_stack=30,
+                   )
         if len(env.vehicles) == 0:
             total_r = 0
             print("Reset")
