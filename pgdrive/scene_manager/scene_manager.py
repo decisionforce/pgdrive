@@ -143,7 +143,11 @@ class SceneManager:
 
             self.theta += self.speed
             self.pg_world.cam.setPos(self.x + self.radius * np.cos(self.theta), self.y - self.radius * np.sin(self.theta), self.height)
-            self.pg_world.cam.lookAt(self.x, self.y, 0)
+
+            lr = 1
+            lx = self.x + lr * np.cos(self.theta)
+            ly = self.y - lr * np.sin(self.theta)
+            self.pg_world.cam.lookAt(lx, ly, 0)
             # simulate or replay
             if self.replay_system is None:
                 # not in replay mode

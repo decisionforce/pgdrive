@@ -29,7 +29,7 @@ class ChaseCamera:
         self.camera = camera
         self.camera_queue = None
         self.camera_dist = camera_dist
-        self.direction_running_mean = deque(maxlen=20)
+        self.direction_running_mean = deque(maxlen=30)
         self.light = pg_world.light  # light position is updated with the chase camera when control vehicle
         self.inputs = InputState()
 
