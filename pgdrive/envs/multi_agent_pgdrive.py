@@ -315,7 +315,7 @@ def _test():
     setup_logger(True)
     env = MultiAgentPGDrive(
         {
-            "num_agents": 1,
+            "num_agents": 12,
             "allow_respawn": False,
             "use_render": False,
             "debug": False,
@@ -345,7 +345,7 @@ def _test():
                    # screen_size=(2000, 2000),
 
                    film_size=(3000, 3000),
-                   screen_size=(1000, 1000),
+                   screen_size=(500, 500),
 
 
                    road_color=(35, 35, 35),

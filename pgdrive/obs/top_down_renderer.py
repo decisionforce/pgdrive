@@ -139,6 +139,7 @@ class TopDownRenderer:
         self._map = map
         self.stack_frames = deque(maxlen=num_stack)
         self.history_vehicles = deque(maxlen=num_stack)
+        self.cam_smooth = deque(maxlen=10)
         self.history_smooth = history_smooth
 
         self._background = draw_top_down_map(
@@ -317,6 +318,8 @@ class TopDownRenderer:
                 off = [position[0] - field, position[1] - field]
                 self._rotate_medium.blit(canvas, (0, 0), (off[0], off[1], field * 2, field * 2))
                 t = np.pi / 2 + v.heading_theta
+                self.cam_smooth.append(t)
+                t = np.mean(self.cam_smooth)
                 canvas = pygame.transform.rotozoom(self._rotate_medium, np.rad2deg(t), 1.0)
                 self.canvas.blit(canvas, (0, 0), (
                     (canvas.get_size()[0] - field)/2,
