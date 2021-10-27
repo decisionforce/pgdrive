@@ -145,10 +145,12 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                 d[new_id] = False
 
         # Update __all__
-        d["__all__"] = (
-            ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
-            or (self.episode_steps >= 5 * self.config["horizon"])
-        )
+        if ("__all__" not in d) or (d["__all__"] is False):
+            d["__all__"] = (
+                ((self.episode_steps >= self.config["horizon"]) and (all(d.values()))) or (len(self.vehicles) == 0)
+                or (self.episode_steps >= 5 * self.config["horizon"])
+            )
+
         if d["__all__"]:
             for k in d.keys():
                 d[k] = True
@@ -181,12 +183,16 @@ class MultiAgentPGDrive(PGDriveEnvV2):
                     info[v_id][TerminationState.MAX_STEP] = True
                     dones[v_id] = True
                     self.dones[v_id] = True
+        some_dead = False
         for dead_vehicle_id, done in dones.items():
             if done:
                 self.agent_manager.finish(
                     dead_vehicle_id, ignore_delay_done=info[dead_vehicle_id].get(TerminationState.SUCCESS, False)
                 )
                 self._update_camera_after_finish(dead_vehicle_id)
+                some_dead = True
+        # if some_dead:
+        #     dones["__all__"] = True  # Stop the episode directly.
         return obs, reward, dones, info
 
     def _update_camera_after_finish(self, dead_vehicle_id):

@@ -104,6 +104,8 @@ class BaseVehicle(DynamicElement):
         color = sns.color_palette("colorblind")
         idx = get_np_random().randint(len(color))
         rand_c = color[idx]
+        if am_i_the_special_one:
+            rand_c = color[2]  # A pretty green
         self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
         self.panda_color = rand_c
 
@@ -153,13 +155,6 @@ class BaseVehicle(DynamicElement):
         self.front_vehicles = set()
         self.back_vehicles = set()
 
-        # color
-        color = sns.color_palette("colorblind")
-        idx = get_np_random().randint(len(color))
-        rand_c = color[idx]
-        if am_i_the_special_one:
-            rand_c = color[2]  # A pretty green
-        self.top_down_color = (rand_c[0] * 255, rand_c[1] * 255, rand_c[2] * 255)
 
     def _add_modules_for_vehicle(self, use_render: bool):
         # add self module for training according to config
@@ -558,7 +553,8 @@ class BaseVehicle(DynamicElement):
                     (
                         self.panda_color[0] * self.MATERIAL_COLOR_COEFF,
                         self.panda_color[1] * self.MATERIAL_COLOR_COEFF,
-                        self.panda_color[2] * self.MATERIAL_COLOR_COEFF, 0.2
+                        self.panda_color[2] * self.MATERIAL_COLOR_COEFF,
+                        0.2
                     )
                 )
                 material.setMetallic(self.MATERIAL_METAL_COEFF)

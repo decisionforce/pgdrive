@@ -537,8 +537,11 @@ class PGDriveEnv(BasePGDriveEnv):
             if not done:
                 new_v = get_np_random().choice(vehicles)
                 self.current_track_vehicle = new_v
-        self.current_track_vehicle.add_to_display()
+        # self.current_track_vehicle.add_to_display()
         self.main_camera.track(self.current_track_vehicle, self.pg_world)
+
+        # print("In environment side, we are chasing: ", self.current_track_vehicle)
+
         return
 
     def bird_view_camera(self):

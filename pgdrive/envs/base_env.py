@@ -64,7 +64,7 @@ BASE_DEFAULT_CONFIG = dict(
 
     # ===== Others =====
     pg_world_config=dict(
-        window_size=(2000, 1500),  # width, height
+        window_size=(1600, 1200),  # width, height
         physics_world_step_size=2e-2,
         show_fps=False,
         global_light=True,

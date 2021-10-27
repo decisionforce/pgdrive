@@ -15,6 +15,15 @@ pygame = import_pygame()
 color_white = (255, 255, 255)
 history_vehicle = namedtuple("history_vehicle", "name position heading_theta WIDTH LENGTH color done")
 
+def angular_mean(angles):
+    """
+    See: https://en.wikipedia.org/wiki/Circular_mean
+    """
+    angles = np.asarray(angles)
+    return np.arctan2(
+        np.sum(np.sin(angles)),
+        np.sum(np.cos(angles))
+    )
 
 def draw_top_down_map(
         map,
@@ -244,10 +253,10 @@ class TopDownRenderer:
         return frame_vehicles
 
     def _draw_history_vehicles(self):
-        self._env.current_track_vehicle.color = [cc * 255 for cc in colorblind_color[2]]
-        if self.cam_smooth_last_v != self._env.current_track_vehicle and hasattr(self, "_old_color"):
-            self.cam_smooth_last_v.color = self._old_color
-        self._old_color = self._env.current_track_vehicle.color
+        # self._env.current_track_vehicle.color = [cc * 255 for cc in colorblind_color[2]]
+        # if self.cam_smooth_last_v != self._env.current_track_vehicle and hasattr(self, "_old_color"):
+        #     self.cam_smooth_last_v.color = self._old_color
+        # self._old_color = self._env.current_track_vehicle.color
 
         if len(self.history_vehicles) == 0:
             return
@@ -260,8 +269,8 @@ class TopDownRenderer:
 
                 c = v.color
 
-                if v.name == self._env.agent_manager.object_to_agent(self._env.current_track_vehicle.name):
-                    c = [cc * 255 for cc in colorblind_color[2]]
+                # if v.name == self._env.agent_manager.object_to_agent(self._env.current_track_vehicle.name):
+                #     c = [cc * 255 for cc in colorblind_color[2]]
 
                 h = v.heading_theta
                 h = h if abs(h) > 2 * np.pi / 180 else 0
@@ -282,8 +291,8 @@ class TopDownRenderer:
             h = v.heading_theta
             c = v.color
 
-            if v.name == self._env.agent_manager.object_to_agent(self._env.current_track_vehicle.name):
-                c = [cc * 255 for cc in colorblind_color[2]]
+            # if v.name == self._env.agent_manager.object_to_agent(self._env.current_track_vehicle.name):
+            #     c = [cc * 255 for cc in colorblind_color[2]]
 
 
             h = h if abs(h) > 2 * np.pi / 180 else 0
@@ -331,7 +340,7 @@ class TopDownRenderer:
         if self.follow_agent:
             v = self._env.current_track_vehicle
             canvas = self._runtime
-
+            # print("In top-down side, we are chasing: ", v)
             field = self.canvas.get_width()
             position = self._runtime.pos2pix(*v.position)
 
@@ -343,14 +352,16 @@ class TopDownRenderer:
             if True:  # Rotate
                 off = [position[0] - field, position[1] - field]
                 self._rotate_medium.blit(canvas, (0, 0), (off[0], off[1], field * 2, field * 2))
-                t = v.heading_theta
-                print(v)
+                t = v.heading_theta + np.pi / 2
+                # t = np.rad2deg(np.pi / 2 + t)
+                # t = np.rad2deg(t)
                 self.cam_smooth.append(t)
-                t = np.pi / 2 + np.mean(self.cam_smooth)
+                # old_t = v.heading_theta
+                t = angular_mean(self.cam_smooth)
                 canvas = pygame.transform.rotozoom(self._rotate_medium, np.rad2deg(t), 1.0)
                 self.canvas.blit(canvas, (0, 0), (
                     (canvas.get_size()[0] - field) / 2,
-                    (canvas.get_size()[1] - field) / 2 - 0.1 * field,
+                    (canvas.get_size()[1] - field) / 2, # - 0.1 * field,
                     field,
                     field
                 ))
