@@ -37,7 +37,7 @@ for ele in ext_modules:
 
 install_requires = [
     "gym",
-    "numpy<=1.19.3",
+    "numpy<=1.22.4",
     "matplotlib",
     "pandas",
     "pygame",
